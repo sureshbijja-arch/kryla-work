@@ -1,9 +1,9 @@
 type Props = {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
-export default function ProviderPage({ params }: Props) {
-  const { slug } = params
+export default async function ProviderPage({ params }: Props) {
+  const { slug } = await params
 
   return (
     <div style={{
@@ -16,7 +16,6 @@ export default function ProviderPage({ params }: Props) {
       background: '#0D0D0D',
       color: '#fff',
     }}>
-      {/* Kryla logo mark */}
       <svg width="64" height="64" viewBox="0 0 120 120" fill="none" style={{ marginBottom: 32 }}>
         <rect width="120" height="120" rx="26" fill="#1a1a1a"/>
         <rect x="28" y="18" width="10" height="84" rx="5" fill="white"/>
