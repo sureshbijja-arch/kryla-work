@@ -409,6 +409,18 @@ const CSS = `
   .cta-sec .btn-primary:hover { box-shadow: 0 12px 36px rgba(13,13,13,0.22); }
   .cta-note { margin-top: 16px; font-size: 13px; color: rgba(13,13,13,0.42); }
 
+  /* ─── FOOTER ─── */
+  .v2-footer {
+    background: #FAFAFA;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    padding: 40px 32px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    text-align: center;
+  }
+  .footer-brand { display: flex; align-items: center; gap: 8px; }
+  .footer-wordmark { font-size: 16px; font-weight: 800; letter-spacing: -0.5px; }
+  .footer-copy { font-size: 12px; color: rgba(13,13,13,0.35); }
+
   /* ─── CENTERED SECTION HEADS ─── */
   .sec-head-center { text-align: center; margin-bottom: 56px; }
   .sec-head-center .sec-h2 { max-width: 600px; margin-left: auto; margin-right: auto; margin-bottom: 0; }
@@ -651,6 +663,10 @@ export default function V2Page() {
           </div>
           <p className="hero-proof">Free to start · No card needed · Live in 15 minutes · Works on WhatsApp</p>
         </div>
+
+        {/* K mark watermark */}
+        <img src="/kryla-icon-saffron.svg" height="48" alt="" aria-hidden="true"
+          style={{position:'absolute', bottom:'20px', right:'20px', opacity:0.08, pointerEvents:'none'}} />
 
       </section>
 
@@ -911,12 +927,26 @@ export default function V2Page() {
 
       {/* ── CTA — amber #F5A623 ── */}
       <section className="cta-sec">
+        <img src="/kryla-icon-dark.svg" height="64" alt="" aria-hidden="true"
+          style={{opacity:0.15, marginBottom:'16px'}} />
         <p className="cta-eyebrow">YOUR SPOT IS WAITING</p>
         <h2 className="cta-h2">Ready to claim yours?</h2>
         <p className="cta-sub">Free to join. Live in 15 minutes.</p>
         <a href="/onboarding" className="btn-primary lg">Claim your spot — it&apos;s free →</a>
         <p className="cta-note">No card needed · Cancel anytime</p>
       </section>
+
+      {/* ── FOOTER ── */}
+      <footer className="v2-footer">
+        <div className="footer-brand">
+          <img src="/kryla-icon-saffron.svg" height="20" alt="" aria-hidden="true" style={{opacity:0.55}} />
+          <span className="footer-wordmark">
+            <span style={{color:'rgba(13,13,13,0.5)'}}>kryla</span>
+            <span style={{color:'#F5A623'}}>.work</span>
+          </span>
+        </div>
+        <p className="footer-copy">© 2025 Kryla.work · Built for makers everywhere.</p>
+      </footer>
     </div>
   );
 }
