@@ -49,13 +49,15 @@ const CSS = `
   .loc-pill {
     background: none; border: none; cursor: pointer;
     padding: 5px 18px; border-radius: 100px;
-    font-size: 13px; font-weight: 600;
-    color: rgba(255,255,255,0.38);
+    font-weight: 600; color: #FFFFFF;
     transition: background 0.2s, color 0.2s;
     font-family: var(--ff); line-height: 1;
+    display: inline-flex; align-items: center; gap: 5px;
   }
-  .loc-pill:hover { color: rgba(255,255,255,0.65); }
+  .loc-pill:hover { color: rgba(255,255,255,0.75); }
   .loc-pill.active { background: var(--amber); color: #0D0D0D; }
+  .loc-code { font-size: 9px; opacity: 0.7; letter-spacing: 0.04em; }
+  .loc-name { font-size: 13px; font-weight: 700; }
 
   /* ─── NAV ─── */
   .v2-nav {
@@ -78,7 +80,7 @@ const CSS = `
 
   /* ─── HERO ─── */
   .hero {
-    background: linear-gradient(135deg, #FFF3D4 0%, #FFE8A3 40%, #FFF0C8 100%);
+    background: #FFE066;
     border-bottom: 1px solid rgba(245,166,35,0.2);
     padding: 152px 24px 100px;
     display: flex; flex-direction: column; align-items: center;
@@ -91,7 +93,7 @@ const CSS = `
   }
   .hero-eyebrow {
     font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
-    text-transform: uppercase; color: var(--amber);
+    text-transform: uppercase; color: #B8860B;
     margin-bottom: 30px;
     animation: fadeUp 0.55s ease both 0.05s;
   }
@@ -109,19 +111,19 @@ const CSS = `
   .h1-l2 {
     font-size: clamp(34px, 6.5vw, 52px);
     font-weight: 900; line-height: 1.1;
-    letter-spacing: -0.025em; color: var(--amber);
+    letter-spacing: -0.025em; color: #C17900;
     animation: fadeUp 0.55s ease both 0.34s;
   }
   .h1-l3 {
     font-size: clamp(18px, 3vw, 26px);
     font-weight: 500; line-height: 1.35;
-    color: rgba(13,13,13,0.55);
+    color: #444444;
     margin-top: 12px;
     animation: fadeUp 0.55s ease both 0.52s;
   }
   .hero-sub {
     font-size: clamp(16px, 2.2vw, 20px);
-    color: rgba(13,13,13,0.55);
+    color: #666666;
     line-height: 1.65; max-width: 480px;
     margin-bottom: 40px;
     animation: fadeUp 0.55s ease both 0.68s;
@@ -158,6 +160,10 @@ const CSS = `
     transition: border-color 0.2s, color 0.2s;
   }
   .btn-secondary:hover { border-color: rgba(13,13,13,0.5); color: #0D0D0D; }
+  .hero .btn-primary { background: #0D0D0D; color: #FFE066; }
+  .hero .btn-primary:hover { box-shadow: 0 12px 36px rgba(13,13,13,0.25); }
+  .hero .btn-secondary { color: #0D0D0D; border-color: rgba(13,13,13,0.4); }
+  .hero .btn-secondary:hover { border-color: #0D0D0D; }
 
   /* ─── SECTIONS ─── */
   .sec { padding: 88px 24px; }
@@ -602,8 +608,12 @@ export default function V2Page() {
 
       {/* Location toggle */}
       <div className="loc-bar">
-        <button className={`loc-pill${loc === 'india' ? ' active' : ''}`} onClick={() => set('india')}>🇮🇳 India</button>
-        <button className={`loc-pill${loc === 'usa' ? ' active' : ''}`} onClick={() => set('usa')}>🇺🇸 USA</button>
+        <button className={`loc-pill${loc === 'india' ? ' active' : ''}`} onClick={() => set('india')}>
+          <span className="loc-code">🇮🇳</span><span className="loc-name">India</span>
+        </button>
+        <button className={`loc-pill${loc === 'usa' ? ' active' : ''}`} onClick={() => set('usa')}>
+          <span className="loc-code">🇺🇸</span><span className="loc-name">USA</span>
+        </button>
       </div>
 
       {/* Nav */}
@@ -665,8 +675,10 @@ export default function V2Page() {
         </div>
 
         {/* K mark watermark */}
-        <div style={{position:'absolute', bottom:'30px', right:'30px', zIndex:0, opacity:0.12, pointerEvents:'none'}}>
-          <img src="/kryla-icon-saffron.svg" alt="" style={{height:'80px', width:'80px'}} />
+        <div style={{position:'absolute', bottom:'24px', right:'24px', zIndex:0, opacity:0.15, pointerEvents:'none'}}>
+          <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 10 L20 90 M20 50 L70 10 M20 50 L70 90" stroke="#F5A623" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </div>
 
       </section>
@@ -929,7 +941,9 @@ export default function V2Page() {
       {/* ── CTA — amber #F5A623 ── */}
       <section className="cta-sec">
         <div style={{display:'flex', justifyContent:'center', marginBottom:'24px'}}>
-          <img src="/kryla-icon-dark.svg" alt="" style={{height:'56px', opacity:0.2}} />
+          <svg width="64" height="64" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{opacity:0.2}}>
+            <path d="M20 10 L20 90 M20 50 L70 10 M20 50 L70 90" stroke="#0D0D0D" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </div>
         <p className="cta-eyebrow">YOUR SPOT IS WAITING</p>
         <h2 className="cta-h2">Ready to claim yours?</h2>
