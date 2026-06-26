@@ -1,0 +1,10 @@
+<svg width="196" height="50" viewBox="0 0 196 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- K mark -->
+  <rect x="0" y="3" width="7" height="44" rx="3.5" fill="#FFFFFF"/>
+  <line x1="5" y1="25" x2="27" y2="4" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+  <line x1="5" y1="25" x2="27" y2="46" stroke="#F5A623" stroke-width="7" stroke-linecap="round"/>
+  <!-- wordmark -->
+  <text x="38" y="36" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif" font-size="27" font-weight="900" fill="#FFFFFF" letter-spacing="-0.5">kryla</text>
+  <text x="118" y="36" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif" font-size="27" font-weight="900" fill="#FFFFFF">.</text>
+  <text x="127" y="36" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif" font-size="27" font-weight="900" fill="#F5A623" letter-spacing="-0.5">work</text>
+</svg>
