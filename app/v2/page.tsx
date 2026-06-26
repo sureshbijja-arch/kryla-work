@@ -78,7 +78,7 @@ const CSS = `
 
   /* ─── HERO ─── */
   .hero {
-    background: linear-gradient(135deg, #FFFBF2 0%, #FFF8E8 50%, #FFFBF2 100%);
+    background: linear-gradient(135deg, #FFF3D4 0%, #FFE8A3 40%, #FFF0C8 100%);
     border-bottom: 1px solid rgba(245,166,35,0.2);
     padding: 152px 24px 100px;
     display: flex; flex-direction: column; align-items: center;
@@ -665,8 +665,9 @@ export default function V2Page() {
         </div>
 
         {/* K mark watermark */}
-        <img src="/kryla-icon-saffron.svg" height="48" alt="" aria-hidden="true"
-          style={{position:'absolute', bottom:'20px', right:'20px', opacity:0.08, pointerEvents:'none'}} />
+        <div style={{position:'absolute', bottom:'30px', right:'30px', zIndex:0, opacity:0.12, pointerEvents:'none'}}>
+          <img src="/kryla-icon-saffron.svg" alt="" style={{height:'80px', width:'80px'}} />
+        </div>
 
       </section>
 
@@ -927,8 +928,9 @@ export default function V2Page() {
 
       {/* ── CTA — amber #F5A623 ── */}
       <section className="cta-sec">
-        <img src="/kryla-icon-dark.svg" height="64" alt="" aria-hidden="true"
-          style={{opacity:0.15, marginBottom:'16px'}} />
+        <div style={{display:'flex', justifyContent:'center', marginBottom:'24px'}}>
+          <img src="/kryla-icon-dark.svg" alt="" style={{height:'56px', opacity:0.2}} />
+        </div>
         <p className="cta-eyebrow">YOUR SPOT IS WAITING</p>
         <h2 className="cta-h2">Ready to claim yours?</h2>
         <p className="cta-sub">Free to join. Live in 15 minutes.</p>
