@@ -596,7 +596,12 @@ export default function V2Page() {
 
       {/* Nav */}
       <nav className="v2-nav">
-        <a href="/"><img src="/kryla-wordmark-light.svg" alt="kryla.work" height="28" style={{display:'block'}} /></a>
+        <a href="/" style={{textDecoration:'none'}}>
+          <span style={{fontSize:'22px', fontWeight:800, letterSpacing:'-0.5px'}}>
+            <span style={{color:'#0D0D0D'}}>kryla</span>
+            <span style={{color:'#F5A623'}}>.work</span>
+          </span>
+        </a>
         <a href="/onboarding" className="nav-join">Join free →</a>
       </nav>
 
