@@ -38,9 +38,28 @@ const CSS = `
     background: var(--dark);
   }
 
+  /* ─── LOCATION BAR ─── */
+  .loc-bar {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 44px; z-index: 200;
+    background: #0D0D0D;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .loc-pill {
+    background: none; border: none; cursor: pointer;
+    padding: 5px 16px; border-radius: 100px;
+    font-size: 13px; font-weight: 600; color: #FFFFFF;
+    transition: background 0.2s, color 0.2s;
+    font-family: var(--ff); line-height: 1;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .loc-pill:hover { color: rgba(255,255,255,0.75); }
+  .loc-pill.active { background: #F5A623; color: #0D0D0D; }
+
   /* ─── NAV ─── */
   .v2-nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    position: fixed; top: 44px; left: 0; right: 0; z-index: 100;
     height: 64px;
     background: #FFFFFF;
     display: flex; align-items: center; justify-content: space-between;
@@ -63,9 +82,9 @@ const CSS = `
 
   /* ─── HERO ─── */
   .hero {
-    background: linear-gradient(135deg, #C8813F 0%, #C17A3A 50%, #C8813F 100%);
-    border-bottom: 1px solid rgba(0,0,0,0.12);
-    padding: 110px 24px 100px;
+    background: #FFFFFF;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    padding: 128px 24px 100px;
     display: flex; flex-direction: column; align-items: center;
     text-align: center;
     position: relative; overflow: hidden;
@@ -76,7 +95,7 @@ const CSS = `
   }
   .hero-eyebrow {
     font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
-    text-transform: uppercase; color: #FFE8A3;
+    text-transform: uppercase; color: #F5A623;
     margin-bottom: 30px;
     animation: fadeUp 0.55s ease both 0.05s;
   }
@@ -88,25 +107,25 @@ const CSS = `
   .h1-l1 {
     font-size: clamp(34px, 6.5vw, 52px);
     font-weight: 900; line-height: 1.1;
-    letter-spacing: -0.025em; color: #FFFFFF;
+    letter-spacing: -0.025em; color: #0D0D0D;
     animation: fadeUp 0.55s ease both 0.18s;
   }
   .h1-l2 {
     font-size: clamp(34px, 6.5vw, 52px);
     font-weight: 900; line-height: 1.1;
-    letter-spacing: -0.025em; color: #FFE8A3;
+    letter-spacing: -0.025em; color: #F5A623;
     animation: fadeUp 0.55s ease both 0.34s;
   }
   .h1-l3 {
     font-size: clamp(18px, 3vw, 26px);
     font-weight: 500; line-height: 1.35;
-    color: rgba(255,255,255,0.88);
+    color: #444444;
     margin-top: 12px;
     animation: fadeUp 0.55s ease both 0.52s;
   }
   .hero-sub {
     font-size: clamp(16px, 2.2vw, 20px);
-    color: rgba(255,255,255,0.72);
+    color: #666666;
     line-height: 1.65; max-width: 480px;
     margin-bottom: 40px;
     animation: fadeUp 0.55s ease both 0.68s;
@@ -143,10 +162,10 @@ const CSS = `
     transition: border-color 0.2s, color 0.2s;
   }
   .btn-secondary:hover { border-color: rgba(13,13,13,0.5); color: #0D0D0D; }
-  .hero .btn-primary { background: #FFFFFF; color: #C17A3A; font-weight: 700; }
-  .hero .btn-primary:hover { box-shadow: 0 12px 36px rgba(0,0,0,0.2); }
-  .hero .btn-secondary { color: #FFFFFF; border: 2px solid rgba(255,255,255,0.6); }
-  .hero .btn-secondary:hover { border-color: #FFFFFF; }
+  .hero .btn-primary { background: #F5A623; color: #0D0D0D; }
+  .hero .btn-primary:hover { box-shadow: 0 12px 36px rgba(245,166,35,0.4); }
+  .hero .btn-secondary { color: #0D0D0D; border: 1.5px solid #0D0D0D; }
+  .hero .btn-secondary:hover { border-color: #0D0D0D; background: rgba(0,0,0,0.04); }
 
   /* ─── SECTIONS ─── */
   .sec { padding: 88px 24px; }
@@ -437,7 +456,8 @@ const CSS = `
     width: 160px; height: 200px;
     object-fit: cover;
     border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    border-radius: 16px;
     opacity: 0.85;
     display: block;
   }
@@ -455,16 +475,16 @@ const CSS = `
     .nav-loc { display: none; }
     .hf-photo { width: 110px; height: 140px; }
     .hf-wrap:nth-child(5), .hf-wrap:nth-child(6) { display: none; }
-    .hf-wrap:nth-child(1) { left: -30px !important; }
-    .hf-wrap:nth-child(2) { right: -30px !important; }
-    .hf-wrap:nth-child(3) { left: -30px !important; }
-    .hf-wrap:nth-child(4) { right: -30px !important; }
+    .hf-wrap:nth-child(1) { left: 20px !important; }
+    .hf-wrap:nth-child(2) { right: 20px !important; }
+    .hf-wrap:nth-child(3) { left: 20px !important; }
+    .hf-wrap:nth-child(4) { right: 20px !important; }
     .hero-btns { flex-direction: column; align-items: center; }
     .btn-primary, .btn-secondary { justify-content: center; max-width: 280px; }
   }
   @media (max-width: 480px) {
     .v2-nav  { padding: 0 16px; }
-    .hero    { padding: 90px 20px 72px; }
+    .hero    { padding: 108px 20px 72px; }
     .hero-h1 span { font-size: 36px !important; }
     .sec     { padding: 64px 20px; }
     .pc-btns { grid-template-columns: 1fr; }
@@ -604,25 +624,16 @@ export default function V2Page() {
     <div className="v2">
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
+      {/* Location toggle bar */}
+      <div className="loc-bar">
+        <button className={`loc-pill${loc === 'india' ? ' active' : ''}`} onClick={() => setLoc('india')}>🇮🇳 India</button>
+        <button className={`loc-pill${loc === 'usa' ? ' active' : ''}`} onClick={() => setLoc('usa')}>🇺🇸 USA</button>
+      </div>
+
       {/* Nav */}
       <nav className="v2-nav">
-        <a href="/" style={{textDecoration:'none', display:'flex', alignItems:'center', gap:'8px'}}>
-          <img src="/kryla-icon-saffron.svg" alt="K" height="32" width="32" />
-          <span style={{fontSize:'20px', fontWeight:800, letterSpacing:'-0.5px'}}>
-            <span style={{color:'#0D0D0D'}}>kryla</span>
-            <span style={{color:'#F5A623'}}>.work</span>
-          </span>
-        </a>
+        <a href="/"><img src="/kryla-wordmark-light.svg" height="36" alt="kryla.work" style={{display:'block'}} /></a>
         <div className="nav-right">
-          {locDetected && (
-            <span className="nav-loc">
-              {loc === 'india' ? '🇮🇳 India' : '🇺🇸 USA'}
-              {' · '}
-              <button className="nav-loc-switch" onClick={toggleLoc}>
-                Switch to {loc === 'india' ? 'USA' : 'India'} →
-              </button>
-            </span>
-          )}
           <a href="/onboarding" className="nav-join">Join free →</a>
         </div>
       </nav>
@@ -632,7 +643,7 @@ export default function V2Page() {
 
         {/* Floating background cards */}
         <div className="hero-bg">
-          <div className="hf-wrap" style={{ top:'5%', left:'-2%', '--rotation':'-6deg', animationDelay:'0s' } as React.CSSProperties}>
+          <div className="hf-wrap" style={{ top:'5%', left:'20px', '--rotation':'-6deg', animationDelay:'0s' } as React.CSSProperties}>
             <img className="hf-photo" src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=300&q=80" alt="Maths Tutor" />
             <span className="hf-label">📚 Maths Tutor</span>
           </div>
@@ -640,7 +651,7 @@ export default function V2Page() {
             <img className="hf-photo" src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&q=80" alt="Home Baker" />
             <span className="hf-label">🎂 Home Baker</span>
           </div>
-          <div className="hf-wrap" style={{ top:'42%', left:'-3%', '--rotation':'3deg', animationDelay:'1.6s' } as React.CSSProperties}>
+          <div className="hf-wrap" style={{ top:'42%', left:'20px', '--rotation':'3deg', animationDelay:'1.6s' } as React.CSSProperties}>
             <img className="hf-photo" src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=300&q=80" alt="Fitness Trainer" />
             <span className="hf-label">💪 Fitness Trainer</span>
           </div>
@@ -677,7 +688,7 @@ export default function V2Page() {
         {/* K mark watermark */}
         <div style={{position:'absolute', bottom:'24px', right:'24px', zIndex:0, opacity:0.15, pointerEvents:'none'}}>
           <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 10 L20 90 M20 50 L70 10 M20 50 L70 90" stroke="#FFFFFF" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M20 10 L20 90 M20 50 L70 10 M20 50 L70 90" stroke="#F5A623" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
 
