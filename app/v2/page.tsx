@@ -419,6 +419,39 @@ const CSS = `
   .sec-head-center { text-align: center; margin-bottom: 56px; }
   .sec-head-center .sec-h2 { max-width: 600px; margin-left: auto; margin-right: auto; margin-bottom: 0; }
 
+  /* ─── HERO FLOATING CARDS ─── */
+  .hero-bg {
+    position: absolute; inset: 0;
+    overflow: hidden; pointer-events: none; z-index: 0;
+  }
+  .hero-content {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; align-items: center;
+    width: 100%;
+  }
+  .hero-float-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 16px; width: 200px;
+    filter: blur(1px); opacity: 0.5;
+    position: absolute;
+  }
+  .hf-ava {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--amber), #c97b0a);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; margin-bottom: 8px;
+  }
+  .hf-name  { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+  .hf-role  { font-size: 12px; color: rgba(255,255,255,0.48); margin-bottom: 4px; }
+  .hf-url   { font-size: 11px; color: var(--amber); font-family: monospace; margin-bottom: 8px; }
+  .hf-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .hf-pill  {
+    font-size: 10px; color: rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.06);
+    border-radius: 100px; padding: 2px 8px;
+  }
+
   /* ─── RESPONSIVE ─── */
   @media (max-width: 480px) {
     .v2-nav  { padding: 0 16px; }
@@ -567,27 +600,79 @@ export default function V2Page() {
       {/* Nav */}
       <nav className="v2-nav">
         <a href="/" style={{ textDecoration: 'none' }}>
-          <span style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.5px' }}>
-            <span style={{ color: '#0D0D0D' }}>kryla</span><span style={{ color: '#F5A623' }}>.work</span>
+          <span style={{fontSize:'22px', fontWeight:800, letterSpacing:'-0.5px'}}>
+            <span style={{color:'#0D0D0D'}}>kryla</span>
+            <span style={{color:'#F5A623'}}>.work</span>
           </span>
         </a>
         <a href="/onboarding" className="nav-join">Join free →</a>
       </nav>
 
-      {/* ── HERO — dark #0D0D0D ── */}
+      {/* ── HERO ── */}
       <section className="hero">
-        <p className="hero-eyebrow">FOR EVERY SKILLED PROFESSIONAL</p>
-        <h1 className="hero-h1">
-          <span className="h1-l1">Your craft deserves</span>
-          <span className="h1-l2">a name online.</span>
-          <span className="h1-l3">Give your business its own identity.</span>
-        </h1>
-        <p className="hero-sub">Your name. Your work. Your spot online — in 15 minutes.</p>
-        <div className="hero-btns">
-          <a href="/onboarding" className="btn-primary">Claim your spot — it&apos;s free</a>
-          <a href="#s1" className="btn-secondary">See how it works ↓</a>
+
+        {/* Floating background cards */}
+        <div className="hero-bg">
+          <div className="hero-float-card" style={{ top: '10%', left: '2%', transform: 'rotate(-8deg)' }}>
+            <div className="hf-ava">📚</div>
+            <div className="hf-name">Priya Sharma</div>
+            <div className="hf-role">Maths Tutor</div>
+            <div className="hf-url">kryla.work/priyasharma</div>
+            <div className="hf-pills"><span className="hf-pill">4.9★</span><span className="hf-pill">47 students</span></div>
+          </div>
+          <div className="hero-float-card" style={{ top: '5%', right: '3%', transform: 'rotate(6deg)' }}>
+            <div className="hf-ava">🎂</div>
+            <div className="hf-name">Meena Krishnan</div>
+            <div className="hf-role">Home Baker</div>
+            <div className="hf-url">kryla.work/meenabakes</div>
+            <div className="hf-pills"><span className="hf-pill">4.8★</span><span className="hf-pill">124 orders</span></div>
+          </div>
+          <div className="hero-float-card" style={{ top: '45%', left: '-2%', transform: 'rotate(4deg)' }}>
+            <div className="hf-ava">💪</div>
+            <div className="hf-name">Raj Patel</div>
+            <div className="hf-role">Fitness Trainer</div>
+            <div className="hf-url">kryla.work/rajfitness</div>
+            <div className="hf-pills"><span className="hf-pill">5.0★</span><span className="hf-pill">89 clients</span></div>
+          </div>
+          <div className="hero-float-card" style={{ top: '40%', right: '1%', transform: 'rotate(-5deg)' }}>
+            <div className="hf-ava">📸</div>
+            <div className="hf-name">Alex Chen</div>
+            <div className="hf-role">Photographer</div>
+            <div className="hf-url">kryla.work/alexchenphoto</div>
+            <div className="hf-pills"><span className="hf-pill">4.9★</span><span className="hf-pill">73 shoots</span></div>
+          </div>
+          <div className="hero-float-card" style={{ bottom: '5%', left: '15%', transform: 'rotate(-3deg)' }}>
+            <div className="hf-ava">✂️</div>
+            <div className="hf-name">Rina&apos;s Studio</div>
+            <div className="hf-role">Hair Salon</div>
+            <div className="hf-url">kryla.work/rinastudio</div>
+            <div className="hf-pills"><span className="hf-pill">4.8★</span><span className="hf-pill">200+ visits</span></div>
+          </div>
+          <div className="hero-float-card" style={{ bottom: '8%', right: '10%', transform: 'rotate(7deg)' }}>
+            <div className="hf-ava">🧘</div>
+            <div className="hf-name">Divya Mehta</div>
+            <div className="hf-role">Yoga Teacher</div>
+            <div className="hf-url">kryla.work/divyayoga</div>
+            <div className="hf-pills"><span className="hf-pill">5.0★</span><span className="hf-pill">56 members</span></div>
+          </div>
         </div>
-        <p className="hero-proof">Free to start · No card needed · Live in 15 minutes · Works on WhatsApp</p>
+
+        {/* Foreground text content */}
+        <div className="hero-content">
+          <p className="hero-eyebrow">FOR EVERY SKILLED PROFESSIONAL</p>
+          <h1 className="hero-h1">
+            <span className="h1-l1">Your craft deserves</span>
+            <span className="h1-l2">a name online.</span>
+            <span className="h1-l3">Give your business its own identity.</span>
+          </h1>
+          <p className="hero-sub">Your name. Your work. Your spot online — in 15 minutes.</p>
+          <div className="hero-btns">
+            <a href="/onboarding" className="btn-primary">Claim your spot — it&apos;s free</a>
+            <a href="#s1" className="btn-secondary">See how it works ↓</a>
+          </div>
+          <p className="hero-proof">Free to start · No card needed · Live in 15 minutes · Works on WhatsApp</p>
+        </div>
+
       </section>
 
       {/* ── SECTION 1 — light #FAFAFA — card left, text right ── */}
