@@ -449,3 +449,183 @@ A task is only done when:
 When Claude Code finishes a task, it must re-read what it just wrote, run every item above, fix any violations, then deliver the final output. This is not optional. The checklist is the last step of every task — not an afterthought.
 
 If a violation is found after delivery, fix it immediately without being asked.
+
+---
+
+## Word Map — Never Say "Page"
+
+"Page" is a developer word. Members don't think in pages — they think in presence, identity, place, home.
+
+Use different words based on the moment:
+
+| Moment | Use this |
+|---|---|
+| Hero headline | "your place online" |
+| CTA buttons | "Claim your spot" |
+| Onboarding start | "Let's build your presence" |
+| After generation | "You're live" or "Your profile is live" |
+| Sharing context | "your Kryla link" |
+| Features | "your online home" |
+| Pricing | "your presence online" |
+| Nav CTA | "Get your spot →" |
+| Member to member | "Are you on Kryla?" |
+| WhatsApp messages | "your Kryla profile" |
+| Membership cards | "your place on Kryla" |
+
+**Never use:** page, website, site, web page, landing page, profile page, webpage
+
+**Why:** A tutor doesn't think "I need a page." They think "I need people to find me." The words we use should match how they already think — not introduce new concepts they have to learn.
+
+**The self-check:** Before any copy goes live, read it aloud as if you're saying it to a neighbor. If it sounds like a developer wrote it, rewrite it.
+
+---
+
+## Landing Page Decisions (v1 and v2)
+
+### v1 — lives at kryla.work/v1
+Original landing page. Clean, structured, good for reference.
+Headline: "Are you on Kryla.work?"
+
+### v2 — the main landing (kryla.work)
+Cinematic, warm, Canva-style alternating sections.
+Built with: Next.js, Tailwind, Unsplash photos, inline CSS.
+
+**Hero section:**
+- Background: white #FFFFFF
+- Floating real photos from Unsplash (6 professions)
+- Photos have profession labels as white pills
+- K brand mark visible in hero
+- Three headline lines:
+  1. "Your craft deserves" — dark #0D0D0D
+  2. "a name online." — amber #F5A623
+  3. "Give your business its own identity." — #444444
+
+**Location toggle (top bar):**
+- Dark bar #0D0D0D at very top
+- Pill toggle: 🇮🇳 India | 🇺🇸 USA
+- Active: amber background, dark text
+- Inactive: transparent, white text
+- Switches prices between INR and USD across entire page
+- Default: USA (geo-detected via ipapi.co)
+
+**Nav:**
+- White background
+- Logo: kryla-wordmark-light.svg, height 36px
+- Right: "Join free →" dark button
+
+**Alternating sections (Canva style):**
+- Section 1: Light bg, Priya card left, text right
+- Section 2: Light bg, text + WhatsApp left, Meena card right
+- Section 3: Light bg, chat UI left, text right
+- Section 4: Light bg, text + WhatsApp left, Alex card right
+- All sections: #FAFAFA background, dark text
+
+**Community section:** Dark background, two-row scrolling ticker
+
+**Pricing section:** White background, 4 plan cards + Elevate mention
+Plan names visible: 🌱 Seed, 🌿 Sprout, 🌳 Grow, 🚀 Thrive, ⭐ Elevate
+
+**Testimonials:** Dark background, 3 cards
+- India detected → Meena first, then Priya, then Raj
+- USA detected → Priya first, then Meena, then Raj
+
+**Final CTA:** Amber #F5A623 background, dark button
+
+---
+
+## Logo System
+
+**K mark:** The Kryla brand icon — dark K with amber diagonal slash.
+Files in public/:
+- `kryla-wordmark-light.svg` — K mark + "kryla.work" for **light/white** backgrounds (kryla dark, .work amber)
+- `kryla-wordmark-dark.svg` — K mark + "kryla.work" for **dark** backgrounds (kryla white, .work amber)
+- `kryla-icon-dark.svg` — K mark only, dark version
+- `kryla-icon-saffron.svg` — K mark only, amber/saffron version
+- `kryla-favicon.svg` — browser tab icon (dark square background)
+
+**Usage rules:**
+- Nav (white/light bg): `kryla-wordmark-light.svg`, height 32–36px
+- Nav (dark bg): `kryla-wordmark-dark.svg`, height 32–36px
+- Favicon: `kryla-favicon.svg`
+- Watermark/accent: `kryla-icon-saffron.svg`, small, low opacity
+- Hero inline K mark: inline SVG path, bottom-right corner, amber stroke
+
+**Critical:** `kryla-wordmark-dark.svg` has WHITE "kryla" text — invisible on white/light backgrounds. Always use `kryla-wordmark-light.svg` on the white nav.
+
+**Never:** Use K icon alone in nav without wordmark text.
+
+---
+
+## Design Tokens
+
+```
+Brand amber:     #F5A623
+Dark:            #0D0D0D
+Light bg:        #FAFAFA
+White:           #FFFFFF
+Text muted:      #666666
+Text body:       #444444
+Border light:    #E5E5E5
+Success green:   #22C55E (Live indicator)
+```
+
+**Hero background:** white #FFFFFF (decided — cleanest, most professional)
+
+---
+
+## File Structure (current)
+
+```
+kryla.work/
+├── app/
+│   ├── page.tsx          ← main landing (copy of v2)
+│   ├── layout.tsx        ← favicon + page title
+│   ├── v2/page.tsx       ← v2 landing (source of truth)
+│   ├── onboarding/       ← 5-step onboarding flow
+│   └── api/
+│       └── onboarding/   ← page generation API
+├── public/
+│   ├── kryla-wordmark-light.svg
+│   ├── kryla-wordmark-dark.svg
+│   ├── kryla-icon-dark.svg
+│   ├── kryla-icon-saffron.svg
+│   └── kryla-favicon.svg
+├── references/
+│   ├── architecture.md
+│   ├── agents.md
+│   ├── database.md
+│   ├── pricing.md
+│   ├── gtm.md
+│   ├── personas.md
+│   └── mvp-build.md
+└── CLAUDE.md             ← this file
+```
+
+---
+
+## What's Built vs What's Next
+
+### ✅ Built
+- kryla.work live on Vercel
+- v2 landing page — hero, alternating sections, pricing, testimonials, CTA, footer
+- Location auto-detection via ipapi.co (India/USA)
+- Onboarding flow — 5 steps (persona → details → URL → membership → build)
+- Logo system — wordmark SVGs, icon SVGs, favicon
+- CLAUDE.md in repo root with full context
+
+### 🔨 Next (in order)
+1. Connect Supabase — save onboarding data to DB
+2. Wire Claude API — generate real profile from 5 answers
+3. Test full loop — complete onboarding, see generated profile
+4. Add Anthropic API key to Vercel env vars
+5. WhatsApp integration — booking notifications
+6. Stripe + Razorpay — payment processing
+7. Member space — booking management
+8. Public member profiles at [slug].kryla.work
+
+### ❌ Not in MVP (Phase 2+)
+- Member Groups (WhatsApp broadcast)
+- Custom domains
+- AI agents (Phase 3)
+- Razorpay (India payments — Month 4–5)
+- Advanced SEO tooling
