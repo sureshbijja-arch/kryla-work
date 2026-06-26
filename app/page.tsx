@@ -29,6 +29,12 @@ const CSS = `
     border-bottom: 1px solid var(--border);
   }
   .nav-logo { display: flex; align-items: center; text-decoration: none; }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .nav-preview {
+    font-size: 13px; font-weight: 500; color: var(--muted);
+    text-decoration: none; transition: color 0.15s;
+  }
+  .nav-preview:hover { color: var(--ink); }
   .nav-cta {
     background: var(--ink); color: var(--white); border: none; border-radius: 8px;
     padding: 9px 20px; font-size: 13px; font-weight: 700; cursor: pointer;
@@ -329,7 +335,10 @@ export default function Home() {
         <a href="#" className="nav-logo">
           <img src="/kryla-wordmark-light.svg" alt="Kryla.work" height={30} style={{ display: 'block' }} />
         </a>
-        <a href="#signup" className="nav-cta">Get your free page →</a>
+        <div className="nav-right">
+          <a href="/v2" className="nav-preview">Preview v2 →</a>
+          <a href="#signup" className="nav-cta">Claim your spot free →</a>
+        </div>
       </nav>
 
       {/* HERO */}
