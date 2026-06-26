@@ -606,8 +606,9 @@ export default function V2Page() {
 
       {/* Nav */}
       <nav className="v2-nav">
-        <a href="/" style={{textDecoration:'none'}}>
-          <span style={{fontSize:'22px', fontWeight:800, letterSpacing:'-0.5px'}}>
+        <a href="/" style={{textDecoration:'none', display:'flex', alignItems:'center', gap:'8px'}}>
+          <img src="/kryla-icon-saffron.svg" alt="K" height="32" width="32" />
+          <span style={{fontSize:'20px', fontWeight:800, letterSpacing:'-0.5px'}}>
             <span style={{color:'#0D0D0D'}}>kryla</span>
             <span style={{color:'#F5A623'}}>.work</span>
           </span>
