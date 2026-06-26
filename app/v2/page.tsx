@@ -79,7 +79,8 @@ const CSS = `
 
   /* ─── HERO ─── */
   .hero {
-    background: #0D0D0D;
+    background: radial-gradient(ellipse at top center, #1a1200 0%, #0D0D0D 60%);
+    border-bottom: 1px solid rgba(245,166,35,0.15);
     padding: 152px 24px 100px;
     display: flex; flex-direction: column; align-items: center;
     text-align: center;
@@ -566,8 +567,10 @@ export default function V2Page() {
 
       {/* Nav */}
       <nav className="v2-nav">
-        <a href="/">
-          <img src="/kryla-wordmark-dark.svg" alt="Kryla.work" height={32} style={{ display: 'block' }} />
+        <a href="/" style={{ textDecoration: 'none' }}>
+          <span style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.5px' }}>
+            <span style={{ color: '#FFFFFF' }}>kryla</span><span style={{ color: '#F5A623' }}>.work</span>
+          </span>
         </a>
         <a href="/onboarding" className="nav-join">Join free →</a>
       </nav>
