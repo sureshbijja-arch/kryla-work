@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Kryla.work — Are you on Kryla?',
-  description: 'Get your own professional page online in 10 minutes. Free to start. Share one link — clients find you, book you, pay you.',
+  description: 'Get your own professional spot online in 10 minutes. Free to start. Share one link — clients find you, book you, pay you.',
   icons: { icon: '/favicon.svg' },
 }
 
@@ -346,11 +346,11 @@ export default function Home() {
         <div className="hero-eyebrow">For tutors, bakers, trainers &amp; more</div>
         <h1 className="hero-question">Are you <span className="on">on</span> Kryla?</h1>
         <p className="hero-sub">
-          Your own page online — with your name, your work, your prices, and a way for people to book you.{' '}
+          Your own spot online — with your name, your work, your prices, and a way for people to book you.{' '}
           <strong>Free to start. Ready in 10 minutes.</strong>
         </p>
         <div className="hero-actions">
-          <a href="#signup" className="btn-primary">Get your free page ✦</a>
+          <a href="#signup" className="btn-primary">Claim your spot ✦</a>
           <a href="#how" className="btn-secondary">See how it works</a>
         </div>
         <div className="ticker-wrap">
@@ -382,7 +382,7 @@ export default function Home() {
         <div className="section-inner">
           <p className="section-eyebrow">What Kryla actually is</p>
           <h2 className="section-title">Not a website.<br />Your identity online.</h2>
-          <p className="section-body">A paper visiting card gets lost. A WhatsApp number gets buried. A Kryla page is yours — forever. Share it anywhere. Clients find you, see your work, and book you directly.</p>
+          <p className="section-body">A paper visiting card gets lost. A WhatsApp number gets buried. A Kryla spot is yours — forever. Share it anywhere. Clients find you, see your work, and book you directly.</p>
           <div className="identity-grid">
             <div className="identity-card featured">
               <div className="identity-card-label">The change</div>
@@ -399,7 +399,7 @@ export default function Home() {
             <div className="identity-card">
               <div className="identity-card-label">How it spreads</div>
               <div className="identity-card-q">"Are you on Kryla?"</div>
-              <div className="identity-card-a">When a parent finds their tutor on Kryla, they ask every other tutor they know. Your page brings you new clients while you're busy working.</div>
+              <div className="identity-card-a">When a parent finds their tutor on Kryla, they ask every other tutor they know. Your spot brings you new clients while you're busy working.</div>
               <div className="identity-card-accent">💬</div>
             </div>
           </div>
@@ -410,14 +410,14 @@ export default function Home() {
       <section className="how-section" id="how">
         <div className="section-inner">
           <p className="section-eyebrow">How it works</p>
-          <h2 className="section-title">Your page, live<br />in 10 minutes.</h2>
+          <h2 className="section-title">Your spot, live<br />in 10 minutes.</h2>
           <p className="section-body">You don't build anything. You just answer five simple questions. We do the rest.</p>
           <div className="steps">
             <div className="step">
               <div className="step-number">STEP 01</div>
               <div className="step-icon">🙋</div>
               <div className="step-title">Tell us what you do</div>
-              <div className="step-desc">Tutor, baker, trainer, photographer, salon owner — pick your profession. We already know what your page needs.</div>
+              <div className="step-desc">Tutor, baker, trainer, photographer, salon owner — pick your profession. We already know what your spot needs.</div>
               <div className="step-time">⚡ Takes 1 minute</div>
             </div>
             <div className="step">
@@ -430,8 +430,8 @@ export default function Home() {
             <div className="step">
               <div className="step-number">STEP 03</div>
               <div className="step-icon">✨</div>
-              <div className="step-title">We build your page</div>
-              <div className="step-desc">We write everything for you — your introduction, your services, your prices. Your page is ready before you finish your chai.</div>
+              <div className="step-title">We build your spot</div>
+              <div className="step-desc">We write everything for you — your introduction, your services, your prices. Your spot is ready before you finish your chai.</div>
               <div className="step-time">⚡ Takes 2 minutes</div>
             </div>
             <div className="step">
@@ -449,9 +449,9 @@ export default function Home() {
       <section className="preview-section">
         <div className="preview-inner">
           <div className="preview-text">
-            <p className="section-eyebrow">What your page looks like</p>
+            <p className="section-eyebrow">What your spot looks like</p>
             <h2 className="section-title">Professional.<br />Bookable.<br />Yours.</h2>
-            <p className="section-body">Every Kryla page is made for your profession — not a blank template you have to fill in yourself. Clients can see your services, your prices, and book you in one tap.</p>
+            <p className="section-body">Every Kryla spot is made for your profession — not a blank template you have to fill in yourself. Clients can see your services, your prices, and book you in one tap.</p>
             <div className="preview-features">
               <div className="preview-feature">
                 <div className="preview-feature-icon">📅</div>
@@ -464,21 +464,21 @@ export default function Home() {
                 <div className="preview-feature-icon">🔍</div>
                 <div className="preview-feature-text">
                   <strong>Parents searching Google can find you</strong>
-                  <span>"Maths tutor Celina TX" — your page shows up. New clients who never heard of you before.</span>
+                  <span>"Maths tutor Celina TX" — your spot shows up. New clients who never heard of you before.</span>
                 </div>
               </div>
               <div className="preview-feature">
                 <div className="preview-feature-icon">💬</div>
                 <div className="preview-feature-text">
                   <strong>Change anything — just WhatsApp us</strong>
-                  <span>New timings? Higher prices? Just message Kryla. Your page updates in 2 minutes. No logins, no hassle.</span>
+                  <span>New timings? Higher prices? Just message Kryla. Your spot updates in 2 minutes. No logins, no hassle.</span>
                 </div>
               </div>
               <div className="preview-feature">
                 <div className="preview-feature-icon">🛡️</div>
                 <div className="preview-feature-text">
-                  <strong>We watch your page so you don't have to</strong>
-                  <span>Your page is always working, always current, always online. You focus on your work. We handle the rest.</span>
+                  <strong>We watch your spot so you don't have to</strong>
+                  <span>Your spot is always working, always current, always online. You focus on your work. We handle the rest.</span>
                 </div>
               </div>
             </div>
@@ -520,7 +520,7 @@ export default function Home() {
           <div className="qr-box">📲</div>
           <div className="qr-text">
             <h3>Put your Kryla link on your visiting card</h3>
-            <p>Every Kryla page comes with a scannable QR code. Print it on your card. Stick it on your door. Put it in your packaging. Anyone who scans it sees your full page — and can book you in one tap.</p>
+            <p>Every Kryla spot comes with a scannable QR code. Print it on your card. Stick it on your door. Put it in your packaging. Anyone who scans it sees your full spot — and can book you in one tap.</p>
           </div>
         </div>
       </section>
@@ -550,7 +550,7 @@ export default function Home() {
         <div className="section-inner">
           <p className="section-eyebrow">What it costs</p>
           <h2 className="section-title">Start free.<br />Pay more only when<br />you're ready.</h2>
-          <p className="section-body">Your first page is completely free. When you start getting bookings and want to do more, you can grow your membership — anytime, no pressure.</p>
+          <p className="section-body">Your first spot is completely free. When you start getting bookings and want to do more, you can grow your membership — anytime, no pressure.</p>
           <div className="pricing-grid">
             <div className="price-card">
               <div className="price-icon">🌱</div>
@@ -558,7 +558,7 @@ export default function Home() {
               <div className="price-amount"><span className="big">Free</span></div>
               <div className="price-india">Always free · No card needed</div>
               <div className="price-features">
-                <div className="price-feature">Your own page at yourname.kryla.work</div>
+                <div className="price-feature">Your own spot at yourname.kryla.work</div>
                 <div className="price-feature">We write everything for you</div>
                 <div className="price-feature">Contact form for enquiries</div>
                 <div className="price-feature">People can find you on Google</div>
@@ -585,9 +585,9 @@ export default function Home() {
               <div className="price-features">
                 <div className="price-feature">Your own web address — like priya.com</div>
                 <div className="price-feature">Add your own photo</div>
-                <div className="price-feature">Choose how your page looks</div>
-                <div className="price-feature">See how many people visited your page</div>
-                <div className="price-feature">We keep your page easy to find on Google</div>
+                <div className="price-feature">Choose how your spot looks</div>
+                <div className="price-feature">See how many people visited your spot</div>
+                <div className="price-feature">We keep your spot easy to find on Google</div>
               </div>
             </div>
             <div className="price-card">
@@ -596,9 +596,9 @@ export default function Home() {
               <div className="price-amount"><span className="big">$25</span><span className="small">/mo</span></div>
               <div className="price-india">₹1,999/mo</div>
               <div className="price-features">
-                <div className="price-feature">Update your page by sending a WhatsApp</div>
-                <div className="price-feature">Up to 12 photos on your page</div>
-                <div className="price-feature">We refresh your page every month automatically</div>
+                <div className="price-feature">Update your spot by sending a WhatsApp</div>
+                <div className="price-feature">Up to 12 photos on your spot</div>
+                <div className="price-feature">We refresh your spot every month automatically</div>
                 <div className="price-feature">Full booking calendar</div>
                 <div className="price-feature">We fix any issues before you even notice</div>
               </div>
@@ -610,9 +610,9 @@ export default function Home() {
               <div className="price-india">₹3,999/mo</div>
               <div className="price-features">
                 <div className="price-feature">Your logo and branded email address</div>
-                <div className="price-feature">Collect payments directly on your page</div>
+                <div className="price-feature">Collect payments directly on your spot</div>
                 <div className="price-feature">Unlimited photos</div>
-                <div className="price-feature">Up to 3 people can manage the page</div>
+                <div className="price-feature">Up to 3 people can manage your spot</div>
                 <div className="price-feature">Everything, taken care of</div>
               </div>
             </div>
@@ -628,7 +628,7 @@ export default function Home() {
           <div className="testimonials-grid">
             <div className="testimonial">
               <div className="testimonial-stars">★★★★★</div>
-              <div className="testimonial-text">"I've been teaching for 11 years. Nobody outside my street knew I existed. My Kryla page went live on a Tuesday. By Friday I had three families asking about classes. I still can't believe it."</div>
+              <div className="testimonial-text">"I've been teaching for 11 years. Nobody outside my street knew I existed. My Kryla spot went live on a Tuesday. By Friday I had three families asking about classes. I still can't believe it."</div>
               <div className="testimonial-author">
                 <div className="testimonial-avatar" style={{ background: '#eef2ff' }}>📚</div>
                 <div>
@@ -640,7 +640,7 @@ export default function Home() {
             </div>
             <div className="testimonial">
               <div className="testimonial-stars">★★★★★</div>
-              <div className="testimonial-text">"WhatsApp mein orders manage karna impossible tha. Ab sab kuch Kryla page se hota hai. Ek link share karo — order aa jaata hai." <span style={{ color: '#94a3b8', fontSize: 12 }}>(Managing orders on WhatsApp was impossible. Now everything comes through my Kryla page. Share one link — orders come in.)</span></div>
+              <div className="testimonial-text">"WhatsApp mein orders manage karna impossible tha. Ab sab kuch Kryla spot se hota hai. Ek link share karo — order aa jaata hai." <span style={{ color: '#94a3b8', fontSize: 12 }}>(Managing orders on WhatsApp was impossible. Now everything comes through my Kryla spot. Share one link — orders come in.)</span></div>
               <div className="testimonial-author">
                 <div className="testimonial-avatar" style={{ background: '#fef9c3' }}>🎂</div>
                 <div>
@@ -669,9 +669,9 @@ export default function Home() {
       {/* FINAL CTA */}
       <section className="cta-section" id="signup">
         <h2 className="cta-question">Are you <span className="on">on</span> Kryla?</h2>
-        <p className="cta-sub">Your page is waiting. Free to start. Ready in 10 minutes. No tech skills needed.</p>
+        <p className="cta-sub">Your spot is waiting. Free to start. Ready in 10 minutes. No tech skills needed.</p>
         <a href="#" className="btn-primary" style={{ fontSize: 17, padding: '18px 40px' }}>
-          Get your free page ✦
+          Claim your spot ✦
         </a>
         <p className="cta-free-note">No credit card. Just 5 questions. That's it.</p>
       </section>

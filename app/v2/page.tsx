@@ -61,21 +61,20 @@ const CSS = `
   .v2-nav {
     position: fixed; top: 44px; left: 0; right: 0; z-index: 100;
     height: 64px;
-    background: rgba(13,13,13,0.96);
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    background: #FFFFFF;
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 32px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid #E5E5E5;
   }
   .nav-join {
     display: inline-flex; align-items: center; gap: 6px;
-    background: var(--amber); color: #0D0D0D;
+    background: #0D0D0D; color: #FFFFFF;
     font-size: 14px; font-weight: 700;
     padding: 9px 22px; border-radius: 100px;
     text-decoration: none;
-    transition: transform 0.15s, box-shadow 0.15s;
+    transition: transform 0.15s;
   }
-  .nav-join:hover { transform: scale(1.04); box-shadow: 0 6px 24px rgba(245,166,35,0.32); }
+  .nav-join:hover { transform: scale(1.04); }
 
   /* ─── HERO ─── */
   .hero {
@@ -569,7 +568,7 @@ export default function V2Page() {
       <nav className="v2-nav">
         <a href="/" style={{ textDecoration: 'none' }}>
           <span style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.5px' }}>
-            <span style={{ color: '#FFFFFF' }}>kryla</span><span style={{ color: '#F5A623' }}>.work</span>
+            <span style={{ color: '#0D0D0D' }}>kryla</span><span style={{ color: '#F5A623' }}>.work</span>
           </span>
         </a>
         <a href="/onboarding" className="nav-join">Join free →</a>
