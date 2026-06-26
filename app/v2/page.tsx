@@ -78,18 +78,12 @@ const CSS = `
 
   /* ─── HERO ─── */
   .hero {
-    background: radial-gradient(ellipse at top center, #1a1200 0%, #0D0D0D 60%);
-    border-bottom: 1px solid rgba(245,166,35,0.15);
+    background: linear-gradient(135deg, #FFFBF2 0%, #FFF8E8 50%, #FFFBF2 100%);
+    border-bottom: 1px solid rgba(245,166,35,0.2);
     padding: 152px 24px 100px;
     display: flex; flex-direction: column; align-items: center;
     text-align: center;
     position: relative; overflow: hidden;
-  }
-  .hero::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: radial-gradient(ellipse 72% 48% at 50% 18%, rgba(245,166,35,0.10) 0%, transparent 68%);
-    pointer-events: none;
   }
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(20px); }
@@ -109,7 +103,7 @@ const CSS = `
   .h1-l1 {
     font-size: clamp(34px, 6.5vw, 52px);
     font-weight: 900; line-height: 1.1;
-    letter-spacing: -0.025em; color: #fff;
+    letter-spacing: -0.025em; color: #0D0D0D;
     animation: fadeUp 0.55s ease both 0.18s;
   }
   .h1-l2 {
@@ -121,13 +115,13 @@ const CSS = `
   .h1-l3 {
     font-size: clamp(18px, 3vw, 26px);
     font-weight: 500; line-height: 1.35;
-    color: rgba(255,255,255,0.45);
+    color: rgba(13,13,13,0.55);
     margin-top: 12px;
     animation: fadeUp 0.55s ease both 0.52s;
   }
   .hero-sub {
     font-size: clamp(16px, 2.2vw, 20px);
-    color: rgba(255,255,255,0.5);
+    color: rgba(13,13,13,0.55);
     line-height: 1.65; max-width: 480px;
     margin-bottom: 40px;
     animation: fadeUp 0.55s ease both 0.68s;
@@ -138,7 +132,7 @@ const CSS = `
     animation: fadeUp 0.55s ease both 0.82s;
   }
   .hero-proof {
-    font-size: 13px; color: rgba(255,255,255,0.28);
+    font-size: 13px; color: rgba(13,13,13,0.4);
     animation: fadeUp 0.55s ease both 0.96s;
   }
 
@@ -156,14 +150,14 @@ const CSS = `
   .btn-primary.lg { font-size: 18px; padding: 17px 38px; }
   .btn-secondary {
     display: inline-flex; align-items: center; gap: 7px;
-    background: none; color: rgba(255,255,255,0.65);
+    background: none; color: rgba(13,13,13,0.65);
     font-size: 16px; font-weight: 600;
     padding: 15px 28px; border-radius: 100px;
     text-decoration: none;
-    border: 1.5px solid rgba(255,255,255,0.18);
+    border: 1.5px solid rgba(13,13,13,0.2);
     transition: border-color 0.2s, color 0.2s;
   }
-  .btn-secondary:hover { border-color: rgba(255,255,255,0.48); color: #fff; }
+  .btn-secondary:hover { border-color: rgba(13,13,13,0.5); color: #0D0D0D; }
 
   /* ─── SECTIONS ─── */
   .sec { padding: 88px 24px; }
@@ -430,11 +424,12 @@ const CSS = `
     width: 100%;
   }
   .hero-float-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: #FFFFFF;
+    border: 1px solid rgba(0,0,0,0.07);
     border-radius: 16px; padding: 16px; width: 200px;
-    filter: blur(1px); opacity: 0.5;
+    filter: blur(1px); opacity: 0.6;
     position: absolute;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.09);
   }
   .hf-ava {
     width: 32px; height: 32px; border-radius: 50%;
@@ -442,13 +437,13 @@ const CSS = `
     display: flex; align-items: center; justify-content: center;
     font-size: 14px; margin-bottom: 8px;
   }
-  .hf-name  { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 2px; }
-  .hf-role  { font-size: 12px; color: rgba(255,255,255,0.48); margin-bottom: 4px; }
+  .hf-name  { font-size: 14px; font-weight: 700; color: #0D0D0D; margin-bottom: 2px; }
+  .hf-role  { font-size: 12px; color: rgba(13,13,13,0.5); margin-bottom: 4px; }
   .hf-url   { font-size: 11px; color: var(--amber); font-family: monospace; margin-bottom: 8px; }
   .hf-pills { display: flex; gap: 6px; flex-wrap: wrap; }
   .hf-pill  {
-    font-size: 10px; color: rgba(255,255,255,0.55);
-    background: rgba(255,255,255,0.06);
+    font-size: 10px; color: rgba(13,13,13,0.55);
+    background: rgba(13,13,13,0.05);
     border-radius: 100px; padding: 2px 8px;
   }
 
@@ -599,7 +594,7 @@ export default function V2Page() {
 
       {/* Nav */}
       <nav className="v2-nav">
-        <a href="/" style={{ textDecoration: 'none' }}>
+        <a href="/" style={{textDecoration:'none'}}>
           <span style={{fontSize:'22px', fontWeight:800, letterSpacing:'-0.5px'}}>
             <span style={{color:'#0D0D0D'}}>kryla</span>
             <span style={{color:'#F5A623'}}>.work</span>
