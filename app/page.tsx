@@ -1,695 +1,990 @@
-import type { Metadata } from 'next'
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Kryla.work — Are you on Kryla?',
-  description: 'Get your own professional spot online in 10 minutes. Free to start. Share one link — clients find you, book you, pay you.',
-  icons: { icon: '/favicon.svg' },
-}
+import { useState, useEffect } from 'react';
+
+type Loc = 'india' | 'usa';
+
+const R1 = [
+  { icon: '📚', name: 'Priya Sharma',    role: 'Maths Tutor',         loc: 'Celina, TX',         url: 'kryla.work/priyasharma' },
+  { icon: '🎂', name: 'Meena Krishnan',  role: 'Home Baker',          loc: 'Pune, India',        url: 'kryla.work/meenabakes' },
+  { icon: '💪', name: 'Raj Patel',       role: 'Fitness Trainer',     loc: 'Prosper, TX',        url: 'kryla.work/rajfitness' },
+  { icon: '📷', name: 'Alex Chen',       role: 'Photographer',        loc: 'Frisco, TX',         url: 'kryla.work/alexchenphoto' },
+  { icon: '🧁', name: 'Sofia Rodriguez', role: 'Pastry Chef',         loc: 'Austin, TX',         url: 'kryla.work/sofiabakes' },
+  { icon: '🎵', name: 'Ananya Iyer',     role: 'Music Teacher',       loc: 'Chennai, India',     url: 'kryla.work/ananyaiyer' },
+];
+const R2 = [
+  { icon: '🧘', name: 'Lakshmi Nair',   role: 'Yoga Instructor',     loc: 'Bengaluru, India',   url: 'kryla.work/lakshmiyoga' },
+  { icon: '✂️', name: 'Carlos Mendes',  role: 'Hair Stylist',        loc: 'Dallas, TX',         url: 'kryla.work/carlosstyle' },
+  { icon: '🎨', name: 'Preethi Sundar', role: 'Art Teacher',         loc: 'Hyderabad, India',   url: 'kryla.work/preethiart' },
+  { icon: '🧑‍🍳', name: 'David Okonkwo', role: 'Private Chef',        loc: 'Houston, TX',        url: 'kryla.work/davidchef' },
+  { icon: '📐', name: 'Sunita Verma',   role: 'Interior Consultant', loc: 'Mumbai, India',      url: 'kryla.work/sunitadesign' },
+  { icon: '🎤', name: 'Ravi Menon',     role: 'Voice Coach',         loc: 'Kochi, India',       url: 'kryla.work/ravivoice' },
+];
 
 const CSS = `
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
   :root {
-    --ink: #0D0D0D; --saffron: #F5A623; --saffron-light: #FEF3DC;
-    --white: #FFFFFF; --stone: #F7F3EE; --muted: #6B6B6B;
-    --border: #E8E2DA; --green: #1A7A4A; --green-light: #E8F5EE;
-  }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    background: var(--white); color: var(--ink);
-    -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    --amber: #F5A623;
+    --dark:  #0D0D0D;
+    --mid:   #1A1A1A;
+    --light: #FAFAFA;
+    --ff: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   }
 
-  /* NAV */
-  nav {
+  .v2 {
+    font-family: var(--ff);
+    overflow-x: hidden;
+    background: var(--dark);
+  }
+
+  /* ─── NAV ─── */
+  .v2-nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 64px;
+    background: #FFFFFF;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 24px;
-    background: rgba(255,255,255,0.94); backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    border-bottom: 1px solid #E5E5E5;
   }
-  .nav-logo { display: flex; align-items: center; text-decoration: none; }
+  .nav-join {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #0D0D0D; color: #FFFFFF;
+    font-size: 14px; font-weight: 700;
+    padding: 9px 22px; border-radius: 100px;
+    text-decoration: none;
+    transition: transform 0.15s;
+  }
+  .nav-join:hover { transform: scale(1.04); }
   .nav-right { display: flex; align-items: center; gap: 16px; }
-  .nav-preview {
-    font-size: 13px; font-weight: 500; color: var(--muted);
-    text-decoration: none; transition: color 0.15s;
-  }
-  .nav-preview:hover { color: var(--ink); }
-  .nav-cta {
-    background: var(--ink); color: var(--white); border: none; border-radius: 8px;
-    padding: 9px 20px; font-size: 13px; font-weight: 700; cursor: pointer;
-    text-decoration: none; transition: background 0.15s;
-  }
-  .nav-cta:hover { background: #2a2a2a; }
+  .nav-loc { font-size: 12px; color: #999; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .nav-loc-switch { font-size: 12px; color: #999; background: none; border: none; cursor: pointer; font-family: var(--ff); padding: 0; text-decoration: underline; text-underline-offset: 2px; }
+  .nav-loc-switch:hover { color: #555; }
 
-  /* HERO */
+  /* ─── HERO ─── */
   .hero {
-    min-height: 100vh; background: var(--ink);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 100px 24px 60px; position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #C8813F 0%, #C17A3A 50%, #C8813F 100%);
+    border-bottom: 1px solid rgba(0,0,0,0.12);
+    padding: 110px 24px 100px;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center;
+    position: relative; overflow: hidden;
   }
-  .hero::before {
-    content: ''; position: absolute; width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(245,166,35,0.12) 0%, transparent 70%);
-    top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: none; }
   }
   .hero-eyebrow {
-    font-size: 11px; font-weight: 700; letter-spacing: 3px;
-    text-transform: uppercase; color: var(--saffron); margin-bottom: 28px;
-    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: #FFE8A3;
+    margin-bottom: 30px;
+    animation: fadeUp 0.55s ease both 0.05s;
   }
-  .hero-eyebrow::before, .hero-eyebrow::after {
-    content: ''; display: block; width: 32px; height: 1px;
-    background: var(--saffron); opacity: 0.4;
+  .hero-h1 {
+    max-width: 700px;
+    display: flex; flex-direction: column; gap: 4px;
+    margin-bottom: 28px;
   }
-  .hero-question {
-    font-size: clamp(52px, 10vw, 96px); font-weight: 900; color: var(--white);
-    letter-spacing: -3px; line-height: 0.95; text-align: center; margin-bottom: 28px;
+  .h1-l1 {
+    font-size: clamp(34px, 6.5vw, 52px);
+    font-weight: 900; line-height: 1.1;
+    letter-spacing: -0.025em; color: #FFFFFF;
+    animation: fadeUp 0.55s ease both 0.18s;
   }
-  .hero-question .on { color: var(--saffron); font-style: italic; }
+  .h1-l2 {
+    font-size: clamp(34px, 6.5vw, 52px);
+    font-weight: 900; line-height: 1.1;
+    letter-spacing: -0.025em; color: #FFE8A3;
+    animation: fadeUp 0.55s ease both 0.34s;
+  }
+  .h1-l3 {
+    font-size: clamp(18px, 3vw, 26px);
+    font-weight: 500; line-height: 1.35;
+    color: rgba(255,255,255,0.88);
+    margin-top: 12px;
+    animation: fadeUp 0.55s ease both 0.52s;
+  }
   .hero-sub {
-    font-size: clamp(16px, 2.5vw, 20px); color: rgba(255,255,255,0.55);
-    text-align: center; max-width: 480px; line-height: 1.7; margin-bottom: 48px;
+    font-size: clamp(16px, 2.2vw, 20px);
+    color: rgba(255,255,255,0.72);
+    line-height: 1.65; max-width: 480px;
+    margin-bottom: 40px;
+    animation: fadeUp 0.55s ease both 0.68s;
   }
-  .hero-sub strong { color: rgba(255,255,255,0.85); font-weight: 600; }
-  .hero-actions {
-    display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 64px;
+  .hero-btns {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    justify-content: center; margin-bottom: 28px;
+    animation: fadeUp 0.55s ease both 0.82s;
   }
+  .hero-proof {
+    font-size: 13px; color: rgba(13,13,13,0.4);
+    animation: fadeUp 0.55s ease both 0.96s;
+  }
+
+  /* ─── BUTTONS ─── */
   .btn-primary {
-    background: var(--saffron); color: var(--ink); border: none; border-radius: 12px;
-    padding: 16px 32px; font-size: 15px; font-weight: 800; cursor: pointer;
-    text-decoration: none; transition: all 0.15s; display: inline-flex; align-items: center; gap: 8px;
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--amber); color: #0D0D0D;
+    font-size: 16px; font-weight: 700;
+    padding: 15px 30px; border-radius: 100px;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    font-family: var(--ff); border: none; cursor: pointer;
   }
-  .btn-primary:hover { background: #F9B84A; transform: translateY(-1px); box-shadow: 0 8px 32px rgba(245,166,35,0.3); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(245,166,35,0.34); }
+  .btn-primary.lg { font-size: 18px; padding: 17px 38px; }
   .btn-secondary {
-    background: transparent; color: rgba(255,255,255,0.7);
-    border: 1px solid rgba(255,255,255,0.2); border-radius: 12px;
-    padding: 16px 28px; font-size: 15px; font-weight: 600; cursor: pointer;
-    text-decoration: none; transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 7px;
+    background: none; color: rgba(13,13,13,0.65);
+    font-size: 16px; font-weight: 600;
+    padding: 15px 28px; border-radius: 100px;
+    text-decoration: none;
+    border: 1.5px solid rgba(13,13,13,0.2);
+    transition: border-color 0.2s, color 0.2s;
   }
-  .btn-secondary:hover { border-color: rgba(255,255,255,0.4); color: var(--white); }
+  .btn-secondary:hover { border-color: rgba(13,13,13,0.5); color: #0D0D0D; }
+  .hero .btn-primary { background: #FFFFFF; color: #C17A3A; font-weight: 700; }
+  .hero .btn-primary:hover { box-shadow: 0 12px 36px rgba(0,0,0,0.2); }
+  .hero .btn-secondary { color: #FFFFFF; border: 2px solid rgba(255,255,255,0.6); }
+  .hero .btn-secondary:hover { border-color: #FFFFFF; }
 
-  /* TICKER */
-  .ticker-wrap {
-    width: 100%; overflow: hidden;
-    border-top: 1px solid rgba(255,255,255,0.08); padding: 20px 0; position: relative;
-  }
-  .ticker-label {
-    position: absolute; left: 0; top: 0; bottom: 0;
-    display: flex; align-items: center; padding: 0 24px;
-    background: linear-gradient(to right, var(--ink) 60%, transparent);
-    font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
-    color: rgba(255,255,255,0.3); z-index: 2; white-space: nowrap;
-  }
-  .ticker-track { display: flex; animation: ticker 40s linear infinite; width: max-content; }
-  .ticker-track:hover { animation-play-state: paused; }
-  @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-  .ticker-item {
-    display: flex; align-items: center; gap: 10px; padding: 8px 28px;
-    border-right: 1px solid rgba(255,255,255,0.08); white-space: nowrap;
-  }
-  .ticker-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--saffron); flex-shrink: 0; }
-  .ticker-name { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85); }
-  .ticker-role { font-size: 12px; color: rgba(255,255,255,0.4); }
-  .ticker-url { font-size: 11px; font-weight: 600; color: var(--saffron); opacity: 0.7; }
+  /* ─── SECTIONS ─── */
+  .sec { padding: 88px 24px; }
+  .sec-light { background: var(--light); }
+  .sec-dark  { background: #0D0D0D; }
+  .sec-white { background: #FFFFFF; }
+  .sec-border { border-top: 1px solid rgba(0,0,0,0.06); }
 
-  /* PROOF BAR */
-  .proof-bar {
-    background: var(--stone); border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border); padding: 20px 24px;
+  .sec-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 72px; align-items: center;
+  }
+  @media (max-width: 800px) {
+    .sec-inner { grid-template-columns: 1fr; gap: 44px; }
+    .card-right .card-col { order: -1; }
+  }
+
+  .sec-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--amber); margin-bottom: 18px;
+  }
+  .sec-h2 {
+    font-size: clamp(27px, 3.8vw, 40px);
+    font-weight: 900; line-height: 1.15;
+    letter-spacing: -0.02em; margin-bottom: 20px;
+  }
+  .sec-h2.dark  { color: #0D0D0D; }
+  .sec-h2.light { color: #ffffff; }
+  .sec-body { font-size: 17px; line-height: 1.75; margin-bottom: 20px; }
+  .sec-body.on-light { color: #555; }
+  .sec-body.on-dark  { color: rgba(255,255,255,0.58); }
+  .sec-warm { font-size: 15px; font-weight: 600; color: var(--amber); line-height: 1.6; }
+
+  /* ─── PROFILE CARD ─── */
+  .profile-card {
+    background: #1a1a1a;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.07);
+    box-shadow: 0 0 60px rgba(245,166,35,0.13), 0 28px 56px rgba(0,0,0,0.22);
+    padding: 28px;
+    position: relative;
+  }
+  .pc-live {
+    position: absolute; top: 20px; right: 20px;
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; color: #4ade80;
+  }
+  .pc-live::before {
+    content: '';
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #4ade80;
+    animation: livepulse 2.2s ease-in-out infinite;
+  }
+  @keyframes livepulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .pc-avatar {
+    width: 58px; height: 58px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--amber), #c97b0a);
     display: flex; align-items: center; justify-content: center;
-    gap: 40px; flex-wrap: wrap;
+    font-size: 25px; margin-bottom: 14px;
   }
-  .proof-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
-  .proof-item strong { color: var(--ink); font-weight: 800; font-size: 15px; }
-
-  /* SECTIONS */
-  section { padding: 80px 24px; }
-  .section-inner { max-width: 960px; margin: 0 auto; }
-  .section-eyebrow {
-    font-size: 10px; font-weight: 800; letter-spacing: 3px;
-    text-transform: uppercase; color: var(--saffron); margin-bottom: 16px;
+  .pc-name  { font-size: 19px; font-weight: 800; color: #fff; margin-bottom: 3px; }
+  .pc-role  { font-size: 13px; color: rgba(255,255,255,0.48); margin-bottom: 6px; }
+  .pc-url   { font-size: 12.5px; color: var(--amber); font-family: monospace; font-weight: 600; }
+  .pc-hr    { border: none; border-top: 1px solid rgba(255,255,255,0.07); margin: 18px 0; }
+  .pc-svcs  { display: flex; flex-direction: column; gap: 10px; }
+  .pc-svc   { display: flex; justify-content: space-between; align-items: center; }
+  .pc-svc-n { font-size: 13px; color: rgba(255,255,255,0.62); }
+  .pc-svc-p { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; margin-left: 12px; }
+  .pc-btns  { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pc-btn-a {
+    background: var(--amber); color: #0D0D0D;
+    font-size: 13px; font-weight: 700;
+    padding: 10px; border-radius: 10px;
+    text-align: center; border: none; cursor: pointer; font-family: var(--ff);
   }
-  .section-title {
-    font-size: clamp(28px, 4vw, 42px); font-weight: 900; letter-spacing: -1px;
-    line-height: 1.1; color: var(--ink); margin-bottom: 20px;
+  .pc-btn-w {
+    background: none; color: rgba(255,255,255,0.65);
+    font-size: 13px; font-weight: 600;
+    padding: 10px; border-radius: 10px; text-align: center;
+    border: 1.5px solid rgba(255,255,255,0.14);
+    cursor: pointer; font-family: var(--ff);
   }
-  .section-body { font-size: 17px; color: var(--muted); line-height: 1.7; max-width: 560px; }
+  .pc-rating { font-size: 13px; color: rgba(255,255,255,0.42); text-align: center; }
+  .pc-rating span { color: var(--amber); font-weight: 700; }
 
-  /* IDENTITY */
-  .identity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 48px; }
-  .identity-card {
-    background: var(--stone); border-radius: 20px; padding: 28px;
-    border: 1px solid var(--border); position: relative; overflow: hidden;
+  /* ─── WHATSAPP CHAT ─── */
+  .wa-chat {
+    margin-top: 28px;
+    background: #FFFFFF;
+    border-radius: 16px; padding: 20px 18px;
+    display: flex; flex-direction: column; gap: 10px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.08);
   }
-  .identity-card.featured { background: var(--ink); border-color: transparent; grid-column: span 2; }
-  .identity-card-label {
-    font-size: 10px; font-weight: 800; letter-spacing: 2px;
-    text-transform: uppercase; color: var(--saffron); margin-bottom: 12px;
+  .wa-msg { display: flex; flex-direction: column; }
+  .wa-in  { align-items: flex-start; }
+  .wa-out { align-items: flex-end; }
+  .wa-bubble {
+    max-width: 84%; padding: 10px 14px;
+    display: flex; flex-direction: column; gap: 5px;
   }
-  .identity-card-q { font-size: 22px; font-weight: 900; color: var(--ink); line-height: 1.2; margin-bottom: 8px; }
-  .identity-card.featured .identity-card-q { color: var(--white); }
-  .identity-card-a { font-size: 14px; color: var(--muted); line-height: 1.7; }
-  .identity-card.featured .identity-card-a { color: rgba(255,255,255,0.55); }
-  .identity-card-accent { position: absolute; bottom: -20px; right: -10px; font-size: 80px; opacity: 0.06; pointer-events: none; }
+  .wa-in  .wa-bubble { background: #E5E5EA; border-radius: 3px 14px 14px 14px; }
+  .wa-out .wa-bubble { background: var(--amber); border-radius: 14px 3px 14px 14px; }
+  .wa-txt { font-size: 14px; line-height: 1.5; }
+  .wa-in  .wa-txt { color: #0D0D0D; }
+  .wa-out .wa-txt { color: #0D0D0D; }
+  .wa-out .wa-txt strong { color: #0D0D0D; }
+  .wa-meta { font-size: 10px; align-self: flex-end; color: #8c8c8c; }
+  .wa-ticks { margin-left: 2px; }
 
-  /* HOW IT WORKS */
-  .how-section { background: var(--stone); }
-  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 48px; }
-  .step { background: var(--white); border-radius: 16px; padding: 28px 24px; border: 1px solid var(--border); }
-  .step-number {
-    font-size: 11px; font-weight: 800; letter-spacing: 2px; color: var(--saffron);
-    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  /* ─── COMMUNITY TICKER ─── */
+  .community {
+    background: #0D0D0D;
+    padding: 80px 0;
+    overflow: hidden;
   }
-  .step-number::after { content: ''; display: block; height: 1px; flex: 1; background: var(--border); }
-  .step-icon { font-size: 32px; margin-bottom: 12px; }
-  .step-title { font-size: 16px; font-weight: 800; color: var(--ink); margin-bottom: 8px; }
-  .step-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
-  .step-time {
-    margin-top: 16px; display: inline-flex; align-items: center; gap: 6px;
-    font-size: 11px; font-weight: 700; color: var(--green);
-    background: var(--green-light); border-radius: 20px; padding: 4px 12px;
+  .community-head {
+    text-align: center; padding: 0 24px 48px;
+  }
+  .community-head .sec-h2 { margin-bottom: 0; }
+  .ticker-row { overflow: hidden; margin-bottom: 14px; }
+  .ticker-track {
+    display: flex; gap: 14px;
+    width: max-content;
+  }
+  .tick-left  { animation: tickL 44s linear infinite; }
+  .tick-right { animation: tickR 44s linear infinite; }
+  @keyframes tickL { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  @keyframes tickR { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
+  .ticker-card {
+    background: #1A1A1A;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px; padding: 15px 18px;
+    min-width: 210px; display: inline-flex;
+    flex-direction: column; gap: 3px; flex-shrink: 0;
+  }
+  .tc-icon { font-size: 18px; margin-bottom: 3px; }
+  .tc-name { font-size: 13px; font-weight: 700; color: #fff; }
+  .tc-role { font-size: 11px; color: rgba(255,255,255,0.55); }
+  .tc-loc  { font-size: 10px; color: rgba(255,255,255,0.35); }
+  .tc-url  { font-size: 10px; color: var(--amber); font-family: monospace; }
+
+  /* ─── PRICING ─── */
+  .pricing { background: #FFFFFF; padding: 88px 24px; }
+  .pricing-head { text-align: center; margin-bottom: 56px; }
+  .pricing-head .sec-h2 { color: #0D0D0D; }
+  .pricing-sub {
+    font-size: 18px; color: #555; max-width: 480px;
+    margin: 12px auto 0; line-height: 1.65;
+  }
+  .pricing-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 20px; max-width: 1100px; margin: 0 auto;
+  }
+  @media (max-width: 900px) { .pricing-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 540px) { .pricing-grid { grid-template-columns: 1fr; } }
+  .plan-card {
+    background: #fff;
+    border: 1.5px solid rgba(0,0,0,0.09);
+    border-radius: 18px; padding: 28px 24px;
+    display: flex; flex-direction: column; gap: 0;
+    position: relative;
+  }
+  .plan-card.popular {
+    border-color: var(--amber);
+    box-shadow: 0 0 0 3px rgba(245,166,35,0.14);
+  }
+  .plan-popular-badge {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: var(--amber); color: #0D0D0D;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+    padding: 3px 12px; border-radius: 100px; white-space: nowrap;
+  }
+  .plan-icon { font-size: 24px; margin-bottom: 10px; }
+  .plan-name { font-size: 18px; font-weight: 800; color: #0D0D0D; margin-bottom: 4px; }
+  .plan-price { font-size: 26px; font-weight: 900; color: #0D0D0D; margin-bottom: 4px; }
+  .plan-price .per { font-size: 14px; font-weight: 500; color: #888; }
+  .plan-tagline { font-size: 13px; color: #777; margin-bottom: 20px; line-height: 1.5; }
+  .plan-divider { border: none; border-top: 1px solid rgba(0,0,0,0.07); margin: 0 0 16px; }
+  .plan-features { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; flex: 1; }
+  .plan-features li {
+    font-size: 13px; color: #444; line-height: 1.5;
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .plan-features li::before { content: '✓'; color: var(--amber); font-weight: 700; flex-shrink: 0; }
+  .plan-btn {
+    display: block; text-align: center;
+    background: var(--amber); color: #0D0D0D;
+    font-size: 14px; font-weight: 700;
+    padding: 12px; border-radius: 10px;
+    text-decoration: none; transition: transform 0.15s;
+  }
+  .plan-btn:hover { transform: scale(1.02); }
+  .plan-btn.outline {
+    background: none; color: #0D0D0D;
+    border: 1.5px solid rgba(0,0,0,0.15);
+  }
+  .plan-btn.outline:hover { border-color: var(--amber); }
+  .pricing-elevate {
+    text-align: center; margin-top: 36px;
+    font-size: 14px; color: #777; max-width: 520px; margin-left: auto; margin-right: auto;
+  }
+  .pricing-elevate strong { color: #0D0D0D; }
+
+  /* ─── TESTIMONIALS ─── */
+  .testimonials { background: #0D0D0D; padding: 88px 24px; }
+  .testi-head { text-align: center; margin-bottom: 56px; }
+  .testi-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 20px; max-width: 1100px; margin: 0 auto;
+  }
+  @media (max-width: 800px) { .testi-grid { grid-template-columns: 1fr; } }
+  .testi-card {
+    background: #1A1A1A;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 18px; padding: 28px 24px;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .testi-stars { font-size: 14px; color: var(--amber); }
+  .testi-quote {
+    font-size: 15px; line-height: 1.7;
+    color: rgba(255,255,255,0.8); flex: 1;
+    font-style: italic;
+  }
+  .testi-author { display: flex; flex-direction: column; gap: 2px; }
+  .testi-name { font-size: 14px; font-weight: 700; color: #fff; }
+  .testi-role { font-size: 12px; color: rgba(255,255,255,0.45); }
+
+  /* ─── CTA ─── */
+  .cta-sec {
+    background: var(--amber);
+    padding: 96px 24px;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center;
+  }
+  .cta-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: rgba(13,13,13,0.45);
+    margin-bottom: 18px;
+  }
+  .cta-h2 {
+    font-size: clamp(36px, 6.5vw, 62px);
+    font-weight: 900; color: #0D0D0D;
+    line-height: 1.08; letter-spacing: -0.028em;
+    margin-bottom: 16px;
+  }
+  .cta-sub { font-size: 18px; color: rgba(13,13,13,0.58); margin-bottom: 40px; line-height: 1.65; }
+  .cta-sec .btn-primary { background: #0D0D0D; color: var(--amber); }
+  .cta-sec .btn-primary:hover { box-shadow: 0 12px 36px rgba(13,13,13,0.22); }
+  .cta-note { margin-top: 16px; font-size: 13px; color: rgba(13,13,13,0.42); }
+
+  /* ─── FOOTER ─── */
+  .v2-footer {
+    background: #FAFAFA;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    padding: 40px 32px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    text-align: center;
+  }
+  .footer-brand { display: flex; align-items: center; gap: 8px; }
+  .footer-wordmark { font-size: 16px; font-weight: 800; letter-spacing: -0.5px; }
+  .footer-copy { font-size: 12px; color: rgba(13,13,13,0.35); }
+
+  /* ─── CENTERED SECTION HEADS ─── */
+  .sec-head-center { text-align: center; margin-bottom: 56px; }
+  .sec-head-center .sec-h2 { max-width: 600px; margin-left: auto; margin-right: auto; margin-bottom: 0; }
+
+  /* ─── HERO FLOATING PHOTOS ─── */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(var(--rotation)); }
+    50%       { transform: translateY(-12px) rotate(var(--rotation)); }
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    overflow: hidden; pointer-events: none; z-index: 0;
+  }
+  .hero-content {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; align-items: center;
+    width: 100%;
+  }
+  .hf-wrap {
+    position: absolute;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    animation: float 5s ease-in-out infinite;
+  }
+  .hf-photo {
+    width: 160px; height: 200px;
+    object-fit: cover;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    opacity: 0.85;
+    display: block;
+  }
+  .hf-label {
+    background: rgba(255,255,255,0.92);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px; font-weight: 600; color: #C17A3A;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    white-space: nowrap;
   }
 
-  /* PERSONAS */
-  .personas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-top: 48px; }
-  .persona-card {
-    background: var(--stone); border: 1px solid var(--border); border-radius: 14px;
-    padding: 20px 16px; text-align: center; transition: all 0.15s; cursor: default;
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .nav-loc { display: none; }
+    .hf-photo { width: 110px; height: 140px; }
+    .hf-wrap:nth-child(5), .hf-wrap:nth-child(6) { display: none; }
+    .hf-wrap:nth-child(1) { left: -30px !important; }
+    .hf-wrap:nth-child(2) { right: -30px !important; }
+    .hf-wrap:nth-child(3) { left: -30px !important; }
+    .hf-wrap:nth-child(4) { right: -30px !important; }
+    .hero-btns { flex-direction: column; align-items: center; }
+    .btn-primary, .btn-secondary { justify-content: center; max-width: 280px; }
   }
-  .persona-card:hover { border-color: var(--saffron); background: var(--saffron-light); transform: translateY(-2px); }
-  .persona-icon { font-size: 28px; margin-bottom: 8px; }
-  .persona-name { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
-  .persona-role { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
-  .persona-location { font-size: 11px; color: var(--muted); }
-  .persona-url { font-size: 10px; color: var(--saffron); font-weight: 700; margin-top: 6px; opacity: 0.8; }
-
-  /* PREVIEW */
-  .preview-section { background: var(--ink); padding: 80px 24px; }
-  .preview-inner { max-width: 960px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
-  .preview-text .section-title { color: var(--white); }
-  .preview-text .section-body { color: rgba(255,255,255,0.5); }
-  .preview-text .section-eyebrow { color: var(--saffron); }
-  .preview-features { margin-top: 32px; display: flex; flex-direction: column; gap: 14px; }
-  .preview-feature { display: flex; gap: 14px; align-items: flex-start; }
-  .preview-feature-icon {
-    width: 36px; height: 36px; border-radius: 10px;
-    background: rgba(245,166,35,0.12);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; flex-shrink: 0;
+  @media (max-width: 480px) {
+    .v2-nav  { padding: 0 16px; }
+    .hero    { padding: 90px 20px 72px; }
+    .hero-h1 span { font-size: 36px !important; }
+    .sec     { padding: 64px 20px; }
+    .pc-btns { grid-template-columns: 1fr; }
   }
-  .preview-feature-text strong { display: block; font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 2px; }
-  .preview-feature-text span { font-size: 12px; color: rgba(255,255,255,0.4); line-height: 1.5; }
-  .phone-mock {
-    background: #1A1A1A; border-radius: 36px; padding: 16px;
-    border: 2px solid rgba(255,255,255,0.08); box-shadow: 0 32px 64px rgba(0,0,0,0.5);
-    max-width: 320px; margin: 0 auto;
-  }
-  .phone-screen { background: var(--white); border-radius: 24px; overflow: hidden; }
-  .phone-hero { background: linear-gradient(135deg, #eef2ff, #f0fdf4); padding: 24px 20px; text-align: center; border-bottom: 1px solid #f1f5f9; }
-  .phone-avatar { width: 56px; height: 56px; border-radius: 50%; background: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 12px; border: 3px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-  .phone-name { font-size: 16px; font-weight: 900; color: #0f172a; margin-bottom: 2px; }
-  .phone-role { font-size: 11px; color: #6366f1; font-weight: 700; margin-bottom: 8px; }
-  .phone-tagline { font-size: 12px; color: #64748b; line-height: 1.5; margin-bottom: 16px; }
-  .phone-btns { display: flex; gap: 8px; justify-content: center; }
-  .phone-btn-main { background: #6366f1; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 11px; font-weight: 800; cursor: pointer; }
-  .phone-btn-wa { background: #25D366; color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 11px; font-weight: 700; cursor: pointer; }
-  .phone-services { padding: 16px 20px; border-bottom: 1px solid #f1f5f9; }
-  .phone-services-label { font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-  .phone-service { display: flex; justify-content: space-between; font-size: 12px; padding: 6px 0; border-bottom: 1px solid #f8fafc; color: #374151; }
-  .phone-service:last-child { border-bottom: none; }
-  .phone-service strong { color: #6366f1; font-weight: 700; }
-  .phone-reviews { padding: 14px 20px; background: #fafafa; }
-  .phone-review-label { font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-  .phone-stars { color: #f59e0b; font-size: 11px; margin-bottom: 4px; }
-  .phone-review { font-size: 11px; color: #64748b; line-height: 1.5; font-style: italic; }
-  .phone-url { text-align: center; padding: 10px; font-size: 10px; color: #94a3b8; border-top: 1px solid #f1f5f9; }
-  .phone-url span { color: var(--saffron); font-weight: 700; }
+`;
 
-  /* PRICING */
-  .pricing-section { background: var(--stone); }
-  .pricing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 12px; margin-top: 48px; }
-  .price-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 16px; padding: 24px 20px; position: relative; }
-  .price-card.highlight { border-color: var(--saffron); background: var(--saffron-light); }
-  .price-badge { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: var(--saffron); color: var(--ink); font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; border-radius: 20px; padding: 3px 12px; white-space: nowrap; }
-  .price-icon { font-size: 24px; margin-bottom: 10px; }
-  .price-name { font-size: 14px; font-weight: 800; color: var(--ink); margin-bottom: 6px; }
-  .price-amount { margin-bottom: 4px; }
-  .price-amount .big { font-size: 26px; font-weight: 900; color: var(--ink); }
-  .price-amount .small { font-size: 12px; color: var(--muted); font-weight: 500; }
-  .price-india { font-size: 11px; color: var(--muted); margin-bottom: 14px; }
-  .price-features { display: flex; flex-direction: column; gap: 6px; }
-  .price-feature { font-size: 11px; color: var(--muted); display: flex; gap: 6px; align-items: flex-start; line-height: 1.4; }
-  .price-feature::before { content: '✓'; color: var(--green); font-weight: 800; flex-shrink: 0; font-size: 10px; margin-top: 1px; }
-
-  /* TESTIMONIALS */
-  .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 48px; }
-  .testimonial { background: var(--stone); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
-  .testimonial-stars { color: #F5A623; font-size: 13px; margin-bottom: 12px; }
-  .testimonial-text { font-size: 15px; color: var(--ink); line-height: 1.7; font-style: italic; margin-bottom: 16px; }
-  .testimonial-author { display: flex; align-items: center; gap: 10px; }
-  .testimonial-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-  .testimonial-name { font-size: 13px; font-weight: 700; color: var(--ink); }
-  .testimonial-role { font-size: 11px; color: var(--muted); }
-  .testimonial-url { font-size: 10px; color: var(--saffron); font-weight: 700; margin-top: 2px; }
-
-  /* QR */
-  .qr-section { background: var(--saffron-light); padding: 60px 24px; }
-  .qr-inner { max-width: 800px; margin: 0 auto; display: flex; gap: 48px; align-items: center; flex-wrap: wrap; justify-content: center; }
-  .qr-box { width: 120px; height: 120px; background: var(--white); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 64px; border: 2px solid var(--saffron); flex-shrink: 0; box-shadow: 0 8px 24px rgba(245,166,35,0.2); }
-  .qr-text { max-width: 440px; }
-  .qr-text h3 { font-size: 22px; font-weight: 900; color: var(--ink); margin-bottom: 10px; letter-spacing: -0.5px; }
-  .qr-text p { font-size: 15px; color: var(--muted); line-height: 1.7; }
-
-  /* FINAL CTA */
-  .cta-section { background: var(--ink); text-align: center; padding: 100px 24px; }
-  .cta-question { font-size: clamp(40px, 7vw, 72px); font-weight: 900; letter-spacing: -2px; color: var(--white); line-height: 1; margin-bottom: 20px; }
-  .cta-question .on { color: var(--saffron); font-style: italic; }
-  .cta-sub { font-size: 17px; color: rgba(255,255,255,0.45); margin-bottom: 40px; max-width: 400px; margin-left: auto; margin-right: auto; line-height: 1.6; }
-  .cta-free-note { margin-top: 16px; font-size: 13px; color: rgba(255,255,255,0.3); }
-
-  /* FOOTER */
-  footer { background: #080808; padding: 32px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; border-top: 1px solid rgba(255,255,255,0.06); }
-  .footer-brand { font-size: 14px; font-weight: 800; color: rgba(255,255,255,0.4); }
-  .footer-brand span { color: var(--saffron); }
-  .footer-tagline { font-size: 12px; color: rgba(255,255,255,0.2); }
-  .footer-links { display: flex; gap: 20px; }
-  .footer-links a { font-size: 12px; color: rgba(255,255,255,0.25); text-decoration: none; transition: color 0.15s; }
-  .footer-links a:hover { color: rgba(255,255,255,0.5); }
-
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-  .hero-eyebrow { animation: fadeUp 0.6s ease both; }
-  .hero-question { animation: fadeUp 0.6s 0.1s ease both; }
-  .hero-sub { animation: fadeUp 0.6s 0.2s ease both; }
-  .hero-actions { animation: fadeUp 0.6s 0.3s ease both; }
-
-  @media (max-width: 640px) {
-    .identity-grid { grid-template-columns: 1fr; }
-    .identity-card.featured { grid-column: span 1; }
-    .hero-question { letter-spacing: -2px; }
-    .preview-inner { grid-template-columns: 1fr; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .ticker-track { animation: none; }
-    * { animation: none !important; transition: none !important; }
-  }
-`
-
-const TICKER_PEOPLE = [
-  { name: 'Priya Sharma',    role: 'Maths Tutor',      location: 'Celina TX',         url: 'kryla.work/priyasharma'  },
-  { name: 'Meena Krishnan',  role: 'Home Baker',        location: 'Pune, India',       url: 'kryla.work/meenabakes'   },
-  { name: 'Raj Patel',       role: 'Fitness Trainer',   location: 'Prosper TX',        url: 'kryla.work/rajfitness'   },
-  { name: 'Sunita Verma',    role: 'Music Teacher',     location: 'Mumbai, India',     url: 'kryla.work/sunitamusic'  },
-  { name: 'Alex Chen',       role: 'Photographer',      location: 'Frisco TX',         url: 'kryla.work/alexchenphoto'},
-  { name: 'Dr. Anita Rao',   role: 'Physiotherapist',   location: 'Plano TX',          url: 'kryla.work/dranitrarao'  },
-  { name: "Rina's Studio",   role: 'Hair Salon',        location: 'McKinney TX',       url: 'kryla.work/rinastudio'   },
-  { name: 'Arjun Nair',      role: 'Home Chef',         location: 'Hyderabad, India',  url: 'kryla.work/arjuncooks'   },
-  { name: 'Divya Mehta',     role: 'Yoga Teacher',      location: 'Bengaluru, India',  url: 'kryla.work/divyayoga'    },
-  { name: 'Maria Santos',    role: 'Dog Trainer',       location: 'Celina TX',         url: 'kryla.work/mariapets'    },
-  { name: 'Kavitha R.',      role: 'Art Teacher',       location: 'Chennai, India',    url: 'kryla.work/kavithaart'   },
-  { name: 'James Park',      role: 'Guitar Coach',      location: 'Prosper TX',        url: 'kryla.work/jamesguitar'  },
-]
-
-const PERSONAS = [
-  { icon: '📚', name: 'Priya Sharma',  role: 'Maths Tutor',      location: 'Celina, TX',    url: 'kryla.work/priyasharma'  },
-  { icon: '🎂', name: 'Meena K.',      role: 'Home Baker',        location: 'Pune, India',   url: 'kryla.work/meenabakes'   },
-  { icon: '💪', name: 'Raj Patel',     role: 'Fitness Trainer',   location: 'Prosper, TX',   url: 'kryla.work/rajfitness'   },
-  { icon: '📸', name: 'Alex Chen',     role: 'Photographer',      location: 'Frisco, TX',    url: 'kryla.work/alexchenphoto'},
-  { icon: '🎵', name: 'Sunita V.',     role: 'Music Teacher',     location: 'Mumbai',        url: 'kryla.work/sunitamusic'  },
-  { icon: '✂️', name: "Rina's Studio", role: 'Hair Salon',        location: 'McKinney, TX',  url: 'kryla.work/rinastudio'   },
-  { icon: '🩺', name: 'Dr. Anita R.', role: 'Physiotherapist',   location: 'Plano, TX',     url: 'kryla.work/dranitrarao'  },
-  { icon: '👩‍🍳', name: 'Arjun Nair',  role: 'Home Chef',         location: 'Hyderabad',     url: 'kryla.work/arjuncooks'   },
-  { icon: '🧘', name: 'Divya Mehta',   role: 'Yoga Teacher',      location: 'Bengaluru',     url: 'kryla.work/divyayoga'    },
-  { icon: '🐾', name: 'Maria Santos',  role: 'Dog Trainer',       location: 'Celina, TX',    url: 'kryla.work/mariapets'    },
-  { icon: '🎨', name: 'Kavitha R.',    role: 'Art Teacher',       location: 'Chennai',       url: 'kryla.work/kavithaart'   },
-  { icon: '🎸', name: 'James Park',    role: 'Guitar Coach',      location: 'Prosper, TX',   url: 'kryla.work/jamesguitar'  },
-]
-
-export default function Home() {
+function PriyaCard({ loc }: { loc: Loc }) {
+  const p1 = loc === 'india' ? '₹800/hr'   : '$30/hr';
+  const p2 = loc === 'india' ? '₹400/hr'   : '$15/hr';
+  const p3 = loc === 'india' ? '₹4,999/mo' : '$199/mo';
   return (
-    <>
+    <div className="profile-card">
+      <div className="pc-live">Live</div>
+      <div className="pc-avatar">📚</div>
+      <div className="pc-name">Priya Sharma</div>
+      <div className="pc-role">Maths &amp; Science Tutor · Celina, TX</div>
+      <div className="pc-url">kryla.work/priyasharma</div>
+      <hr className="pc-hr" />
+      <div className="pc-svcs">
+        <div className="pc-svc"><span className="pc-svc-n">One-on-one session</span><span className="pc-svc-p">{p1}</span></div>
+        <div className="pc-svc"><span className="pc-svc-n">Small group (3–4)</span><span className="pc-svc-p">{p2}</span></div>
+        <div className="pc-svc"><span className="pc-svc-n">Monthly plan</span><span className="pc-svc-p">{p3}</span></div>
+      </div>
+      <hr className="pc-hr" />
+      <div className="pc-btns" style={{ marginBottom: '18px' }}>
+        <button className="pc-btn-a">Book a Session</button>
+        <button className="pc-btn-w">WhatsApp</button>
+      </div>
+      <div className="pc-rating"><span>4.9 ★★★★★</span> · 47 students</div>
+    </div>
+  );
+}
+
+function MeenaCard({ loc }: { loc: Loc }) {
+  const p1 = loc === 'india' ? '₹600'      : '$25';
+  const p2 = loc === 'india' ? '₹1,200'    : '$50';
+  const p3 = loc === 'india' ? '₹3,499/mo' : '$149/mo';
+  return (
+    <div className="profile-card">
+      <div className="pc-live">Live</div>
+      <div className="pc-avatar">🎂</div>
+      <div className="pc-name">Meena Krishnan</div>
+      <div className="pc-role">Home Baker · Pune, India</div>
+      <div className="pc-url">kryla.work/meenabakes</div>
+      <hr className="pc-hr" />
+      <div className="pc-svcs">
+        <div className="pc-svc"><span className="pc-svc-n">Custom Birthday Cake</span><span className="pc-svc-p">{p1}</span></div>
+        <div className="pc-svc"><span className="pc-svc-n">Themed Box (12 pieces)</span><span className="pc-svc-p">{p2}</span></div>
+        <div className="pc-svc"><span className="pc-svc-n">Monthly Dessert Plan</span><span className="pc-svc-p">{p3}</span></div>
+      </div>
+      <hr className="pc-hr" />
+      <div className="pc-btns" style={{ marginBottom: '18px' }}>
+        <button className="pc-btn-a">Order Now</button>
+        <button className="pc-btn-w">WhatsApp</button>
+      </div>
+      <div className="pc-rating"><span>4.8 ★★★★★</span> · 124 orders</div>
+    </div>
+  );
+}
+
+function RajCard({ loc }: { loc: Loc }) {
+  const p1 = loc === 'india' ? '₹1,200/hr'  : '$40/hr';
+  const p2 = loc === 'india' ? '₹400/class' : '$15/class';
+  const p3 = loc === 'india' ? '₹6,999/mo'  : '$249/mo';
+  return (
+    <div className="profile-card">
+      <div className="pc-live">Live</div>
+      <div className="pc-avatar">💪</div>
+      <div className="pc-name">Raj Patel</div>
+      <div className="pc-role">Fitness Trainer · Prosper, TX</div>
+      <div className="pc-url">kryla.work/rajfitness</div>
+      <hr className="pc-hr" />
+      <div className="pc-svcs">
+        <div className="pc-svc"><span className="pc-svc-n">Personal training session</span><span className="pc-svc-p">{p1}</span></div>
+        <div className="pc-svc"><span className="pc-svc-n">Group class</span><span className="pc-svc-p">{p2}</span></div>
+        <div className="pc-svc"><span className="pc-svc-n">Monthly coaching</span><span className="pc-svc-p">{p3}</span></div>
+      </div>
+      <hr className="pc-hr" />
+      <div className="pc-btns" style={{ marginBottom: '18px' }}>
+        <button className="pc-btn-a">Book a Session</button>
+        <button className="pc-btn-w">WhatsApp</button>
+      </div>
+      <div className="pc-rating"><span>4.9 ★★★★★</span> · 89 clients</div>
+    </div>
+  );
+}
+
+function AlexCard({ loc }: { loc: Loc }) {
+  const p1 = loc === 'india' ? '₹3,500'     : '$120';
+  const p2 = loc === 'india' ? '₹6,000'     : '$220';
+  const p3 = loc === 'india' ? '₹15,000/mo' : '$499/mo';
+  return (
+    <div className="profile-card">
+      <div className="pc-live">Live</div>
+      <div className="pc-avatar">📷</div>
+      <div className="pc-name">Alex Chen</div>
+      <div className="pc-role">Photographer · Frisco, TX</div>
+      <div className="pc-url">kryla.work/alexchenphoto</div>
+      <hr className="pc-hr" />
+      <div className="pc-svcs">
+        <div className="pc-svc"><span className="pc-svc-n">Portrait session</span><span className="pc-svc-p">{p1}</span></div>
+        <div className="pc-svc"><span className="pc-svc-n">Half-day shoot</span><span className="pc-svc-p">{p2}</span></div>
+        <div className="pc-svc"><span className="pc-svc-n">Monthly retainer</span><span className="pc-svc-p">{p3}</span></div>
+      </div>
+      <hr className="pc-hr" />
+      <div className="pc-btns" style={{ marginBottom: '18px' }}>
+        <button className="pc-btn-a">Book Now</button>
+        <button className="pc-btn-w">WhatsApp</button>
+      </div>
+      <div className="pc-rating"><span>5.0 ★★★★★</span> · 32 clients</div>
+    </div>
+  );
+}
+
+export default function V2Page() {
+  const [loc, setLoc] = useState<Loc>('usa');
+  const [locDetected, setLocDetected] = useState(false);
+
+  useEffect(() => {
+    fetch('https://ipapi.co/json/')
+      .then(res => res.json())
+      .then(data => {
+        setLoc(data.country_code === 'IN' ? 'india' : 'usa');
+        setLocDetected(true);
+      })
+      .catch(() => { setLoc('usa'); setLocDetected(true); });
+  }, []);
+
+  const toggleLoc = () => setLoc(l => l === 'india' ? 'usa' : 'india');
+
+  const sproutP = loc === 'india' ? '₹299' : '$5';
+  const growP   = loc === 'india' ? '₹799' : '$12';
+  const thriveP = loc === 'india' ? '₹1,999' : '$25';
+  const eleP    = loc === 'india' ? '₹3,999' : '$45';
+
+  return (
+    <div className="v2">
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
-      {/* NAV */}
-      <nav>
-        <a href="#" className="nav-logo">
-          <img src="/kryla-wordmark-light.svg" alt="Kryla.work" height={30} style={{ display: 'block' }} />
+      {/* Nav */}
+      <nav className="v2-nav">
+        <a href="/" style={{textDecoration:'none'}}>
+          <span style={{fontSize:'22px', fontWeight:800, letterSpacing:'-0.5px'}}>
+            <span style={{color:'#0D0D0D'}}>kryla</span>
+            <span style={{color:'#F5A623'}}>.work</span>
+          </span>
         </a>
         <div className="nav-right">
-          <a href="/v2" className="nav-preview">Preview v2 →</a>
-          <a href="#signup" className="nav-cta">Claim your spot free →</a>
+          {locDetected && (
+            <span className="nav-loc">
+              {loc === 'india' ? '🇮🇳 India' : '🇺🇸 USA'}
+              {' · '}
+              <button className="nav-loc-switch" onClick={toggleLoc}>
+                Switch to {loc === 'india' ? 'USA' : 'India'} →
+              </button>
+            </span>
+          )}
+          <a href="/onboarding" className="nav-join">Join free →</a>
         </div>
       </nav>
 
-      {/* HERO */}
+      {/* ── HERO ── */}
       <section className="hero">
-        <div className="hero-eyebrow">For tutors, bakers, trainers &amp; more</div>
-        <h1 className="hero-question">Are you <span className="on">on</span> Kryla?</h1>
-        <p className="hero-sub">
-          Your own spot online — with your name, your work, your prices, and a way for people to book you.{' '}
-          <strong>Free to start. Ready in 10 minutes.</strong>
+
+        {/* Floating background cards */}
+        <div className="hero-bg">
+          <div className="hf-wrap" style={{ top:'5%', left:'-2%', '--rotation':'-6deg', animationDelay:'0s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=300&q=80" alt="Maths Tutor" />
+            <span className="hf-label">📚 Maths Tutor</span>
+          </div>
+          <div className="hf-wrap" style={{ top:'3%', right:'0%', '--rotation':'5deg', animationDelay:'0.8s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&q=80" alt="Home Baker" />
+            <span className="hf-label">🎂 Home Baker</span>
+          </div>
+          <div className="hf-wrap" style={{ top:'42%', left:'-3%', '--rotation':'3deg', animationDelay:'1.6s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=300&q=80" alt="Fitness Trainer" />
+            <span className="hf-label">💪 Fitness Trainer</span>
+          </div>
+          <div className="hf-wrap" style={{ top:'38%', right:'-1%', '--rotation':'-4deg', animationDelay:'2.4s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=300&q=80" alt="Photographer" />
+            <span className="hf-label">📸 Photographer</span>
+          </div>
+          <div className="hf-wrap" style={{ bottom:'2%', left:'12%', '--rotation':'-3deg', animationDelay:'3.2s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=300&q=80" alt="Salon" />
+            <span className="hf-label">✂️ Salon</span>
+          </div>
+          <div className="hf-wrap" style={{ bottom:'0%', right:'8%', '--rotation':'6deg', animationDelay:'4s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=300&q=80" alt="Yoga Teacher" />
+            <span className="hf-label">🧘 Yoga Teacher</span>
+          </div>
+        </div>
+
+        {/* Foreground text content */}
+        <div className="hero-content">
+          <p className="hero-eyebrow">FOR EVERY SKILLED PROFESSIONAL</p>
+          <h1 className="hero-h1">
+            <span className="h1-l1">Your craft deserves</span>
+            <span className="h1-l2">a name online.</span>
+            <span className="h1-l3">Give your business its own identity.</span>
+          </h1>
+          <p className="hero-sub">Your name. Your work. Your spot online — in 15 minutes.</p>
+          <div className="hero-btns">
+            <a href="/onboarding" className="btn-primary">Claim your spot — it&apos;s free</a>
+            <a href="#s1" className="btn-secondary">See how it works ↓</a>
+          </div>
+          <p className="hero-proof">Free to start · No card needed · Live in 15 minutes · Works on WhatsApp</p>
+        </div>
+
+        {/* K mark watermark */}
+        <div style={{position:'absolute', bottom:'24px', right:'24px', zIndex:0, opacity:0.15, pointerEvents:'none'}}>
+          <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 10 L20 90 M20 50 L70 10 M20 50 L70 90" stroke="#FFFFFF" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+
+      </section>
+
+      {/* ── SECTION 1 — light #FAFAFA — card left, text right ── */}
+      <section className="sec sec-light" id="s1">
+        <div className="sec-inner">
+          <div className="card-col">
+            <PriyaCard loc={loc} />
+          </div>
+          <div className="text-col">
+            <p className="sec-eyebrow">YOUR IDENTITY ONLINE</p>
+            <h2 className="sec-h2 dark">
+              Your name.<br />
+              Your work.<br />
+              One link that says it all.
+            </h2>
+            <p className="sec-body on-light">
+              Every skilled professional deserves a presence that matches their craft. Kryla gives you your own spot — with your services, your prices, and a way for people to reach you directly.
+            </p>
+            <p className="sec-warm">Like a visiting card — but one that works while you sleep.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SECTION 2 — light #FAFAFA — text left, card right ── */}
+      <section className="sec sec-light sec-border">
+        <div className="sec-inner card-right">
+          <div className="text-col">
+            <p className="sec-eyebrow">ONE LINK FOR EVERYTHING</p>
+            <h2 className="sec-h2 dark">
+              Send one link.<br />
+              They know everything<br />
+              they need to know.
+            </h2>
+            <p className="sec-body on-light">
+              Your name. What you do. What you charge. When you&apos;re free. What your clients say. All in one place they can open on any phone.
+            </p>
+            <div className="wa-chat">
+              <div className="wa-msg wa-in">
+                <div className="wa-bubble">
+                  <span className="wa-txt">Hi! Are you available this week?</span>
+                  <span className="wa-meta">10:42 AM <span className="wa-ticks">✓✓</span></span>
+                </div>
+              </div>
+              <div className="wa-msg wa-out">
+                <div className="wa-bubble">
+                  <span className="wa-txt">Here&apos;s my Kryla link — <strong>kryla.work/meenabakes</strong> — order directly there! 😊</span>
+                  <span className="wa-meta">10:43 AM <span className="wa-ticks">✓✓</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="card-col">
+            <MeenaCard loc={loc} />
+          </div>
+        </div>
+      </section>
+
+      {/* ── SECTION 3 — light #FAFAFA — card left, text right ── */}
+      <section className="sec sec-light sec-border">
+        <div className="sec-inner">
+          <div className="card-col">
+            <RajCard loc={loc} />
+          </div>
+          <div className="text-col">
+            <p className="sec-eyebrow">LIVE IN 15 MINUTES</p>
+            <h2 className="sec-h2 dark">
+              Answer 5 questions.<br />
+              We handle<br />
+              everything else.
+            </h2>
+            <p className="sec-body on-light">
+              No design skills needed. No complicated setup. Tell us what you do, who you help, and what you charge — your professional spot is live before your next session starts.
+            </p>
+            <p className="sec-warm">Most members are live in under 15 minutes. No coding. No stress.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SECTION 4 — light #FAFAFA — text left, card right ── */}
+      <section className="sec sec-light sec-border">
+        <div className="sec-inner card-right">
+          <div className="text-col">
+            <p className="sec-eyebrow">WORKS WHERE YOUR CLIENTS ARE</p>
+            <h2 className="sec-h2 dark">
+              New booking?<br />
+              You get a WhatsApp.<br />
+              Done.
+            </h2>
+            <p className="sec-body on-light">
+              When someone&apos;s ready to hire you, Kryla sends you a WhatsApp. Accept with one tap. Your client gets their confirmation right away. Business handled — without switching between apps.
+            </p>
+            <div className="wa-chat">
+              <div className="wa-msg wa-in">
+                <div className="wa-bubble">
+                  <span className="wa-txt">📅 New request from Sarah — Family Portraits, Saturday 10am. Tap to confirm.</span>
+                  <span className="wa-meta">9:14 AM <span className="wa-ticks">✓✓</span></span>
+                </div>
+              </div>
+              <div className="wa-msg wa-out">
+                <div className="wa-bubble">
+                  <span className="wa-txt">Confirmed! 📸 Sarah gets your details straight away.</span>
+                  <span className="wa-meta">9:15 AM <span className="wa-ticks">✓✓</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="card-col">
+            <AlexCard loc={loc} />
+          </div>
+        </div>
+      </section>
+
+      {/* ── COMMUNITY — dark #0D0D0D ── */}
+      <section className="community">
+        <div className="community-head">
+          <p className="sec-eyebrow">THE COMMUNITY</p>
+          <h2 className="sec-h2 light">Join professionals already growing on Kryla</h2>
+        </div>
+        <div className="ticker-row">
+          <div className="ticker-track tick-left">
+            {[...R1, ...R1].map((m, i) => (
+              <div className="ticker-card" key={i}>
+                <div className="tc-icon">{m.icon}</div>
+                <div className="tc-name">{m.name}</div>
+                <div className="tc-role">{m.role}</div>
+                <div className="tc-loc">{m.loc}</div>
+                <div className="tc-url">{m.url}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="ticker-row">
+          <div className="ticker-track tick-right">
+            {[...R2, ...R2].map((m, i) => (
+              <div className="ticker-card" key={i}>
+                <div className="tc-icon">{m.icon}</div>
+                <div className="tc-name">{m.name}</div>
+                <div className="tc-role">{m.role}</div>
+                <div className="tc-loc">{m.loc}</div>
+                <div className="tc-url">{m.url}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PRICING — white #FFFFFF ── */}
+      <section className="pricing">
+        <div className="pricing-head">
+          <p className="sec-eyebrow">YOUR MEMBERSHIP</p>
+          <h2 className="sec-h2">Free to start. Grow when you&apos;re ready.</h2>
+          <p className="pricing-sub">Every membership starts free. Move up only when Kryla is already working for you.</p>
+        </div>
+        <div className="pricing-grid">
+
+          {/* Seed */}
+          <div className="plan-card">
+            <div className="plan-icon">🌱</div>
+            <div className="plan-name">Seed</div>
+            <div className="plan-price">Free <span className="per">forever</span></div>
+            <div className="plan-tagline">Your presence online, yours to keep.</div>
+            <hr className="plan-divider" />
+            <ul className="plan-features">
+              <li>Your own spot on kryla.work</li>
+              <li>Services &amp; contact form</li>
+              <li>Member directory listing</li>
+            </ul>
+            <a href="/onboarding" className="plan-btn outline">Start free →</a>
+          </div>
+
+          {/* Sprout */}
+          <div className="plan-card">
+            <div className="plan-icon">🌿</div>
+            <div className="plan-name">Sprout</div>
+            <div className="plan-price">{sproutP} <span className="per">/mo</span></div>
+            <div className="plan-tagline">Bookings and real-time alerts.</div>
+            <hr className="plan-divider" />
+            <ul className="plan-features">
+              <li>Everything in Seed</li>
+              <li>Booking form on your spot</li>
+              <li>WhatsApp alert when new business comes in</li>
+            </ul>
+            <a href="/onboarding" className="plan-btn">Join Sprout →</a>
+          </div>
+
+          {/* Grow */}
+          <div className="plan-card popular">
+            <div className="plan-popular-badge">MOST POPULAR</div>
+            <div className="plan-icon">🌳</div>
+            <div className="plan-name">Grow</div>
+            <div className="plan-price">{growP} <span className="per">/mo</span></div>
+            <div className="plan-tagline">Your own address on the internet.</div>
+            <hr className="plan-divider" />
+            <ul className="plan-features">
+              <li>Everything in Sprout</li>
+              <li>Your own domain (priya.com)</li>
+              <li>Analytics — see who&apos;s looking you up</li>
+            </ul>
+            <a href="/onboarding" className="plan-btn">Join Grow →</a>
+          </div>
+
+          {/* Thrive */}
+          <div className="plan-card">
+            <div className="plan-icon">🚀</div>
+            <div className="plan-name">Thrive</div>
+            <div className="plan-price">{thriveP} <span className="per">/mo</span></div>
+            <div className="plan-tagline">Your spot runs itself.</div>
+            <hr className="plan-divider" />
+            <ul className="plan-features">
+              <li>Everything in Grow</li>
+              <li>Update your spot via WhatsApp</li>
+              <li>All smart features active</li>
+              <li>Review collection</li>
+            </ul>
+            <a href="/onboarding" className="plan-btn">Join Thrive →</a>
+          </div>
+
+        </div>
+        <p className="pricing-elevate">
+          Going bigger? <strong>Elevate ({eleP}/mo)</strong> adds online payments, team access, and branded email — for members who are ready to scale.
         </p>
-        <div className="hero-actions">
-          <a href="#signup" className="btn-primary">Claim your spot ✦</a>
-          <a href="#how" className="btn-secondary">See how it works</a>
+      </section>
+
+      {/* ── TESTIMONIALS — dark #0D0D0D ── */}
+      <section className="testimonials">
+        <div className="testi-head">
+          <p className="sec-eyebrow">WHAT MEMBERS SAY</p>
+          <h2 className="sec-h2 light">Real people. Real results.</h2>
         </div>
-        <div className="ticker-wrap">
-          <div className="ticker-label">Already on Kryla</div>
-          <div className="ticker-track">
-            {[...TICKER_PEOPLE, ...TICKER_PEOPLE].map((p, i) => (
-              <div key={i} className="ticker-item">
-                <div className="ticker-dot" />
-                <div className="ticker-name">{p.name}</div>
-                <div className="ticker-role">· {p.role} · {p.location}</div>
-                <div className="ticker-url">{p.url}</div>
+        <div className="testi-grid">
+          {loc === 'india' ? (
+            <>
+              <div className="testi-card">
+                <div className="testi-stars">★★★★★</div>
+                <p className="testi-quote">&ldquo;I was embarrassed to share my Instagram — it&rsquo;s just food photos and messages. My Kryla link made me feel like a real business for the first time.&rdquo;</p>
+                <div className="testi-author">
+                  <span className="testi-name">Meena Krishnan</span>
+                  <span className="testi-role">Home Baker · Pune, India</span>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PROOF BAR */}
-      <div className="proof-bar">
-        <div className="proof-item"><strong>Free</strong> to get started</div>
-        <div className="proof-item"><strong>10 minutes</strong> to go live</div>
-        <div className="proof-item"><strong>No tech skills</strong> needed</div>
-        <div className="proof-item"><strong>🇮🇳 India</strong> &amp; <strong>🇺🇸 USA</strong></div>
-        <div className="proof-item"><strong>Works on WhatsApp</strong></div>
-      </div>
-
-      {/* WHAT IS KRYLA */}
-      <section style={{ background: 'var(--white)' }}>
-        <div className="section-inner">
-          <p className="section-eyebrow">What Kryla actually is</p>
-          <h2 className="section-title">Not a website.<br />Your identity online.</h2>
-          <p className="section-body">A paper visiting card gets lost. A WhatsApp number gets buried. A Kryla spot is yours — forever. Share it anywhere. Clients find you, see your work, and book you directly.</p>
-          <div className="identity-grid">
-            <div className="identity-card featured">
-              <div className="identity-card-label">The change</div>
-              <div className="identity-card-q">"Call me on WhatsApp" → "I'm on Kryla."</div>
-              <div className="identity-card-a" style={{ marginTop: 10 }}>That one sentence changes how people see you. Not someone to look up. A professional to be found.</div>
-              <div className="identity-card-accent">✦</div>
-            </div>
-            <div className="identity-card">
-              <div className="identity-card-label">One link for everything</div>
-              <div className="identity-card-q">Everything a client needs — in one place</div>
-              <div className="identity-card-a">Your name. What you do. What you charge. When you're free. What your clients say. All in one link they can open on any phone.</div>
-              <div className="identity-card-accent">🔗</div>
-            </div>
-            <div className="identity-card">
-              <div className="identity-card-label">How it spreads</div>
-              <div className="identity-card-q">"Are you on Kryla?"</div>
-              <div className="identity-card-a">When a parent finds their tutor on Kryla, they ask every other tutor they know. Your spot brings you new clients while you're busy working.</div>
-              <div className="identity-card-accent">💬</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section className="how-section" id="how">
-        <div className="section-inner">
-          <p className="section-eyebrow">How it works</p>
-          <h2 className="section-title">Your spot, live<br />in 10 minutes.</h2>
-          <p className="section-body">You don't build anything. You just answer five simple questions. We do the rest.</p>
-          <div className="steps">
-            <div className="step">
-              <div className="step-number">STEP 01</div>
-              <div className="step-icon">🙋</div>
-              <div className="step-title">Tell us what you do</div>
-              <div className="step-desc">Tutor, baker, trainer, photographer, salon owner — pick your profession. We already know what your spot needs.</div>
-              <div className="step-time">⚡ Takes 1 minute</div>
-            </div>
-            <div className="step">
-              <div className="step-number">STEP 02</div>
-              <div className="step-icon">✍️</div>
-              <div className="step-title">Answer 5 quick questions</div>
-              <div className="step-desc">What you offer. Where you are. What you charge. When you're available. That's it. No writing skills needed.</div>
-              <div className="step-time">⚡ Takes 3 minutes</div>
-            </div>
-            <div className="step">
-              <div className="step-number">STEP 03</div>
-              <div className="step-icon">✨</div>
-              <div className="step-title">We build your spot</div>
-              <div className="step-desc">We write everything for you — your introduction, your services, your prices. Your spot is ready before you finish your chai.</div>
-              <div className="step-time">⚡ Takes 2 minutes</div>
-            </div>
-            <div className="step">
-              <div className="step-number">STEP 04</div>
-              <div className="step-icon">🔗</div>
-              <div className="step-title">Share your Kryla link</div>
-              <div className="step-desc">yourname.kryla.work is live. Send it on WhatsApp. Put it on your visiting card. Write it on your notice board. You're findable.</div>
-              <div className="step-time">✦ Yours forever</div>
+              <div className="testi-card">
+                <div className="testi-stars">★★★★★</div>
+                <p className="testi-quote">&ldquo;I used to spend 30 minutes explaining myself to every new enquiry. Now I send one link. Three new students booked last week alone.&rdquo;</p>
+                <div className="testi-author">
+                  <span className="testi-name">Priya Sharma</span>
+                  <span className="testi-role">Maths Tutor · Celina, TX</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="testi-card">
+                <div className="testi-stars">★★★★★</div>
+                <p className="testi-quote">&ldquo;I used to spend 30 minutes explaining myself to every new enquiry. Now I send one link. Three new students booked last week alone.&rdquo;</p>
+                <div className="testi-author">
+                  <span className="testi-name">Priya Sharma</span>
+                  <span className="testi-role">Maths Tutor · Celina, TX</span>
+                </div>
+              </div>
+              <div className="testi-card">
+                <div className="testi-stars">★★★★★</div>
+                <p className="testi-quote">&ldquo;I was embarrassed to share my Instagram — it&rsquo;s just food photos and messages. My Kryla link made me feel like a real business for the first time.&rdquo;</p>
+                <div className="testi-author">
+                  <span className="testi-name">Meena Krishnan</span>
+                  <span className="testi-role">Home Baker · Pune, India</span>
+                </div>
+              </div>
+            </>
+          )}
+          <div className="testi-card">
+            <div className="testi-stars">★★★★★</div>
+            <p className="testi-quote">&ldquo;Bookings come in while I&rsquo;m training someone else. I confirm with one tap and my client gets everything they need. It basically runs itself.&rdquo;</p>
+            <div className="testi-author">
+              <span className="testi-name">Raj Patel</span>
+              <span className="testi-role">Fitness Trainer · Prosper, TX</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* PAGE PREVIEW */}
-      <section className="preview-section">
-        <div className="preview-inner">
-          <div className="preview-text">
-            <p className="section-eyebrow">What your spot looks like</p>
-            <h2 className="section-title">Professional.<br />Bookable.<br />Yours.</h2>
-            <p className="section-body">Every Kryla spot is made for your profession — not a blank template you have to fill in yourself. Clients can see your services, your prices, and book you in one tap.</p>
-            <div className="preview-features">
-              <div className="preview-feature">
-                <div className="preview-feature-icon">📅</div>
-                <div className="preview-feature-text">
-                  <strong>Clients book. You decide.</strong>
-                  <span>Someone books a session. You get a WhatsApp message. You tap Yes or No. That's the whole process.</span>
-                </div>
-              </div>
-              <div className="preview-feature">
-                <div className="preview-feature-icon">🔍</div>
-                <div className="preview-feature-text">
-                  <strong>Parents searching Google can find you</strong>
-                  <span>"Maths tutor Celina TX" — your spot shows up. New clients who never heard of you before.</span>
-                </div>
-              </div>
-              <div className="preview-feature">
-                <div className="preview-feature-icon">💬</div>
-                <div className="preview-feature-text">
-                  <strong>Change anything — just WhatsApp us</strong>
-                  <span>New timings? Higher prices? Just message Kryla. Your spot updates in 2 minutes. No logins, no hassle.</span>
-                </div>
-              </div>
-              <div className="preview-feature">
-                <div className="preview-feature-icon">🛡️</div>
-                <div className="preview-feature-text">
-                  <strong>We watch your spot so you don't have to</strong>
-                  <span>Your spot is always working, always current, always online. You focus on your work. We handle the rest.</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div>
-            <div className="phone-mock">
-              <div className="phone-screen">
-                <div className="phone-hero">
-                  <div className="phone-avatar">📚</div>
-                  <div className="phone-name">Priya Sharma</div>
-                  <div className="phone-role">Maths &amp; Science Tutor · Celina, TX</div>
-                  <div className="phone-tagline">9 years teaching · 120+ students · Grades 3 to 8</div>
-                  <div className="phone-btns">
-                    <button className="phone-btn-main">Book a Session</button>
-                    <button className="phone-btn-wa">💬 WhatsApp</button>
-                  </div>
-                </div>
-                <div className="phone-services">
-                  <div className="phone-services-label">What I offer</div>
-                  <div className="phone-service"><span>One-on-one session</span><strong>$30/hr</strong></div>
-                  <div className="phone-service"><span>Small group (3–4 kids)</span><strong>$15/hr</strong></div>
-                  <div className="phone-service"><span>Monthly — 8 sessions</span><strong>$199/mo</strong></div>
-                </div>
-                <div className="phone-reviews">
-                  <div className="phone-review-label">What parents say</div>
-                  <div className="phone-stars">★★★★★</div>
-                  <div className="phone-review">"My daughter went from a C to an A in one semester. Priya is wonderful."</div>
-                </div>
-                <div className="phone-url">kryla.work/<span>priyasharma</span></div>
-              </div>
-            </div>
-          </div>
+      {/* ── CTA — amber #F5A623 ── */}
+      <section className="cta-sec">
+        <div style={{display:'flex', justifyContent:'center', marginBottom:'24px'}}>
+          <svg width="64" height="64" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{opacity:0.2}}>
+            <path d="M20 10 L20 90 M20 50 L70 10 M20 50 L70 90" stroke="#0D0D0D" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </div>
+        <p className="cta-eyebrow">YOUR SPOT IS WAITING</p>
+        <h2 className="cta-h2">Ready to claim yours?</h2>
+        <p className="cta-sub">Free to join. Live in 15 minutes.</p>
+        <a href="/onboarding" className="btn-primary lg">Claim your spot — it&apos;s free →</a>
+        <p className="cta-note">No card needed · Cancel anytime</p>
       </section>
 
-      {/* QR */}
-      <section className="qr-section">
-        <div className="qr-inner">
-          <div className="qr-box">📲</div>
-          <div className="qr-text">
-            <h3>Put your Kryla link on your visiting card</h3>
-            <p>Every Kryla spot comes with a scannable QR code. Print it on your card. Stick it on your door. Put it in your packaging. Anyone who scans it sees your full spot — and can book you in one tap.</p>
-          </div>
+      {/* ── FOOTER ── */}
+      <footer className="v2-footer">
+        <div className="footer-brand">
+          <img src="/kryla-icon-saffron.svg" height="20" alt="" aria-hidden="true" style={{opacity:0.55}} />
+          <span className="footer-wordmark">
+            <span style={{color:'rgba(13,13,13,0.5)'}}>kryla</span>
+            <span style={{color:'#F5A623'}}>.work</span>
+          </span>
         </div>
-      </section>
-
-      {/* WHO IS ON KRYLA */}
-      <section style={{ background: 'var(--white)' }}>
-        <div className="section-inner">
-          <p className="section-eyebrow">Who is already on Kryla</p>
-          <h2 className="section-title">Skilled. Trusted.<br />Now easy to find.</h2>
-          <p className="section-body">Every person on Kryla had one thing in common before they joined — they were excellent at what they do, but nobody outside their neighbourhood knew it.</p>
-          <div className="personas-grid">
-            {PERSONAS.map((p, i) => (
-              <div key={i} className="persona-card">
-                <div className="persona-icon">{p.icon}</div>
-                <div className="persona-name">{p.name}</div>
-                <div className="persona-role">{p.role}</div>
-                <div className="persona-location">{p.location}</div>
-                <div className="persona-url">{p.url}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PRICING */}
-      <section className="pricing-section">
-        <div className="section-inner">
-          <p className="section-eyebrow">What it costs</p>
-          <h2 className="section-title">Start free.<br />Pay more only when<br />you're ready.</h2>
-          <p className="section-body">Your first spot is completely free. When you start getting bookings and want to do more, you can grow your membership — anytime, no pressure.</p>
-          <div className="pricing-grid">
-            <div className="price-card">
-              <div className="price-icon">🌱</div>
-              <div className="price-name">Seed</div>
-              <div className="price-amount"><span className="big">Free</span></div>
-              <div className="price-india">Always free · No card needed</div>
-              <div className="price-features">
-                <div className="price-feature">Your own spot at yourname.kryla.work</div>
-                <div className="price-feature">We write everything for you</div>
-                <div className="price-feature">Contact form for enquiries</div>
-                <div className="price-feature">People can find you on Google</div>
-              </div>
-            </div>
-            <div className="price-card">
-              <div className="price-icon">🌿</div>
-              <div className="price-name">Sprout</div>
-              <div className="price-amount"><span className="big">$5</span><span className="small">/mo</span></div>
-              <div className="price-india">₹299/mo · Less than one coffee</div>
-              <div className="price-features">
-                <div className="price-feature">Everything in Seed</div>
-                <div className="price-feature">Clients can book sessions directly</div>
-                <div className="price-feature">You get a WhatsApp when someone books</div>
-                <div className="price-feature">You tap Yes or No to confirm</div>
-              </div>
-            </div>
-            <div className="price-card highlight">
-              <div className="price-badge">Most Popular</div>
-              <div className="price-icon">🌳</div>
-              <div className="price-name">Grow</div>
-              <div className="price-amount"><span className="big">$12</span><span className="small">/mo</span></div>
-              <div className="price-india">₹799/mo · Less than a Netflix subscription</div>
-              <div className="price-features">
-                <div className="price-feature">Your own web address — like priya.com</div>
-                <div className="price-feature">Add your own photo</div>
-                <div className="price-feature">Choose how your spot looks</div>
-                <div className="price-feature">See how many people visited your spot</div>
-                <div className="price-feature">We keep your spot easy to find on Google</div>
-              </div>
-            </div>
-            <div className="price-card">
-              <div className="price-icon">🚀</div>
-              <div className="price-name">Thrive</div>
-              <div className="price-amount"><span className="big">$25</span><span className="small">/mo</span></div>
-              <div className="price-india">₹1,999/mo</div>
-              <div className="price-features">
-                <div className="price-feature">Update your spot by sending a WhatsApp</div>
-                <div className="price-feature">Up to 12 photos on your spot</div>
-                <div className="price-feature">We refresh your spot every month automatically</div>
-                <div className="price-feature">Full booking calendar</div>
-                <div className="price-feature">We fix any issues before you even notice</div>
-              </div>
-            </div>
-            <div className="price-card">
-              <div className="price-icon">⭐</div>
-              <div className="price-name">Elevate</div>
-              <div className="price-amount"><span className="big">$45</span><span className="small">/mo</span></div>
-              <div className="price-india">₹3,999/mo</div>
-              <div className="price-features">
-                <div className="price-feature">Your logo and branded email address</div>
-                <div className="price-feature">Collect payments directly on your spot</div>
-                <div className="price-feature">Unlimited photos</div>
-                <div className="price-feature">Up to 3 people can manage your spot</div>
-                <div className="price-feature">Everything, taken care of</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* TESTIMONIALS */}
-      <section style={{ background: 'var(--white)' }}>
-        <div className="section-inner">
-          <p className="section-eyebrow">From people on Kryla</p>
-          <h2 className="section-title">"Are you on Kryla?"<br />Now they are.</h2>
-          <div className="testimonials-grid">
-            <div className="testimonial">
-              <div className="testimonial-stars">★★★★★</div>
-              <div className="testimonial-text">"I've been teaching for 11 years. Nobody outside my street knew I existed. My Kryla spot went live on a Tuesday. By Friday I had three families asking about classes. I still can't believe it."</div>
-              <div className="testimonial-author">
-                <div className="testimonial-avatar" style={{ background: '#eef2ff' }}>📚</div>
-                <div>
-                  <div className="testimonial-name">Priya Sharma</div>
-                  <div className="testimonial-role">Maths Tutor · Celina, TX</div>
-                  <div className="testimonial-url">kryla.work/priyasharma</div>
-                </div>
-              </div>
-            </div>
-            <div className="testimonial">
-              <div className="testimonial-stars">★★★★★</div>
-              <div className="testimonial-text">"WhatsApp mein orders manage karna impossible tha. Ab sab kuch Kryla spot se hota hai. Ek link share karo — order aa jaata hai." <span style={{ color: '#94a3b8', fontSize: 12 }}>(Managing orders on WhatsApp was impossible. Now everything comes through my Kryla spot. Share one link — orders come in.)</span></div>
-              <div className="testimonial-author">
-                <div className="testimonial-avatar" style={{ background: '#fef9c3' }}>🎂</div>
-                <div>
-                  <div className="testimonial-name">Meena Krishnan</div>
-                  <div className="testimonial-role">Home Baker · Pune, India</div>
-                  <div className="testimonial-url">kryla.work/meenabakes</div>
-                </div>
-              </div>
-            </div>
-            <div className="testimonial">
-              <div className="testimonial-stars">★★★★★</div>
-              <div className="testimonial-text">"I was losing weddings to photographers who had a proper website. I answered five questions on a Sunday evening. By Monday my work was live online. I got a wedding booking that week."</div>
-              <div className="testimonial-author">
-                <div className="testimonial-avatar" style={{ background: '#f0fdf4' }}>📸</div>
-                <div>
-                  <div className="testimonial-name">Alex Chen</div>
-                  <div className="testimonial-role">Photographer · Prosper, TX</div>
-                  <div className="testimonial-url">kryla.work/alexchenphoto</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FINAL CTA */}
-      <section className="cta-section" id="signup">
-        <h2 className="cta-question">Are you <span className="on">on</span> Kryla?</h2>
-        <p className="cta-sub">Your spot is waiting. Free to start. Ready in 10 minutes. No tech skills needed.</p>
-        <a href="#" className="btn-primary" style={{ fontSize: 17, padding: '18px 40px' }}>
-          Claim your spot ✦
-        </a>
-        <p className="cta-free-note">No credit card. Just 5 questions. That's it.</p>
-      </section>
-
-      {/* FOOTER */}
-      <footer>
-        <div>
-          <div className="footer-brand">Kryla<span>.work</span></div>
-          <div className="footer-tagline">Are you on Kryla?</div>
-        </div>
-        <div className="footer-links">
-          <a href="#">About</a>
-          <a href="#">Pricing</a>
-          <a href="#">For India</a>
-          <a href="#">Privacy</a>
-          <a href="#">Terms</a>
-        </div>
+        <p className="footer-copy">© 2025 Kryla.work · Built for makers everywhere.</p>
       </footer>
-    </>
-  )
+    </div>
+  );
 }

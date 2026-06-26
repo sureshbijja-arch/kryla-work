@@ -38,30 +38,9 @@ const CSS = `
     background: var(--dark);
   }
 
-  /* ─── LOCATION BAR ─── */
-  .loc-bar {
-    position: fixed; top: 0; left: 0; right: 0;
-    height: 44px; z-index: 200;
-    background: #1a1a1a;
-    display: flex; align-items: center; justify-content: center; gap: 6px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-  }
-  .loc-pill {
-    background: none; border: none; cursor: pointer;
-    padding: 5px 18px; border-radius: 100px;
-    font-weight: 600; color: #FFFFFF;
-    transition: background 0.2s, color 0.2s;
-    font-family: var(--ff); line-height: 1;
-    display: inline-flex; align-items: center; gap: 5px;
-  }
-  .loc-pill:hover { color: rgba(255,255,255,0.75); }
-  .loc-pill.active { background: var(--amber); color: #0D0D0D; }
-  .loc-code { font-size: 9px; opacity: 0.7; letter-spacing: 0.04em; }
-  .loc-name { font-size: 13px; font-weight: 700; }
-
   /* ─── NAV ─── */
   .v2-nav {
-    position: fixed; top: 44px; left: 0; right: 0; z-index: 100;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
     height: 64px;
     background: #FFFFFF;
     display: flex; align-items: center; justify-content: space-between;
@@ -77,12 +56,16 @@ const CSS = `
     transition: transform 0.15s;
   }
   .nav-join:hover { transform: scale(1.04); }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .nav-loc { font-size: 12px; color: #999; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .nav-loc-switch { font-size: 12px; color: #999; background: none; border: none; cursor: pointer; font-family: var(--ff); padding: 0; text-decoration: underline; text-underline-offset: 2px; }
+  .nav-loc-switch:hover { color: #555; }
 
   /* ─── HERO ─── */
   .hero {
     background: linear-gradient(135deg, #C8813F 0%, #C17A3A 50%, #C8813F 100%);
     border-bottom: 1px solid rgba(0,0,0,0.12);
-    padding: 152px 24px 100px;
+    padding: 110px 24px 100px;
     display: flex; flex-direction: column; align-items: center;
     text-align: center;
     position: relative; overflow: hidden;
@@ -468,12 +451,22 @@ const CSS = `
   }
 
   /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .nav-loc { display: none; }
+    .hf-photo { width: 110px; height: 140px; }
+    .hf-wrap:nth-child(5), .hf-wrap:nth-child(6) { display: none; }
+    .hf-wrap:nth-child(1) { left: -30px !important; }
+    .hf-wrap:nth-child(2) { right: -30px !important; }
+    .hf-wrap:nth-child(3) { left: -30px !important; }
+    .hf-wrap:nth-child(4) { right: -30px !important; }
+    .hero-btns { flex-direction: column; align-items: center; }
+    .btn-primary, .btn-secondary { justify-content: center; max-width: 280px; }
+  }
   @media (max-width: 480px) {
     .v2-nav  { padding: 0 16px; }
-    .hero    { padding: 144px 20px 72px; }
+    .hero    { padding: 90px 20px 72px; }
+    .hero-h1 span { font-size: 36px !important; }
     .sec     { padding: 64px 20px; }
-    .hero-btns { flex-direction: column; align-items: stretch; }
-    .btn-primary, .btn-secondary { justify-content: center; }
     .pc-btns { grid-template-columns: 1fr; }
   }
 `;
@@ -587,15 +580,20 @@ function AlexCard({ loc }: { loc: Loc }) {
 }
 
 export default function V2Page() {
-  const [loc, setLoc] = useState<Loc>('india');
+  const [loc, setLoc] = useState<Loc>('usa');
+  const [locDetected, setLocDetected] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem('kryla-loc') as Loc | null;
-    if (stored === 'india' || stored === 'usa') { setLoc(stored); return; }
-    if (navigator.language === 'en-US' || navigator.language.startsWith('en-US')) setLoc('usa');
+    fetch('https://ipapi.co/json/')
+      .then(res => res.json())
+      .then(data => {
+        setLoc(data.country_code === 'IN' ? 'india' : 'usa');
+        setLocDetected(true);
+      })
+      .catch(() => { setLoc('usa'); setLocDetected(true); });
   }, []);
 
-  const set = (l: Loc) => { setLoc(l); localStorage.setItem('kryla-loc', l); };
+  const toggleLoc = () => setLoc(l => l === 'india' ? 'usa' : 'india');
 
   const sproutP = loc === 'india' ? '₹299' : '$5';
   const growP   = loc === 'india' ? '₹799' : '$12';
@@ -606,16 +604,6 @@ export default function V2Page() {
     <div className="v2">
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
-      {/* Location toggle */}
-      <div className="loc-bar">
-        <button className={`loc-pill${loc === 'india' ? ' active' : ''}`} onClick={() => set('india')}>
-          <span className="loc-code">🇮🇳</span><span className="loc-name">India</span>
-        </button>
-        <button className={`loc-pill${loc === 'usa' ? ' active' : ''}`} onClick={() => set('usa')}>
-          <span className="loc-code">🇺🇸</span><span className="loc-name">USA</span>
-        </button>
-      </div>
-
       {/* Nav */}
       <nav className="v2-nav">
         <a href="/" style={{textDecoration:'none'}}>
@@ -624,7 +612,18 @@ export default function V2Page() {
             <span style={{color:'#F5A623'}}>.work</span>
           </span>
         </a>
-        <a href="/onboarding" className="nav-join">Join free →</a>
+        <div className="nav-right">
+          {locDetected && (
+            <span className="nav-loc">
+              {loc === 'india' ? '🇮🇳 India' : '🇺🇸 USA'}
+              {' · '}
+              <button className="nav-loc-switch" onClick={toggleLoc}>
+                Switch to {loc === 'india' ? 'USA' : 'India'} →
+              </button>
+            </span>
+          )}
+          <a href="/onboarding" className="nav-join">Join free →</a>
+        </div>
       </nav>
 
       {/* ── HERO ── */}
@@ -911,22 +910,45 @@ export default function V2Page() {
           <h2 className="sec-h2 light">Real people. Real results.</h2>
         </div>
         <div className="testi-grid">
-          <div className="testi-card">
-            <div className="testi-stars">★★★★★</div>
-            <p className="testi-quote">&ldquo;I used to spend 30 minutes explaining myself to every new enquiry. Now I send one link. Three new students booked last week alone.&rdquo;</p>
-            <div className="testi-author">
-              <span className="testi-name">Priya Sharma</span>
-              <span className="testi-role">Maths Tutor · Celina, TX</span>
-            </div>
-          </div>
-          <div className="testi-card">
-            <div className="testi-stars">★★★★★</div>
-            <p className="testi-quote">&ldquo;I was embarrassed to share my Instagram — it&rsquo;s just food photos and messages. My Kryla link made me feel like a real business for the first time.&rdquo;</p>
-            <div className="testi-author">
-              <span className="testi-name">Meena Krishnan</span>
-              <span className="testi-role">Home Baker · Pune, India</span>
-            </div>
-          </div>
+          {loc === 'india' ? (
+            <>
+              <div className="testi-card">
+                <div className="testi-stars">★★★★★</div>
+                <p className="testi-quote">&ldquo;I was embarrassed to share my Instagram — it&rsquo;s just food photos and messages. My Kryla link made me feel like a real business for the first time.&rdquo;</p>
+                <div className="testi-author">
+                  <span className="testi-name">Meena Krishnan</span>
+                  <span className="testi-role">Home Baker · Pune, India</span>
+                </div>
+              </div>
+              <div className="testi-card">
+                <div className="testi-stars">★★★★★</div>
+                <p className="testi-quote">&ldquo;I used to spend 30 minutes explaining myself to every new enquiry. Now I send one link. Three new students booked last week alone.&rdquo;</p>
+                <div className="testi-author">
+                  <span className="testi-name">Priya Sharma</span>
+                  <span className="testi-role">Maths Tutor · Celina, TX</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="testi-card">
+                <div className="testi-stars">★★★★★</div>
+                <p className="testi-quote">&ldquo;I used to spend 30 minutes explaining myself to every new enquiry. Now I send one link. Three new students booked last week alone.&rdquo;</p>
+                <div className="testi-author">
+                  <span className="testi-name">Priya Sharma</span>
+                  <span className="testi-role">Maths Tutor · Celina, TX</span>
+                </div>
+              </div>
+              <div className="testi-card">
+                <div className="testi-stars">★★★★★</div>
+                <p className="testi-quote">&ldquo;I was embarrassed to share my Instagram — it&rsquo;s just food photos and messages. My Kryla link made me feel like a real business for the first time.&rdquo;</p>
+                <div className="testi-author">
+                  <span className="testi-name">Meena Krishnan</span>
+                  <span className="testi-role">Home Baker · Pune, India</span>
+                </div>
+              </div>
+            </>
+          )}
           <div className="testi-card">
             <div className="testi-stars">★★★★★</div>
             <p className="testi-quote">&ldquo;Bookings come in while I&rsquo;m training someone else. I confirm with one tap and my client gets everything they need. It basically runs itself.&rdquo;</p>
