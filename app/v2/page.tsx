@@ -80,8 +80,8 @@ const CSS = `
 
   /* ─── HERO ─── */
   .hero {
-    background: #FFE066;
-    border-bottom: 1px solid rgba(245,166,35,0.2);
+    background: linear-gradient(135deg, #C8813F 0%, #C17A3A 50%, #C8813F 100%);
+    border-bottom: 1px solid rgba(0,0,0,0.12);
     padding: 152px 24px 100px;
     display: flex; flex-direction: column; align-items: center;
     text-align: center;
@@ -93,7 +93,7 @@ const CSS = `
   }
   .hero-eyebrow {
     font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
-    text-transform: uppercase; color: #B8860B;
+    text-transform: uppercase; color: #FFE8A3;
     margin-bottom: 30px;
     animation: fadeUp 0.55s ease both 0.05s;
   }
@@ -105,25 +105,25 @@ const CSS = `
   .h1-l1 {
     font-size: clamp(34px, 6.5vw, 52px);
     font-weight: 900; line-height: 1.1;
-    letter-spacing: -0.025em; color: #0D0D0D;
+    letter-spacing: -0.025em; color: #FFFFFF;
     animation: fadeUp 0.55s ease both 0.18s;
   }
   .h1-l2 {
     font-size: clamp(34px, 6.5vw, 52px);
     font-weight: 900; line-height: 1.1;
-    letter-spacing: -0.025em; color: #C17900;
+    letter-spacing: -0.025em; color: #FFE8A3;
     animation: fadeUp 0.55s ease both 0.34s;
   }
   .h1-l3 {
     font-size: clamp(18px, 3vw, 26px);
     font-weight: 500; line-height: 1.35;
-    color: #444444;
+    color: rgba(255,255,255,0.88);
     margin-top: 12px;
     animation: fadeUp 0.55s ease both 0.52s;
   }
   .hero-sub {
     font-size: clamp(16px, 2.2vw, 20px);
-    color: #666666;
+    color: rgba(255,255,255,0.72);
     line-height: 1.65; max-width: 480px;
     margin-bottom: 40px;
     animation: fadeUp 0.55s ease both 0.68s;
@@ -160,10 +160,10 @@ const CSS = `
     transition: border-color 0.2s, color 0.2s;
   }
   .btn-secondary:hover { border-color: rgba(13,13,13,0.5); color: #0D0D0D; }
-  .hero .btn-primary { background: #0D0D0D; color: #FFE066; }
-  .hero .btn-primary:hover { box-shadow: 0 12px 36px rgba(13,13,13,0.25); }
-  .hero .btn-secondary { color: #0D0D0D; border-color: rgba(13,13,13,0.4); }
-  .hero .btn-secondary:hover { border-color: #0D0D0D; }
+  .hero .btn-primary { background: #FFFFFF; color: #C17A3A; font-weight: 700; }
+  .hero .btn-primary:hover { box-shadow: 0 12px 36px rgba(0,0,0,0.2); }
+  .hero .btn-secondary { color: #FFFFFF; border: 2px solid rgba(255,255,255,0.6); }
+  .hero .btn-secondary:hover { border-color: #FFFFFF; }
 
   /* ─── SECTIONS ─── */
   .sec { padding: 88px 24px; }
@@ -454,15 +454,15 @@ const CSS = `
     width: 160px; height: 200px;
     object-fit: cover;
     border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
     opacity: 0.85;
     display: block;
   }
   .hf-label {
-    background: #FFFFFF;
+    background: rgba(255,255,255,0.92);
     border-radius: 20px;
     padding: 4px 10px;
-    font-size: 11px; font-weight: 600; color: #0D0D0D;
+    font-size: 11px; font-weight: 600; color: #C17A3A;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     white-space: nowrap;
   }
@@ -677,7 +677,7 @@ export default function V2Page() {
         {/* K mark watermark */}
         <div style={{position:'absolute', bottom:'24px', right:'24px', zIndex:0, opacity:0.15, pointerEvents:'none'}}>
           <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 10 L20 90 M20 50 L70 10 M20 50 L70 90" stroke="#F5A623" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M20 10 L20 90 M20 50 L70 10 M20 50 L70 90" stroke="#FFFFFF" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
 
