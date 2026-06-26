@@ -413,7 +413,11 @@ const CSS = `
   .sec-head-center { text-align: center; margin-bottom: 56px; }
   .sec-head-center .sec-h2 { max-width: 600px; margin-left: auto; margin-right: auto; margin-bottom: 0; }
 
-  /* ─── HERO FLOATING CARDS ─── */
+  /* ─── HERO FLOATING PHOTOS ─── */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(var(--rotation)); }
+    50%       { transform: translateY(-12px) rotate(var(--rotation)); }
+  }
   .hero-bg {
     position: absolute; inset: 0;
     overflow: hidden; pointer-events: none; z-index: 0;
@@ -423,28 +427,26 @@ const CSS = `
     display: flex; flex-direction: column; align-items: center;
     width: 100%;
   }
-  .hero-float-card {
-    background: #FFFFFF;
-    border: 1px solid rgba(0,0,0,0.07);
-    border-radius: 16px; padding: 16px; width: 200px;
-    filter: blur(1px); opacity: 0.6;
+  .hf-wrap {
     position: absolute;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    animation: float 5s ease-in-out infinite;
   }
-  .hf-ava {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--amber), #c97b0a);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; margin-bottom: 8px;
+  .hf-photo {
+    width: 160px; height: 200px;
+    object-fit: cover;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    opacity: 0.85;
+    display: block;
   }
-  .hf-name  { font-size: 14px; font-weight: 700; color: #0D0D0D; margin-bottom: 2px; }
-  .hf-role  { font-size: 12px; color: rgba(13,13,13,0.5); margin-bottom: 4px; }
-  .hf-url   { font-size: 11px; color: var(--amber); font-family: monospace; margin-bottom: 8px; }
-  .hf-pills { display: flex; gap: 6px; flex-wrap: wrap; }
-  .hf-pill  {
-    font-size: 10px; color: rgba(13,13,13,0.55);
-    background: rgba(13,13,13,0.05);
-    border-radius: 100px; padding: 2px 8px;
+  .hf-label {
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px; font-weight: 600; color: #0D0D0D;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    white-space: nowrap;
   }
 
   /* ─── RESPONSIVE ─── */
@@ -603,47 +605,29 @@ export default function V2Page() {
 
         {/* Floating background cards */}
         <div className="hero-bg">
-          <div className="hero-float-card" style={{ top: '10%', left: '2%', transform: 'rotate(-8deg)' }}>
-            <div className="hf-ava">📚</div>
-            <div className="hf-name">Priya Sharma</div>
-            <div className="hf-role">Maths Tutor</div>
-            <div className="hf-url">kryla.work/priyasharma</div>
-            <div className="hf-pills"><span className="hf-pill">4.9★</span><span className="hf-pill">47 students</span></div>
+          <div className="hf-wrap" style={{ top:'5%', left:'-2%', '--rotation':'-6deg', animationDelay:'0s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=300&q=80" alt="Maths Tutor" />
+            <span className="hf-label">📚 Maths Tutor</span>
           </div>
-          <div className="hero-float-card" style={{ top: '5%', right: '3%', transform: 'rotate(6deg)' }}>
-            <div className="hf-ava">🎂</div>
-            <div className="hf-name">Meena Krishnan</div>
-            <div className="hf-role">Home Baker</div>
-            <div className="hf-url">kryla.work/meenabakes</div>
-            <div className="hf-pills"><span className="hf-pill">4.8★</span><span className="hf-pill">124 orders</span></div>
+          <div className="hf-wrap" style={{ top:'3%', right:'0%', '--rotation':'5deg', animationDelay:'0.8s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&q=80" alt="Home Baker" />
+            <span className="hf-label">🎂 Home Baker</span>
           </div>
-          <div className="hero-float-card" style={{ top: '45%', left: '-2%', transform: 'rotate(4deg)' }}>
-            <div className="hf-ava">💪</div>
-            <div className="hf-name">Raj Patel</div>
-            <div className="hf-role">Fitness Trainer</div>
-            <div className="hf-url">kryla.work/rajfitness</div>
-            <div className="hf-pills"><span className="hf-pill">5.0★</span><span className="hf-pill">89 clients</span></div>
+          <div className="hf-wrap" style={{ top:'42%', left:'-3%', '--rotation':'3deg', animationDelay:'1.6s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&q=80" alt="Fitness Trainer" />
+            <span className="hf-label">💪 Fitness Trainer</span>
           </div>
-          <div className="hero-float-card" style={{ top: '40%', right: '1%', transform: 'rotate(-5deg)' }}>
-            <div className="hf-ava">📸</div>
-            <div className="hf-name">Alex Chen</div>
-            <div className="hf-role">Photographer</div>
-            <div className="hf-url">kryla.work/alexchenphoto</div>
-            <div className="hf-pills"><span className="hf-pill">4.9★</span><span className="hf-pill">73 shoots</span></div>
+          <div className="hf-wrap" style={{ top:'38%', right:'-1%', '--rotation':'-4deg', animationDelay:'2.4s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=300&q=80" alt="Photographer" />
+            <span className="hf-label">📸 Photographer</span>
           </div>
-          <div className="hero-float-card" style={{ bottom: '5%', left: '15%', transform: 'rotate(-3deg)' }}>
-            <div className="hf-ava">✂️</div>
-            <div className="hf-name">Rina&apos;s Studio</div>
-            <div className="hf-role">Hair Salon</div>
-            <div className="hf-url">kryla.work/rinastudio</div>
-            <div className="hf-pills"><span className="hf-pill">4.8★</span><span className="hf-pill">200+ visits</span></div>
+          <div className="hf-wrap" style={{ bottom:'2%', left:'12%', '--rotation':'-3deg', animationDelay:'3.2s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=300&q=80" alt="Salon" />
+            <span className="hf-label">✂️ Salon</span>
           </div>
-          <div className="hero-float-card" style={{ bottom: '8%', right: '10%', transform: 'rotate(7deg)' }}>
-            <div className="hf-ava">🧘</div>
-            <div className="hf-name">Divya Mehta</div>
-            <div className="hf-role">Yoga Teacher</div>
-            <div className="hf-url">kryla.work/divyayoga</div>
-            <div className="hf-pills"><span className="hf-pill">5.0★</span><span className="hf-pill">56 members</span></div>
+          <div className="hf-wrap" style={{ bottom:'0%', right:'8%', '--rotation':'6deg', animationDelay:'4s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=300&q=80" alt="Yoga Teacher" />
+            <span className="hf-label">🧘 Yoga Teacher</span>
           </div>
         </div>
 
