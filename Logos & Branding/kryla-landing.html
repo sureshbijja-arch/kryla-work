@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kryla.work — Are you on Kryla?</title>
+<meta name="description" content="Get your own professional page online in 10 minutes. Free to start. Share one link — clients find you, book you, pay you." />
+<link rel="icon" type="image/svg+xml" href="../public/favicon.svg" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #0D0D0D; --saffron: #F5A623; --saffron-light: #FEF3DC;
+    --white: #FFFFFF; --stone: #F7F3EE; --muted: #6B6B6B;
+    --border: #E8E2DA; --green: #1A7A4A; --green-light: #E8F5EE;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--white); color: var(--ink);
+    -webkit-font-smoothing: antialiased; overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px;
+    background: rgba(255,255,255,0.94); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .nav-logo-mark {
+    width: 32px; height: 32px; border-radius: 8px; background: var(--ink);
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .nav-logo-text { font-size: 18px; font-weight: 800; color: var(--ink); letter-spacing: -0.5px; }
+  .nav-logo-text span { color: var(--saffron); }
+  .nav-cta {
+    background: var(--ink); color: var(--white); border: none; border-radius: 8px;
+    padding: 9px 20px; font-size: 13px; font-weight: 700; cursor: pointer;
+    text-decoration: none; transition: background 0.15s;
+  }
+  .nav-cta:hover { background: #2a2a2a; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh; background: var(--ink);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 100px 24px 60px; position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(245,166,35,0.12) 0%, transparent 70%);
+    top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--saffron); margin-bottom: 28px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .hero-eyebrow::before, .hero-eyebrow::after {
+    content: ''; display: block; width: 32px; height: 1px;
+    background: var(--saffron); opacity: 0.4;
+  }
+  .hero-question {
+    font-size: clamp(52px, 10vw, 96px); font-weight: 900; color: var(--white);
+    letter-spacing: -3px; line-height: 0.95; text-align: center; margin-bottom: 28px;
+  }
+  .hero-question .on { color: var(--saffron); font-style: italic; }
+  .hero-sub {
+    font-size: clamp(16px, 2.5vw, 20px); color: rgba(255,255,255,0.55);
+    text-align: center; max-width: 480px; line-height: 1.7; margin-bottom: 48px;
+  }
+  .hero-sub strong { color: rgba(255,255,255,0.85); font-weight: 600; }
+  .hero-actions {
+    display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 64px;
+  }
+  .btn-primary {
+    background: var(--saffron); color: var(--ink); border: none; border-radius: 12px;
+    padding: 16px 32px; font-size: 15px; font-weight: 800; cursor: pointer;
+    text-decoration: none; transition: all 0.15s; display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-primary:hover { background: #F9B84A; transform: translateY(-1px); box-shadow: 0 8px 32px rgba(245,166,35,0.3); }
+  .btn-secondary {
+    background: transparent; color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 12px;
+    padding: 16px 28px; font-size: 15px; font-weight: 600; cursor: pointer;
+    text-decoration: none; transition: all 0.15s;
+  }
+  .btn-secondary:hover { border-color: rgba(255,255,255,0.4); color: var(--white); }
+
+  /* TICKER */
+  .ticker-wrap {
+    width: 100%; overflow: hidden;
+    border-top: 1px solid rgba(255,255,255,0.08); padding: 20px 0; position: relative;
+  }
+  .ticker-label {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    display: flex; align-items: center; padding: 0 24px;
+    background: linear-gradient(to right, var(--ink) 60%, transparent);
+    font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(255,255,255,0.3); z-index: 2; white-space: nowrap;
+  }
+  .ticker-track { display: flex; animation: ticker 40s linear infinite; width: max-content; }
+  .ticker-track:hover { animation-play-state: paused; }
+  @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  .ticker-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 28px;
+    border-right: 1px solid rgba(255,255,255,0.08); white-space: nowrap;
+  }
+  .ticker-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--saffron); flex-shrink: 0; }
+  .ticker-name { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.85); }
+  .ticker-role { font-size: 12px; color: rgba(255,255,255,0.4); }
+  .ticker-url { font-size: 11px; font-weight: 600; color: var(--saffron); opacity: 0.7; }
+
+  /* PROOF BAR */
+  .proof-bar {
+    background: var(--stone); border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border); padding: 20px 24px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 40px; flex-wrap: wrap;
+  }
+  .proof-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+  .proof-item strong { color: var(--ink); font-weight: 800; font-size: 15px; }
+
+  /* SECTIONS */
+  section { padding: 80px 24px; }
+  .section-inner { max-width: 960px; margin: 0 auto; }
+  .section-eyebrow {
+    font-size: 10px; font-weight: 800; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--saffron); margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: clamp(28px, 4vw, 42px); font-weight: 900; letter-spacing: -1px;
+    line-height: 1.1; color: var(--ink); margin-bottom: 20px;
+  }
+  .section-body { font-size: 17px; color: var(--muted); line-height: 1.7; max-width: 560px; }
+
+  /* IDENTITY */
+  .identity-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 20px; margin-top: 48px;
+  }
+  @media (max-width: 640px) {
+    .identity-grid { grid-template-columns: 1fr; }
+    .hero-question { letter-spacing: -2px; }
+    .preview-inner { grid-template-columns: 1fr; }
+  }
+  .identity-card {
+    background: var(--stone); border-radius: 20px; padding: 28px;
+    border: 1px solid var(--border); position: relative; overflow: hidden;
+  }
+  .identity-card.featured { background: var(--ink); border-color: transparent; grid-column: span 2; }
+  @media (max-width: 640px) { .identity-card.featured { grid-column: span 1; } }
+  .identity-card-label {
+    font-size: 10px; font-weight: 800; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--saffron); margin-bottom: 12px;
+  }
+  .identity-card-q { font-size: 22px; font-weight: 900; color: var(--ink); line-height: 1.2; margin-bottom: 8px; }
+  .identity-card.featured .identity-card-q { color: var(--white); }
+  .identity-card-a { font-size: 14px; color: var(--muted); line-height: 1.7; }
+  .identity-card.featured .identity-card-a { color: rgba(255,255,255,0.55); }
+  .identity-card-accent { position: absolute; bottom: -20px; right: -10px; font-size: 80px; opacity: 0.06; pointer-events: none; }
+
+  /* HOW IT WORKS */
+  .how-section { background: var(--stone); }
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 48px; }
+  .step { background: var(--white); border-radius: 16px; padding: 28px 24px; border: 1px solid var(--border); }
+  .step-number {
+    font-size: 11px; font-weight: 800; letter-spacing: 2px; color: var(--saffron);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+  .step-number::after { content: ''; display: block; height: 1px; flex: 1; background: var(--border); }
+  .step-icon { font-size: 32px; margin-bottom: 12px; }
+  .step-title { font-size: 16px; font-weight: 800; color: var(--ink); margin-bottom: 8px; }
+  .step-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .step-time {
+    margin-top: 16px; display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 700; color: var(--green);
+    background: var(--green-light); border-radius: 20px; padding: 4px 12px;
+  }
+
+  /* PERSONAS */
+  .personas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-top: 48px; }
+  .persona-card {
+    background: var(--stone); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px 16px; text-align: center; transition: all 0.15s; cursor: default;
+  }
+  .persona-card:hover { border-color: var(--saffron); background: var(--saffron-light); transform: translateY(-2px); }
+  .persona-icon { font-size: 28px; margin-bottom: 8px; }
+  .persona-name { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .persona-location { font-size: 11px; color: var(--muted); }
+  .persona-url { font-size: 10px; color: var(--saffron); font-weight: 700; margin-top: 6px; opacity: 0.8; }
+
+  /* PREVIEW */
+  .preview-section { background: var(--ink); padding: 80px 24px; }
+  .preview-inner { max-width: 960px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+  .preview-text .section-title { color: var(--white); }
+  .preview-text .section-body { color: rgba(255,255,255,0.5); }
+  .preview-text .section-eyebrow { color: var(--saffron); }
+  .preview-features { margin-top: 32px; display: flex; flex-direction: column; gap: 14px; }
+  .preview-feature { display: flex; gap: 14px; align-items: flex-start; }
+  .preview-feature-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(245,166,35,0.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .preview-feature-text strong { display: block; font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 2px; }
+  .preview-feature-text span { font-size: 12px; color: rgba(255,255,255,0.4); line-height: 1.5; }
+  .phone-mock {
+    background: #1A1A1A; border-radius: 36px; padding: 16px;
+    border: 2px solid rgba(255,255,255,0.08); box-shadow: 0 32px 64px rgba(0,0,0,0.5);
+    max-width: 320px; margin: 0 auto;
+  }
+  .phone-screen { background: var(--white); border-radius: 24px; overflow: hidden; }
+  .phone-hero { background: linear-gradient(135deg, #eef2ff, #f0fdf4); padding: 24px 20px; text-align: center; border-bottom: 1px solid #f1f5f9; }
+  .phone-avatar { width: 56px; height: 56px; border-radius: 50%; background: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 12px; border: 3px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .phone-name { font-size: 16px; font-weight: 900; color: #0f172a; margin-bottom: 2px; }
+  .phone-role { font-size: 11px; color: #6366f1; font-weight: 700; margin-bottom: 8px; }
+  .phone-tagline { font-size: 12px; color: #64748b; line-height: 1.5; margin-bottom: 16px; }
+  .phone-btns { display: flex; gap: 8px; justify-content: center; }
+  .phone-btn-main { background: #6366f1; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 11px; font-weight: 800; cursor: pointer; }
+  .phone-btn-wa { background: #25D366; color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 11px; font-weight: 700; cursor: pointer; }
+  .phone-services { padding: 16px 20px; border-bottom: 1px solid #f1f5f9; }
+  .phone-services-label { font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .phone-service { display: flex; justify-content: space-between; font-size: 12px; padding: 6px 0; border-bottom: 1px solid #f8fafc; color: #374151; }
+  .phone-service:last-child { border-bottom: none; }
+  .phone-service strong { color: #6366f1; font-weight: 700; }
+  .phone-reviews { padding: 14px 20px; background: #fafafa; }
+  .phone-review-label { font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .phone-stars { color: #f59e0b; font-size: 11px; margin-bottom: 4px; }
+  .phone-review { font-size: 11px; color: #64748b; line-height: 1.5; font-style: italic; }
+  .phone-url { text-align: center; padding: 10px; font-size: 10px; color: #94a3b8; border-top: 1px solid #f1f5f9; }
+  .phone-url span { color: var(--saffron); font-weight: 700; }
+
+  /* PRICING */
+  .pricing-section { background: var(--stone); }
+  .pricing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 12px; margin-top: 48px; }
+  .price-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 16px; padding: 24px 20px; position: relative; }
+  .price-card.highlight { border-color: var(--saffron); background: var(--saffron-light); }
+  .price-badge { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: var(--saffron); color: var(--ink); font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; border-radius: 20px; padding: 3px 12px; white-space: nowrap; }
+  .price-icon { font-size: 24px; margin-bottom: 10px; }
+  .price-name { font-size: 14px; font-weight: 800; color: var(--ink); margin-bottom: 6px; }
+  .price-amount { margin-bottom: 4px; }
+  .price-amount .big { font-size: 26px; font-weight: 900; color: var(--ink); }
+  .price-amount .small { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .price-india { font-size: 11px; color: var(--muted); margin-bottom: 14px; }
+  .price-features { display: flex; flex-direction: column; gap: 6px; }
+  .price-feature { font-size: 11px; color: var(--muted); display: flex; gap: 6px; align-items: flex-start; line-height: 1.4; }
+  .price-feature::before { content: '✓'; color: var(--green); font-weight: 800; flex-shrink: 0; font-size: 10px; margin-top: 1px; }
+
+  /* TESTIMONIALS */
+  .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 48px; }
+  .testimonial { background: var(--stone); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+  .testimonial-stars { color: #F5A623; font-size: 13px; margin-bottom: 12px; }
+  .testimonial-text { font-size: 15px; color: var(--ink); line-height: 1.7; font-style: italic; margin-bottom: 16px; }
+  .testimonial-author { display: flex; align-items: center; gap: 10px; }
+  .testimonial-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .testimonial-name { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .testimonial-role { font-size: 11px; color: var(--muted); }
+  .testimonial-url { font-size: 10px; color: var(--saffron); font-weight: 700; margin-top: 2px; }
+
+  /* QR */
+  .qr-section { background: var(--saffron-light); padding: 60px 24px; }
+  .qr-inner { max-width: 800px; margin: 0 auto; display: flex; gap: 48px; align-items: center; flex-wrap: wrap; justify-content: center; }
+  .qr-box { width: 120px; height: 120px; background: var(--white); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 64px; border: 2px solid var(--saffron); flex-shrink: 0; box-shadow: 0 8px 24px rgba(245,166,35,0.2); }
+  .qr-text { max-width: 440px; }
+  .qr-text h3 { font-size: 22px; font-weight: 900; color: var(--ink); margin-bottom: 10px; letter-spacing: -0.5px; }
+  .qr-text p { font-size: 15px; color: var(--muted); line-height: 1.7; }
+
+  /* FINAL CTA */
+  .cta-section { background: var(--ink); text-align: center; padding: 100px 24px; }
+  .cta-question { font-size: clamp(40px, 7vw, 72px); font-weight: 900; letter-spacing: -2px; color: var(--white); line-height: 1; margin-bottom: 20px; }
+  .cta-question .on { color: var(--saffron); font-style: italic; }
+  .cta-sub { font-size: 17px; color: rgba(255,255,255,0.45); margin-bottom: 40px; max-width: 400px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+  .cta-free-note { margin-top: 16px; font-size: 13px; color: rgba(255,255,255,0.3); }
+
+  /* FOOTER */
+  footer { background: #080808; padding: 32px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .footer-brand { font-size: 14px; font-weight: 800; color: rgba(255,255,255,0.4); }
+  .footer-brand span { color: var(--saffron); }
+  .footer-tagline { font-size: 12px; color: rgba(255,255,255,0.2); }
+  .footer-links { display: flex; gap: 20px; }
+  .footer-links a { font-size: 12px; color: rgba(255,255,255,0.25); text-decoration: none; transition: color 0.15s; }
+  .footer-links a:hover { color: rgba(255,255,255,0.5); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  .hero-eyebrow { animation: fadeUp 0.6s ease both; }
+  .hero-question { animation: fadeUp 0.6s 0.1s ease both; }
+  .hero-sub { animation: fadeUp 0.6s 0.2s ease both; }
+  .hero-actions { animation: fadeUp 0.6s 0.3s ease both; }
+  @media (prefers-reduced-motion: reduce) { .ticker-track { animation: none; } * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <img src="../public/kryla-wordmark-light.svg" alt="Kryla.work" height="30" style="display:block;" />
+  </a>
+  <a href="#signup" class="nav-cta">Get your free page →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">For tutors, bakers, trainers & more</div>
+  <h1 class="hero-question">Are you <span class="on">on</span> Kryla?</h1>
+  <p class="hero-sub">
+    Your own page online — with your name, your work, your prices, and a way for people to book you.
+    <strong>Free to start. Ready in 10 minutes.</strong>
+  </p>
+  <div class="hero-actions">
+    <a href="#signup" class="btn-primary">Get your free page ✦</a>
+    <a href="#how" class="btn-secondary">See how it works</a>
+  </div>
+  <div class="ticker-wrap">
+    <div class="ticker-label">Already on Kryla</div>
+    <div class="ticker-track" id="ticker"></div>
+  </div>
+</section>
+
+<!-- PROOF BAR -->
+<div class="proof-bar">
+  <div class="proof-item"><strong>Free</strong> to get started</div>
+  <div class="proof-item"><strong>10 minutes</strong> to go live</div>
+  <div class="proof-item"><strong>No tech skills</strong> needed</div>
+  <div class="proof-item"><strong>🇮🇳 India</strong> &amp; <strong>🇺🇸 USA</strong></div>
+  <div class="proof-item"><strong>Works on WhatsApp</strong></div>
+</div>
+
+<!-- WHAT IS KRYLA -->
+<section style="background: var(--white);">
+  <div class="section-inner">
+    <p class="section-eyebrow">What Kryla actually is</p>
+    <h2 class="section-title">Not a website.<br/>Your identity online.</h2>
+    <p class="section-body">A paper visiting card gets lost. A WhatsApp number gets buried. A Kryla page is yours — forever. Share it anywhere. Clients find you, see your work, and book you directly.</p>
+
+    <div class="identity-grid">
+      <div class="identity-card featured">
+        <div class="identity-card-label">The change</div>
+        <div class="identity-card-q">"Call me on WhatsApp" → "I'm on Kryla."</div>
+        <div class="identity-card-a" style="margin-top:10px;">That one sentence changes how people see you. Not someone to look up. A professional to be found.</div>
+        <div class="identity-card-accent">✦</div>
+      </div>
+      <div class="identity-card">
+        <div class="identity-card-label">One link for everything</div>
+        <div class="identity-card-q">Everything a client needs — in one place</div>
+        <div class="identity-card-a">Your name. What you do. What you charge. When you're free. What your clients say. All in one link they can open on any phone.</div>
+        <div class="identity-card-accent">🔗</div>
+      </div>
+      <div class="identity-card">
+        <div class="identity-card-label">How it spreads</div>
+        <div class="identity-card-q">"Are you on Kryla?"</div>
+        <div class="identity-card-a">When a parent finds their tutor on Kryla, they ask every other tutor they know. Your page brings you new clients while you're busy working.</div>
+        <div class="identity-card-accent">💬</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
+  <div class="section-inner">
+    <p class="section-eyebrow">How it works</p>
+    <h2 class="section-title">Your page, live<br/>in 10 minutes.</h2>
+    <p class="section-body">You don't build anything. You just answer five simple questions. We do the rest.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">STEP 01</div>
+        <div class="step-icon">🙋</div>
+        <div class="step-title">Tell us what you do</div>
+        <div class="step-desc">Tutor, baker, trainer, photographer, salon owner — pick your profession. We already know what your page needs.</div>
+        <div class="step-time">⚡ Takes 1 minute</div>
+      </div>
+      <div class="step">
+        <div class="step-number">STEP 02</div>
+        <div class="step-icon">✍️</div>
+        <div class="step-title">Answer 5 quick questions</div>
+        <div class="step-desc">What you offer. Where you are. What you charge. When you're available. That's it. No writing skills needed.</div>
+        <div class="step-time">⚡ Takes 3 minutes</div>
+      </div>
+      <div class="step">
+        <div class="step-number">STEP 03</div>
+        <div class="step-icon">✨</div>
+        <div class="step-title">We build your page</div>
+        <div class="step-desc">We write everything for you — your introduction, your services, your prices. Your page is ready before you finish your chai.</div>
+        <div class="step-time">⚡ Takes 2 minutes</div>
+      </div>
+      <div class="step">
+        <div class="step-number">STEP 04</div>
+        <div class="step-icon">🔗</div>
+        <div class="step-title">Share your Kryla link</div>
+        <div class="step-desc">yourname.kryla.work is live. Send it on WhatsApp. Put it on your visiting card. Write it on your notice board. You're findable.</div>
+        <div class="step-time">✦ Yours forever</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE PREVIEW -->
+<section class="preview-section">
+  <div class="preview-inner">
+    <div class="preview-text">
+      <p class="section-eyebrow">What your page looks like</p>
+      <h2 class="section-title">Professional.<br/>Bookable.<br/>Yours.</h2>
+      <p class="section-body">Every Kryla page is made for your profession — not a blank template you have to fill in yourself. Clients can see your services, your prices, and book you in one tap.</p>
+
+      <div class="preview-features">
+        <div class="preview-feature">
+          <div class="preview-feature-icon">📅</div>
+          <div class="preview-feature-text">
+            <strong>Clients book. You decide.</strong>
+            <span>Someone books a session. You get a WhatsApp message. You tap Yes or No. That's the whole process.</span>
+          </div>
+        </div>
+        <div class="preview-feature">
+          <div class="preview-feature-icon">🔍</div>
+          <div class="preview-feature-text">
+            <strong>Parents searching Google can find you</strong>
+            <span>"Maths tutor Celina TX" — your page shows up. New clients who never heard of you before.</span>
+          </div>
+        </div>
+        <div class="preview-feature">
+          <div class="preview-feature-icon">💬</div>
+          <div class="preview-feature-text">
+            <strong>Change anything — just WhatsApp us</strong>
+            <span>New timings? Higher prices? Just message Kryla. Your page updates in 2 minutes. No logins, no hassle.</span>
+          </div>
+        </div>
+        <div class="preview-feature">
+          <div class="preview-feature-icon">🛡️</div>
+          <div class="preview-feature-text">
+            <strong>We watch your page so you don't have to</strong>
+            <span>Your page is always working, always current, always online. You focus on your work. We handle the rest.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="phone-mock">
+        <div class="phone-screen">
+          <div class="phone-hero">
+            <div class="phone-avatar">📚</div>
+            <div class="phone-name">Priya Sharma</div>
+            <div class="phone-role">Maths & Science Tutor · Celina, TX</div>
+            <div class="phone-tagline">9 years teaching · 120+ students · Grades 3 to 8</div>
+            <div class="phone-btns">
+              <button class="phone-btn-main">Book a Session</button>
+              <button class="phone-btn-wa">💬 WhatsApp</button>
+            </div>
+          </div>
+          <div class="phone-services">
+            <div class="phone-services-label">What I offer</div>
+            <div class="phone-service"><span>One-on-one session</span><strong>$30/hr</strong></div>
+            <div class="phone-service"><span>Small group (3–4 kids)</span><strong>$15/hr</strong></div>
+            <div class="phone-service"><span>Monthly — 8 sessions</span><strong>$199/mo</strong></div>
+          </div>
+          <div class="phone-reviews">
+            <div class="phone-review-label">What parents say</div>
+            <div class="phone-stars">★★★★★</div>
+            <div class="phone-review">"My daughter went from a C to an A in one semester. Priya is wonderful."</div>
+          </div>
+          <div class="phone-url">kryla.work/<span>priyasharma</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QR CODE -->
+<section class="qr-section">
+  <div class="qr-inner">
+    <div class="qr-box">📲</div>
+    <div class="qr-text">
+      <h3>Put your Kryla link on your visiting card</h3>
+      <p>Every Kryla page comes with a scannable QR code. Print it on your card. Stick it on your door. Put it in your packaging. Anyone who scans it sees your full page — and can book you in one tap.</p>
+    </div>
+  </div>
+</section>
+
+<!-- WHO IS ON KRYLA -->
+<section style="background: var(--white);">
+  <div class="section-inner">
+    <p class="section-eyebrow">Who is already on Kryla</p>
+    <h2 class="section-title">Skilled. Trusted.<br/>Now easy to find.</h2>
+    <p class="section-body">Every person on Kryla had one thing in common before they joined — they were excellent at what they do, but nobody outside their neighbourhood knew it.</p>
+    <div class="personas-grid" id="personas-grid"></div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-section">
+  <div class="section-inner">
+    <p class="section-eyebrow">What it costs</p>
+    <h2 class="section-title">Start free.<br/>Pay more only when<br/>you're ready.</h2>
+    <p class="section-body">Your first page is completely free. When you start getting bookings and want to do more, you can upgrade — anytime, no pressure.</p>
+
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-icon">🌱</div>
+        <div class="price-name">Seed</div>
+        <div class="price-amount"><span class="big">Free</span></div>
+        <div class="price-india">Always free · No card needed</div>
+        <div class="price-features">
+          <div class="price-feature">Your own page at yourname.kryla.work</div>
+          <div class="price-feature">We write everything for you</div>
+          <div class="price-feature">Contact form for enquiries</div>
+          <div class="price-feature">People can find you on Google</div>
+        </div>
+      </div>
+
+      <div class="price-card">
+        <div class="price-icon">🌿</div>
+        <div class="price-name">Sprout</div>
+        <div class="price-amount"><span class="big">$5</span><span class="small">/mo</span></div>
+        <div class="price-india">₹299/mo · Less than one coffee</div>
+        <div class="price-features">
+          <div class="price-feature">Everything in Seed</div>
+          <div class="price-feature">Clients can book sessions directly</div>
+          <div class="price-feature">You get a WhatsApp when someone books</div>
+          <div class="price-feature">You tap Yes or No to confirm</div>
+        </div>
+      </div>
+
+      <div class="price-card highlight">
+        <div class="price-badge">Most Popular</div>
+        <div class="price-icon">🌳</div>
+        <div class="price-name">Grow</div>
+        <div class="price-amount"><span class="big">$12</span><span class="small">/mo</span></div>
+        <div class="price-india">₹799/mo · Less than a Netflix subscription</div>
+        <div class="price-features">
+          <div class="price-feature">Your own web address — like priya.com</div>
+          <div class="price-feature">Add your own photo</div>
+          <div class="price-feature">Choose how your page looks</div>
+          <div class="price-feature">See how many people visited your page</div>
+          <div class="price-feature">We keep your page easy to find on Google</div>
+        </div>
+      </div>
+
+      <div class="price-card">
+        <div class="price-icon">🚀</div>
+        <div class="price-name">Thrive</div>
+        <div class="price-amount"><span class="big">$25</span><span class="small">/mo</span></div>
+        <div class="price-india">₹1,999/mo</div>
+        <div class="price-features">
+          <div class="price-feature">Update your page by sending a WhatsApp</div>
+          <div class="price-feature">Up to 12 photos on your page</div>
+          <div class="price-feature">We refresh your page every month automatically</div>
+          <div class="price-feature">Full booking calendar</div>
+          <div class="price-feature">We fix any issues before you even notice</div>
+        </div>
+      </div>
+
+      <div class="price-card">
+        <div class="price-icon">⭐</div>
+        <div class="price-name">Elevate</div>
+        <div class="price-amount"><span class="big">$45</span><span class="small">/mo</span></div>
+        <div class="price-india">₹3,999/mo</div>
+        <div class="price-features">
+          <div class="price-feature">Your logo and branded email address</div>
+          <div class="price-feature">Collect payments directly on your page</div>
+          <div class="price-feature">Unlimited photos</div>
+          <div class="price-feature">Up to 3 people can manage the page</div>
+          <div class="price-feature">Everything, taken care of</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section style="background: var(--white);">
+  <div class="section-inner">
+    <p class="section-eyebrow">From people on Kryla</p>
+    <h2 class="section-title">"Are you on Kryla?"<br/>Now they are.</h2>
+
+    <div class="testimonials-grid">
+      <div class="testimonial">
+        <div class="testimonial-stars">★★★★★</div>
+        <div class="testimonial-text">"I've been teaching for 11 years. Nobody outside my street knew I existed. My Kryla page went live on a Tuesday. By Friday I had three families asking about classes. I still can't believe it."</div>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:#eef2ff;">📚</div>
+          <div>
+            <div class="testimonial-name">Priya Sharma</div>
+            <div class="testimonial-role">Maths Tutor · Celina, TX</div>
+            <div class="testimonial-url">kryla.work/priyasharma</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial">
+        <div class="testimonial-stars">★★★★★</div>
+        <div class="testimonial-text">"WhatsApp mein orders manage karna impossible tha. Ab sab kuch Kryla page se hota hai. Ek link share karo — order aa jaata hai." <span style="color:#94a3b8;font-size:12px;">(Managing orders on WhatsApp was impossible. Now everything comes through my Kryla page. Share one link — orders come in.)</span></div>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:#fef9c3;">🎂</div>
+          <div>
+            <div class="testimonial-name">Meena Krishnan</div>
+            <div class="testimonial-role">Home Baker · Pune, India</div>
+            <div class="testimonial-url">kryla.work/meenabakes</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial">
+        <div class="testimonial-stars">★★★★★</div>
+        <div class="testimonial-text">"I was losing weddings to photographers who had a proper website. I answered five questions on a Sunday evening. By Monday my work was live online. I got a wedding booking that week."</div>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:#f0fdf4;">📸</div>
+          <div>
+            <div class="testimonial-name">Alex Chen</div>
+            <div class="testimonial-role">Photographer · Prosper, TX</div>
+            <div class="testimonial-url">kryla.work/alexchenphoto</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="cta-section" id="signup">
+  <h2 class="cta-question">Are you <span class="on">on</span> Kryla?</h2>
+  <p class="cta-sub">Your page is waiting. Free to start. Ready in 10 minutes. No tech skills needed.</p>
+  <a href="#" class="btn-primary" style="font-size:17px; padding:18px 40px;">
+    Get your free page ✦
+  </a>
+  <p class="cta-free-note">No credit card. Just 5 questions. That's it.</p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-brand">Kryla<span>.work</span></div>
+    <div class="footer-tagline">Are you on Kryla?</div>
+  </div>
+  <div class="footer-links">
+    <a href="#">About</a>
+    <a href="#">Pricing</a>
+    <a href="#">For India</a>
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+  </div>
+</footer>
+
+<script>
+const tickerPeople = [
+  { name: "Priya Sharma", role: "Maths Tutor", location: "Celina TX", url: "kryla.work/priyasharma" },
+  { name: "Meena Krishnan", role: "Home Baker", location: "Pune, India", url: "kryla.work/meenabakes" },
+  { name: "Raj Patel", role: "Fitness Trainer", location: "Prosper TX", url: "kryla.work/rajfitness" },
+  { name: "Sunita Verma", role: "Music Teacher", location: "Mumbai, India", url: "kryla.work/sunitamusic" },
+  { name: "Alex Chen", role: "Photographer", location: "Frisco TX", url: "kryla.work/alexchenphoto" },
+  { name: "Dr. Anita Rao", role: "Physiotherapist", location: "Plano TX", url: "kryla.work/dranitrarao" },
+  { name: "Rina's Studio", role: "Hair Salon", location: "McKinney TX", url: "kryla.work/rinastudio" },
+  { name: "Arjun Nair", role: "Home Chef", location: "Hyderabad, India", url: "kryla.work/arjuncooks" },
+  { name: "Divya Mehta", role: "Yoga Teacher", location: "Bengaluru, India", url: "kryla.work/divyayoga" },
+  { name: "Maria Santos", role: "Dog Trainer", location: "Celina TX", url: "kryla.work/mariapets" },
+  { name: "Kavitha R.", role: "Art Teacher", location: "Chennai, India", url: "kryla.work/kavithaart" },
+  { name: "James Park", role: "Guitar Coach", location: "Prosper TX", url: "kryla.work/jamesguitar" },
+];
+
+function buildTicker() {
+  const track = document.getElementById('ticker');
+  [...tickerPeople, ...tickerPeople].forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'ticker-item';
+    item.innerHTML = `<div class="ticker-dot"></div><div class="ticker-name">${p.name}</div><div class="ticker-role">· ${p.role} · ${p.location}</div><div class="ticker-url">${p.url}</div>`;
+    track.appendChild(item);
+  });
+}
+
+const personas = [
+  { icon: "📚", name: "Priya Sharma", role: "Maths Tutor", location: "Celina, TX", url: "kryla.work/priyasharma" },
+  { icon: "🎂", name: "Meena K.", role: "Home Baker", location: "Pune, India", url: "kryla.work/meenabakes" },
+  { icon: "💪", name: "Raj Patel", role: "Fitness Trainer", location: "Prosper, TX", url: "kryla.work/rajfitness" },
+  { icon: "📸", name: "Alex Chen", role: "Photographer", location: "Frisco, TX", url: "kryla.work/alexchenphoto" },
+  { icon: "🎵", name: "Sunita V.", role: "Music Teacher", location: "Mumbai", url: "kryla.work/sunitamusic" },
+  { icon: "✂️", name: "Rina's Studio", role: "Hair Salon", location: "McKinney, TX", url: "kryla.work/rinastudio" },
+  { icon: "🩺", name: "Dr. Anita R.", role: "Physiotherapist", location: "Plano, TX", url: "kryla.work/dranitrarao" },
+  { icon: "👩‍🍳", name: "Arjun Nair", role: "Home Chef", location: "Hyderabad", url: "kryla.work/arjuncooks" },
+  { icon: "🧘", name: "Divya Mehta", role: "Yoga Teacher", location: "Bengaluru", url: "kryla.work/divyayoga" },
+  { icon: "🐾", name: "Maria Santos", role: "Dog Trainer", location: "Celina, TX", url: "kryla.work/mariapets" },
+  { icon: "🎨", name: "Kavitha R.", role: "Art Teacher", location: "Chennai", url: "kryla.work/kavithaart" },
+  { icon: "🎸", name: "James Park", role: "Guitar Coach", location: "Prosper, TX", url: "kryla.work/jamesguitar" },
+];
+
+function buildPersonas() {
+  const grid = document.getElementById('personas-grid');
+  personas.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'persona-card';
+    card.innerHTML = `<div class="persona-icon">${p.icon}</div><div class="persona-name">${p.name}</div><div style="font-size:11px;color:#6B6B6B;margin-bottom:2px;">${p.role}</div><div class="persona-location">${p.location}</div><div class="persona-url">${p.url}</div>`;
+    grid.appendChild(card);
+  });
+}
+
+buildTicker();
+buildPersonas();
+</script>
+</body>
+</html>
