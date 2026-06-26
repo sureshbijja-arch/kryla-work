@@ -606,7 +606,7 @@ export default function V2Page() {
         {/* Floating background cards */}
         <div className="hero-bg">
           <div className="hf-wrap" style={{ top:'5%', left:'-2%', '--rotation':'-6deg', animationDelay:'0s' } as React.CSSProperties}>
-            <img className="hf-photo" src="https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=300&q=80" alt="Maths Tutor" />
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=300&q=80" alt="Maths Tutor" />
             <span className="hf-label">📚 Maths Tutor</span>
           </div>
           <div className="hf-wrap" style={{ top:'3%', right:'0%', '--rotation':'5deg', animationDelay:'0.8s' } as React.CSSProperties}>
@@ -614,7 +614,7 @@ export default function V2Page() {
             <span className="hf-label">🎂 Home Baker</span>
           </div>
           <div className="hf-wrap" style={{ top:'42%', left:'-3%', '--rotation':'3deg', animationDelay:'1.6s' } as React.CSSProperties}>
-            <img className="hf-photo" src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&q=80" alt="Fitness Trainer" />
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=300&q=80" alt="Fitness Trainer" />
             <span className="hf-label">💪 Fitness Trainer</span>
           </div>
           <div className="hf-wrap" style={{ top:'38%', right:'-1%', '--rotation':'-4deg', animationDelay:'2.4s' } as React.CSSProperties}>
@@ -622,7 +622,7 @@ export default function V2Page() {
             <span className="hf-label">📸 Photographer</span>
           </div>
           <div className="hf-wrap" style={{ bottom:'2%', left:'12%', '--rotation':'-3deg', animationDelay:'3.2s' } as React.CSSProperties}>
-            <img className="hf-photo" src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=300&q=80" alt="Salon" />
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=300&q=80" alt="Salon" />
             <span className="hf-label">✂️ Salon</span>
           </div>
           <div className="hf-wrap" style={{ bottom:'0%', right:'8%', '--rotation':'6deg', animationDelay:'4s' } as React.CSSProperties}>
