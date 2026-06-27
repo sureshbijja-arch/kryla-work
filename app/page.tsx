@@ -496,6 +496,7 @@ const CSS = `
     position: relative;
     overflow: hidden;
   }
+
   .slider-track {
     display: flex;
     transition: transform 0.55s cubic-bezier(0.77, 0, 0.175, 1);
@@ -534,9 +535,13 @@ const CSS = `
   .slider-dot.active { background: #F5A623; transform: scale(1.4); }
   @media (max-width: 800px) { .slider-arrow { display: none; } }
   @media (max-width: 768px) {
-    .slider-slide { padding: 32px 16px; }
-    .slider-slide .sec-inner { grid-template-columns: 1fr; gap: 28px; }
+    .slider-outer { overflow: hidden; }
+    .slider-track { overflow: hidden; }
+    .slider-slide { padding: 24px 16px; box-sizing: border-box; width: 100%; }
+    .slider-slide .sec-inner { display: flex; flex-direction: column; gap: 24px; }
     .slider-slide .card-right .card-col { order: -1; }
+    .profile-card { width: 100%; box-sizing: border-box; }
+    .pc-btns { grid-template-columns: 1fr 1fr; }
     .slider-arrow { display: none; }
   }
 `;
