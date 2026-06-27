@@ -62,36 +62,6 @@ export async function POST(req: NextRequest) {
     ? `${whatsappCountryCode || '+1'}${whatsappNumber.replace(/\D/g, '')}`
     : null
 
-  const trimmedEmail = email?.trim() || null
-
-  if (trimmedEmail) {
-    const { data: emailExists } = await supabase
-      .from('providers')
-      .select('id')
-      .eq('email', trimmedEmail)
-      .maybeSingle()
-    if (emailExists) {
-      return NextResponse.json({
-        error: 'An account with this email already exists — try a different email',
-        field: 'email',
-      }, { status: 409 })
-    }
-  }
-
-  if (whatsapp) {
-    const { data: phoneExists } = await supabase
-      .from('providers')
-      .select('id')
-      .eq('whatsapp_number', whatsapp)
-      .maybeSingle()
-    if (phoneExists) {
-      return NextResponse.json({
-        error: 'An account with this phone number already exists — try a different number',
-        field: 'phone',
-      }, { status: 409 })
-    }
-  }
-
   const { data: provider, error: providerError } = await supabase
     .from('providers')
     .insert({
@@ -101,7 +71,7 @@ export async function POST(req: NextRequest) {
       persona,
       location: location?.trim() || '',
       whatsapp_number: whatsapp,
-      email: trimmedEmail,
+      email: email?.trim() || null,
       plan,
       plan_status: plan === 'seed' ? 'active' : 'pending_payment',
       region,
@@ -114,17 +84,7 @@ export async function POST(req: NextRequest) {
   if (providerError || !provider) {
     const code = providerError?.code
     if (code === '23505') {
-      const detail = providerError.details || providerError.message || ''
-      if (detail.includes('slug')) {
-        return NextResponse.json({ error: 'That address is already taken — try a different one' }, { status: 409 })
-      }
-      if (detail.includes('email')) {
-        return NextResponse.json({ error: 'An account with this email already exists — try signing in instead' }, { status: 409 })
-      }
-      if (detail.includes('phone')) {
-        return NextResponse.json({ error: 'An account with this phone number already exists — try signing in instead' }, { status: 409 })
-      }
-      return NextResponse.json({ error: 'Some of your details are already in use — please check and try again' }, { status: 409 })
+      return NextResponse.json({ error: 'That address is already taken — try a different one' }, { status: 409 })
     }
     if (code === '23502') {
       console.error('[submit] Not-null violation:', providerError)
