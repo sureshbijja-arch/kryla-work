@@ -1,423 +1,1029 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from 'react';
 
-interface Service {
-  label: string;
-  price: string;
-}
+type Loc = 'india' | 'usa';
 
-interface MemberCard {
-  emoji: string;
-  name: string;
-  role: string;
-  slug: string;
-  services: Service[];
-  primaryCta: string;
-  rating: string;
-  ratingCount: string;
-}
+const R1 = [
+  { icon: '📚', name: 'Priya Sharma',    role: 'Maths Tutor',         loc: 'Celina, TX',         url: 'kryla.work/priyasharma' },
+  { icon: '🎂', name: 'Meena Krishnan',  role: 'Home Baker',          loc: 'Pune, India',        url: 'kryla.work/meenabakes' },
+  { icon: '💪', name: 'Raj Patel',       role: 'Fitness Trainer',     loc: 'Prosper, TX',        url: 'kryla.work/rajfitness' },
+  { icon: '📷', name: 'Alex Chen',       role: 'Photographer',        loc: 'Frisco, TX',         url: 'kryla.work/alexchenphoto' },
+  { icon: '🧁', name: 'Sofia Rodriguez', role: 'Pastry Chef',         loc: 'Austin, TX',         url: 'kryla.work/sofiabakes' },
+  { icon: '🎵', name: 'Ananya Iyer',     role: 'Music Teacher',       loc: 'Chennai, India',     url: 'kryla.work/ananyaiyer' },
+];
+const R2 = [
+  { icon: '🧘', name: 'Lakshmi Nair',   role: 'Yoga Instructor',     loc: 'Bengaluru, India',   url: 'kryla.work/lakshmiyoga' },
+  { icon: '✂️', name: 'Carlos Mendes',  role: 'Hair Stylist',        loc: 'Dallas, TX',         url: 'kryla.work/carlosstyle' },
+  { icon: '🎨', name: 'Preethi Sundar', role: 'Art Teacher',         loc: 'Hyderabad, India',   url: 'kryla.work/preethiart' },
+  { icon: '🧑‍🍳', name: 'David Okonkwo', role: 'Private Chef',        loc: 'Houston, TX',        url: 'kryla.work/davidchef' },
+  { icon: '📐', name: 'Sunita Verma',   role: 'Interior Consultant', loc: 'Mumbai, India',      url: 'kryla.work/sunitadesign' },
+  { icon: '🎤', name: 'Ravi Menon',     role: 'Voice Coach',         loc: 'Kochi, India',       url: 'kryla.work/ravivoice' },
+];
 
-const priyaCard: MemberCard = {
-  emoji: "📚",
-  name: "Priya Sharma",
-  role: "Maths & Science Tutor · Celina, TX",
-  slug: "kryla.work/priyasharma",
-  services: [
-    { label: "One-on-one session", price: "$30/hr" },
-    { label: "Small group (3–4)", price: "$15/hr" },
-    { label: "Monthly plan", price: "$199/mo" },
-  ],
-  primaryCta: "Book a Session",
-  rating: "4.9",
-  ratingCount: "47 students",
-};
+const CSS = `
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-const meenaCard: MemberCard = {
-  emoji: "🎂",
-  name: "Meena Krishnan",
-  role: "Home Baker · Pune, India",
-  slug: "kryla.work/meenabakes",
-  services: [
-    { label: "Custom Birthday Cake", price: "$25" },
-    { label: "Themed Box (12 pieces)", price: "$50" },
-    { label: "Monthly Dessert Plan", price: "$149/mo" },
-  ],
-  primaryCta: "Order Now",
-  rating: "4.8",
-  ratingCount: "124 orders",
-};
+  :root {
+    --amber: #F5A623;
+    --dark:  #0D0D0D;
+    --mid:   #1A1A1A;
+    --light: #FAFAFA;
+    --ff: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  }
 
-const rajCard: MemberCard = {
-  emoji: "💪",
-  name: "Raj Patel",
-  role: "Fitness Trainer · Prosper, TX",
-  slug: "kryla.work/rajfitness",
-  services: [
-    { label: "Personal training session", price: "$40/hr" },
-    { label: "Group class", price: "$15/class" },
-    { label: "Monthly coaching", price: "$249/mo" },
-  ],
-  primaryCta: "Book a Session",
-  rating: "4.9",
-  ratingCount: "89 clients",
-};
+  .v2 {
+    font-family: var(--ff);
+    overflow-x: hidden;
+    background: var(--dark);
+  }
 
-const alexCard: MemberCard = {
-  emoji: "📷",
-  name: "Alex Chen",
-  role: "Photographer · Frisco, TX",
-  slug: "kryla.work/alexchenphoto",
-  services: [
-    { label: "Portrait session", price: "$120" },
-    { label: "Half-day shoot", price: "$220" },
-    { label: "Monthly retainer", price: "$499/mo" },
-  ],
-  primaryCta: "Book Now",
-  rating: "5.0",
-  ratingCount: "32 clients",
-};
+  /* ─── LOCATION BAR ─── */
+  .loc-bar {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 44px; z-index: 200;
+    background: #0D0D0D;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .loc-pill {
+    background: none; border: none; cursor: pointer;
+    padding: 5px 16px; border-radius: 100px;
+    font-size: 13px; font-weight: 600; color: #FFFFFF;
+    transition: background 0.2s, color 0.2s;
+    font-family: var(--ff); line-height: 1;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .loc-pill:hover { color: rgba(255,255,255,0.75); }
+  .loc-pill.active { background: #F5A623; color: #0D0D0D; }
 
-function TopBar({ market, onToggle }: { market: "IN" | "US"; onToggle: () => void }) {
+  /* ─── NAV ─── */
+  .v2-nav {
+    position: fixed; top: 44px; left: 0; right: 0; z-index: 100;
+    height: 64px;
+    background: #FFFFFF;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px;
+    border-bottom: 1px solid #E5E5E5;
+  }
+  .nav-join {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #0D0D0D; color: #FFFFFF;
+    font-size: 14px; font-weight: 700;
+    padding: 9px 22px; border-radius: 100px;
+    text-decoration: none;
+    transition: transform 0.15s;
+  }
+  .nav-join:hover { transform: scale(1.04); }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .nav-loc { font-size: 12px; color: #999; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .nav-loc-switch { font-size: 12px; color: #999; background: none; border: none; cursor: pointer; font-family: var(--ff); padding: 0; text-decoration: underline; text-underline-offset: 2px; }
+  .nav-loc-switch:hover { color: #555; }
+
+  /* ─── HERO ─── */
+  .hero {
+    background: #FFFFFF;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    padding: 128px 24px 100px;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: #F5A623;
+    margin-bottom: 30px;
+    animation: fadeUp 0.55s ease both 0.05s;
+  }
+  .hero-h1 {
+    max-width: 700px;
+    display: flex; flex-direction: column; gap: 4px;
+    margin-bottom: 28px;
+  }
+  .h1-l1 {
+    font-size: clamp(34px, 6.5vw, 52px);
+    font-weight: 900; line-height: 1.1;
+    letter-spacing: -0.025em; color: #0D0D0D;
+    animation: fadeUp 0.55s ease both 0.18s;
+  }
+  .h1-l2 {
+    font-size: clamp(34px, 6.5vw, 52px);
+    font-weight: 900; line-height: 1.1;
+    letter-spacing: -0.025em; color: #F5A623;
+    animation: fadeUp 0.55s ease both 0.34s;
+  }
+  .h1-l3 {
+    font-size: clamp(18px, 3vw, 26px);
+    font-weight: 500; line-height: 1.35;
+    color: #444444;
+    margin-top: 12px;
+    animation: fadeUp 0.55s ease both 0.52s;
+  }
+  .hero-sub {
+    font-size: clamp(16px, 2.2vw, 20px);
+    color: #666666;
+    line-height: 1.65; max-width: 480px;
+    margin-bottom: 40px;
+    animation: fadeUp 0.55s ease both 0.68s;
+  }
+  .hero-btns {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    justify-content: center; margin-bottom: 28px;
+    animation: fadeUp 0.55s ease both 0.82s;
+  }
+  .hero-proof {
+    font-size: 13px; color: rgba(13,13,13,0.4);
+    animation: fadeUp 0.55s ease both 0.96s;
+  }
+
+  /* ─── BUTTONS ─── */
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--amber); color: #0D0D0D;
+    font-size: 16px; font-weight: 700;
+    padding: 15px 30px; border-radius: 100px;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    font-family: var(--ff); border: none; cursor: pointer;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(245,166,35,0.34); }
+  .btn-primary.lg { font-size: 18px; padding: 17px 38px; }
+  .btn-secondary {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: none; color: rgba(13,13,13,0.65);
+    font-size: 16px; font-weight: 600;
+    padding: 15px 28px; border-radius: 100px;
+    text-decoration: none;
+    border: 1.5px solid rgba(13,13,13,0.2);
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-secondary:hover { border-color: rgba(13,13,13,0.5); color: #0D0D0D; }
+  .hero .btn-primary { background: #F5A623; color: #0D0D0D; }
+  .hero .btn-primary:hover { box-shadow: 0 12px 36px rgba(245,166,35,0.4); }
+  .hero .btn-secondary { color: #0D0D0D; border: 1.5px solid #0D0D0D; }
+  .hero .btn-secondary:hover { border-color: #0D0D0D; background: rgba(0,0,0,0.04); }
+
+  /* ─── SECTIONS ─── */
+  .sec { padding: 88px 24px; }
+  .sec-light { background: var(--light); }
+  .sec-dark  { background: #0D0D0D; }
+  .sec-white { background: #FFFFFF; }
+  .sec-border { border-top: 1px solid rgba(0,0,0,0.06); }
+
+  .sec-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 72px; align-items: center;
+  }
+  @media (max-width: 800px) {
+    .sec-inner { grid-template-columns: 1fr; gap: 44px; }
+    .card-right .card-col { order: -1; }
+  }
+
+  .sec-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--amber); margin-bottom: 18px;
+  }
+  .sec-h2 {
+    font-size: clamp(27px, 3.8vw, 40px);
+    font-weight: 900; line-height: 1.15;
+    letter-spacing: -0.02em; margin-bottom: 20px;
+  }
+  .sec-h2.dark  { color: #0D0D0D; }
+  .sec-h2.light { color: #ffffff; }
+  .sec-body { font-size: 17px; line-height: 1.75; margin-bottom: 20px; }
+  .sec-body.on-light { color: #555; }
+  .sec-body.on-dark  { color: rgba(255,255,255,0.58); }
+  .sec-warm { font-size: 15px; font-weight: 600; color: var(--amber); line-height: 1.6; }
+
+  /* ─── PROFILE CARD ─── */
+  .profile-card {
+    background: #1a1a1a;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.07);
+    box-shadow: 0 0 60px rgba(245,166,35,0.13), 0 28px 56px rgba(0,0,0,0.22);
+    padding: 28px;
+    position: relative;
+  }
+  .pc-live {
+    position: absolute; top: 20px; right: 20px;
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; color: #4ade80;
+  }
+  .pc-live::before {
+    content: '';
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #4ade80;
+    animation: livepulse 2.2s ease-in-out infinite;
+  }
+  @keyframes livepulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .pc-avatar {
+    width: 58px; height: 58px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--amber), #c97b0a);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 25px; margin-bottom: 14px;
+  }
+  .pc-name  { font-size: 19px; font-weight: 800; color: #fff; margin-bottom: 3px; }
+  .pc-role  { font-size: 13px; color: rgba(255,255,255,0.48); margin-bottom: 6px; }
+  .pc-url   { font-size: 12.5px; color: var(--amber); font-family: monospace; font-weight: 600; }
+  .pc-hr    { border: none; border-top: 1px solid rgba(255,255,255,0.07); margin: 18px 0; }
+  .pc-svcs  { display: flex; flex-direction: column; gap: 10px; }
+  .pc-svc   { display: flex; justify-content: space-between; align-items: center; }
+  .pc-svc-n { font-size: 13px; color: rgba(255,255,255,0.62); }
+  .pc-svc-p { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; margin-left: 12px; }
+  .pc-btns  { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pc-btn-a {
+    background: var(--amber); color: #0D0D0D;
+    font-size: 13px; font-weight: 700;
+    padding: 10px; border-radius: 10px;
+    text-align: center; border: none; cursor: pointer; font-family: var(--ff);
+  }
+  .pc-btn-w {
+    background: none; color: rgba(255,255,255,0.65);
+    font-size: 13px; font-weight: 600;
+    padding: 10px; border-radius: 10px; text-align: center;
+    border: 1.5px solid rgba(255,255,255,0.14);
+    cursor: pointer; font-family: var(--ff);
+  }
+  .pc-rating { font-size: 13px; color: rgba(255,255,255,0.42); text-align: center; }
+  .pc-rating span { color: var(--amber); font-weight: 700; }
+
+  /* ─── WHATSAPP CHAT ─── */
+  .wa-chat {
+    margin-top: 28px;
+    background: #FFFFFF;
+    border-radius: 16px; padding: 20px 18px;
+    display: flex; flex-direction: column; gap: 10px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  }
+  .wa-msg { display: flex; flex-direction: column; }
+  .wa-in  { align-items: flex-start; }
+  .wa-out { align-items: flex-end; }
+  .wa-bubble {
+    max-width: 84%; padding: 10px 14px;
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .wa-in  .wa-bubble { background: #E5E5EA; border-radius: 3px 14px 14px 14px; }
+  .wa-out .wa-bubble { background: var(--amber); border-radius: 14px 3px 14px 14px; }
+  .wa-txt { font-size: 14px; line-height: 1.5; }
+  .wa-in  .wa-txt { color: #0D0D0D; }
+  .wa-out .wa-txt { color: #0D0D0D; }
+  .wa-out .wa-txt strong { color: #0D0D0D; }
+  .wa-meta { font-size: 10px; align-self: flex-end; color: #8c8c8c; }
+  .wa-ticks { margin-left: 2px; }
+
+  /* ─── COMMUNITY TICKER ─── */
+  .community {
+    background: #0D0D0D;
+    padding: 80px 0;
+    overflow: hidden;
+  }
+  .community-head {
+    text-align: center; padding: 0 24px 48px;
+  }
+  .community-head .sec-h2 { margin-bottom: 0; }
+  .ticker-row { overflow: hidden; margin-bottom: 14px; }
+  .ticker-track {
+    display: flex; gap: 14px;
+    width: max-content;
+  }
+  .tick-left  { animation: tickL 44s linear infinite; }
+  .tick-right { animation: tickR 44s linear infinite; }
+  @keyframes tickL { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  @keyframes tickR { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
+  .ticker-card {
+    background: #1A1A1A;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px; padding: 15px 18px;
+    min-width: 210px; display: inline-flex;
+    flex-direction: column; gap: 3px; flex-shrink: 0;
+  }
+  .tc-icon { font-size: 18px; margin-bottom: 3px; }
+  .tc-name { font-size: 13px; font-weight: 700; color: #fff; }
+  .tc-role { font-size: 11px; color: rgba(255,255,255,0.55); }
+  .tc-loc  { font-size: 10px; color: rgba(255,255,255,0.35); }
+  .tc-url  { font-size: 10px; color: var(--amber); font-family: monospace; }
+
+  /* ─── PRICING ─── */
+  .pricing { background: #FFFFFF; padding: 88px 24px; }
+  .pricing-head { text-align: center; margin-bottom: 56px; }
+  .pricing-head .sec-h2 { color: #0D0D0D; }
+  .pricing-sub {
+    font-size: 18px; color: #555; max-width: 480px;
+    margin: 12px auto 0; line-height: 1.65;
+  }
+  .pricing-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 20px; max-width: 1100px; margin: 0 auto;
+  }
+  @media (max-width: 900px) { .pricing-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 540px) { .pricing-grid { grid-template-columns: 1fr; } }
+  .plan-card {
+    background: #fff;
+    border: 1.5px solid rgba(0,0,0,0.09);
+    border-radius: 18px; padding: 28px 24px;
+    display: flex; flex-direction: column; gap: 0;
+    position: relative;
+  }
+  .plan-card.popular {
+    border-color: var(--amber);
+    box-shadow: 0 0 0 3px rgba(245,166,35,0.14);
+  }
+  .plan-popular-badge {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: var(--amber); color: #0D0D0D;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+    padding: 3px 12px; border-radius: 100px; white-space: nowrap;
+  }
+  .plan-icon { font-size: 24px; margin-bottom: 10px; }
+  .plan-name { font-size: 18px; font-weight: 800; color: #0D0D0D; margin-bottom: 4px; }
+  .plan-price { font-size: 26px; font-weight: 900; color: #0D0D0D; margin-bottom: 4px; }
+  .plan-price .per { font-size: 14px; font-weight: 500; color: #888; }
+  .plan-tagline { font-size: 13px; color: #777; margin-bottom: 20px; line-height: 1.5; }
+  .plan-divider { border: none; border-top: 1px solid rgba(0,0,0,0.07); margin: 0 0 16px; }
+  .plan-features { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; flex: 1; }
+  .plan-features li {
+    font-size: 13px; color: #444; line-height: 1.5;
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .plan-features li::before { content: '✓'; color: var(--amber); font-weight: 700; flex-shrink: 0; }
+  .plan-btn {
+    display: block; text-align: center;
+    background: var(--amber); color: #0D0D0D;
+    font-size: 14px; font-weight: 700;
+    padding: 12px; border-radius: 10px;
+    text-decoration: none; transition: transform 0.15s;
+  }
+  .plan-btn:hover { transform: scale(1.02); }
+  .plan-btn.outline {
+    background: none; color: #0D0D0D;
+    border: 1.5px solid rgba(0,0,0,0.15);
+  }
+  .plan-btn.outline:hover { border-color: var(--amber); }
+  .pricing-elevate {
+    text-align: center; margin-top: 36px;
+    font-size: 14px; color: #777; max-width: 520px; margin-left: auto; margin-right: auto;
+  }
+  .pricing-elevate strong { color: #0D0D0D; }
+
+  /* ─── TESTIMONIALS ─── */
+  .testimonials { background: #0D0D0D; padding: 88px 24px; }
+  .testi-head { text-align: center; margin-bottom: 56px; }
+  .testi-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 20px; max-width: 1100px; margin: 0 auto;
+  }
+  @media (max-width: 800px) { .testi-grid { grid-template-columns: 1fr; } }
+  .testi-card {
+    background: #1A1A1A;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 18px; padding: 28px 24px;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .testi-stars { font-size: 14px; color: var(--amber); }
+  .testi-quote {
+    font-size: 15px; line-height: 1.7;
+    color: rgba(255,255,255,0.8); flex: 1;
+    font-style: italic;
+  }
+  .testi-author { display: flex; flex-direction: column; gap: 2px; }
+  .testi-name { font-size: 14px; font-weight: 700; color: #fff; }
+  .testi-role { font-size: 12px; color: rgba(255,255,255,0.45); }
+
+  /* ─── CTA ─── */
+  .cta-sec {
+    background: var(--amber);
+    padding: 96px 24px;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center;
+  }
+  .cta-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: rgba(13,13,13,0.45);
+    margin-bottom: 18px;
+  }
+  .cta-h2 {
+    font-size: clamp(36px, 6.5vw, 62px);
+    font-weight: 900; color: #0D0D0D;
+    line-height: 1.08; letter-spacing: -0.028em;
+    margin-bottom: 16px;
+  }
+  .cta-sub { font-size: 18px; color: rgba(13,13,13,0.58); margin-bottom: 40px; line-height: 1.65; }
+  .cta-sec .btn-primary { background: #0D0D0D; color: var(--amber); }
+  .cta-sec .btn-primary:hover { box-shadow: 0 12px 36px rgba(13,13,13,0.22); }
+  .cta-note { margin-top: 16px; font-size: 13px; color: rgba(13,13,13,0.42); }
+
+  /* ─── FOOTER ─── */
+  .v2-footer {
+    background: #FAFAFA;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    padding: 40px 32px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    text-align: center;
+  }
+  .footer-brand { display: flex; align-items: center; gap: 8px; }
+  .footer-wordmark { font-size: 16px; font-weight: 800; letter-spacing: -0.5px; }
+  .footer-copy { font-size: 12px; color: rgba(13,13,13,0.35); }
+
+  /* ─── CENTERED SECTION HEADS ─── */
+  .sec-head-center { text-align: center; margin-bottom: 56px; }
+  .sec-head-center .sec-h2 { max-width: 600px; margin-left: auto; margin-right: auto; margin-bottom: 0; }
+
+  /* ─── HERO FLOATING PHOTOS ─── */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(var(--rotation)); }
+    50%       { transform: translateY(-12px) rotate(var(--rotation)); }
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    overflow: hidden; pointer-events: none; z-index: 0;
+  }
+  .hero-content {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; align-items: center;
+    width: 100%;
+  }
+  .hf-wrap {
+    position: absolute;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    animation: float 5s ease-in-out infinite;
+  }
+  .hf-photo {
+    width: 160px; height: 200px;
+    object-fit: cover;
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    border-radius: 16px;
+    opacity: 0.85;
+    display: block;
+  }
+  .hf-label {
+    background: rgba(255,255,255,0.92);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px; font-weight: 600; color: #C17A3A;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    white-space: nowrap;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .nav-loc { display: none; }
+    .hf-photo { width: 110px; height: 140px; }
+    .hf-wrap:nth-child(5), .hf-wrap:nth-child(6) { display: none; }
+    .hf-wrap:nth-child(1) { left: 20px !important; }
+    .hf-wrap:nth-child(2) { right: 20px !important; }
+    .hf-wrap:nth-child(3) { left: 20px !important; }
+    .hf-wrap:nth-child(4) { right: 20px !important; }
+    .hero-btns { flex-direction: column; align-items: center; }
+    .btn-primary, .btn-secondary { justify-content: center; max-width: 280px; }
+  }
+  @media (max-width: 480px) {
+    .v2-nav  { padding: 0 16px; }
+    .hero    { padding: 108px 20px 72px; }
+    .hero-h1 span { font-size: 36px !important; }
+    .sec     { padding: 64px 20px; }
+    .pc-btns { grid-template-columns: 1fr; }
+  }
+
+  /* ─── HORIZONTAL SLIDER ─── */
+  .slider-outer {
+    background: var(--light);
+    position: relative;
+    overflow: hidden;
+  }
+  .slider-track {
+    display: flex;
+    transition: transform 0.55s cubic-bezier(0.77, 0, 0.175, 1);
+    will-change: transform;
+  }
+  .slider-slide {
+    min-width: 100%;
+    flex-shrink: 0;
+    padding: 88px 24px;
+  }
+  .slider-arrow {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    z-index: 10;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: #fff; border: 1.5px solid rgba(0,0,0,0.12);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px; color: #0D0D0D;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  }
+  .slider-arrow:hover { background: #F5A623; border-color: #F5A623; transform: translateY(-50%) scale(1.08); }
+  .slider-arrow.prev { left: 16px; }
+  .slider-arrow.next { right: 16px; }
+  .slider-dots {
+    display: flex; justify-content: center; gap: 8px;
+    padding: 20px 0 32px;
+    background: var(--light);
+  }
+  .slider-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    border: none; cursor: pointer;
+    background: rgba(0,0,0,0.15);
+    transition: background 0.3s, transform 0.3s;
+    padding: 0;
+  }
+  .slider-dot.active { background: #F5A623; transform: scale(1.4); }
+  @media (max-width: 800px) { .slider-arrow { display: none; } }
+`;
+
+function PriyaCard({ loc }: { loc: Loc }) {
+  const p1 = loc === 'india' ? '₹800/hr'   : '$30/hr';
+  const p2 = loc === 'india' ? '₹400/hr'   : '$15/hr';
+  const p3 = loc === 'india' ? '₹4,999/mo' : '$199/mo';
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-[#0D0D0D] flex items-center justify-center gap-3 py-1.5">
-      <button
-        onClick={() => market !== "IN" && onToggle()}
-        className={`px-3 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
-          market === "IN" ? "bg-[#F5A623] text-[#0D0D0D]" : "bg-transparent text-white"
-        }`}
-      >
-        🇮🇳 India
-      </button>
-      <button
-        onClick={() => market !== "US" && onToggle()}
-        className={`px-3 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
-          market === "US" ? "bg-[#F5A623] text-[#0D0D0D]" : "bg-transparent text-white"
-        }`}
-      >
-        🇺🇸 USA
-      </button>
+    <div className="profile-card">
+      <div className="pc-live">Live</div>
+      <div className="pc-avatar">📚</div>
+      <div className="pc-name">Priya Sharma</div>
+      <div className="pc-role">Maths &amp; Science Tutor · Celina, TX</div>
+      <div className="pc-url">kryla.work/priyasharma</div>
+      <hr className="pc-hr" />
+      <div className="pc-svcs">
+        <div className="pc-svc"><span className="pc-svc-n">One-on-one session</span><span className="pc-svc-p">{p1}</span></div>
+        <div className="pc-svc"><span className="pc-svc-n">Small group (3–4)</span><span className="pc-svc-p">{p2}</span></div>
+        <div className="pc-svc"><span className="pc-svc-n">Monthly plan</span><span className="pc-svc-p">{p3}</span></div>
+      </div>
+      <hr className="pc-hr" />
+      <div className="pc-btns" style={{ marginBottom: '18px' }}>
+        <button className="pc-btn-a">Book a Session</button>
+        <button className="pc-btn-w">WhatsApp</button>
+      </div>
+      <div className="pc-rating"><span>4.9 ★★★★★</span> · 47 students</div>
     </div>
   );
 }
 
-function Nav({ dark = false }: { dark?: boolean }) {
+function MeenaCard({ loc }: { loc: Loc }) {
+  const p1 = loc === 'india' ? '₹600'      : '$25';
+  const p2 = loc === 'india' ? '₹1,200'    : '$50';
+  const p3 = loc === 'india' ? '₹3,499/mo' : '$149/mo';
   return (
-    <nav
-      className={`absolute top-7 left-0 right-0 z-40 flex items-center justify-between px-8 py-3.5 ${
-        dark
-          ? "bg-[#0D0D0D] border-b border-[#222]"
-          : "bg-white border-b border-[#f0f0f0]"
-      }`}
-    >
-      <div className="flex items-center gap-1.5">
-        <span className={`text-2xl font-black italic ${dark ? "text-white" : "text-[#0D0D0D]"}`}>
-          K
-        </span>
-        <span className={`text-[15px] font-semibold ${dark ? "text-white" : "text-[#0D0D0D]"}`}>
-          kryla<span className="text-[#F5A623]">.work</span>
-        </span>
+    <div className="profile-card">
+      <div className="pc-live">Live</div>
+      <div className="pc-avatar">🎂</div>
+      <div className="pc-name">Meena Krishnan</div>
+      <div className="pc-role">Home Baker · Pune, India</div>
+      <div className="pc-url">kryla.work/meenabakes</div>
+      <hr className="pc-hr" />
+      <div className="pc-svcs">
+        <div className="pc-svc"><span className="pc-svc-n">Custom Birthday Cake</span><span className="pc-svc-p">{p1}</span></div>
+        <div className="pc-svc"><span className="pc-svc-n">Themed Box (12 pieces)</span><span className="pc-svc-p">{p2}</span></div>
+        <div className="pc-svc"><span className="pc-svc-n">Monthly Dessert Plan</span><span className="pc-svc-p">{p3}</span></div>
       </div>
-      <a
-        href="/onboarding"
-        className="bg-[#0D0D0D] text-white text-[13px] font-semibold px-5 py-2 rounded-full hover:bg-[#222] transition-colors"
-      >
-        Join free →
-      </a>
-    </nav>
-  );
-}
-
-function KrylaCard({ card }: { card: MemberCard }) {
-  return (
-    <div className="bg-[#1A1A1A] rounded-2xl p-5 w-[280px] text-white flex-shrink-0">
-      <div className="flex justify-end mb-2.5">
-        <span className="flex items-center gap-1.5 text-[11px] text-[#22C55E] font-semibold">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] inline-block" />
-          Live
-        </span>
+      <hr className="pc-hr" />
+      <div className="pc-btns" style={{ marginBottom: '18px' }}>
+        <button className="pc-btn-a">Order Now</button>
+        <button className="pc-btn-w">WhatsApp</button>
       </div>
-      <div className="w-11 h-11 rounded-full bg-[#F5A623] flex items-center justify-center text-xl mb-2.5">
-        {card.emoji}
-      </div>
-      <p className="text-[17px] font-bold">{card.name}</p>
-      <p className="text-[12px] text-[#aaa] mt-0.5">{card.role}</p>
-      <p className="text-[11px] text-[#F5A623] font-semibold mt-1 mb-3.5">{card.slug}</p>
-      <hr className="border-[#333] mb-3" />
-      {card.services.map((s) => (
-        <div key={s.label} className="flex justify-between text-[12px] py-[3px]">
-          <span className="text-[#ccc]">{s.label}</span>
-          <span className="font-semibold">{s.price}</span>
-        </div>
-      ))}
-      <div className="flex gap-2 mt-3.5">
-        <button className="flex-1 bg-[#F5A623] text-[#0D0D0D] text-[12px] font-bold rounded-lg py-2.5">
-          {card.primaryCta}
-        </button>
-        <button className="flex-1 bg-[#333] text-white text-[12px] font-semibold rounded-lg py-2.5">
-          WhatsApp
-        </button>
-      </div>
-      <p className="text-center text-[11px] text-[#F5A623] font-semibold mt-2.5">
-        {card.rating} ★★★★★ · {card.ratingCount}
-      </p>
+      <div className="pc-rating"><span>4.8 ★★★★★</span> · 124 orders</div>
     </div>
   );
 }
 
-function Eyebrow({ children }: { children: React.ReactNode }) {
+function RajCard({ loc }: { loc: Loc }) {
+  const p1 = loc === 'india' ? '₹1,200/hr'  : '$40/hr';
+  const p2 = loc === 'india' ? '₹400/class' : '$15/class';
+  const p3 = loc === 'india' ? '₹6,999/mo'  : '$249/mo';
   return (
-    <p className="text-[#F5A623] text-[10px] font-bold tracking-[1.5px] uppercase mb-2.5">
-      {children}
-    </p>
-  );
-}
-
-function Chip({ emoji, label, className }: { emoji: string; label: string; className: string }) {
-  return (
-    <div
-      className={`absolute bg-white/95 border border-[#eee] rounded-xl px-3 py-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-[#0D0D0D] shadow-sm ${className}`}
-    >
-      <span>{emoji}</span>
-      <span>{label}</span>
+    <div className="profile-card">
+      <div className="pc-live">Live</div>
+      <div className="pc-avatar">💪</div>
+      <div className="pc-name">Raj Patel</div>
+      <div className="pc-role">Fitness Trainer · Prosper, TX</div>
+      <div className="pc-url">kryla.work/rajfitness</div>
+      <hr className="pc-hr" />
+      <div className="pc-svcs">
+        <div className="pc-svc"><span className="pc-svc-n">Personal training session</span><span className="pc-svc-p">{p1}</span></div>
+        <div className="pc-svc"><span className="pc-svc-n">Group class</span><span className="pc-svc-p">{p2}</span></div>
+        <div className="pc-svc"><span className="pc-svc-n">Monthly coaching</span><span className="pc-svc-p">{p3}</span></div>
+      </div>
+      <hr className="pc-hr" />
+      <div className="pc-btns" style={{ marginBottom: '18px' }}>
+        <button className="pc-btn-a">Book a Session</button>
+        <button className="pc-btn-w">WhatsApp</button>
+      </div>
+      <div className="pc-rating"><span>4.9 ★★★★★</span> · 89 clients</div>
     </div>
   );
 }
 
-function ScrollDots({
-  total,
-  active,
-  onDotClick,
-}: {
-  total: number;
-  active: number;
-  onDotClick: (i: number) => void;
-}) {
+function AlexCard({ loc }: { loc: Loc }) {
+  const p1 = loc === 'india' ? '₹3,500'     : '$120';
+  const p2 = loc === 'india' ? '₹6,000'     : '$220';
+  const p3 = loc === 'india' ? '₹15,000/mo' : '$499/mo';
   return (
-    <div className="fixed right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-2">
-      {Array.from({ length: total }).map((_, i) => (
-        <button
-          key={i}
-          onClick={() => onDotClick(i)}
-          aria-label={`Go to section ${i + 1}`}
-          className={`w-2 h-2 rounded-full transition-all duration-300 ${
-            i === active ? "bg-[#F5A623] scale-125" : "bg-[#ddd] hover:bg-[#bbb]"
-          }`}
-        />
-      ))}
+    <div className="profile-card">
+      <div className="pc-live">Live</div>
+      <div className="pc-avatar">📷</div>
+      <div className="pc-name">Alex Chen</div>
+      <div className="pc-role">Photographer · Frisco, TX</div>
+      <div className="pc-url">kryla.work/alexchenphoto</div>
+      <hr className="pc-hr" />
+      <div className="pc-svcs">
+        <div className="pc-svc"><span className="pc-svc-n">Portrait session</span><span className="pc-svc-p">{p1}</span></div>
+        <div className="pc-svc"><span className="pc-svc-n">Half-day shoot</span><span className="pc-svc-p">{p2}</span></div>
+        <div className="pc-svc"><span className="pc-svc-n">Monthly retainer</span><span className="pc-svc-p">{p3}</span></div>
+      </div>
+      <hr className="pc-hr" />
+      <div className="pc-btns" style={{ marginBottom: '18px' }}>
+        <button className="pc-btn-a">Book Now</button>
+        <button className="pc-btn-w">WhatsApp</button>
+      </div>
+      <div className="pc-rating"><span>5.0 ★★★★★</span> · 32 clients</div>
     </div>
   );
 }
 
-function HeroSection() {
-  return (
-    <section
-      id="section-0"
-      className="snap-start relative w-full h-screen flex flex-col items-center justify-center bg-white text-center overflow-hidden"
-    >
-      <Nav />
-      <div className="absolute inset-0 pointer-events-none">
-        <Chip emoji="📐" label="Maths Tutor" className="top-[22%] left-[4%] animate-float-1" />
-        <Chip emoji="💪" label="Fitness Trainer" className="top-[58%] left-[3%] animate-float-2" />
-        <Chip emoji="🏠" label="Home Baker" className="top-[20%] right-[5%] animate-float-3" />
-        <Chip emoji="📷" label="Photographer" className="top-[55%] right-[4%] animate-float-4" />
-      </div>
-      <div className="relative z-10 px-6 max-w-xl mt-16">
-        <Eyebrow>For every skilled professional</Eyebrow>
-        <h1 className="text-5xl md:text-6xl font-black leading-[1.04] text-[#0D0D0D] mb-3">
-          Your craft deserves
-          <span className="block text-[#F5A623]">a name online.</span>
-        </h1>
-        <p className="text-[17px] font-semibold text-[#444] mb-2">
-          Give your business its own identity.
-        </p>
-        <p className="text-[14px] text-[#777] mb-7 max-w-sm mx-auto">
-          Your name. Your work. Your spot online — in 15 minutes.
-        </p>
-        <div className="flex gap-3 justify-center flex-wrap">
-          <a
-            href="/onboarding"
-            className="bg-[#F5A623] text-[#0D0D0D] text-[14px] font-bold px-6 py-3.5 rounded-full hover:bg-[#e09510] transition-colors"
-          >
-            Claim your spot — it&apos;s free
-          </a>
-          <a
-            href="#section-1"
-            className="bg-white text-[#0D0D0D] text-[14px] font-semibold px-6 py-3.5 rounded-full border-[1.5px] border-[#0D0D0D] hover:bg-[#f5f5f5] transition-colors"
-          >
-            See how it works ↓
-          </a>
-        </div>
-        <p className="text-[11px] text-[#aaa] mt-5">
-          Free to start · No card needed · Live in 15 minutes · Works on WhatsApp
-        </p>
-      </div>
-    </section>
-  );
-}
+function HorizontalSlider({ loc }: { loc: Loc }) {
+  const [current, setCurrent] = useState(0);
+  const total = 4;
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-function IdentitySection() {
-  return (
-    <section
-      id="section-1"
-      className="snap-start relative w-full h-screen flex flex-col bg-[#FAFAFA] overflow-hidden"
-    >
-      <Nav />
-      <div className="flex-1 flex items-center justify-center gap-12 px-10 pt-20">
-        <KrylaCard card={priyaCard} />
-        <div className="max-w-[340px]">
-          <Eyebrow>Your identity online</Eyebrow>
-          <h2 className="text-4xl font-black text-[#0D0D0D] leading-[1.1] mb-4">
-            Your name.<br />Your work.<br />One link that says it all.
-          </h2>
-          <p className="text-[14px] text-[#555] leading-relaxed mb-3">
-            Every skilled professional deserves a presence that matches their craft. Kryla gives you your own spot — with your services, your prices, and a way for people to reach you directly.
-          </p>
-          <p className="text-[14px] text-[#F5A623] font-semibold">
-            Like a visiting card — but one that works while you sleep.
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function OneLinkSection() {
-  return (
-    <section
-      id="section-2"
-      className="snap-start relative w-full h-screen flex flex-col bg-[#FAFAFA] overflow-hidden"
-    >
-      <Nav />
-      <div className="flex-1 flex items-center justify-center gap-12 px-10 pt-20">
-        <div className="max-w-[340px]">
-          <Eyebrow>One link for everything</Eyebrow>
-          <h2 className="text-4xl font-black text-[#0D0D0D] leading-[1.1] mb-4">
-            Send one link.<br />They know everything<br />they need to know.
-          </h2>
-          <p className="text-[14px] text-[#555] leading-relaxed mb-5">
-            Your name. What you do. What you charge. When you&apos;re free. What your clients say. All in one place they can open on any phone.
-          </p>
-          <div className="bg-white border border-[#eee] rounded-xl p-4 max-w-[260px]">
-            <div className="bg-[#f0f0f0] rounded-[14px_14px_14px_4px] px-3 py-2 text-[12px] text-[#333] mb-1.5 leading-snug">
-              Hi! Are you available this week?
-            </div>
-            <p className="text-[10px] text-[#bbb] text-right mb-2">10:42 AM ✓✓</p>
-            <div className="bg-[#F5A623] rounded-[14px_14px_4px_14px] px-3 py-2 text-[12px] font-semibold text-[#0D0D0D] ml-auto max-w-[90%] leading-snug">
-              Here&apos;s my Kryla link — <strong>kryla.work/meenabakes</strong> — order directly there! 😊
-            </div>
-            <p className="text-[10px] text-[#bbb] text-right mt-1">10:43 AM ✓✓</p>
-          </div>
-        </div>
-        <KrylaCard card={meenaCard} />
-      </div>
-    </section>
-  );
-}
-
-function FifteenMinSection() {
-  return (
-    <section
-      id="section-3"
-      className="snap-start relative w-full h-screen flex flex-col bg-[#FAFAFA] overflow-hidden"
-    >
-      <Nav />
-      <div className="flex-1 flex items-center justify-center gap-12 px-10 pt-20">
-        <KrylaCard card={rajCard} />
-        <div className="max-w-[340px]">
-          <Eyebrow>Live in 15 minutes</Eyebrow>
-          <h2 className="text-4xl font-black text-[#0D0D0D] leading-[1.1] mb-4">
-            Answer 5 questions.<br />We handle<br />everything else.
-          </h2>
-          <p className="text-[14px] text-[#555] leading-relaxed mb-3">
-            No design skills needed. No complicated setup. Tell us what you do, who you help, and what you charge — your professional spot is live before your next session starts.
-          </p>
-          <p className="text-[14px] text-[#F5A623] font-semibold">
-            Most members are live in under 15 minutes. No coding. No stress.
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function WhatsAppSection() {
-  return (
-    <section
-      id="section-4"
-      className="snap-start relative w-full h-screen flex flex-col bg-[#FAFAFA] overflow-hidden"
-    >
-      <Nav />
-      <div className="flex-1 flex items-center justify-center gap-12 px-10 pt-20">
-        <div className="max-w-[340px]">
-          <Eyebrow>Works where your clients are</Eyebrow>
-          <h2 className="text-4xl font-black text-[#0D0D0D] leading-[1.1] mb-4">
-            New booking?<br />You get a WhatsApp.<br />Done.
-          </h2>
-          <p className="text-[14px] text-[#555] leading-relaxed mb-5">
-            When someone&apos;s ready to hire you, Kryla sends you a WhatsApp. Accept with one tap. Your client gets their confirmation right away. Business handled — without switching between apps.
-          </p>
-          <div className="bg-white border border-[#eee] rounded-xl p-4 max-w-[260px]">
-            <div className="bg-[#f0f0f0] rounded-[14px_14px_14px_4px] px-3 py-2 text-[12px] text-[#333] mb-1.5 leading-snug">
-              📅 New request from Sarah — Family Portraits, Saturday 10am. Tap to confirm.
-            </div>
-            <p className="text-[10px] text-[#bbb] text-right mb-2">9:14 AM ✓✓</p>
-            <div className="bg-[#F5A623] rounded-[14px_14px_4px_14px] px-3 py-2 text-[12px] font-semibold text-[#0D0D0D] ml-auto max-w-[90%] leading-snug">
-              Confirmed! 📸 Sarah gets your details straight away.
-            </div>
-            <p className="text-[10px] text-[#F5A623] text-right mt-1 font-semibold">9:15 AM ✓✓</p>
-          </div>
-        </div>
-        <KrylaCard card={alexCard} />
-      </div>
-    </section>
-  );
-}
-
-export default function LandingPage() {
-  const [market, setMarket] = useState<"IN" | "US">("US");
-  const [activeSection, setActiveSection] = useState(0);
-  const totalSections = 5;
-
-  const handleToggle = () => setMarket((m) => (m === "US" ? "IN" : "US"));
-
-  const scrollTo = (i: number) => {
-    document.getElementById(`section-${i}`)?.scrollIntoView({ behavior: "smooth" });
-    setActiveSection(i);
+  const goTo = (i: number) => {
+    setCurrent(i);
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => setCurrent(c => (c + 1) % total), 4000);
   };
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const el = e.target as HTMLDivElement;
-    setActiveSection(Math.round(el.scrollTop / el.clientHeight));
-  };
+  const prev = () => goTo((current - 1 + total) % total);
+  const next = () => goTo((current + 1) % total);
+
+  useEffect(() => {
+    timerRef.current = setInterval(() => setCurrent(c => (c + 1) % total), 4000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, []);
 
   return (
     <>
-      <style>{`
-        @keyframes float1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-        @keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
-        @keyframes float3 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-        @keyframes float4 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
-        .animate-float-1{animation:float1 3.8s ease-in-out infinite}
-        .animate-float-2{animation:float2 4.2s ease-in-out infinite 0.8s}
-        .animate-float-3{animation:float3 3.5s ease-in-out infinite 0.4s}
-        .animate-float-4{animation:float4 4.5s ease-in-out infinite 1.2s}
-      `}</style>
+      <div className="slider-outer">
+        <button className="slider-arrow prev" onClick={prev} aria-label="Previous">←</button>
+        <button className="slider-arrow next" onClick={next} aria-label="Next">→</button>
+        <div className="slider-track" style={{ transform: `translateX(-${current * 100}%)` }}>
 
-      <TopBar market={market} onToggle={handleToggle} />
-      <ScrollDots total={totalSections} active={activeSection} onDotClick={scrollTo} />
+          <div className="slider-slide">
+            <div className="sec-inner">
+              <div className="card-col"><PriyaCard loc={loc} /></div>
+              <div className="text-col">
+                <p className="sec-eyebrow">YOUR IDENTITY ONLINE</p>
+                <h2 className="sec-h2 dark">Your name.<br />Your work.<br />One link that says it all.</h2>
+                <p className="sec-body on-light">Every skilled professional deserves a presence that matches their craft. Kryla gives you your own spot — with your services, your prices, and a way for people to reach you directly.</p>
+                <p className="sec-warm">Like a visiting card — but one that works while you sleep.</p>
+              </div>
+            </div>
+          </div>
 
-      <div
-        className="h-screen overflow-y-scroll snap-y snap-mandatory scroll-smooth mt-7"
-        onScroll={handleScroll}
-        style={{ scrollbarWidth: "none" }}
-      >
-        <HeroSection />
-        <IdentitySection />
-        <OneLinkSection />
-        <FifteenMinSection />
-        <WhatsAppSection />
+          <div className="slider-slide">
+            <div className="sec-inner card-right">
+              <div className="text-col">
+                <p className="sec-eyebrow">ONE LINK FOR EVERYTHING</p>
+                <h2 className="sec-h2 dark">Send one link.<br />They know everything<br />they need to know.</h2>
+                <p className="sec-body on-light">Your name. What you do. What you charge. When you&apos;re free. What your clients say. All in one place they can open on any phone.</p>
+                <div className="wa-chat">
+                  <div className="wa-msg wa-in"><div className="wa-bubble"><span className="wa-txt">Hi! Are you available this week?</span><span className="wa-meta">10:42 AM <span className="wa-ticks">✓✓</span></span></div></div>
+                  <div className="wa-msg wa-out"><div className="wa-bubble"><span className="wa-txt">Here&apos;s my Kryla link — <strong>kryla.work/meenabakes</strong> — order directly there! 😊</span><span className="wa-meta">10:43 AM <span className="wa-ticks">✓✓</span></span></div></div>
+                </div>
+              </div>
+              <div className="card-col"><MeenaCard loc={loc} /></div>
+            </div>
+          </div>
+
+          <div className="slider-slide">
+            <div className="sec-inner">
+              <div className="card-col"><RajCard loc={loc} /></div>
+              <div className="text-col">
+                <p className="sec-eyebrow">LIVE IN 15 MINUTES</p>
+                <h2 className="sec-h2 dark">Answer 5 questions.<br />We handle<br />everything else.</h2>
+                <p className="sec-body on-light">No design skills needed. No complicated setup. Tell us what you do, who you help, and what you charge — your professional spot is live before your next session starts.</p>
+                <p className="sec-warm">Most members are live in under 15 minutes. No coding. No stress.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="slider-slide">
+            <div className="sec-inner card-right">
+              <div className="text-col">
+                <p className="sec-eyebrow">WORKS WHERE YOUR CLIENTS ARE</p>
+                <h2 className="sec-h2 dark">New booking?<br />You get a WhatsApp.<br />Done.</h2>
+                <p className="sec-body on-light">When someone&apos;s ready to hire you, Kryla sends you a WhatsApp. Accept with one tap. Your client gets their confirmation right away. Business handled — without switching between apps.</p>
+                <div className="wa-chat">
+                  <div className="wa-msg wa-in"><div className="wa-bubble"><span className="wa-txt">📅 New request from Sarah — Family Portraits, Saturday 10am. Tap to confirm.</span><span className="wa-meta">9:14 AM <span className="wa-ticks">✓✓</span></span></div></div>
+                  <div className="wa-msg wa-out"><div className="wa-bubble"><span className="wa-txt">Confirmed! 📸 Sarah gets your details straight away.</span><span className="wa-meta">9:15 AM <span className="wa-ticks">✓✓</span></span></div></div>
+                </div>
+              </div>
+              <div className="card-col"><AlexCard loc={loc} /></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div className="slider-dots">
+        {Array.from({ length: total }).map((_, i) => (
+          <button key={i} className={`slider-dot${i === current ? ' active' : ''}`} onClick={() => goTo(i)} aria-label={`Go to slide ${i + 1}`} />
+        ))}
       </div>
     </>
+  );
+}
+
+export default function V2Page() {
+  const [loc, setLoc] = useState<Loc>('usa');
+  const [locDetected, setLocDetected] = useState(false);
+
+  useEffect(() => {
+    fetch('https://ipapi.co/json/')
+      .then(res => res.json())
+      .then(data => {
+        setLoc(data.country_code === 'IN' ? 'india' : 'usa');
+        setLocDetected(true);
+      })
+      .catch(() => { setLoc('usa'); setLocDetected(true); });
+  }, []);
+
+  const toggleLoc = () => setLoc(l => l === 'india' ? 'usa' : 'india');
+
+  const sproutP = loc === 'india' ? '₹299' : '$5';
+  const growP   = loc === 'india' ? '₹799' : '$12';
+  const thriveP = loc === 'india' ? '₹1,999' : '$25';
+  const eleP    = loc === 'india' ? '₹3,999' : '$45';
+
+  return (
+    <div className="v2">
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+
+      {/* Location toggle bar */}
+      <div className="loc-bar">
+        <button className={`loc-pill${loc === 'india' ? ' active' : ''}`} onClick={() => setLoc('india')}>🇮🇳 India</button>
+        <button className={`loc-pill${loc === 'usa' ? ' active' : ''}`} onClick={() => setLoc('usa')}>🇺🇸 USA</button>
+      </div>
+
+      {/* Nav */}
+      <nav className="v2-nav">
+        <a href="/"><img src="/kryla-wordmark-light.svg" height="36" alt="kryla.work" style={{display:'block'}} /></a>
+        <div className="nav-right">
+          <a href="/onboarding" className="nav-join">Join free →</a>
+        </div>
+      </nav>
+
+      {/* ── HERO ── */}
+      <section className="hero">
+
+        {/* Floating background cards */}
+        <div className="hero-bg">
+          <div className="hf-wrap" style={{ top:'5%', left:'20px', '--rotation':'-6deg', animationDelay:'0s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=300&q=80" alt="Maths Tutor" />
+            <span className="hf-label">📚 Maths Tutor</span>
+          </div>
+          <div className="hf-wrap" style={{ top:'3%', right:'0%', '--rotation':'5deg', animationDelay:'0.8s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&q=80" alt="Home Baker" />
+            <span className="hf-label">🎂 Home Baker</span>
+          </div>
+          <div className="hf-wrap" style={{ top:'42%', left:'20px', '--rotation':'3deg', animationDelay:'1.6s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=300&q=80" alt="Fitness Trainer" />
+            <span className="hf-label">💪 Fitness Trainer</span>
+          </div>
+          <div className="hf-wrap" style={{ top:'38%', right:'-1%', '--rotation':'-4deg', animationDelay:'2.4s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=300&q=80" alt="Photographer" />
+            <span className="hf-label">📸 Photographer</span>
+          </div>
+          <div className="hf-wrap" style={{ bottom:'2%', left:'12%', '--rotation':'-3deg', animationDelay:'3.2s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=300&q=80" alt="Salon" />
+            <span className="hf-label">✂️ Salon</span>
+          </div>
+          <div className="hf-wrap" style={{ bottom:'0%', right:'8%', '--rotation':'6deg', animationDelay:'4s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=300&q=80" alt="Yoga Teacher" />
+            <span className="hf-label">🧘 Yoga Teacher</span>
+          </div>
+        </div>
+
+        {/* Foreground text content */}
+        <div className="hero-content">
+          <p className="hero-eyebrow">FOR EVERY SKILLED PROFESSIONAL</p>
+          <h1 className="hero-h1">
+            <span className="h1-l1">Your craft deserves</span>
+            <span className="h1-l2">a name online.</span>
+            <span className="h1-l3">Give your business its own identity.</span>
+          </h1>
+          <p className="hero-sub">Your name. Your work. Your spot online — in 15 minutes.</p>
+          <div className="hero-btns">
+            <a href="/onboarding" className="btn-primary">Claim your spot — it&apos;s free</a>
+            <a href="#s1" className="btn-secondary">See how it works ↓</a>
+          </div>
+          <p className="hero-proof">Free to start · No card needed · Live in 15 minutes · Works on WhatsApp</p>
+        </div>
+
+        {/* K mark watermark */}
+        <div style={{position:'absolute', bottom:'24px', right:'24px', zIndex:0, opacity:0.15, pointerEvents:'none'}}>
+          <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 10 L20 90 M20 50 L70 10 M20 50 L70 90" stroke="#F5A623" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+
+      </section>
+
+      <HorizontalSlider loc={loc} />
+
+      {/* ── COMMUNITY — dark #0D0D0D ── */}
+      <section className="community">
+        <div className="community-head">
+          <p className="sec-eyebrow">THE COMMUNITY</p>
+          <h2 className="sec-h2 light">Join professionals already growing on Kryla</h2>
+        </div>
+        <div className="ticker-row">
+          <div className="ticker-track tick-left">
+            {[...R1, ...R1].map((m, i) => (
+              <div className="ticker-card" key={i}>
+                <div className="tc-icon">{m.icon}</div>
+                <div className="tc-name">{m.name}</div>
+                <div className="tc-role">{m.role}</div>
+                <div className="tc-loc">{m.loc}</div>
+                <div className="tc-url">{m.url}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="ticker-row">
+          <div className="ticker-track tick-right">
+            {[...R2, ...R2].map((m, i) => (
+              <div className="ticker-card" key={i}>
+                <div className="tc-icon">{m.icon}</div>
+                <div className="tc-name">{m.name}</div>
+                <div className="tc-role">{m.role}</div>
+                <div className="tc-loc">{m.loc}</div>
+                <div className="tc-url">{m.url}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PRICING — white #FFFFFF ── */}
+      <section className="pricing">
+        <div className="pricing-head">
+          <p className="sec-eyebrow">YOUR MEMBERSHIP</p>
+          <h2 className="sec-h2">Free to start. Grow when you&apos;re ready.</h2>
+          <p className="pricing-sub">Every membership starts free. Move up only when Kryla is already working for you.</p>
+        </div>
+        <div className="pricing-grid">
+
+          {/* Seed */}
+          <div className="plan-card">
+            <div className="plan-icon">🌱</div>
+            <div className="plan-name">Seed</div>
+            <div className="plan-price">Free <span className="per">forever</span></div>
+            <div className="plan-tagline">Your presence online, yours to keep.</div>
+            <hr className="plan-divider" />
+            <ul className="plan-features">
+              <li>Your own spot on kryla.work</li>
+              <li>Services &amp; contact form</li>
+              <li>Member directory listing</li>
+            </ul>
+            <a href="/onboarding" className="plan-btn outline">Start free →</a>
+          </div>
+
+          {/* Sprout */}
+          <div className="plan-card">
+            <div className="plan-icon">🌿</div>
+            <div className="plan-name">Sprout</div>
+            <div className="plan-price">{sproutP} <span className="per">/mo</span></div>
+            <div className="plan-tagline">Bookings and real-time alerts.</div>
+            <hr className="plan-divider" />
+            <ul className="plan-features">
+              <li>Everything in Seed</li>
+              <li>Booking form on your spot</li>
+              <li>WhatsApp alert when new business comes in</li>
+            </ul>
+            <a href="/onboarding" className="plan-btn">Join Sprout →</a>
+          </div>
+
+          {/* Grow */}
+          <div className="plan-card popular">
+            <div className="plan-popular-badge">MOST POPULAR</div>
+            <div className="plan-icon">🌳</div>
+            <div className="plan-name">Grow</div>
+            <div className="plan-price">{growP} <span className="per">/mo</span></div>
+            <div className="plan-tagline">Your own address on the internet.</div>
+            <hr className="plan-divider" />
+            <ul className="plan-features">
+              <li>Everything in Sprout</li>
+              <li>Your own domain (priya.com)</li>
+              <li>Analytics — see who&apos;s looking you up</li>
+            </ul>
+            <a href="/onboarding" className="plan-btn">Join Grow →</a>
+          </div>
+
+          {/* Thrive */}
+          <div className="plan-card">
+            <div className="plan-icon">🚀</div>
+            <div className="plan-name">Thrive</div>
+            <div className="plan-price">{thriveP} <span className="per">/mo</span></div>
+            <div className="plan-tagline">Your spot runs itself.</div>
+            <hr className="plan-divider" />
+            <ul className="plan-features">
+              <li>Everything in Grow</li>
+              <li>Update your spot via WhatsApp</li>
+              <li>All smart features active</li>
+              <li>Review collection</li>
+            </ul>
+            <a href="/onboarding" className="plan-btn">Join Thrive →</a>
+          </div>
+
+        </div>
+        <p className="pricing-elevate">
+          Going bigger? <strong>Elevate ({eleP}/mo)</strong> adds online payments, team access, and branded email — for members who are ready to scale.
+        </p>
+      </section>
+
+      {/* ── TESTIMONIALS — dark #0D0D0D ── */}
+      <section className="testimonials">
+        <div className="testi-head">
+          <p className="sec-eyebrow">WHAT MEMBERS SAY</p>
+          <h2 className="sec-h2 light">Real people. Real results.</h2>
+        </div>
+        <div className="testi-grid">
+          {loc === 'india' ? (
+            <>
+              <div className="testi-card">
+                <div className="testi-stars">★★★★★</div>
+                <p className="testi-quote">&ldquo;I was embarrassed to share my Instagram — it&rsquo;s just food photos and messages. My Kryla link made me feel like a real business for the first time.&rdquo;</p>
+                <div className="testi-author">
+                  <span className="testi-name">Meena Krishnan</span>
+                  <span className="testi-role">Home Baker · Pune, India</span>
+                </div>
+              </div>
+              <div className="testi-card">
+                <div className="testi-stars">★★★★★</div>
+                <p className="testi-quote">&ldquo;I used to spend 30 minutes explaining myself to every new enquiry. Now I send one link. Three new students booked last week alone.&rdquo;</p>
+                <div className="testi-author">
+                  <span className="testi-name">Priya Sharma</span>
+                  <span className="testi-role">Maths Tutor · Celina, TX</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="testi-card">
+                <div className="testi-stars">★★★★★</div>
+                <p className="testi-quote">&ldquo;I used to spend 30 minutes explaining myself to every new enquiry. Now I send one link. Three new students booked last week alone.&rdquo;</p>
+                <div className="testi-author">
+                  <span className="testi-name">Priya Sharma</span>
+                  <span className="testi-role">Maths Tutor · Celina, TX</span>
+                </div>
+              </div>
+              <div className="testi-card">
+                <div className="testi-stars">★★★★★</div>
+                <p className="testi-quote">&ldquo;I was embarrassed to share my Instagram — it&rsquo;s just food photos and messages. My Kryla link made me feel like a real business for the first time.&rdquo;</p>
+                <div className="testi-author">
+                  <span className="testi-name">Meena Krishnan</span>
+                  <span className="testi-role">Home Baker · Pune, India</span>
+                </div>
+              </div>
+            </>
+          )}
+          <div className="testi-card">
+            <div className="testi-stars">★★★★★</div>
+            <p className="testi-quote">&ldquo;Bookings come in while I&rsquo;m training someone else. I confirm with one tap and my client gets everything they need. It basically runs itself.&rdquo;</p>
+            <div className="testi-author">
+              <span className="testi-name">Raj Patel</span>
+              <span className="testi-role">Fitness Trainer · Prosper, TX</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA — amber #F5A623 ── */}
+      <section className="cta-sec">
+        <div style={{display:'flex', justifyContent:'center', marginBottom:'24px'}}>
+          <svg width="64" height="64" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{opacity:0.2}}>
+            <path d="M20 10 L20 90 M20 50 L70 10 M20 50 L70 90" stroke="#0D0D0D" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+        <p className="cta-eyebrow">YOUR SPOT IS WAITING</p>
+        <h2 className="cta-h2">Ready to claim yours?</h2>
+        <p className="cta-sub">Free to join. Live in 15 minutes.</p>
+        <a href="/onboarding" className="btn-primary lg">Claim your spot — it&apos;s free →</a>
+        <p className="cta-note">No card needed · Cancel anytime</p>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer className="v2-footer">
+        <div className="footer-brand">
+          <img src="/kryla-icon-saffron.svg" height="20" alt="" aria-hidden="true" style={{opacity:0.55}} />
+          <span className="footer-wordmark">
+            <span style={{color:'rgba(13,13,13,0.5)'}}>kryla</span>
+            <span style={{color:'#F5A623'}}>.work</span>
+          </span>
+        </div>
+        <p className="footer-copy">© 2025 Kryla.work · Built for makers everywhere.</p>
+      </footer>
+    </div>
   );
 }
