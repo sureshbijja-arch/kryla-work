@@ -86,40 +86,38 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     if (step !== 5 || !providerId) return
+
     const timings = [0, 2500, 5000, 7500]
     timings.forEach((ms, i) => setTimeout(() => setBuildStep(i + 1), ms))
-    pollRef.current = setInterval(async () => {
-      try {
-        console.log('[poll] checking status for providerId:', providerId, 'slugRef:', slugRef.current)
-        const params = new URLSearchParams({ providerId: providerId! })
-        if (slugRef.current) params.set('slug', slugRef.current)
-        const res = await fetch(`/api/onboarding/status?${params}`)
-        const data = await res.json()
-        if (data.ready) {
-          clearInterval(pollRef.current!)
-          if (timeoutRef.current) clearTimeout(timeoutRef.current)
-          setTimeout(() => router.push(`/welcome?slug=${data.slug}`), 1000)
-        }
-      } catch { /* keep polling */ }
-    }, 2000)
-    timeoutRef.current = setTimeout(() => {
-      clearInterval(pollRef.current!)
-      pollRef.current = null
+
+    const timeoutId = setTimeout(() => {
       setTimedOut(true)
+      if (pollRef.current) clearInterval(pollRef.current)
     }, 180000)
 
-    // Once timed out, tab becoming visible again must never restart polling
-    const onVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && !pollRef.current) return
-    }
-    document.addEventListener('visibilitychange', onVisibilityChange)
+    pollRef.current = setInterval(async () => {
+      try {
+        const currentSlug = slugRef.current
+        const url = `/api/onboarding/status?providerId=${encodeURIComponent(providerId)}&slug=${encodeURIComponent(currentSlug)}`
+        console.log('[poll] fetching:', url)
+        const res = await fetch(url)
+        const data = await res.json()
+        console.log('[poll] response:', JSON.stringify(data))
+        if (data.ready) {
+          clearInterval(pollRef.current!)
+          clearTimeout(timeoutId)
+          setTimeout(() => router.push(`/welcome?slug=${data.slug}`), 1000)
+        }
+      } catch (err) {
+        console.error('[poll] error:', err)
+      }
+    }, 2000)
 
     return () => {
       if (pollRef.current) clearInterval(pollRef.current)
-      if (timeoutRef.current) clearTimeout(timeoutRef.current)
-      document.removeEventListener('visibilitychange', onVisibilityChange)
+      clearTimeout(timeoutId)
     }
-  }, [step, providerId, slug, router])
+  }, [step, providerId, router])
 
   function goBack() { if (step > 1) setStep((s) => (s - 1) as Step) }
   function goNext() { if (step < 4) setStep((s) => (s + 1) as Step) }
