@@ -535,9 +535,9 @@ const CSS = `
   .slider-dot.active { background: #F5A623; transform: scale(1.4); }
   @media (max-width: 800px) { .slider-arrow { display: none; } }
   @media (max-width: 768px) {
-    .slider-outer { overflow: hidden; }
-    .slider-track { overflow: hidden; }
-    .slider-slide { padding: 24px 16px; box-sizing: border-box; width: 100%; }
+    .slider-outer { overflow: hidden; width: 100%; }
+    .slider-track { display: flex; width: 100%; }
+    .slider-slide { min-width: 100vw; flex-shrink: 0; padding: 24px 16px; box-sizing: border-box; }
     .slider-slide .sec-inner { display: flex; flex-direction: column; gap: 24px; }
     .slider-slide .card-right .card-col { order: -1; }
     .profile-card { width: 100%; box-sizing: border-box; }
@@ -658,6 +658,7 @@ function HorizontalSlider({ loc }: { loc: Loc }) {
   const [current, setCurrent] = useState(0);
   const total = 4;
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
 
   const goTo = (i: number) => {
     setCurrent(i);
@@ -678,7 +679,7 @@ function HorizontalSlider({ loc }: { loc: Loc }) {
       <div className="slider-outer">
         <button className="slider-arrow prev" onClick={prev} aria-label="Previous">←</button>
         <button className="slider-arrow next" onClick={next} aria-label="Next">→</button>
-        <div className="slider-track" style={{ transform: `translateX(-${current * 100}%)` }}>
+        <div className="slider-track" ref={trackRef} style={{ transform: `translateX(-${current * 100}%)` }}>
 
           <div className="slider-slide">
             <div className="sec-inner">
