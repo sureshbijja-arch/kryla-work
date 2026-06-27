@@ -829,7 +829,9 @@ export default function V2Page() {
 
       </section>
 
-      <HorizontalSlider loc={loc} />
+      <div id="slider">
+        <HorizontalSlider loc={loc} />
+      </div>
 
       {/* ── COMMUNITY — dark #0D0D0D ── */}
       <section className="community">
