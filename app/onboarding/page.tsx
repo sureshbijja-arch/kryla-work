@@ -52,6 +52,7 @@ export default function OnboardingPage() {
   const slugDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const slugRef = useRef('')
 
   const checkSlug = useCallback(async (value: string) => {
     const localError = validateSlug(value)
@@ -81,6 +82,8 @@ export default function OnboardingPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step])
 
+  useEffect(() => { slugRef.current = slug }, [slug])
+
   useEffect(() => {
     if (step !== 5 || !providerId) return
     const timings = [0, 2500, 5000, 7500]
@@ -88,7 +91,7 @@ export default function OnboardingPage() {
     pollRef.current = setInterval(async () => {
       try {
         const params = new URLSearchParams({ providerId: providerId! })
-        if (slug) params.set('slug', slug)
+        if (slugRef.current) params.set('slug', slugRef.current)
         const res = await fetch(`/api/onboarding/status?${params}`)
         const data = await res.json()
         if (data.ready) {
