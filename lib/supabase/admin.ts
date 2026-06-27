@@ -1,11 +1,16 @@
-import { createClient } from "@supabase/supabase-js"
+import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 
-/**
- * Service-role client — bypasses RLS.
- * Never import this in client components or expose to the browser.
- * Only used inside API routes and Inngest jobs.
- */
-export const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Lazy singleton — defers URL check to call time so builds don't fail with blank env vars.
+let _client: SupabaseClient | null = null
+
+export const supabaseAdmin: SupabaseClient = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    if (!_client) {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+      if (!url || !key) throw new Error('Missing Supabase env vars')
+      _client = createClient(url, key)
+    }
+    return (_client as any)[prop]
+  },
+})

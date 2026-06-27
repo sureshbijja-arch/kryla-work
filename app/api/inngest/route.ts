@@ -1,9 +1,8 @@
-import { serve } from "inngest/next"
-import { inngest } from "@/inngest/client"
-import { buildPage } from "@/inngest/functions/build-page"
-import { notifyBooking } from "@/inngest/functions/notify-booking"
+import { serve } from 'inngest/next'
+import { inngest } from '@/lib/inngest'
+import { buildPageFunction } from '@/inngest/build-page'
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
-  functions: [buildPage, notifyBooking],
+  functions: [buildPageFunction],
 })
