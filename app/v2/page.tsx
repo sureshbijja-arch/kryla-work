@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 type Loc = 'india' | 'usa';
 
@@ -472,13 +472,13 @@ const CSS = `
 
   /* ─── RESPONSIVE ─── */
   @media (max-width: 768px) {
-    .nav-loc { display: none; }
-    .hf-photo { width: 110px; height: 140px; }
+    .hero { padding-top: 108px; padding-bottom: 40px; flex-direction: column; }
+    .hero-bg { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; padding: 16px 16px 0; margin-bottom: 24px; }
+    .hf-wrap { position: static; animation: none; transform: none !important; }
     .hf-wrap:nth-child(5), .hf-wrap:nth-child(6) { display: none; }
-    .hf-wrap:nth-child(1) { left: 20px !important; }
-    .hf-wrap:nth-child(2) { right: 20px !important; }
-    .hf-wrap:nth-child(3) { left: 20px !important; }
-    .hf-wrap:nth-child(4) { right: 20px !important; }
+    .hf-photo { width: 90px; height: 110px; }
+    .hf-label { font-size: 10px; }
+    .hero-content { position: relative; z-index: 1; }
     .hero-btns { flex-direction: column; align-items: center; }
     .btn-primary, .btn-secondary { justify-content: center; max-width: 280px; }
   }
@@ -488,6 +488,60 @@ const CSS = `
     .hero-h1 span { font-size: 36px !important; }
     .sec     { padding: 64px 20px; }
     .pc-btns { grid-template-columns: 1fr; }
+  }
+
+  /* ─── HORIZONTAL SLIDER ─── */
+  .slider-outer {
+    background: var(--light);
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+  }
+  .slider-track {
+    display: flex;
+    transition: transform 0.55s cubic-bezier(0.77, 0, 0.175, 1);
+  }
+  .slider-slide {
+    width: 100%;
+    min-width: 100%;
+    flex-shrink: 0;
+    padding: 88px 24px;
+    box-sizing: border-box;
+  }
+  .slider-arrow {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    z-index: 10;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: #fff; border: 1.5px solid rgba(0,0,0,0.12);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px; color: #0D0D0D;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  }
+  .slider-arrow:hover { background: #F5A623; border-color: #F5A623; transform: translateY(-50%) scale(1.08); }
+  .slider-arrow.prev { left: 16px; }
+  .slider-arrow.next { right: 16px; }
+  .slider-dots {
+    display: flex; justify-content: center; gap: 8px;
+    padding: 20px 0 32px;
+    background: var(--light);
+  }
+  .slider-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    border: none; cursor: pointer;
+    background: rgba(0,0,0,0.15);
+    transition: background 0.3s, transform 0.3s;
+    padding: 0;
+  }
+  .slider-dot.active { background: #F5A623; transform: scale(1.4); }
+  @media (max-width: 768px) {
+    .slider-arrow { display: none; }
+    .slider-slide { padding: 32px 20px; }
+    .slider-slide .sec-inner { display: block; }
+    .slider-slide .card-col { margin-bottom: 28px; }
+    .slider-slide .card-right .card-col { margin-bottom: 28px; }
+    .profile-card { max-width: 100%; box-sizing: border-box; }
+    .pc-btns { grid-template-columns: 1fr 1fr; }
   }
 `;
 
@@ -599,6 +653,120 @@ function AlexCard({ loc }: { loc: Loc }) {
   );
 }
 
+function HorizontalSlider({ loc }: { loc: Loc }) {
+  const [current, setCurrent] = useState(0);
+  const [width, setWidth] = useState(0);
+  const outerRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const total = 4;
+
+  useEffect(() => {
+    const measure = () => {
+      if (outerRef.current) setWidth(outerRef.current.offsetWidth);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
+
+  const startTimer = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => setCurrent(c => (c + 1) % total), 4000);
+  };
+
+  useEffect(() => {
+    startTimer();
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, []);
+
+  const goTo = (i: number) => { setCurrent(i); startTimer(); };
+  const prev = () => goTo((current - 1 + total) % total);
+  const next = () => goTo((current + 1) % total);
+
+  const touchStart = useRef(0);
+  const onTouchStart = (e: React.TouchEvent) => { touchStart.current = e.touches[0].clientX; };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const diff = touchStart.current - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) diff > 0 ? next() : prev();
+  };
+
+  return (
+    <>
+      <div className="slider-outer" ref={outerRef}>
+        <button className="slider-arrow prev" onClick={prev} aria-label="Previous">←</button>
+        <button className="slider-arrow next" onClick={next} aria-label="Next">→</button>
+        <div
+          className="slider-track"
+          style={{ transform: `translateX(-${current * (width || 100)}px)` }}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+        >
+
+          <div className="slider-slide">
+            <div className="sec-inner card-right">
+              <div className="text-col">
+                <p className="sec-eyebrow">YOUR IDENTITY ONLINE</p>
+                <h2 className="sec-h2 dark">Your name.<br />Your work.<br />One link that says it all.</h2>
+                <p className="sec-body on-light">Every skilled professional deserves a presence that matches their craft. Kryla gives you your own spot — with your services, your prices, and a way for people to reach you directly.</p>
+                <p className="sec-warm">Like a visiting card — but one that works while you sleep.</p>
+              </div>
+              <div className="card-col"><PriyaCard loc={loc} /></div>
+            </div>
+          </div>
+
+          <div className="slider-slide">
+            <div className="sec-inner card-right">
+              <div className="text-col">
+                <p className="sec-eyebrow">ONE LINK FOR EVERYTHING</p>
+                <h2 className="sec-h2 dark">Send one link.<br />They know everything<br />they need to know.</h2>
+                <p className="sec-body on-light">Your name. What you do. What you charge. When you&apos;re free. What your clients say. All in one place they can open on any phone.</p>
+                <div className="wa-chat">
+                  <div className="wa-msg wa-in"><div className="wa-bubble"><span className="wa-txt">Hi! Are you available this week?</span><span className="wa-meta">10:42 AM <span className="wa-ticks">✓✓</span></span></div></div>
+                  <div className="wa-msg wa-out"><div className="wa-bubble"><span className="wa-txt">Here&apos;s my Kryla link — <strong>kryla.work/meenabakes</strong> — order directly there! 😊</span><span className="wa-meta">10:43 AM <span className="wa-ticks">✓✓</span></span></div></div>
+                </div>
+              </div>
+              <div className="card-col"><MeenaCard loc={loc} /></div>
+            </div>
+          </div>
+
+          <div className="slider-slide">
+            <div className="sec-inner card-right">
+              <div className="text-col">
+                <p className="sec-eyebrow">LIVE IN 15 MINUTES</p>
+                <h2 className="sec-h2 dark">Answer 5 questions.<br />We handle<br />everything else.</h2>
+                <p className="sec-body on-light">No design skills needed. No complicated setup. Tell us what you do, who you help, and what you charge — your professional spot is live before your next session starts.</p>
+                <p className="sec-warm">Most members are live in under 15 minutes. No coding. No stress.</p>
+              </div>
+              <div className="card-col"><RajCard loc={loc} /></div>
+            </div>
+          </div>
+
+          <div className="slider-slide">
+            <div className="sec-inner card-right">
+              <div className="text-col">
+                <p className="sec-eyebrow">WORKS WHERE YOUR CLIENTS ARE</p>
+                <h2 className="sec-h2 dark">New booking?<br />You get a WhatsApp.<br />Done.</h2>
+                <p className="sec-body on-light">When someone&apos;s ready to hire you, Kryla sends you a WhatsApp. Accept with one tap. Your client gets their confirmation right away. Business handled — without switching between apps.</p>
+                <div className="wa-chat">
+                  <div className="wa-msg wa-in"><div className="wa-bubble"><span className="wa-txt">📅 New request from Sarah — Family Portraits, Saturday 10am. Tap to confirm.</span><span className="wa-meta">9:14 AM <span className="wa-ticks">✓✓</span></span></div></div>
+                  <div className="wa-msg wa-out"><div className="wa-bubble"><span className="wa-txt">Confirmed! 📸 Sarah gets your details straight away.</span><span className="wa-meta">9:15 AM <span className="wa-ticks">✓✓</span></span></div></div>
+                </div>
+              </div>
+              <div className="card-col"><AlexCard loc={loc} /></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div className="slider-dots">
+        {Array.from({ length: total }).map((_, i) => (
+          <button key={i} className={`slider-dot${i === current ? ' active' : ''}`} onClick={() => goTo(i)} aria-label={`Slide ${i + 1}`} />
+        ))}
+      </div>
+    </>
+  );
+}
+
 export default function V2Page() {
   const [loc, setLoc] = useState<Loc>('usa');
   const [locDetected, setLocDetected] = useState(false);
@@ -632,7 +800,18 @@ export default function V2Page() {
 
       {/* Nav */}
       <nav className="v2-nav">
-        <a href="/"><img src="/kryla-wordmark-light.svg" height="36" alt="kryla.work" style={{display:'block'}} /></a>
+        <a href="/" style={{textDecoration:'none'}}>
+          <div style={{display:'flex', alignItems:'center', gap:'6px'}}>
+            <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 10 L20 90" stroke="#0D0D0D" strokeWidth="14" strokeLinecap="round"/>
+              <path d="M20 50 L70 10" stroke="#0D0D0D" strokeWidth="14" strokeLinecap="round"/>
+              <path d="M20 50 L70 90" stroke="#F5A623" strokeWidth="14" strokeLinecap="round"/>
+            </svg>
+            <span style={{fontSize:'17px', fontWeight:800, letterSpacing:'-0.5px'}}>
+              <span style={{color:'#0D0D0D'}}>kryla</span><span style={{color:'#F5A623'}}>.work</span>
+            </span>
+          </div>
+        </a>
         <div className="nav-right">
           <a href="/onboarding" className="nav-join">Join free →</a>
         </div>
@@ -688,121 +867,17 @@ export default function V2Page() {
         {/* K mark watermark */}
         <div style={{position:'absolute', bottom:'24px', right:'24px', zIndex:0, opacity:0.15, pointerEvents:'none'}}>
           <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 10 L20 90 M20 50 L70 10 M20 50 L70 90" stroke="#F5A623" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M20 10 L20 90" stroke="#0D0D0D" strokeWidth="12" strokeLinecap="round"/>
+            <path d="M20 50 L70 10" stroke="#0D0D0D" strokeWidth="12" strokeLinecap="round"/>
+            <path d="M20 50 L70 90" stroke="#F5A623" strokeWidth="12" strokeLinecap="round"/>
           </svg>
         </div>
 
       </section>
 
-      {/* ── SECTION 1 — light #FAFAFA — card left, text right ── */}
-      <section className="sec sec-light" id="s1">
-        <div className="sec-inner">
-          <div className="card-col">
-            <PriyaCard loc={loc} />
-          </div>
-          <div className="text-col">
-            <p className="sec-eyebrow">YOUR IDENTITY ONLINE</p>
-            <h2 className="sec-h2 dark">
-              Your name.<br />
-              Your work.<br />
-              One link that says it all.
-            </h2>
-            <p className="sec-body on-light">
-              Every skilled professional deserves a presence that matches their craft. Kryla gives you your own spot — with your services, your prices, and a way for people to reach you directly.
-            </p>
-            <p className="sec-warm">Like a visiting card — but one that works while you sleep.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── SECTION 2 — light #FAFAFA — text left, card right ── */}
-      <section className="sec sec-light sec-border">
-        <div className="sec-inner card-right">
-          <div className="text-col">
-            <p className="sec-eyebrow">ONE LINK FOR EVERYTHING</p>
-            <h2 className="sec-h2 dark">
-              Send one link.<br />
-              They know everything<br />
-              they need to know.
-            </h2>
-            <p className="sec-body on-light">
-              Your name. What you do. What you charge. When you&apos;re free. What your clients say. All in one place they can open on any phone.
-            </p>
-            <div className="wa-chat">
-              <div className="wa-msg wa-in">
-                <div className="wa-bubble">
-                  <span className="wa-txt">Hi! Are you available this week?</span>
-                  <span className="wa-meta">10:42 AM <span className="wa-ticks">✓✓</span></span>
-                </div>
-              </div>
-              <div className="wa-msg wa-out">
-                <div className="wa-bubble">
-                  <span className="wa-txt">Here&apos;s my Kryla link — <strong>kryla.work/meenabakes</strong> — order directly there! 😊</span>
-                  <span className="wa-meta">10:43 AM <span className="wa-ticks">✓✓</span></span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="card-col">
-            <MeenaCard loc={loc} />
-          </div>
-        </div>
-      </section>
-
-      {/* ── SECTION 3 — light #FAFAFA — card left, text right ── */}
-      <section className="sec sec-light sec-border">
-        <div className="sec-inner">
-          <div className="card-col">
-            <RajCard loc={loc} />
-          </div>
-          <div className="text-col">
-            <p className="sec-eyebrow">LIVE IN 15 MINUTES</p>
-            <h2 className="sec-h2 dark">
-              Answer 5 questions.<br />
-              We handle<br />
-              everything else.
-            </h2>
-            <p className="sec-body on-light">
-              No design skills needed. No complicated setup. Tell us what you do, who you help, and what you charge — your professional spot is live before your next session starts.
-            </p>
-            <p className="sec-warm">Most members are live in under 15 minutes. No coding. No stress.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── SECTION 4 — light #FAFAFA — text left, card right ── */}
-      <section className="sec sec-light sec-border">
-        <div className="sec-inner card-right">
-          <div className="text-col">
-            <p className="sec-eyebrow">WORKS WHERE YOUR CLIENTS ARE</p>
-            <h2 className="sec-h2 dark">
-              New booking?<br />
-              You get a WhatsApp.<br />
-              Done.
-            </h2>
-            <p className="sec-body on-light">
-              When someone&apos;s ready to hire you, Kryla sends you a WhatsApp. Accept with one tap. Your client gets their confirmation right away. Business handled — without switching between apps.
-            </p>
-            <div className="wa-chat">
-              <div className="wa-msg wa-in">
-                <div className="wa-bubble">
-                  <span className="wa-txt">📅 New request from Sarah — Family Portraits, Saturday 10am. Tap to confirm.</span>
-                  <span className="wa-meta">9:14 AM <span className="wa-ticks">✓✓</span></span>
-                </div>
-              </div>
-              <div className="wa-msg wa-out">
-                <div className="wa-bubble">
-                  <span className="wa-txt">Confirmed! 📸 Sarah gets your details straight away.</span>
-                  <span className="wa-meta">9:15 AM <span className="wa-ticks">✓✓</span></span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="card-col">
-            <AlexCard loc={loc} />
-          </div>
-        </div>
-      </section>
+      <div id="slider">
+        <HorizontalSlider loc={loc} />
+      </div>
 
       {/* ── COMMUNITY — dark #0D0D0D ── */}
       <section className="community">
@@ -976,7 +1051,9 @@ export default function V2Page() {
       <section className="cta-sec">
         <div style={{display:'flex', justifyContent:'center', marginBottom:'24px'}}>
           <svg width="64" height="64" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{opacity:0.2}}>
-            <path d="M20 10 L20 90 M20 50 L70 10 M20 50 L70 90" stroke="#0D0D0D" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M20 10 L20 90" stroke="#0D0D0D" strokeWidth="12" strokeLinecap="round"/>
+            <path d="M20 50 L70 10" stroke="#0D0D0D" strokeWidth="12" strokeLinecap="round"/>
+            <path d="M20 50 L70 90" stroke="rgba(0,0,0,0.4)" strokeWidth="12" strokeLinecap="round"/>
           </svg>
         </div>
         <p className="cta-eyebrow">YOUR SPOT IS WAITING</p>
@@ -989,13 +1066,17 @@ export default function V2Page() {
       {/* ── FOOTER ── */}
       <footer className="v2-footer">
         <div className="footer-brand">
-          <img src="/kryla-icon-saffron.svg" height="20" alt="" aria-hidden="true" style={{opacity:0.55}} />
+          <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 10 L20 90" stroke="#0D0D0D" strokeWidth="14" strokeLinecap="round"/>
+            <path d="M20 50 L70 10" stroke="#0D0D0D" strokeWidth="14" strokeLinecap="round"/>
+            <path d="M20 50 L70 90" stroke="#F5A623" strokeWidth="14" strokeLinecap="round"/>
+          </svg>
           <span className="footer-wordmark">
             <span style={{color:'rgba(13,13,13,0.5)'}}>kryla</span>
             <span style={{color:'#F5A623'}}>.work</span>
           </span>
         </div>
-        <p className="footer-copy">© 2025 Kryla.work · Built for makers everywhere.</p>
+        <p className="footer-copy">© 2026 Kryla.work · Built for makers everywhere.</p>
       </footer>
     </div>
   );
