@@ -87,7 +87,9 @@ export default function OnboardingPage() {
     timings.forEach((ms, i) => setTimeout(() => setBuildStep(i + 1), ms))
     pollRef.current = setInterval(async () => {
       try {
-        const res = await fetch(`/api/onboarding/status?providerId=${providerId}`)
+        const params = new URLSearchParams({ providerId: providerId! })
+        if (slug) params.set('slug', slug)
+        const res = await fetch(`/api/onboarding/status?${params}`)
         const data = await res.json()
         if (data.ready) {
           clearInterval(pollRef.current!)
@@ -113,7 +115,7 @@ export default function OnboardingPage() {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
       document.removeEventListener('visibilitychange', onVisibilityChange)
     }
-  }, [step, providerId, router])
+  }, [step, providerId, slug, router])
 
   function goBack() { if (step > 1) setStep((s) => (s - 1) as Step) }
   function goNext() { if (step < 4) setStep((s) => (s + 1) as Step) }
