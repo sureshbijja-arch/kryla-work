@@ -27,15 +27,36 @@ export async function POST(req: NextRequest) {
 
   const supabase = createServerClient()
 
+  console.log('[submit] 1. starting for slug:', slug)
+
   const { data: existing } = await supabase
     .from('providers')
-    .select('id')
+    .select('id, slug, page_live')
     .eq('slug', slug)
     .maybeSingle()
 
   if (existing) {
-    return NextResponse.json({ error: 'That address was just taken — pick another' }, { status: 409 })
+    console.log('[submit] existing provider found:', existing.id, 'page_live:', existing.page_live)
+    if (existing.page_live) {
+      return NextResponse.json({ ok: true, providerId: existing.id, slug: existing.slug })
+    }
+    try {
+      await inngest.send({
+        name: BUILD_PAGE_EVENT,
+        data: {
+          providerId: existing.id, slug: existing.slug, persona,
+          firstName: firstName.trim(), lastName: lastName?.trim() || '',
+          tagline: tagline?.trim() || '', location: location?.trim() || '', plan,
+        },
+      })
+      console.log('[submit] re-sent Inngest for existing provider:', existing.id)
+    } catch (err) {
+      console.error('[submit] Inngest re-send failed:', JSON.stringify(err))
+    }
+    return NextResponse.json({ ok: true, providerId: existing.id, slug: existing.slug })
   }
+
+  console.log('[submit] 2. no existing provider, inserting...')
 
   const whatsapp = whatsappNumber
     ? `${whatsappCountryCode || '+1'}${whatsappNumber.replace(/\D/g, '')}`
@@ -77,8 +98,9 @@ export async function POST(req: NextRequest) {
   }
 
   const providerId = provider.id
-  console.log('[submit] Provider inserted:', providerId, slug)
+  console.log('[submit] 3. provider inserted:', providerId)
 
+  console.log('[submit] 4. saving answers...')
   try {
     await supabase.from('onboarding_answers').insert({
       provider_id: providerId,
@@ -92,27 +114,23 @@ export async function POST(req: NextRequest) {
       plan,
       region,
     })
-    console.log('[submit] Answers saved for:', providerId)
+    console.log('[submit] 5. answers saved')
   } catch (err) {
-    console.error('[submit] Answers insert failed:', JSON.stringify(err))
+    console.error('[submit] answers insert failed:', JSON.stringify(err))
     // Non-fatal — provider row exists, build can still proceed
   }
 
+  console.log('[submit] 6. sending to Inngest...')
   try {
     await inngest.send({
       name: BUILD_PAGE_EVENT,
       data: {
-        providerId,
-        slug,
-        persona,
-        firstName: firstName.trim(),
-        lastName: lastName?.trim() || '',
-        tagline: tagline?.trim() || '',
-        location: location?.trim() || '',
-        plan,
+        providerId, slug, persona,
+        firstName: firstName.trim(), lastName: lastName?.trim() || '',
+        tagline: tagline?.trim() || '', location: location?.trim() || '', plan,
       },
     })
-    console.log('[submit] Inngest event sent for:', providerId)
+    console.log('[submit] 7. Inngest sent, returning success')
   } catch (err) {
     console.error('[submit] Inngest send failed:', JSON.stringify(err))
     // Non-fatal — member is created, build will be retried or triggered manually
