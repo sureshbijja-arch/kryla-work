@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  const { persona, firstName, lastName, tagline, location, slug, whatsappCountryCode, whatsappNumber, plan, region } = body
+  const { persona, firstName, lastName, tagline, location, slug, whatsappCountryCode, whatsappNumber, email, plan, region } = body
 
   if (!persona || !firstName || !slug || !plan) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
       persona,
       location: location?.trim() || '',
       whatsapp_number: whatsapp,
+      email: email?.trim() || null,
       plan,
       plan_status: plan === 'seed' ? 'active' : 'pending_payment',
       region,

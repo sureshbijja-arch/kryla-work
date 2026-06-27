@@ -48,8 +48,10 @@ export default function OnboardingPage() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [providerId, setProviderId] = useState<string | null>(null)
   const [buildStep, setBuildStep] = useState(0)
+  const [timedOut, setTimedOut] = useState(false)
   const slugDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const checkSlug = useCallback(async (value: string) => {
     const localError = validateSlug(value)
@@ -89,11 +91,28 @@ export default function OnboardingPage() {
         const data = await res.json()
         if (data.ready) {
           clearInterval(pollRef.current!)
+          if (timeoutRef.current) clearTimeout(timeoutRef.current)
           setTimeout(() => router.push(`/welcome?slug=${data.slug}`), 1000)
         }
       } catch { /* keep polling */ }
     }, 2000)
-    return () => { if (pollRef.current) clearInterval(pollRef.current) }
+    timeoutRef.current = setTimeout(() => {
+      clearInterval(pollRef.current!)
+      pollRef.current = null
+      setTimedOut(true)
+    }, 180000)
+
+    // Once timed out, tab becoming visible again must never restart polling
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !pollRef.current) return
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
+
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current)
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
   }, [step, providerId, router])
 
   function goBack() { if (step > 1) setStep((s) => (s - 1) as Step) }
@@ -236,7 +255,7 @@ export default function OnboardingPage() {
                   )}
                   <p className="text-xs text-[#999] mt-1.5">Only lowercase letters and numbers. No spaces.</p>
                 </div>
-                <div className="mb-6">
+                <div className="mb-4">
                   <label className="block text-xs font-medium text-[#444] mb-1.5">Your WhatsApp number <span className="font-normal text-[#999]">for new business notifications</span></label>
                   <div className="flex gap-2">
                     <input type="text" value={answers.whatsappCountryCode ?? '+1'} onChange={(e) => setAnswers((a) => ({ ...a, whatsappCountryCode: e.target.value }))}
@@ -245,6 +264,12 @@ export default function OnboardingPage() {
                       className="flex-1 border border-[#E5E5E5] rounded-lg px-3.5 py-2.5 text-sm text-[#0D0D0D] placeholder:text-[#999] focus:outline-none focus:border-[#F5A623] transition-all" />
                   </div>
                   <p className="text-xs text-[#999] mt-1.5">We'll send you a WhatsApp when new business comes in. You can change this anytime.</p>
+                </div>
+                <div className="mb-6">
+                  <label className="block text-xs font-medium text-[#444] mb-1.5">Your email <span className="font-normal text-[#999]">optional</span></label>
+                  <input type="email" placeholder="priya@gmail.com" value={answers.email ?? ''} onChange={(e) => setAnswers((a) => ({ ...a, email: e.target.value }))}
+                    className="w-full border border-[#E5E5E5] rounded-lg px-3.5 py-2.5 text-sm text-[#0D0D0D] placeholder:text-[#999] focus:outline-none focus:border-[#F5A623] focus:shadow-[0_0_0_3px_rgba(245,166,35,0.1)] transition-all" />
+                  <p className="text-xs text-[#999] mt-1.5">We'll use this if we can't reach you on WhatsApp.</p>
                 </div>
                 <div className="flex justify-between items-center">
                   <button onClick={goBack} className="text-sm text-[#999] hover:text-[#0D0D0D] transition-colors">← Back</button>
@@ -301,25 +326,38 @@ export default function OnboardingPage() {
 
             {step === 5 && (
               <div className="flex flex-col items-center text-center py-8 gap-5">
-                <div className="w-16 h-16 rounded-full bg-[#FFFBF5] border-2 border-[#F5A623] flex items-center justify-center text-3xl animate-pulse">✨</div>
-                <div>
-                  <h2 className="text-xl font-semibold text-[#0D0D0D] mb-2">Building your presence…</h2>
-                  <p className="text-sm text-[#666] max-w-xs leading-relaxed">AI is writing your copy, picking your layout, and setting up everything. About 15 seconds.</p>
-                </div>
-                <div className="w-full max-w-xs space-y-3 text-left">
-                  {['Writing your intro and services','Choosing your layout and colors','Setting up your booking form','Making your presence live'].map((label, i) => {
-                    const done = buildStep > i + 1
-                    const active = buildStep === i + 1
-                    return (
-                      <div key={label} className="flex items-center gap-3">
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 border transition-all ${done ? 'bg-[#22C55E] border-[#22C55E]' : active ? 'border-[#F5A623] bg-[rgba(245,166,35,0.1)]' : 'border-[#E5E5E5]'}`}>
-                          {done ? <span className="text-white text-[10px]">✓</span> : active ? <span className="inline-block w-2.5 h-2.5 rounded-full border border-[#F5A623] border-t-transparent animate-spin" /> : null}
-                        </div>
-                        <span className={`text-sm transition-colors ${done ? 'text-[#444]' : active ? 'text-[#0D0D0D] font-medium' : 'text-[#999]'}`}>{label}</span>
-                      </div>
-                    )
-                  })}
-                </div>
+                {timedOut ? (
+                  <>
+                    <div className="w-16 h-16 rounded-full bg-[#FAFAFA] border-2 border-[#E5E5E5] flex items-center justify-center text-3xl">✉️</div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-[#0D0D0D] mb-2">You're all set — we're on it</h2>
+                      <p className="text-sm text-[#666] max-w-xs leading-relaxed">Your presence is taking a little longer than usual. We'll reach out on WhatsApp or email as soon as it's ready.</p>
+                    </div>
+                    <p className="text-xs text-[#999]">You can safely close this tab.</p>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-16 h-16 rounded-full bg-[#FFFBF5] border-2 border-[#F5A623] flex items-center justify-center text-3xl animate-pulse">✨</div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-[#0D0D0D] mb-2">Building your presence…</h2>
+                      <p className="text-sm text-[#666] max-w-xs leading-relaxed">Kryla is writing your copy, picking your layout, and setting up everything. About 15 seconds.</p>
+                    </div>
+                    <div className="w-full max-w-xs space-y-3 text-left">
+                      {['Writing your intro and services','Choosing your layout and colors','Setting up your booking form','Making your presence live'].map((label, i) => {
+                        const done = buildStep > i + 1
+                        const active = buildStep === i + 1
+                        return (
+                          <div key={label} className="flex items-center gap-3">
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 border transition-all ${done ? 'bg-[#22C55E] border-[#22C55E]' : active ? 'border-[#F5A623] bg-[rgba(245,166,35,0.1)]' : 'border-[#E5E5E5]'}`}>
+                              {done ? <span className="text-white text-[10px]">✓</span> : active ? <span className="inline-block w-2.5 h-2.5 rounded-full border border-[#F5A623] border-t-transparent animate-spin" /> : null}
+                            </div>
+                            <span className={`text-sm transition-colors ${done ? 'text-[#444]' : active ? 'text-[#0D0D0D] font-medium' : 'text-[#999]'}`}>{label}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
               </div>
             )}
 

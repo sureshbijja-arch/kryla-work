@@ -44,7 +44,19 @@ Rules: exactly 3-5 services, exactly 3 highlights, exactly 3 FAQ items. First pe
 }
 
 export const buildPageFunction = inngest.createFunction(
-  { id: 'build-member-page', retries: 3, concurrency: { limit: 5 } },
+  {
+    id: 'build-member-page',
+    retries: 3,
+    concurrency: { limit: 5 },
+    onFailure: async ({ event }) => {
+      const payload = (event.data as unknown as { event: { data: BuildPageJobPayload } }).event.data
+      await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notify/build-failed`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ providerId: payload.providerId }),
+      })
+    },
+  },
   { event: BUILD_PAGE_EVENT },
   async ({ event, step }) => {
     const payload = event.data as BuildPageJobPayload
