@@ -84,7 +84,17 @@ export async function POST(req: NextRequest) {
   if (providerError || !provider) {
     const code = providerError?.code
     if (code === '23505') {
-      return NextResponse.json({ error: 'That address is already taken — try a different one' }, { status: 409 })
+      const detail = providerError.details || providerError.message || ''
+      if (detail.includes('slug')) {
+        return NextResponse.json({ error: 'That address is already taken — try a different one' }, { status: 409 })
+      }
+      if (detail.includes('email')) {
+        return NextResponse.json({ error: 'An account with this email already exists — try signing in instead' }, { status: 409 })
+      }
+      if (detail.includes('phone')) {
+        return NextResponse.json({ error: 'An account with this phone number already exists — try signing in instead' }, { status: 409 })
+      }
+      return NextResponse.json({ error: 'Some of your details are already in use — please check and try again' }, { status: 409 })
     }
     if (code === '23502') {
       console.error('[submit] Not-null violation:', providerError)
