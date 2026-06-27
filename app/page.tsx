@@ -867,7 +867,9 @@ export default function V2Page() {
         {/* K mark watermark */}
         <div style={{position:'absolute', bottom:'24px', right:'24px', zIndex:0, opacity:0.15, pointerEvents:'none'}}>
           <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 10 L20 90 M20 50 L70 10 M20 50 L70 90" stroke="#F5A623" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M20 10 L20 90" stroke="#0D0D0D" strokeWidth="12" strokeLinecap="round"/>
+            <path d="M20 50 L70 10" stroke="#0D0D0D" strokeWidth="12" strokeLinecap="round"/>
+            <path d="M20 50 L70 90" stroke="#F5A623" strokeWidth="12" strokeLinecap="round"/>
           </svg>
         </div>
 
@@ -1049,7 +1051,9 @@ export default function V2Page() {
       <section className="cta-sec">
         <div style={{display:'flex', justifyContent:'center', marginBottom:'24px'}}>
           <svg width="64" height="64" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{opacity:0.2}}>
-            <path d="M20 10 L20 90 M20 50 L70 10 M20 50 L70 90" stroke="#0D0D0D" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M20 10 L20 90" stroke="#0D0D0D" strokeWidth="12" strokeLinecap="round"/>
+            <path d="M20 50 L70 10" stroke="#0D0D0D" strokeWidth="12" strokeLinecap="round"/>
+            <path d="M20 50 L70 90" stroke="rgba(0,0,0,0.4)" strokeWidth="12" strokeLinecap="round"/>
           </svg>
         </div>
         <p className="cta-eyebrow">YOUR SPOT IS WAITING</p>

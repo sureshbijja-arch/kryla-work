@@ -513,12 +513,12 @@ Built with: Next.js, Tailwind, Unsplash photos, inline CSS.
 - Logo: kryla-wordmark-light.svg, height 36px
 - Right: "Join free →" dark button
 
-**Alternating sections (Canva style):**
-- Section 1: Light bg, Priya card left, text right
-- Section 2: Light bg, text + WhatsApp left, Meena card right
-- Section 3: Light bg, chat UI left, text right
-- Section 4: Light bg, text + WhatsApp left, Alex card right
-- All sections: #FAFAFA background, dark text
+**Horizontal slider (replaces 4 alternating sections):**
+- Uses pixel-based `translateX(current * outerRef.current.offsetWidth)` — NOT percentage. Percentage breaks on iOS Safari.
+- Touch swipe enabled (40px threshold).
+- All 4 slides: text left, card right layout.
+- Auto-advances every 4s. Arrow buttons on desktop, dot nav below. Timer resets on manual nav.
+- Slides: 1 Priya (Identity), 2 Meena (One Link), 3 Raj (15 Minutes), 4 Alex (WhatsApp).
 
 **Community section:** Dark background, two-row scrolling ticker
 
@@ -544,15 +544,25 @@ Files in public/:
 - `kryla-favicon.svg` — browser tab icon (dark square background)
 
 **Usage rules:**
-- Nav (white/light bg): `kryla-wordmark-light.svg`, height 32–36px
-- Nav (dark bg): `kryla-wordmark-dark.svg`, height 32–36px
+- Nav: inline SVG wordmark (K mark + "kryla.work" text) — never use image files
 - Favicon: `kryla-favicon.svg`
-- Watermark/accent: `kryla-icon-saffron.svg`, small, low opacity
-- Hero inline K mark: inline SVG path, bottom-right corner, amber stroke
+- Watermark/accent: inline SVG, never `kryla-icon-saffron.svg`
 
-**Critical:** `kryla-wordmark-dark.svg` has WHITE "kryla" text — invisible on white/light backgrounds. Always use `kryla-wordmark-light.svg` on the white nav.
+**K mark inline SVG (two-colored — use everywhere, never single-color SVG or image files):**
+```svg
+<path d="M20 10 L20 90" stroke="#0D0D0D" strokeWidth="12/14" strokeLinecap="round"/>
+<path d="M20 50 L70 10" stroke="#0D0D0D" strokeWidth="12/14" strokeLinecap="round"/>
+<path d="M20 50 L70 90" stroke="#F5A623" strokeWidth="12/14" strokeLinecap="round"/>
+```
+- Vertical stroke + top diagonal: `stroke="#0D0D0D"`
+- Bottom diagonal: `stroke="#F5A623"`
+- On amber/dark backgrounds, bottom diagonal can use `stroke="rgba(0,0,0,0.4)"` for subtlety
+- Footer and nav both use inline SVG wordmark, not image files
+- Copyright year: 2026
 
-**Never:** Use K icon alone in nav without wordmark text.
+**Critical:** `kryla-wordmark-dark.svg` has WHITE "kryla" text — invisible on white/light backgrounds. Prefer inline SVG over any image file.
+
+**Never:** Use K icon alone in nav without wordmark text. Never use `kryla-icon-saffron.svg` for the K mark anywhere.
 
 ---
 
