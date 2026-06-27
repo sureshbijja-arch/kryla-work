@@ -472,13 +472,13 @@ const CSS = `
 
   /* ─── RESPONSIVE ─── */
   @media (max-width: 768px) {
-    .nav-loc { display: none; }
-    .hf-photo { width: 110px; height: 140px; }
+    .hero { padding-top: 108px; padding-bottom: 40px; flex-direction: column; }
+    .hero-bg { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; padding: 16px 16px 0; margin-bottom: 24px; }
+    .hf-wrap { position: static; animation: none; transform: none !important; }
     .hf-wrap:nth-child(5), .hf-wrap:nth-child(6) { display: none; }
-    .hf-wrap:nth-child(1) { left: 20px !important; }
-    .hf-wrap:nth-child(2) { right: 20px !important; }
-    .hf-wrap:nth-child(3) { left: 20px !important; }
-    .hf-wrap:nth-child(4) { right: 20px !important; }
+    .hf-photo { width: 90px; height: 110px; }
+    .hf-label { font-size: 10px; }
+    .hero-content { position: relative; z-index: 1; }
     .hero-btns { flex-direction: column; align-items: center; }
     .btn-primary, .btn-secondary { justify-content: center; max-width: 280px; }
   }
