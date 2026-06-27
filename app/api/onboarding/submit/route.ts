@@ -62,6 +62,36 @@ export async function POST(req: NextRequest) {
     ? `${whatsappCountryCode || '+1'}${whatsappNumber.replace(/\D/g, '')}`
     : null
 
+  const trimmedEmail = email?.trim() || null
+
+  if (trimmedEmail) {
+    const { data: emailExists } = await supabase
+      .from('providers')
+      .select('id')
+      .eq('email', trimmedEmail)
+      .maybeSingle()
+    if (emailExists) {
+      return NextResponse.json({
+        error: 'An account with this email already exists — try a different email',
+        field: 'email',
+      }, { status: 409 })
+    }
+  }
+
+  if (whatsapp) {
+    const { data: phoneExists } = await supabase
+      .from('providers')
+      .select('id')
+      .eq('whatsapp_number', whatsapp)
+      .maybeSingle()
+    if (phoneExists) {
+      return NextResponse.json({
+        error: 'An account with this phone number already exists — try a different number',
+        field: 'phone',
+      }, { status: 409 })
+    }
+  }
+
   const { data: provider, error: providerError } = await supabase
     .from('providers')
     .insert({
@@ -71,7 +101,7 @@ export async function POST(req: NextRequest) {
       persona,
       location: location?.trim() || '',
       whatsapp_number: whatsapp,
-      email: email?.trim() || null,
+      email: trimmedEmail,
       plan,
       plan_status: plan === 'seed' ? 'active' : 'pending_payment',
       region,

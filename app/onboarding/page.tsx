@@ -134,7 +134,17 @@ export default function OnboardingPage() {
         body: JSON.stringify({ ...answers, slug }),
       })
       const data = await res.json()
-      if (!res.ok || !data.ok) { setSubmitError(data.error); setSubmitting(false); return }
+      if (!res.ok || !data.ok) {
+        if (data.field === 'email' || data.field === 'phone') {
+          setStep(2)
+          setSubmitError(data.error)
+          setSubmitting(false)
+          return
+        }
+        setSubmitError(data.error)
+        setSubmitting(false)
+        return
+      }
       setProviderId(data.providerId)
       setStep(5)
     } catch (err) {
@@ -230,6 +240,7 @@ export default function OnboardingPage() {
                   <input type="text" placeholder="e.g. Celina, TX or Pune, India" value={answers.location ?? ''} onChange={(e) => setAnswers((a) => ({ ...a, location: e.target.value }))}
                     className="w-full border border-[#E5E5E5] rounded-lg px-3.5 py-2.5 text-sm text-[#0D0D0D] placeholder:text-[#999] focus:outline-none focus:border-[#F5A623] focus:shadow-[0_0_0_3px_rgba(245,166,35,0.1)] transition-all" />
                 </div>
+                {submitError && <p className="text-sm text-red-500 mb-4">{submitError}</p>}
                 <div className="flex justify-between items-center">
                   <button onClick={goBack} className="text-sm text-[#999] hover:text-[#0D0D0D] transition-colors">← Back</button>
                   <button onClick={goNext} disabled={!canProceed2}
