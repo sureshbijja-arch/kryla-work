@@ -800,7 +800,18 @@ export default function V2Page() {
 
       {/* Nav */}
       <nav className="v2-nav">
-        <a href="/"><img src="/kryla-wordmark-light.svg" height="36" alt="kryla.work" style={{display:'block'}} /></a>
+        <a href="/" style={{textDecoration:'none'}}>
+          <div style={{display:'flex', alignItems:'center', gap:'6px'}}>
+            <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 10 L20 90" stroke="#0D0D0D" strokeWidth="14" strokeLinecap="round"/>
+              <path d="M20 50 L70 10" stroke="#0D0D0D" strokeWidth="14" strokeLinecap="round"/>
+              <path d="M20 50 L70 90" stroke="#F5A623" strokeWidth="14" strokeLinecap="round"/>
+            </svg>
+            <span style={{fontSize:'17px', fontWeight:800, letterSpacing:'-0.5px'}}>
+              <span style={{color:'#0D0D0D'}}>kryla</span><span style={{color:'#F5A623'}}>.work</span>
+            </span>
+          </div>
+        </a>
         <div className="nav-right">
           <a href="/onboarding" className="nav-join">Join free →</a>
         </div>
@@ -1051,13 +1062,17 @@ export default function V2Page() {
       {/* ── FOOTER ── */}
       <footer className="v2-footer">
         <div className="footer-brand">
-          <img src="/kryla-icon-saffron.svg" height="20" alt="" aria-hidden="true" style={{opacity:0.55}} />
+          <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 10 L20 90" stroke="#0D0D0D" strokeWidth="14" strokeLinecap="round"/>
+            <path d="M20 50 L70 10" stroke="#0D0D0D" strokeWidth="14" strokeLinecap="round"/>
+            <path d="M20 50 L70 90" stroke="#F5A623" strokeWidth="14" strokeLinecap="round"/>
+          </svg>
           <span className="footer-wordmark">
             <span style={{color:'rgba(13,13,13,0.5)'}}>kryla</span>
             <span style={{color:'#F5A623'}}>.work</span>
           </span>
         </div>
-        <p className="footer-copy">© 2025 Kryla.work · Built for makers everywhere.</p>
+        <p className="footer-copy">© 2026 Kryla.work · Built for makers everywhere.</p>
       </footer>
     </div>
   );
