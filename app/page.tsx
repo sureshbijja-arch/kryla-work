@@ -533,6 +533,12 @@ const CSS = `
   }
   .slider-dot.active { background: #F5A623; transform: scale(1.4); }
   @media (max-width: 800px) { .slider-arrow { display: none; } }
+  @media (max-width: 768px) {
+    .slider-slide { padding: 32px 16px; }
+    .slider-slide .sec-inner { grid-template-columns: 1fr; gap: 28px; }
+    .slider-slide .card-right .card-col { order: -1; }
+    .slider-arrow { display: none; }
+  }
 `;
 
 function PriyaCard({ loc }: { loc: Loc }) {
