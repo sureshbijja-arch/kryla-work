@@ -495,17 +495,18 @@ const CSS = `
     background: var(--light);
     position: relative;
     overflow: hidden;
+    width: 100%;
   }
-
   .slider-track {
     display: flex;
     transition: transform 0.55s cubic-bezier(0.77, 0, 0.175, 1);
-    will-change: transform;
   }
   .slider-slide {
+    width: 100%;
     min-width: 100%;
     flex-shrink: 0;
     padding: 88px 24px;
+    box-sizing: border-box;
   }
   .slider-arrow {
     position: absolute; top: 50%; transform: translateY(-50%);
@@ -533,16 +534,14 @@ const CSS = `
     padding: 0;
   }
   .slider-dot.active { background: #F5A623; transform: scale(1.4); }
-  @media (max-width: 800px) { .slider-arrow { display: none; } }
   @media (max-width: 768px) {
-    .slider-outer { overflow: hidden; width: 100%; }
-    .slider-track { display: flex; width: 100%; }
-    .slider-slide { min-width: 100vw; flex-shrink: 0; padding: 24px 16px; box-sizing: border-box; }
-    .slider-slide .sec-inner { display: flex; flex-direction: column; gap: 24px; }
-    .slider-slide .card-right .card-col { order: -1; }
-    .profile-card { width: 100%; box-sizing: border-box; }
-    .pc-btns { grid-template-columns: 1fr 1fr; }
     .slider-arrow { display: none; }
+    .slider-slide { padding: 32px 20px; }
+    .slider-slide .sec-inner { display: block; }
+    .slider-slide .card-col { margin-bottom: 28px; }
+    .slider-slide .card-right .card-col { margin-bottom: 28px; }
+    .profile-card { max-width: 100%; box-sizing: border-box; }
+    .pc-btns { grid-template-columns: 1fr 1fr; }
   }
 `;
 
@@ -656,30 +655,52 @@ function AlexCard({ loc }: { loc: Loc }) {
 
 function HorizontalSlider({ loc }: { loc: Loc }) {
   const [current, setCurrent] = useState(0);
+  const [width, setWidth] = useState(0);
+  const outerRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const total = 4;
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
 
-  const goTo = (i: number) => {
-    setCurrent(i);
+  useEffect(() => {
+    const measure = () => {
+      if (outerRef.current) setWidth(outerRef.current.offsetWidth);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
+
+  const startTimer = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => setCurrent(c => (c + 1) % total), 4000);
   };
 
-  const prev = () => goTo((current - 1 + total) % total);
-  const next = () => goTo((current + 1) % total);
-
   useEffect(() => {
-    timerRef.current = setInterval(() => setCurrent(c => (c + 1) % total), 4000);
+    startTimer();
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
 
+  const goTo = (i: number) => { setCurrent(i); startTimer(); };
+  const prev = () => goTo((current - 1 + total) % total);
+  const next = () => goTo((current + 1) % total);
+
+  const touchStart = useRef(0);
+  const onTouchStart = (e: React.TouchEvent) => { touchStart.current = e.touches[0].clientX; };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const diff = touchStart.current - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) diff > 0 ? next() : prev();
+  };
+
   return (
     <>
-      <div className="slider-outer">
+      <div className="slider-outer" ref={outerRef}>
         <button className="slider-arrow prev" onClick={prev} aria-label="Previous">←</button>
         <button className="slider-arrow next" onClick={next} aria-label="Next">→</button>
-        <div className="slider-track" ref={trackRef} style={{ transform: `translateX(-${current * 100}%)` }}>
+        <div
+          className="slider-track"
+          style={{ transform: `translateX(-${current * (width || 100)}px)` }}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+        >
 
           <div className="slider-slide">
             <div className="sec-inner">
@@ -739,7 +760,7 @@ function HorizontalSlider({ loc }: { loc: Loc }) {
       </div>
       <div className="slider-dots">
         {Array.from({ length: total }).map((_, i) => (
-          <button key={i} className={`slider-dot${i === current ? ' active' : ''}`} onClick={() => goTo(i)} aria-label={`Go to slide ${i + 1}`} />
+          <button key={i} className={`slider-dot${i === current ? ' active' : ''}`} onClick={() => goTo(i)} aria-label={`Slide ${i + 1}`} />
         ))}
       </div>
     </>
