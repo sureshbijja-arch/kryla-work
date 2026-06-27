@@ -12,25 +12,22 @@ export async function GET(req: NextRequest) {
   try {
     const supabase = createServerClient()
 
-    // Match by providerId OR slug so Inngest retries (which may use a different
-    // row) don't cause the browser to miss the page_live=true signal.
-    let query = supabase.from('providers').select('page_live, slug')
-    if (providerId && slug) {
-      query = query.or(`id.eq.${providerId},slug.eq.${slug}`)
-    } else if (providerId) {
-      query = query.eq('id', providerId)
-    } else {
-      query = query.eq('slug', slug!)
-    }
+    console.log('[status] querying for providerId:', providerId, 'slug:', slug)
 
-    const { data, error } = await query.limit(1).maybeSingle()
+    const { data, error } = await supabase
+      .from('providers')
+      .select('page_live, slug, id')
+      .or(`id.eq.${providerId},slug.eq.${slug}`)
+      .maybeSingle()
 
-    if (error || !data) return NextResponse.json({ ready: false })
+    console.log('[status] result:', JSON.stringify(data), 'error:', JSON.stringify(error))
 
-    if (data.page_live) {
+    if (data?.page_live) {
+      console.log('[status] READY - returning true for slug:', data.slug)
       return NextResponse.json({ ready: true, slug: data.slug, presenceUrl: `https://${data.slug}.kryla.work` })
     }
 
+    console.log('[status] not ready yet, page_live:', data?.page_live)
     return NextResponse.json({ ready: false })
   } catch (err) {
     console.error('[status]', err)

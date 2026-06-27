@@ -90,6 +90,7 @@ export default function OnboardingPage() {
     timings.forEach((ms, i) => setTimeout(() => setBuildStep(i + 1), ms))
     pollRef.current = setInterval(async () => {
       try {
+        console.log('[poll] checking status for providerId:', providerId, 'slugRef:', slugRef.current)
         const params = new URLSearchParams({ providerId: providerId! })
         if (slugRef.current) params.set('slug', slugRef.current)
         const res = await fetch(`/api/onboarding/status?${params}`)
