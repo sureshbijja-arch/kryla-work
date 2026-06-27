@@ -61,7 +61,18 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (providerError || !provider) {
-    console.error('[submit] Provider insert error:', providerError)
+    const code = providerError?.code
+    if (code === '23505') {
+      return NextResponse.json({ error: 'That address is already taken — try a different one' }, { status: 409 })
+    }
+    if (code === '23502') {
+      console.error('[submit] Not-null violation:', providerError)
+      return NextResponse.json({ error: 'Some required information is missing — please go back and check' }, { status: 400 })
+    }
+    if (code === '23503') {
+      return NextResponse.json({ error: 'Something went wrong linking your account — please try again' }, { status: 500 })
+    }
+    console.error('[submit] Provider insert error:', providerError?.code, providerError?.message, providerError?.details)
     return NextResponse.json({ error: "Something went wrong on our end — we're on it" }, { status: 500 })
   }
 
@@ -95,7 +106,8 @@ export async function POST(req: NextRequest) {
       },
     })
   } catch (err) {
-    console.error('[submit] Inngest send error:', err)
+    console.error('[submit] Inngest send failed:', err)
+    // Non-fatal — member is created, build will be retried or triggered manually
   }
 
   return NextResponse.json({ ok: true, providerId, slug, presenceUrl: `https://${slug}.kryla.work` })

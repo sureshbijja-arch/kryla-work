@@ -131,10 +131,11 @@ export default function OnboardingPage() {
         body: JSON.stringify({ ...answers, slug }),
       })
       const data = await res.json()
-      if (!res.ok || !data.ok) { setSubmitError(data.error ?? 'Something went wrong — try again'); setSubmitting(false); return }
+      if (!res.ok || !data.ok) { setSubmitError(data.error); setSubmitting(false); return }
       setProviderId(data.providerId)
       setStep(5)
-    } catch {
+    } catch (err) {
+      console.error('[onboarding] Submit fetch failed:', err)
       setSubmitError('Something went wrong — check your connection and try again')
       setSubmitting(false)
     }
