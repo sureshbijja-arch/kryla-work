@@ -703,14 +703,14 @@ function HorizontalSlider({ loc }: { loc: Loc }) {
         >
 
           <div className="slider-slide">
-            <div className="sec-inner">
-              <div className="card-col"><PriyaCard loc={loc} /></div>
+            <div className="sec-inner card-right">
               <div className="text-col">
                 <p className="sec-eyebrow">YOUR IDENTITY ONLINE</p>
                 <h2 className="sec-h2 dark">Your name.<br />Your work.<br />One link that says it all.</h2>
                 <p className="sec-body on-light">Every skilled professional deserves a presence that matches their craft. Kryla gives you your own spot — with your services, your prices, and a way for people to reach you directly.</p>
                 <p className="sec-warm">Like a visiting card — but one that works while you sleep.</p>
               </div>
+              <div className="card-col"><PriyaCard loc={loc} /></div>
             </div>
           </div>
 
@@ -730,14 +730,14 @@ function HorizontalSlider({ loc }: { loc: Loc }) {
           </div>
 
           <div className="slider-slide">
-            <div className="sec-inner">
-              <div className="card-col"><RajCard loc={loc} /></div>
+            <div className="sec-inner card-right">
               <div className="text-col">
                 <p className="sec-eyebrow">LIVE IN 15 MINUTES</p>
                 <h2 className="sec-h2 dark">Answer 5 questions.<br />We handle<br />everything else.</h2>
                 <p className="sec-body on-light">No design skills needed. No complicated setup. Tell us what you do, who you help, and what you charge — your professional spot is live before your next session starts.</p>
                 <p className="sec-warm">Most members are live in under 15 minutes. No coding. No stress.</p>
               </div>
+              <div className="card-col"><RajCard loc={loc} /></div>
             </div>
           </div>
 
