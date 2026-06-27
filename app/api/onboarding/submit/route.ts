@@ -77,19 +77,26 @@ export async function POST(req: NextRequest) {
   }
 
   const providerId = provider.id
+  console.log('[submit] Provider inserted:', providerId, slug)
 
-  await supabase.from('onboarding_answers').insert({
-    provider_id: providerId,
-    persona,
-    first_name: firstName.trim(),
-    last_name: lastName?.trim() || '',
-    tagline: tagline?.trim() || '',
-    location: location?.trim() || '',
-    slug,
-    whatsapp_number: whatsapp,
-    plan,
-    region,
-  })
+  try {
+    await supabase.from('onboarding_answers').insert({
+      provider_id: providerId,
+      persona,
+      first_name: firstName.trim(),
+      last_name: lastName?.trim() || '',
+      tagline: tagline?.trim() || '',
+      location: location?.trim() || '',
+      slug,
+      whatsapp_number: whatsapp,
+      plan,
+      region,
+    })
+    console.log('[submit] Answers saved for:', providerId)
+  } catch (err) {
+    console.error('[submit] Answers insert failed:', JSON.stringify(err))
+    // Non-fatal — provider row exists, build can still proceed
+  }
 
   try {
     await inngest.send({
@@ -105,8 +112,9 @@ export async function POST(req: NextRequest) {
         plan,
       },
     })
+    console.log('[submit] Inngest event sent for:', providerId)
   } catch (err) {
-    console.error('[submit] Inngest send failed:', err)
+    console.error('[submit] Inngest send failed:', JSON.stringify(err))
     // Non-fatal — member is created, build will be retried or triggered manually
   }
 
