@@ -88,9 +88,9 @@ export default function OnboardingPage() {
     if (step !== 5 || !providerId) return
 
     const timings = [0, 2500, 5000, 7500]
-    timings.forEach((ms, i) => setTimeout(() => setBuildStep(i + 1), ms))
+    const animTimers = timings.map((ms, i) => setTimeout(() => setBuildStep(i + 1), ms))
 
-    const timeoutId = setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       setTimedOut(true)
       if (pollRef.current) clearInterval(pollRef.current)
     }, 300000)
@@ -99,13 +99,11 @@ export default function OnboardingPage() {
       try {
         const currentSlug = slugRef.current
         const url = `/api/onboarding/status?providerId=${encodeURIComponent(providerId)}&slug=${encodeURIComponent(currentSlug)}`
-        console.log('[poll] fetching:', url)
-        const res = await fetch(url)
+        const res = await fetch(url, { cache: 'no-store' })
         const data = await res.json()
-        console.log('[poll] response:', JSON.stringify(data))
         if (data.ready) {
           clearInterval(pollRef.current!)
-          clearTimeout(timeoutId)
+          clearTimeout(timeoutRef.current!)
           setBuildStep(5)
           setTimeout(() => router.push(`/welcome?slug=${data.slug}`), 1500)
         }
@@ -115,8 +113,9 @@ export default function OnboardingPage() {
     }, 2000)
 
     return () => {
+      animTimers.forEach(clearTimeout)
       if (pollRef.current) clearInterval(pollRef.current)
-      clearTimeout(timeoutId)
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
   }, [step, providerId, router])
 
