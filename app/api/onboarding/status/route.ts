@@ -30,8 +30,9 @@ export async function GET(req: NextRequest) {
     }
 
     console.log('[status] providerId:', providerId, 'slug:', slug, 'data:', JSON.stringify(data))
+    console.log('[status] raw page_live value:', data?.page_live, typeof data?.page_live)
 
-    if (data?.page_live) {
+    if (data?.page_live === true || data?.page_live === 'true') {
       console.log('[status] READY for slug:', data.slug)
       return NextResponse.json({ ready: true, slug: data.slug, presenceUrl: `https://${data.slug}.kryla.work` })
     }
