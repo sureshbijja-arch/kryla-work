@@ -59,6 +59,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
+  // API routes and Next.js internals must not get the slug prefix
+  if (url.pathname.startsWith('/api') || url.pathname.startsWith('/_next')) {
+    return NextResponse.next()
+  }
+
   url.pathname = `/${slug}${url.pathname === '/' ? '' : url.pathname}`
   return NextResponse.rewrite(url)
 }
