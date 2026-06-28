@@ -26,14 +26,14 @@ export async function middleware(req: NextRequest) {
               return req.cookies.get(name)?.value
             },
             set(name: string, value: string, options: CookieOptions) {
-              req.cookies.set({ name, value, ...options } as Parameters<typeof req.cookies.set>[0])
+              req.cookies.set(name, value)
               response = NextResponse.next({ request: { headers: req.headers } })
-              response.cookies.set({ name, value, ...options } as Parameters<typeof response.cookies.set>[0])
+              response.cookies.set(name, value, options)
             },
             remove(name: string, options: CookieOptions) {
-              req.cookies.set({ name, value: '', ...options } as Parameters<typeof req.cookies.set>[0])
+              req.cookies.set(name, '')
               response = NextResponse.next({ request: { headers: req.headers } })
-              response.cookies.set({ name, value: '', ...options } as Parameters<typeof response.cookies.set>[0])
+              response.cookies.set(name, '', options)
             },
           },
         }
