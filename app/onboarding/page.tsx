@@ -93,7 +93,7 @@ export default function OnboardingPage() {
     const timeoutId = setTimeout(() => {
       setTimedOut(true)
       if (pollRef.current) clearInterval(pollRef.current)
-    }, 180000)
+    }, 300000)
 
     pollRef.current = setInterval(async () => {
       try {
@@ -106,7 +106,8 @@ export default function OnboardingPage() {
         if (data.ready) {
           clearInterval(pollRef.current!)
           clearTimeout(timeoutId)
-          setTimeout(() => router.push(`/welcome?slug=${data.slug}`), 1000)
+          setBuildStep(5)
+          setTimeout(() => router.push(`/welcome?slug=${data.slug}`), 1500)
         }
       } catch (err) {
         console.error('[poll] error:', err)
@@ -360,8 +361,9 @@ export default function OnboardingPage() {
                     </div>
                     <div className="w-full max-w-xs space-y-3 text-left">
                       {['Writing your intro and services','Choosing your layout and colors','Setting up your booking form','Making your presence live'].map((label, i) => {
-                        const done = buildStep > i + 1
-                        const active = buildStep === i + 1
+                        // Steps 1-3 auto-checkmark; step 4 only when buildStep===5 (ready:true received)
+                        const done = i < 3 ? buildStep > i + 1 : buildStep === 5
+                        const active = !done && buildStep === i + 1
                         return (
                           <div key={label} className="flex items-center gap-3">
                             <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 border transition-all ${done ? 'bg-[#22C55E] border-[#22C55E]' : active ? 'border-[#F5A623] bg-[rgba(245,166,35,0.1)]' : 'border-[#E5E5E5]'}`}>
