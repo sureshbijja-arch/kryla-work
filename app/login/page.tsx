@@ -1,33 +1,53 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+type Step = 'email' | 'otp' | 'error'
+
 export default function LoginPage() {
-  const [email, setEmail]     = useState('')
-  const [status, setStatus]   = useState<'idle' | 'loading' | 'sent' | 'error'>('idle')
+  const router = useRouter()
+  const [email, setEmail]   = useState('')
+  const [otp, setOtp]       = useState('')
+  const [step, setStep]     = useState<Step>('email')
+  const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function sendOtp(e: React.FormEvent) {
     e.preventDefault()
-    setStatus('loading')
+    setLoading(true)
     setErrorMsg('')
 
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
+    const { error } = await supabase.auth.signInWithOtp({ email })
 
+    setLoading(false)
     if (error) {
       setErrorMsg('Something went wrong — please try again')
-      setStatus('error')
       return
     }
+    setStep('otp')
+  }
 
-    setStatus('sent')
+  async function verifyOtp(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    setErrorMsg('')
+
+    const supabase = createClient()
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token: otp.trim(),
+      type: 'email',
+    })
+
+    setLoading(false)
+    if (error) {
+      setErrorMsg('Incorrect code — check your email and try again')
+      return
+    }
+    router.push('/my-space')
   }
 
   return (
@@ -46,25 +66,14 @@ export default function LoginPage() {
           </span>
         </div>
 
-        {status === 'sent' ? (
-          <div>
-            <div className="w-10 h-10 rounded-full bg-[#F0FDF4] flex items-center justify-center mb-4">
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path d="M3 9l4 4 8-8" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <h1 className="text-xl font-bold text-[#0D0D0D] mb-2">Check your email</h1>
-            <p className="text-[#666666] text-sm leading-relaxed">
-              We sent a sign-in link to <span className="font-semibold text-[#0D0D0D]">{email}</span>.
-              Click the link to open your dashboard.
-            </p>
-          </div>
-        ) : (
+        {step === 'email' && (
           <>
             <h1 className="text-2xl font-bold text-[#0D0D0D] mb-1">Welcome back</h1>
-            <p className="text-[#666666] text-sm mb-8">Enter your email to sign in to your profile</p>
+            <p className="text-[#666666] text-sm mb-8">
+              Enter your email and we&apos;ll send you a sign-in code
+            </p>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={sendOtp} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-[#0D0D0D] uppercase tracking-wide mb-1.5">
                   Email address
@@ -78,16 +87,60 @@ export default function LoginPage() {
                   className="w-full border border-[#E5E5E5] rounded-lg px-3 py-2.5 text-sm text-[#0D0D0D] focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
                 />
               </div>
-
-              {status === 'error' && (
-                <p className="text-red-500 text-sm">{errorMsg}</p>
-              )}
-
+              {errorMsg && <p className="text-red-500 text-sm">{errorMsg}</p>}
               <button
                 type="submit"
-                disabled={status === 'loading'}
+                disabled={loading}
                 className="w-full py-3 rounded-lg font-semibold text-white text-sm bg-[#0D0D0D] disabled:opacity-60 hover:opacity-80 transition-opacity">
-                {status === 'loading' ? 'Sending…' : 'Send me a sign-in link'}
+                {loading ? 'Sending…' : 'Send code'}
+              </button>
+            </form>
+          </>
+        )}
+
+        {step === 'otp' && (
+          <>
+            <div className="w-10 h-10 rounded-full bg-[#FFF7ED] flex items-center justify-center mb-4">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <rect x="2" y="5" width="14" height="10" rx="2" stroke="#EA8C00" strokeWidth="1.5" />
+                <path d="M5 5V4a4 4 0 0 1 8 0v1" stroke="#EA8C00" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-[#0D0D0D] mb-1">Enter your code</h1>
+            <p className="text-[#666666] text-sm mb-8">
+              We sent a 6-digit code to <span className="font-semibold text-[#0D0D0D]">{email}</span>.
+              Check your inbox.
+            </p>
+
+            <form onSubmit={verifyOtp} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-[#0D0D0D] uppercase tracking-wide mb-1.5">
+                  6-digit code
+                </label>
+                <input
+                  required
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  placeholder="123456"
+                  value={otp}
+                  onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  className="w-full border border-[#E5E5E5] rounded-lg px-3 py-2.5 text-sm text-[#0D0D0D] focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb] tracking-widest text-center text-lg font-semibold"
+                />
+              </div>
+              {errorMsg && <p className="text-red-500 text-sm">{errorMsg}</p>}
+              <button
+                type="submit"
+                disabled={loading || otp.length < 6}
+                className="w-full py-3 rounded-lg font-semibold text-white text-sm bg-[#0D0D0D] disabled:opacity-60 hover:opacity-80 transition-opacity">
+                {loading ? 'Verifying…' : 'Sign in'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setStep('email'); setOtp(''); setErrorMsg('') }}
+                className="w-full text-xs text-[#999] hover:text-[#0D0D0D] transition-colors">
+                Use a different email
               </button>
             </form>
           </>
