@@ -1,66 +1,126 @@
-/**
- * /[slug] — Public member profile page
- *
- * This is what the Member's customers see.
- * Rendered with ISR (revalidate: 3600) for fast load.
- * Subdomain routing (priya.kryla.work) is handled in middleware.ts
- *
- * TODO: Build full profile templates (focus, portfolio, clinic, storefront, premium)
- */
+import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
+import { supabaseAdmin } from '@/lib/supabase/admin'
+import type { ProfileData, PaletteKey, FontKey, ShowSections } from './types'
+import FocusTemplate from './components/templates/FocusTemplate'
+import PortfolioTemplate from './components/templates/PortfolioTemplate'
+import StorefrontTemplate from './components/templates/StorefrontTemplate'
+import ClinicTemplate from './components/templates/ClinicTemplate'
 
-import { supabaseAdmin } from "@/lib/supabase/admin"
-import { notFound } from "next/navigation"
-
-export const revalidate = 3600 // ISR — revalidate every hour
+export const revalidate = 3600
 
 interface Props {
   params: { slug: string }
 }
 
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { data: provider } = await supabaseAdmin
+    .from('providers')
+    .select('id, first_name, last_name, persona, location')
+    .eq('slug', params.slug)
+    .eq('page_live', true)
+    .single()
+
+  if (!provider) return { title: 'Not Found' }
+
+  const { data: page } = await supabaseAdmin
+    .from('pages')
+    .select('seo_title, seo_description')
+    .eq('provider_id', provider.id)
+    .single()
+
+  const defaultTitle = `${provider.first_name} ${provider.last_name} — ${provider.persona} in ${provider.location}`
+
+  return {
+    title: page?.seo_title || defaultTitle,
+    description: page?.seo_description || `Book ${provider.first_name} on Kryla`,
+    openGraph: {
+      title: page?.seo_title || defaultTitle,
+      description: page?.seo_description || `Book ${provider.first_name} on Kryla`,
+      type: 'profile',
+    },
+  }
+}
+
 export default async function MemberProfilePage({ params }: Props) {
   const { data: provider } = await supabaseAdmin
-    .from("providers")
-    .select("*, pages(*)")
-    .eq("slug", params.slug)
-    .eq("page_live", true)
+    .from('providers')
+    .select('id, first_name, last_name, persona, location, whatsapp_number, email')
+    .eq('slug', params.slug)
+    .eq('page_live', true)
     .single()
 
   if (!provider) return notFound()
 
-  const page = (provider as any).pages
+  const { data: page } = await supabaseAdmin
+    .from('pages')
+    .select(
+      'headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, show_sections'
+    )
+    .eq('provider_id', provider.id)
+    .single()
+
+  if (!page) return notFound()
+
+  const defaultShowSections: ShowSections = {
+    hero: true, services: true, highlights: true,
+    booking: true, faq: true, contact: true,
+  }
+
+  const profileData: ProfileData = {
+    providerId: provider.id,
+    firstName: provider.first_name ?? '',
+    lastName: provider.last_name ?? '',
+    persona: provider.persona ?? '',
+    location: provider.location ?? '',
+    whatsappNumber: provider.whatsapp_number ?? null,
+    email: provider.email ?? null,
+    headline: page.headline ?? '',
+    subheadline: page.subheadline ?? '',
+    bio: page.bio ?? '',
+    ctaPrimary: page.cta_primary ?? 'Book now',
+    ctaSecondary: page.cta_secondary ?? 'Get in touch',
+    services: Array.isArray(page.services) ? page.services : [],
+    highlights: Array.isArray(page.highlights) ? page.highlights : [],
+    faq: Array.isArray(page.faq) ? page.faq : [],
+    palette: (page.palette as PaletteKey) ?? 'professional',
+    font: (page.font as FontKey) ?? 'inter',
+    showSections: (page.show_sections as ShowSections) ?? defaultShowSections,
+  }
+
+  const jsonLd = page.schema_type
+    ? {
+        '@context': 'https://schema.org',
+        '@type': page.schema_type,
+        name: `${provider.first_name} ${provider.last_name}`,
+        description: page.subheadline,
+        url: `https://kryla.work/${params.slug}`,
+        ...(provider.whatsapp_number
+          ? { telephone: `+${provider.whatsapp_number.replace(/\D/g, '')}` }
+          : {}),
+        ...(provider.location ? { address: { '@type': 'PostalAddress', addressLocality: provider.location } } : {}),
+      }
+    : null
+
+  const template = page.template as string
 
   return (
-    <main style={{ maxWidth: 640, margin: "0 auto", padding: "2rem" }}>
-      <h1 style={{ fontSize: "1.75rem", fontWeight: 700, color: "#0D0D0D" }}>
-        {page?.headline ?? provider.name}
-      </h1>
-      {page?.tagline && (
-        <p style={{ marginTop: "0.5rem", color: "#444444", fontSize: "1.1rem" }}>
-          {page.tagline}
-        </p>
+    <>
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       )}
-      {page?.bio && (
-        <p style={{ marginTop: "1rem", color: "#666666", lineHeight: 1.6 }}>
-          {page.bio}
-        </p>
+      {template === 'portfolio' ? (
+        <PortfolioTemplate data={profileData} />
+      ) : template === 'storefront' ? (
+        <StorefrontTemplate data={profileData} />
+      ) : template === 'clinic' ? (
+        <ClinicTemplate data={profileData} />
+      ) : (
+        <FocusTemplate data={profileData} />
       )}
-      {provider.phone && (
-        <a
-          href={`https://wa.me/${provider.phone.replace(/\D/g, "")}`}
-          style={{
-            display: "inline-block",
-            marginTop: "1.5rem",
-            padding: "0.75rem 1.5rem",
-            background: "#25D366",
-            color: "#fff",
-            borderRadius: "0.5rem",
-            fontWeight: 600,
-            textDecoration: "none",
-          }}
-        >
-          WhatsApp {provider.name.split(" ")[0]}
-        </a>
-      )}
-    </main>
+    </>
   )
 }
