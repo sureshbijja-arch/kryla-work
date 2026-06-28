@@ -105,7 +105,7 @@ export default function OnboardingPage() {
           clearInterval(pollRef.current!)
           clearTimeout(timeoutRef.current!)
           setBuildStep(5)
-          setTimeout(() => router.push(`/welcome?slug=${data.slug}&persona=${encodeURIComponent(answers.persona ?? '')}`), 1500)
+          setTimeout(() => router.push(`/welcome?slug=${data.slug}`), 1500)
         }
       } catch (err) {
         console.error('[poll] error:', err)

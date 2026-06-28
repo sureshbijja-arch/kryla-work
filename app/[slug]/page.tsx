@@ -8,8 +8,7 @@ import PortfolioTemplate from './components/templates/PortfolioTemplate'
 import StorefrontTemplate from './components/templates/StorefrontTemplate'
 import ClinicTemplate from './components/templates/ClinicTemplate'
 
-const STUDIO_DOMAIN = process.env.NEXT_PUBLIC_STUDIO_DOMAIN ?? 'kryla.studio'
-const APP_DOMAIN    = process.env.NEXT_PUBLIC_APP_DOMAIN    ?? 'kryla.work'
+const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'kryla.work'
 
 export const revalidate = 3600
 
@@ -101,8 +100,7 @@ export default async function MemberProfilePage({ params }: Props) {
     showSections,
   }
 
-  const isTutor   = provider.persona === 'tutor'
-  const baseDomain = isTutor ? STUDIO_DOMAIN : APP_DOMAIN
+  const isTutor = provider.persona === 'tutor'
 
   const jsonLd = page.schema_type
     ? {
@@ -110,7 +108,7 @@ export default async function MemberProfilePage({ params }: Props) {
         '@type': page.schema_type,
         name: `${provider.first_name} ${provider.last_name}`,
         description: page.subheadline,
-        url: `https://${params.slug}.${baseDomain}`,
+        url: `https://${params.slug}.${APP_DOMAIN}`,
         ...(provider.whatsapp_number
           ? { telephone: `+${provider.whatsapp_number.replace(/\D/g, '')}` }
           : {}),

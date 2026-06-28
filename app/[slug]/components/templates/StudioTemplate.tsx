@@ -1,34 +1,7 @@
 import BookingForm from '../BookingForm'
-import { WhatsAppIcon, FaqList, SectionHeading } from '../shared'
+import { KrylaLogo, Footer, WhatsAppIcon, SectionHeading, FaqList } from '../shared'
 import { ACCENT, PAGE_BG, FONT_CLASS, waUrl } from '../../types'
 import type { ProfileData } from '../../types'
-
-function StudioLogo() {
-  return (
-    <div className="flex items-center gap-1.5">
-      <svg width="18" height="18" viewBox="0 0 22 22" fill="none">
-        <line x1="11" y1="2"  x2="11" y2="20" stroke="#0D0D0D" strokeWidth="3" strokeLinecap="round" />
-        <line x1="11" y1="11" x2="3"  y2="3"  stroke="#0D0D0D" strokeWidth="3" strokeLinecap="round" />
-        <line x1="11" y1="11" x2="19" y2="3"  stroke="#0D0D0D" strokeWidth="3" strokeLinecap="round" />
-        <line x1="11" y1="11" x2="19" y2="19" stroke="#F5A623" strokeWidth="3" strokeLinecap="round" />
-      </svg>
-      <span className="text-xs font-bold text-[#0D0D0D] tracking-tight">
-        kryla<span className="text-[#F5A623]">.studio</span>
-      </span>
-    </div>
-  )
-}
-
-function StudioFooter() {
-  return (
-    <footer className="py-8 text-center">
-      <div className="flex items-center justify-center gap-1.5">
-        <span className="text-xs text-[#bbb]">Powered by</span>
-        <StudioLogo />
-      </div>
-    </footer>
-  )
-}
 
 export default function StudioTemplate({ data }: { data: ProfileData }) {
   const {
@@ -45,10 +18,9 @@ export default function StudioTemplate({ data }: { data: ProfileData }) {
 
   return (
     <div style={{ background: bg }} className={`min-h-screen ${fontClass}`}>
-      {/* Nav */}
       <nav className="max-w-2xl mx-auto px-6 pt-6 flex justify-between items-center">
         <span className="text-xs text-[#999]">{location}</span>
-        <StudioLogo />
+        <KrylaLogo />
       </nav>
 
       <main className="max-w-2xl mx-auto px-6 pb-20">
@@ -56,7 +28,6 @@ export default function StudioTemplate({ data }: { data: ProfileData }) {
         {/* Hero */}
         {showSections.hero && (
           <section className="pt-14 pb-10">
-            {/* Tutor name as accent label */}
             <p className="text-sm font-semibold mb-3" style={{ color: accent }}>{fullName}</p>
             <h1 className="text-4xl sm:text-5xl font-bold text-[#0D0D0D] leading-tight mb-4">
               {headline}
@@ -80,7 +51,7 @@ export default function StudioTemplate({ data }: { data: ProfileData }) {
           </section>
         )}
 
-        {/* What I teach — services */}
+        {/* What I teach */}
         {showSections.services && services.length > 0 && (
           <section className="py-8 border-t border-[#E5E5E5]">
             <SectionHeading>What I teach</SectionHeading>
@@ -102,7 +73,7 @@ export default function StudioTemplate({ data }: { data: ProfileData }) {
           </section>
         )}
 
-        {/* Highlights — credentials / achievements */}
+        {/* Highlights */}
         {showSections.highlights && highlights.length > 0 && (
           <section className="py-8 border-t border-[#E5E5E5]">
             <div className="grid grid-cols-3 gap-6">
@@ -164,7 +135,7 @@ export default function StudioTemplate({ data }: { data: ProfileData }) {
         )}
       </main>
 
-      <StudioFooter />
+      <Footer />
     </div>
   )
 }

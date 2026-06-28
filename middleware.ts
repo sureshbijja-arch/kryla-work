@@ -1,8 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
 
-const APP_DOMAIN    = process.env.NEXT_PUBLIC_APP_DOMAIN    ?? 'kryla.work'
-const STUDIO_DOMAIN = process.env.NEXT_PUBLIC_STUDIO_DOMAIN ?? 'kryla.studio'
+const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'kryla.work'
 
 export async function middleware(req: NextRequest) {
   const host     = req.headers.get('host') ?? ''
@@ -13,8 +12,6 @@ export async function middleware(req: NextRequest) {
   if (
     hostname === APP_DOMAIN ||
     hostname === 'www.' + APP_DOMAIN ||
-    hostname === STUDIO_DOMAIN ||
-    hostname === 'www.' + STUDIO_DOMAIN ||
     hostname === 'localhost'
   ) {
     if (url.pathname.startsWith('/my-space')) {
@@ -55,10 +52,8 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  // Extract slug from subdomain: priya.kryla.work / priya.kryla.studio → "priya"
-  const slug = hostname
-    .replace(`.${APP_DOMAIN}`, '')
-    .replace(`.${STUDIO_DOMAIN}`, '')
+  // Extract slug from subdomain: priya.kryla.work → "priya"
+  const slug = hostname.replace(`.${APP_DOMAIN}`, '')
 
   if (!slug || slug === hostname) {
     return NextResponse.next()
