@@ -1,4 +1,4 @@
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'kryla.work'
@@ -22,15 +22,15 @@ export async function middleware(req: NextRequest) {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
           cookies: {
-            get(name) {
+            get(name: string) {
               return req.cookies.get(name)?.value
             },
-            set(name, value, options) {
+            set(name: string, value: string, options: CookieOptions) {
               req.cookies.set({ name, value, ...options } as Parameters<typeof req.cookies.set>[0])
               response = NextResponse.next({ request: { headers: req.headers } })
               response.cookies.set({ name, value, ...options } as Parameters<typeof response.cookies.set>[0])
             },
-            remove(name, options) {
+            remove(name: string, options: CookieOptions) {
               req.cookies.set({ name, value: '', ...options } as Parameters<typeof req.cookies.set>[0])
               response = NextResponse.next({ request: { headers: req.headers } })
               response.cookies.set({ name, value: '', ...options } as Parameters<typeof response.cookies.set>[0])
