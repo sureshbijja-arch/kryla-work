@@ -24,7 +24,7 @@ export default function LoginPage() {
 
     setLoading(false)
     if (error) {
-      setErrorMsg('Something went wrong — please try again')
+      setErrorMsg(error.message || 'Something went wrong — please try again')
       return
     }
     setStep('otp')
