@@ -2,10 +2,14 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { ProfileData, PaletteKey, FontKey, ShowSections } from './types'
+import StudioTemplate from './components/templates/StudioTemplate'
 import FocusTemplate from './components/templates/FocusTemplate'
 import PortfolioTemplate from './components/templates/PortfolioTemplate'
 import StorefrontTemplate from './components/templates/StorefrontTemplate'
 import ClinicTemplate from './components/templates/ClinicTemplate'
+
+const STUDIO_DOMAIN = process.env.NEXT_PUBLIC_STUDIO_DOMAIN ?? 'kryla.studio'
+const APP_DOMAIN    = process.env.NEXT_PUBLIC_APP_DOMAIN    ?? 'kryla.work'
 
 export const revalidate = 3600
 
@@ -97,13 +101,16 @@ export default async function MemberProfilePage({ params }: Props) {
     showSections,
   }
 
+  const isTutor   = provider.persona === 'tutor'
+  const baseDomain = isTutor ? STUDIO_DOMAIN : APP_DOMAIN
+
   const jsonLd = page.schema_type
     ? {
         '@context': 'https://schema.org',
         '@type': page.schema_type,
         name: `${provider.first_name} ${provider.last_name}`,
         description: page.subheadline,
-        url: `https://kryla.work/${params.slug}`,
+        url: `https://${params.slug}.${baseDomain}`,
         ...(provider.whatsapp_number
           ? { telephone: `+${provider.whatsapp_number.replace(/\D/g, '')}` }
           : {}),
@@ -121,7 +128,9 @@ export default async function MemberProfilePage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      {template === 'portfolio' ? (
+      {isTutor ? (
+        <StudioTemplate data={profileData} />
+      ) : template === 'portfolio' ? (
         <PortfolioTemplate data={profileData} />
       ) : template === 'storefront' ? (
         <StorefrontTemplate data={profileData} />

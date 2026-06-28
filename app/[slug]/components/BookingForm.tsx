@@ -8,11 +8,13 @@ export default function BookingForm({
   services,
   accentColor,
   firstName,
+  ctaLabel = 'Send request',
 }: {
   providerId: string
   services: ServiceItem[]
   accentColor: string
   firstName: string
+  ctaLabel?: string
 }) {
   const [form, setForm] = useState({
     customerName: '',
@@ -129,7 +131,7 @@ export default function BookingForm({
         disabled={status === 'loading'}
         className="w-full py-3 rounded-lg font-semibold text-white text-sm disabled:opacity-60 transition-opacity hover:opacity-90 active:scale-[0.98]"
         style={{ background: accentColor }}>
-        {status === 'loading' ? 'Sending…' : 'Send request'}
+        {status === 'loading' ? 'Sending…' : ctaLabel}
       </button>
     </form>
   )
