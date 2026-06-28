@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import PlanSection from './PlanSection'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -34,6 +35,9 @@ interface Props {
   slug: string
   firstName: string
   pageLive: boolean
+  plan: string
+  planStatus: string
+  region: 'india' | 'usa'
   currentProfile: CurrentProfile
 }
 
@@ -48,7 +52,11 @@ const FONT_LABELS: Record<string, string> = {
   inter: 'Inter', georgia: 'Georgia', trebuchet: 'Trebuchet',
 }
 
-export default function SpaceClient({ providerId, slug, firstName, pageLive, currentProfile }: Props) {
+export default function SpaceClient({
+  providerId, slug, firstName, pageLive,
+  plan, region, currentProfile,
+}: Props) {
+  const [tab, setTab] = useState<'chat' | 'plan'>('chat')
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -60,9 +68,11 @@ export default function SpaceClient({ providerId, slug, firstName, pageLive, cur
   const bottomRef             = useRef<HTMLDivElement>(null)
   const inputRef              = useRef<HTMLTextAreaElement>(null)
 
+  const isSeed = !plan || plan === 'seed'
+
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    if (tab === 'chat') bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, tab])
 
   async function send() {
     const text = input.trim()
@@ -130,87 +140,130 @@ export default function SpaceClient({ providerId, slug, firstName, pageLive, cur
         )}
       </header>
 
-      {/* Profile meta tags */}
-      <div className="bg-white border-b border-[#E5E5E5] px-6 py-2.5 flex items-center gap-2 flex-wrap">
-        <span className="text-xs text-[#999]">Current style:</span>
-        <Tag label={TEMPLATE_LABELS[currentProfile.template] ?? currentProfile.template} />
-        <Tag label={PALETTE_LABELS[currentProfile.palette] ?? currentProfile.palette} />
-        <Tag label={FONT_LABELS[currentProfile.font] ?? currentProfile.font} />
+      {/* Tabs */}
+      <div className="bg-white border-b border-[#E5E5E5] px-6 flex items-center gap-6">
+        {(['chat', 'plan'] as const).map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`py-3 text-sm font-semibold border-b-2 transition-colors ${
+              tab === t
+                ? 'border-[#0D0D0D] text-[#0D0D0D]'
+                : 'border-transparent text-[#999] hover:text-[#0D0D0D]'
+            }`}>
+            {t === 'chat' ? 'Edit profile' : 'My plan'}
+          </button>
+        ))}
+        <div className="ml-auto pb-2 flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-[#999]">Style:</span>
+          <Tag label={TEMPLATE_LABELS[currentProfile.template] ?? currentProfile.template} />
+          <Tag label={PALETTE_LABELS[currentProfile.palette] ?? currentProfile.palette} />
+          <Tag label={FONT_LABELS[currentProfile.font] ?? currentProfile.font} />
+        </div>
       </div>
 
-      {/* Chat area */}
-      <main className="flex-1 overflow-y-auto px-4 py-6 max-w-2xl w-full mx-auto">
-        <div className="space-y-4">
-          {messages.map((msg, i) => (
-            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[80%] ${msg.role === 'user' ? 'order-1' : ''}`}>
-                <div
-                  className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                    msg.role === 'user'
-                      ? 'bg-[#0D0D0D] text-white rounded-br-sm'
-                      : 'bg-white border border-[#E5E5E5] text-[#0D0D0D] rounded-bl-sm'
-                  }`}>
-                  {msg.content}
+      {tab === 'chat' && (
+        <>
+          {/* Seed upgrade nudge */}
+          {isSeed && (
+            <div className="max-w-2xl w-full mx-auto px-4 pt-4">
+              <div className="flex items-center justify-between gap-3 bg-[#FFF7ED] border border-[#F5A623]/30 rounded-xl px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🌿</span>
+                  <p className="text-xs text-[#444]">
+                    <span className="font-semibold">Upgrade to Sprout</span> to add a booking form to your page
+                  </p>
                 </div>
-                {msg.changed && (
-                  <div className="flex items-center gap-1 mt-1.5 ml-1">
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path d="M2 6l3 3 5-5" stroke="#22C55E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    <span className="text-[10px] text-[#22C55E] font-semibold">Saved</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-
-          {loading && (
-            <div className="flex justify-start">
-              <div className="bg-white border border-[#E5E5E5] rounded-2xl rounded-bl-sm px-4 py-3">
-                <div className="flex gap-1 items-center h-4">
-                  {[0, 150, 300].map(delay => (
-                    <div
-                      key={delay}
-                      className="w-1.5 h-1.5 rounded-full bg-[#bbb] animate-bounce"
-                      style={{ animationDelay: `${delay}ms` }}
-                    />
-                  ))}
-                </div>
+                <button
+                  onClick={() => setTab('plan')}
+                  className="shrink-0 text-xs font-semibold text-[#EA8C00] hover:underline">
+                  See plans →
+                </button>
               </div>
             </div>
           )}
 
-          <div ref={bottomRef} />
-        </div>
-      </main>
+          {/* Chat messages */}
+          <main className="flex-1 overflow-y-auto px-4 py-6 max-w-2xl w-full mx-auto">
+            <div className="space-y-4">
+              {messages.map((msg, i) => (
+                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className="max-w-[80%]">
+                    <div
+                      className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                        msg.role === 'user'
+                          ? 'bg-[#0D0D0D] text-white rounded-br-sm'
+                          : 'bg-white border border-[#E5E5E5] text-[#0D0D0D] rounded-bl-sm'
+                      }`}>
+                      {msg.content}
+                    </div>
+                    {msg.changed && (
+                      <div className="flex items-center gap-1 mt-1.5 ml-1">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                          <path d="M2 6l3 3 5-5" stroke="#22C55E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        <span className="text-[10px] text-[#22C55E] font-semibold">Saved</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
 
-      {/* Input */}
-      <div className="bg-white border-t border-[#E5E5E5] px-4 py-4">
-        <div className="max-w-2xl mx-auto flex gap-3 items-end">
-          <textarea
-            ref={inputRef}
-            rows={1}
-            placeholder="What would you like to change?"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={loading}
-            className="flex-1 resize-none border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm text-[#0D0D0D] focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb] disabled:opacity-50 max-h-32 overflow-y-auto"
-            style={{ lineHeight: '1.5' }}
-          />
-          <button
-            onClick={send}
-            disabled={loading || !input.trim()}
-            className="shrink-0 w-10 h-10 rounded-xl bg-[#0D0D0D] text-white flex items-center justify-center disabled:opacity-40 hover:opacity-80 transition-opacity">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M2 14L14 8 2 2v4.5l8 1.5-8 1.5V14z" fill="currentColor" />
-            </svg>
-          </button>
+              {loading && (
+                <div className="flex justify-start">
+                  <div className="bg-white border border-[#E5E5E5] rounded-2xl rounded-bl-sm px-4 py-3">
+                    <div className="flex gap-1 items-center h-4">
+                      {[0, 150, 300].map(delay => (
+                        <div
+                          key={delay}
+                          className="w-1.5 h-1.5 rounded-full bg-[#bbb] animate-bounce"
+                          style={{ animationDelay: `${delay}ms` }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div ref={bottomRef} />
+            </div>
+          </main>
+
+          {/* Input */}
+          <div className="bg-white border-t border-[#E5E5E5] px-4 py-4">
+            <div className="max-w-2xl mx-auto flex gap-3 items-end">
+              <textarea
+                ref={inputRef}
+                rows={1}
+                placeholder="What would you like to change?"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={loading}
+                className="flex-1 resize-none border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm text-[#0D0D0D] focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb] disabled:opacity-50 max-h-32 overflow-y-auto"
+                style={{ lineHeight: '1.5' }}
+              />
+              <button
+                onClick={send}
+                disabled={loading || !input.trim()}
+                className="shrink-0 w-10 h-10 rounded-xl bg-[#0D0D0D] text-white flex items-center justify-center disabled:opacity-40 hover:opacity-80 transition-opacity">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M2 14L14 8 2 2v4.5l8 1.5-8 1.5V14z" fill="currentColor" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-center text-[10px] text-[#bbb] mt-2">
+              Enter to send · Shift+Enter for new line
+            </p>
+          </div>
+        </>
+      )}
+
+      {tab === 'plan' && (
+        <div className="flex-1 overflow-y-auto">
+          <PlanSection currentPlan={plan} region={region} />
         </div>
-        <p className="text-center text-[10px] text-[#bbb] mt-2">
-          Enter to send · Shift+Enter for new line
-        </p>
-      </div>
+      )}
     </div>
   )
 }

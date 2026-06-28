@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function MemberProfilePage({ params }: Props) {
   const { data: provider } = await supabaseAdmin
     .from('providers')
-    .select('id, first_name, last_name, persona, location, whatsapp_number, email')
+    .select('id, first_name, last_name, persona, location, whatsapp_number, email, plan')
     .eq('slug', params.slug)
     .eq('page_live', true)
     .single()
@@ -67,6 +67,15 @@ export default async function MemberProfilePage({ params }: Props) {
     booking: true, faq: true, contact: true,
   }
 
+  const rawSections: ShowSections = (page.show_sections as ShowSections) ?? defaultShowSections
+
+  // Booking form is a Sprout+ feature — gate it by plan
+  const isSeed = !provider.plan || provider.plan === 'seed'
+  const showSections: ShowSections = {
+    ...rawSections,
+    booking: isSeed ? false : rawSections.booking,
+  }
+
   const profileData: ProfileData = {
     providerId: provider.id,
     firstName: provider.first_name ?? '',
@@ -85,7 +94,7 @@ export default async function MemberProfilePage({ params }: Props) {
     faq: Array.isArray(page.faq) ? page.faq : [],
     palette: (page.palette as PaletteKey) ?? 'professional',
     font: (page.font as FontKey) ?? 'inter',
-    showSections: (page.show_sections as ShowSections) ?? defaultShowSections,
+    showSections,
   }
 
   const jsonLd = page.schema_type
