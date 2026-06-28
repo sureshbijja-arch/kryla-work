@@ -102,10 +102,14 @@ ${JSON.stringify(currentProfile, null, 2)}`
   let changed = false
 
   if (Object.keys(patch_pages).length > 0) {
-    await supabaseAdmin
+    const { error } = await supabaseAdmin
       .from('pages')
       .update(patch_pages)
       .eq('provider_id', providerId)
+    if (error) {
+      console.error('[chat] pages update error:', error)
+      return NextResponse.json({ message: 'Something went wrong saving your changes — please try again.', changed: false })
+    }
     changed = true
   }
 
@@ -115,10 +119,14 @@ ${JSON.stringify(currentProfile, null, 2)}`
       Object.entries(patch_providers).filter(([k]) => allowed.includes(k))
     )
     if (Object.keys(safeUpdate).length > 0) {
-      await supabaseAdmin
+      const { error } = await supabaseAdmin
         .from('providers')
         .update(safeUpdate)
         .eq('id', providerId)
+      if (error) {
+        console.error('[chat] providers update error:', error)
+        return NextResponse.json({ message: 'Something went wrong saving your changes — please try again.', changed: false })
+      }
       changed = true
     }
   }
