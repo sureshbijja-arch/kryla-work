@@ -4,9 +4,10 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import BookingsTab from '@/app/my-space/BookingsTab'
 import PlanSection from '@/app/my-space/PlanSection'
+import { getLayouts, TEMPLATE_LABEL, FONT_LABEL, type LayoutOption } from '@/lib/layouts'
 
 type AuthState = 'loading' | 'login_email' | 'login_code' | 'checking' | 'not_owner' | 'ready'
-type Tab = 'chat' | 'media' | 'ads' | 'bookings' | 'plan'
+type Tab = 'chat' | 'media' | 'ads' | 'layouts' | 'bookings' | 'plan'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -28,6 +29,7 @@ interface OwnerData {
     id: string
     slug: string
     firstName: string
+    persona?: string | null
     plan: string
     planStatus: string
     region: 'india' | 'usa'
@@ -56,6 +58,8 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
   const [previewTs,   setPreviewTs]   = useState(0)
   const [publishing,  setPublishing]  = useState(false)
   const [publishDone, setPublishDone] = useState(false)
+  const [applyingLayout, setApplyingLayout] = useState<string | null>(null)
+  const [appliedLayout,  setAppliedLayout]  = useState<string | null>(null)
 
   const [messages, setMessages]   = useState<Message[]>([])
   const [chatInput, setChatInput] = useState('')
@@ -295,9 +299,43 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
     }
   }
 
-  const isSeed    = !ownerData?.provider.plan || ownerData.provider.plan === 'seed'
-  const canUpload = planRank(ownerData?.provider.plan ?? 'seed') >= 2  // grow+
-  const canAds    = planRank(ownerData?.provider.plan ?? 'seed') >= 3  // thrive+
+  async function handleApplyLayout(lo: LayoutOption) {
+    if (!ownerData || applyingLayout) return
+    setApplyingLayout(lo.id)
+    try {
+      const res = await fetch('/api/my-space/layout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug: ownerData.provider.slug,
+          template: lo.template,
+          palette:  lo.palette,
+          font:     lo.font,
+        }),
+      })
+      if (res.ok) {
+        setAppliedLayout(lo.id)
+        setPublishDone(false)
+        fetch(`/api/my-space/check-owner?slug=${slug}`)
+          .then(r => r.json())
+          .then(fresh => {
+            if (fresh.isOwner && fresh.currentProfile) {
+              setOwnerData(prev => prev ? { ...prev, currentProfile: fresh.currentProfile } : prev)
+            }
+          })
+          .catch(() => {})
+      }
+    } catch {
+      // silent
+    } finally {
+      setApplyingLayout(null)
+    }
+  }
+
+  const isSeed      = !ownerData?.provider.plan || ownerData.provider.plan === 'seed'
+  const canUpload   = planRank(ownerData?.provider.plan ?? 'seed') >= 2  // grow+
+  const canAds      = planRank(ownerData?.provider.plan ?? 'seed') >= 3  // thrive+
+  const canLayouts  = planRank(ownerData?.provider.plan ?? 'seed') >= 1  // sprout+
 
   // ── Auth states ──────────────────────────────────────────────────────────
 
@@ -377,6 +415,9 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
 
   // ── Ready state ──────────────────────────────────────────────────────────
 
+  const persona  = (ownerData?.currentProfile?.persona as string | undefined) ?? (ownerData?.provider.persona ?? 'other')
+  const layouts  = getLayouts(persona)
+
   const showPersonaBanner = ownerData?.personaTemplateStatus === 'generating' || ownerData?.personaTemplateStatus === 'failed'
 
   return (
@@ -394,6 +435,7 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
           ['chat',     'Edit'],
           ['media',    'Media'],
           ['ads',      'Ads'],
+          ['layouts',  'Layouts'],
           ['bookings', 'Bookings'],
           ['plan',     'Plan'],
         ] as const).map(([key, label]) => (
@@ -600,6 +642,101 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
                 </button>
               </div>
             </>
+          )}
+        </div>
+      )}
+
+      {/* Layouts tab */}
+      {tab === 'layouts' && ownerData && (
+        <div className="flex-1 overflow-y-auto">
+          {/* Intro */}
+          <div className="px-4 pt-4 pb-1">
+            <p className="text-xs text-[#666]">Choose a visual style for your page. Changes save to your draft first — preview and publish when ready.</p>
+          </div>
+
+          {/* Seed upgrade banner */}
+          {!canLayouts && (
+            <div className="mx-4 mt-3 mb-1 bg-[#FFF7ED] border border-[#F5A623]/30 rounded-xl px-4 py-3.5">
+              <p className="text-xs font-semibold text-[#0D0D0D] mb-1">Upgrade to Sprout to apply layouts</p>
+              <p className="text-xs text-[#666] mb-3">Browse the styles below, then upgrade to make changes live.</p>
+              <button onClick={() => setTab('plan')}
+                className="text-xs font-semibold text-[#EA8C00] hover:underline">
+                See plans →
+              </button>
+            </div>
+          )}
+
+          {/* Layout grid */}
+          <div className={`px-4 pt-3 pb-4 grid grid-cols-2 gap-3 ${!canLayouts ? 'opacity-50 pointer-events-none select-none' : ''}`}>
+            {layouts.map(lo => {
+              const isCurrent =
+                lo.template === (ownerData.currentProfile?.template as string | undefined) &&
+                lo.palette  === (ownerData.currentProfile?.palette  as string | undefined) &&
+                lo.font     === (ownerData.currentProfile?.font     as string | undefined)
+              const isApplying = applyingLayout === lo.id
+
+              return (
+                <button
+                  key={lo.id}
+                  onClick={() => handleApplyLayout(lo)}
+                  disabled={!!applyingLayout || !canLayouts}
+                  className={`text-left rounded-xl border overflow-hidden transition-all disabled:cursor-not-allowed ${
+                    isCurrent
+                      ? 'border-[#0D0D0D] ring-1 ring-[#0D0D0D]'
+                      : 'border-[#E5E5E5] hover:border-[#0D0D0D]'
+                  }`}
+                >
+                  {/* Mini visual preview */}
+                  <div style={{ background: lo.bg }} className="w-full h-[72px] relative">
+                    <div style={{ background: lo.accent }} className="h-2.5 w-full" />
+                    <div className="px-2.5 pt-2 space-y-1.5">
+                      <div style={{ background: lo.accent }} className="h-1.5 w-2/3 rounded-full opacity-60" />
+                      <div className="h-1 w-1/2 rounded-full opacity-25" style={{ background: '#374151' }} />
+                      <div className="h-1 w-3/4 rounded-full opacity-15" style={{ background: '#374151' }} />
+                    </div>
+                    {isCurrent && !isApplying && (
+                      <div className="absolute top-1.5 right-1.5 w-[18px] h-[18px] bg-[#22C55E] rounded-full flex items-center justify-center">
+                        <svg width="8" height="8" viewBox="0 0 12 12" fill="none">
+                          <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                    )}
+                    {isApplying && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+                        <div className="w-4 h-4 border-2 border-[#0D0D0D] border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card info */}
+                  <div className="p-2.5">
+                    <p className="text-xs font-bold text-[#0D0D0D] leading-tight mb-0.5">{lo.name}</p>
+                    <p className="text-[10px] text-[#888] leading-tight mb-2">{lo.description}</p>
+                    <div className="flex gap-1 flex-wrap">
+                      <span className="text-[9px] font-semibold uppercase tracking-wide text-[#666] bg-[#F0F0F0] rounded px-1.5 py-0.5">
+                        {TEMPLATE_LABEL[lo.template]}
+                      </span>
+                      <span className="text-[9px] font-semibold uppercase tracking-wide text-[#666] bg-[#F0F0F0] rounded px-1.5 py-0.5">
+                        {FONT_LABEL[lo.font]}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Post-apply nudge */}
+          {appliedLayout && canLayouts && (
+            <div className="mx-4 mb-4 flex items-center justify-between gap-2 bg-[#F0FDF4] border border-[#22C55E]/30 rounded-xl px-3 py-2.5">
+              <p className="text-xs font-medium text-[#166534]">Layout saved to draft!</p>
+              <button
+                onClick={() => { setPreviewTs(Date.now()); setPreviewOpen(true) }}
+                className="shrink-0 text-xs font-semibold text-[#166534] hover:underline"
+              >
+                Preview →
+              </button>
+            </div>
           )}
         </div>
       )}
