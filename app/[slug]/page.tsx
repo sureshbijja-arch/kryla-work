@@ -7,6 +7,7 @@ import FocusTemplate from './components/templates/FocusTemplate'
 import PortfolioTemplate from './components/templates/PortfolioTemplate'
 import StorefrontTemplate from './components/templates/StorefrontTemplate'
 import ClinicTemplate from './components/templates/ClinicTemplate'
+import MySpaceBadge from './components/MySpaceBadge'
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'kryla.work'
 
@@ -137,6 +138,7 @@ export default async function MemberProfilePage({ params }: Props) {
       ) : (
         <FocusTemplate data={profileData} />
       )}
+      <MySpaceBadge />
     </>
   )
 }
