@@ -8,7 +8,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { supabaseAdmin } from "@/lib/supabase/admin"
-import { inngest } from "@/inngest/client"
 
 const schema = z.object({
   providerId:    z.string().uuid(),
@@ -53,14 +52,46 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Fire notification job — non-fatal: booking is saved regardless
+    // Email the member — non-fatal: booking is saved regardless
     try {
-      await inngest.send({
-        name: "kryla/booking.created",
-        data: { bookingId: booking.id },
-      })
-    } catch (notifyErr) {
-      console.error("[booking] Inngest send failed (non-fatal):", notifyErr)
+      const { data: provider } = await supabaseAdmin
+        .from('providers')
+        .select('email, first_name')
+        .eq('id', data.providerId)
+        .single()
+
+      if (provider?.email && process.env.RESEND_API_KEY) {
+        const dateLine = data.preferredDate ? `<p><strong>Preferred date:</strong> ${data.preferredDate}</p>` : ''
+        const msgLine  = data.message       ? `<p><strong>Message:</strong> ${data.message}</p>` : ''
+
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: 'Kryla <hello@kryla.work>',
+            to: provider.email,
+            subject: `New booking request from ${data.customerName}`,
+            html: `
+              <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#0D0D0D">
+                <p style="font-size:18px;font-weight:700;margin-bottom:4px">New booking request</p>
+                <p style="color:#666;margin-top:0">Hi ${provider.first_name}, someone wants to book with you.</p>
+                <hr style="border:none;border-top:1px solid #E5E5E5;margin:16px 0"/>
+                <p><strong>Name:</strong> ${data.customerName}</p>
+                <p><strong>WhatsApp:</strong> ${data.customerPhone}</p>
+                <p><strong>Service:</strong> ${data.service}</p>
+                ${dateLine}
+                ${msgLine}
+                <hr style="border:none;border-top:1px solid #E5E5E5;margin:16px 0"/>
+                <p style="color:#666;font-size:13px">Log in to <a href="https://kryla.work/my-space" style="color:#F5A623">My Space</a> to accept or decline.</p>
+              </div>`,
+          }),
+        })
+      }
+    } catch (emailErr) {
+      console.error('[booking] Email failed (non-fatal):', emailErr)
     }
 
     return NextResponse.json({ success: true, bookingId: booking.id })

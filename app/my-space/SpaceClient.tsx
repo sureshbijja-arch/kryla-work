@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import PlanSection from './PlanSection'
+import BookingsTab from './BookingsTab'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -56,7 +57,7 @@ export default function SpaceClient({
   providerId, slug, firstName, pageLive,
   plan, region, currentProfile,
 }: Props) {
-  const [tab, setTab] = useState<'chat' | 'plan'>('chat')
+  const [tab, setTab] = useState<'chat' | 'bookings' | 'plan'>('chat')
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -142,16 +143,20 @@ export default function SpaceClient({
 
       {/* Tabs */}
       <div className="bg-white border-b border-[#E5E5E5] px-6 flex items-center gap-6">
-        {(['chat', 'plan'] as const).map(t => (
+        {([
+          { key: 'chat',     label: 'Edit profile' },
+          { key: 'bookings', label: 'Bookings' },
+          { key: 'plan',     label: 'My plan' },
+        ] as const).map(({ key, label }) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={key}
+            onClick={() => setTab(key)}
             className={`py-3 text-sm font-semibold border-b-2 transition-colors ${
-              tab === t
+              tab === key
                 ? 'border-[#0D0D0D] text-[#0D0D0D]'
                 : 'border-transparent text-[#999] hover:text-[#0D0D0D]'
             }`}>
-            {t === 'chat' ? 'Edit profile' : 'My plan'}
+            {label}
           </button>
         ))}
         <div className="ml-auto pb-2 flex items-center gap-2 flex-wrap">
@@ -257,6 +262,12 @@ export default function SpaceClient({
             </p>
           </div>
         </>
+      )}
+
+      {tab === 'bookings' && (
+        <div className="flex-1 overflow-y-auto">
+          <BookingsTab providerId={providerId} />
+        </div>
       )}
 
       {tab === 'plan' && (
