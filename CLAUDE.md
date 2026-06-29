@@ -162,7 +162,22 @@ Handles `page_live` as boolean OR string `'true'` (old schema compatibility).
 Columns: id (uuid PK), provider_id (uuid), slug (text), failed_at (timestamptz)
 
 ### bookings
-Columns: provider_id, customer_name, customer_phone, customer_email, service, preferred_date, message, status (pending/accepted/rejected/cancelled), notification_sent, confirmation_sent
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid PK | |
+| created_at | timestamptz | |
+| provider_id | uuid | FK → providers.id |
+| customer_name | text | |
+| customer_phone | text | |
+| service | text | |
+| preferred_date | text | |
+| message | text | |
+| status | text | pending/accepted/rejected/cancelled |
+| status_updated_at | timestamptz | |
+| notification_sent | boolean | |
+| confirmation_sent | boolean | |
+
+Note: table also has legacy columns `client_name`, `client_phone`, `client_email`, `service_requested`, `requested_slot` — unused, do not write to them.
 
 **RLS:** Disabled on all three core tables (`providers`, `pages`, `onboarding_answers`). Service role key used for all writes.
 
