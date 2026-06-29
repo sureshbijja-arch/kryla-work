@@ -20,6 +20,35 @@ export async function POST(req: NextRequest) {
 
   if (!provider) return NextResponse.json({ error: 'Not your page' }, { status: 403 })
 
+  // Read the pending draft
+  const { data: pageRow } = await supabaseAdmin
+    .from('pages')
+    .select('draft_data')
+    .eq('provider_id', provider.id)
+    .single()
+
+  type DraftShape = { pages?: Record<string, unknown>; providers?: Record<string, unknown> }
+  const draft = (pageRow?.draft_data ?? {}) as DraftShape
+  const dp    = draft.pages     ?? {}
+  const dpr   = draft.providers ?? {}
+
+  // Apply draft page fields to live columns
+  if (Object.keys(dp).length > 0) {
+    await supabaseAdmin.from('pages').update(dp).eq('provider_id', provider.id)
+  }
+
+  // Apply draft provider fields (only safe fields)
+  const allowedProviderFields = ['location', 'whatsapp_number']
+  const safeProviderUpdate = Object.fromEntries(
+    Object.entries(dpr).filter(([k]) => allowedProviderFields.includes(k))
+  )
+  if (Object.keys(safeProviderUpdate).length > 0) {
+    await supabaseAdmin.from('providers').update(safeProviderUpdate).eq('id', provider.id)
+  }
+
+  // Clear draft_data now that changes are live
+  await supabaseAdmin.from('pages').update({ draft_data: null }).eq('provider_id', provider.id)
+
   revalidatePath(`/${slug}`)
   return NextResponse.json({ ok: true })
 }

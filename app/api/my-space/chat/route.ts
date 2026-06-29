@@ -99,37 +99,43 @@ ${JSON.stringify(currentProfile, null, 2)}`
 
   const { message, patch_pages = {}, patch_providers = {} } = parsed
 
-  let changed = false
+  // Only allow safe provider fields
+  const allowed = ['whatsapp_number', 'location']
+  const safePatchProviders = Object.fromEntries(
+    Object.entries(patch_providers).filter(([k]) => allowed.includes(k))
+  )
 
-  if (Object.keys(patch_pages).length > 0) {
-    const { error } = await supabaseAdmin
-      .from('pages')
-      .update(patch_pages)
-      .eq('provider_id', providerId)
-    if (error) {
-      console.error('[chat] pages update error:', error)
-      return NextResponse.json({ message: 'Something went wrong saving your changes — please try again.', changed: false })
-    }
-    changed = true
+  const hasPatchPages     = Object.keys(patch_pages).length > 0
+  const hasPatchProviders = Object.keys(safePatchProviders).length > 0
+
+  if (!hasPatchPages && !hasPatchProviders) {
+    return NextResponse.json({ message, changed: false })
   }
 
-  if (Object.keys(patch_providers).length > 0) {
-    const allowed = ['whatsapp_number', 'location']
-    const safeUpdate = Object.fromEntries(
-      Object.entries(patch_providers).filter(([k]) => allowed.includes(k))
-    )
-    if (Object.keys(safeUpdate).length > 0) {
-      const { error } = await supabaseAdmin
-        .from('providers')
-        .update(safeUpdate)
-        .eq('id', providerId)
-      if (error) {
-        console.error('[chat] providers update error:', error)
-        return NextResponse.json({ message: 'Something went wrong saving your changes — please try again.', changed: false })
-      }
-      changed = true
-    }
+  // Merge into draft_data — live columns stay unchanged until member confirms & publishes
+  const { data: currentPage } = await supabaseAdmin
+    .from('pages')
+    .select('draft_data')
+    .eq('provider_id', providerId)
+    .maybeSingle()
+
+  type DraftShape = { pages: Record<string, unknown>; providers: Record<string, unknown> }
+  const existing = (currentPage?.draft_data ?? {}) as Partial<DraftShape>
+
+  const newDraft: DraftShape = {
+    pages:     { ...(existing.pages     ?? {}), ...patch_pages },
+    providers: { ...(existing.providers ?? {}), ...safePatchProviders },
   }
 
-  return NextResponse.json({ message, changed })
+  const { error } = await supabaseAdmin
+    .from('pages')
+    .update({ draft_data: newDraft })
+    .eq('provider_id', providerId)
+
+  if (error) {
+    console.error('[chat] draft save error:', error)
+    return NextResponse.json({ message: 'Something went wrong saving your changes — please try again.', changed: false })
+  }
+
+  return NextResponse.json({ message, changed: true })
 }
