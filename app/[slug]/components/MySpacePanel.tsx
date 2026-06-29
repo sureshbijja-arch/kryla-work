@@ -54,6 +54,8 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
   const [tab, setTab]             = useState<Tab>('chat')
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewTs,   setPreviewTs]   = useState(0)
+  const [publishing,  setPublishing]  = useState(false)
+  const [publishDone, setPublishDone] = useState(false)
 
   const [messages, setMessages]   = useState<Message[]>([])
   const [chatInput, setChatInput] = useState('')
@@ -150,6 +152,7 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
       const data = await res.json()
       setMessages(prev => [...prev, { role: 'assistant', content: data.message, changed: data.changed }])
       if (data.changed) {
+        setPublishDone(false) // new draft — allow confirming again
         // Re-fetch currentProfile so next AI message has up-to-date context
         fetch(`/api/my-space/check-owner?slug=${slug}`)
           .then(r => r.json())
@@ -269,6 +272,26 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
       setAdError('Something went wrong — please try again.')
     } finally {
       setAdSubmitting(false)
+    }
+  }
+
+  async function handlePublish() {
+    if (!ownerData || publishing || publishDone) return
+    setPublishing(true)
+    try {
+      const res = await fetch('/api/my-space/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: ownerData.provider.slug }),
+      })
+      if (res.ok) {
+        setPublishDone(true)
+        setTimeout(() => { setPreviewOpen(false); setPublishDone(false) }, 2000)
+      }
+    } catch {
+      // silent — member can retry
+    } finally {
+      setPublishing(false)
     }
   }
 
@@ -599,31 +622,33 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
       {previewOpen && (
         <div className="fixed inset-0 z-[60] flex flex-col bg-white">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E5E5] shrink-0 bg-white">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E5E5] shrink-0 bg-white gap-3">
             <button
-              onClick={() => setPreviewOpen(false)}
-              className="flex items-center gap-1.5 text-sm font-semibold text-[#666] hover:text-[#0D0D0D] transition-colors"
+              onClick={() => { setPreviewOpen(false); setPublishDone(false) }}
+              className="flex items-center gap-1.5 text-sm font-semibold text-[#666] hover:text-[#0D0D0D] transition-colors shrink-0"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Back to editing
+              Back
             </button>
             <span className="text-xs font-semibold text-[#999] uppercase tracking-widest">Preview</span>
             <button
-              onClick={() => { setPreviewTs(Date.now()) }}
-              className="flex items-center gap-1 text-xs font-semibold text-[#666] border border-[#E5E5E5] rounded-lg px-2.5 py-1.5 hover:bg-[#F5F5F5] transition-colors"
+              onClick={handlePublish}
+              disabled={publishing || publishDone}
+              className={`shrink-0 text-xs font-semibold px-4 py-2 rounded-xl transition-all ${
+                publishDone
+                  ? 'bg-[#22C55E] text-white'
+                  : 'bg-[#0D0D0D] text-white hover:opacity-80 disabled:opacity-50'
+              }`}
             >
-              <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
-                <path d="M13.7 2.3A7 7 0 1 0 15 8h-2a5 5 0 1 1-1.1-3.2L10 6h5V1l-1.3 1.3z" fill="currentColor"/>
-              </svg>
-              Refresh
+              {publishing ? 'Publishing…' : publishDone ? '✓ Live!' : 'Confirm & Publish →'}
             </button>
           </div>
-          {/* Profile iframe */}
+          {/* Draft preview — force-dynamic, always fresh from DB */}
           <iframe
             key={previewTs}
-            src={`/?t=${previewTs}`}
+            src={`/preview?t=${previewTs}`}
             className="flex-1 border-0 w-full"
             title="Preview of your page"
           />

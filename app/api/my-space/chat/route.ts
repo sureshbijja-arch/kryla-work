@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import Anthropic from '@anthropic-ai/sdk'
-import { revalidatePath } from 'next/cache'
 import { NextResponse } from 'next/server'
 
 const anthropic = new Anthropic()
@@ -130,10 +129,6 @@ ${JSON.stringify(currentProfile, null, 2)}`
       }
       changed = true
     }
-  }
-
-  if (changed) {
-    revalidatePath(`/${provider.slug}`)
   }
 
   return NextResponse.json({ message, changed })
