@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     if (error || !booking) {
       console.error("[booking] Insert failed:", error)
       return NextResponse.json(
-        { error: "Something went wrong — please try again" },
+        { error: error?.message ?? "Insert returned no data" },
         { status: 500 }
       )
     }
