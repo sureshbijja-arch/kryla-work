@@ -1,10 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import MySpacePanel from './MySpacePanel'
 
 export default function MySpaceBadge({ slug }: { slug: string }) {
   const [open, setOpen] = useState(false)
+  const [inIframe, setInIframe] = useState(false)
+
+  useEffect(() => {
+    try { setInIframe(window.self !== window.top) } catch { setInIframe(true) }
+  }, [])
+
+  if (inIframe) return null
 
   return (
     <>
