@@ -13,7 +13,7 @@ export function KrylaLogo() {
 
 export function Footer() {
   return (
-    <footer className="border-t border-[#E5E5E5] py-8">
+    <footer className="border-t border-[#E5E5E5] py-8 xl:pb-8 pb-20">
       <div className="max-w-2xl mx-auto px-6 flex items-center justify-center gap-2">
         <span className="text-xs text-[#999]">Powered by</span>
         <KrylaLogo />
