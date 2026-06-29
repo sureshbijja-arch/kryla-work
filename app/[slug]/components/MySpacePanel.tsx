@@ -6,7 +6,7 @@ import BookingsTab from '@/app/my-space/BookingsTab'
 import PlanSection from '@/app/my-space/PlanSection'
 
 type AuthState = 'loading' | 'login_email' | 'login_code' | 'checking' | 'not_owner' | 'ready'
-type Tab = 'chat' | 'media' | 'ads' | 'bookings' | 'plan' | 'preview'
+type Tab = 'chat' | 'media' | 'ads' | 'bookings' | 'plan'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -52,7 +52,8 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
 
   const [ownerData, setOwnerData] = useState<OwnerData | null>(null)
   const [tab, setTab]             = useState<Tab>('chat')
-  const [previewKey, setPreviewKey] = useState(0)
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewTs,   setPreviewTs]   = useState(0)
 
   const [messages, setMessages]   = useState<Message[]>([])
   const [chatInput, setChatInput] = useState('')
@@ -149,8 +150,6 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
       const data = await res.json()
       setMessages(prev => [...prev, { role: 'assistant', content: data.message, changed: data.changed }])
       if (data.changed) {
-        // Bump preview so iframe reloads with fresh page
-        setPreviewKey(k => k + 1)
         // Re-fetch currentProfile so next AI message has up-to-date context
         fetch(`/api/my-space/check-owner?slug=${slug}`)
           .then(r => r.json())
@@ -370,7 +369,6 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
       <div className="border-b border-[#E5E5E5] px-4 flex items-center gap-4 overflow-x-auto scrollbar-none">
         {([
           ['chat',     'Edit'],
-          ['preview',  'Preview'],
           ['media',    'Media'],
           ['ads',      'Ads'],
           ['bookings', 'Bookings'],
@@ -432,6 +430,12 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
             <div ref={bottomRef} />
           </div>
           <div className="border-t border-[#E5E5E5] px-3 py-3 flex gap-2 items-end">
+            <button
+              onClick={() => { setPreviewTs(Date.now()); setPreviewOpen(true) }}
+              className="shrink-0 text-xs font-semibold text-[#666] border border-[#E5E5E5] rounded-xl px-3 py-2.5 hover:border-[#0D0D0D] hover:text-[#0D0D0D] transition-colors"
+            >
+              Preview
+            </button>
             <textarea ref={inputRef} rows={1} value={chatInput}
               placeholder="What would you like to change?"
               onChange={e => setChatInput(e.target.value)}
@@ -446,27 +450,6 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
             </button>
           </div>
         </>
-      )}
-
-      {/* Preview tab */}
-      {tab === 'preview' && (
-        <div className="flex-1 relative overflow-hidden bg-[#F5F5F5]">
-          <iframe
-            key={previewKey}
-            src={`/?preview=1&t=${previewKey}`}
-            className="w-full h-full border-0"
-            title="Live preview of your page"
-          />
-          <button
-            onClick={() => setPreviewKey(k => k + 1)}
-            className="absolute bottom-4 right-4 z-10 flex items-center gap-1.5 bg-white border border-[#E5E5E5] rounded-full px-3 py-1.5 text-xs font-semibold text-[#666] shadow-sm hover:bg-[#F5F5F5] transition-colors"
-          >
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-              <path d="M13.7 2.3A7 7 0 1 0 15 8h-2a5 5 0 1 1-1.1-3.2L10 6h5V1l-1.3 1.3z" fill="currentColor"/>
-            </svg>
-            Refresh
-          </button>
-        </div>
       )}
 
       {/* Media tab */}
@@ -609,6 +592,41 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
       {tab === 'plan' && ownerData && (
         <div className="flex-1 overflow-y-auto">
           <PlanSection currentPlan={ownerData.provider.plan} region={ownerData.provider.region} />
+        </div>
+      )}
+
+      {/* Full-screen preview overlay */}
+      {previewOpen && (
+        <div className="fixed inset-0 z-[60] flex flex-col bg-white">
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E5E5] shrink-0 bg-white">
+            <button
+              onClick={() => setPreviewOpen(false)}
+              className="flex items-center gap-1.5 text-sm font-semibold text-[#666] hover:text-[#0D0D0D] transition-colors"
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Back to editing
+            </button>
+            <span className="text-xs font-semibold text-[#999] uppercase tracking-widest">Preview</span>
+            <button
+              onClick={() => { setPreviewTs(Date.now()) }}
+              className="flex items-center gap-1 text-xs font-semibold text-[#666] border border-[#E5E5E5] rounded-lg px-2.5 py-1.5 hover:bg-[#F5F5F5] transition-colors"
+            >
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
+                <path d="M13.7 2.3A7 7 0 1 0 15 8h-2a5 5 0 1 1-1.1-3.2L10 6h5V1l-1.3 1.3z" fill="currentColor"/>
+              </svg>
+              Refresh
+            </button>
+          </div>
+          {/* Profile iframe */}
+          <iframe
+            key={previewTs}
+            src={`/?t=${previewTs}`}
+            className="flex-1 border-0 w-full"
+            title="Preview of your page"
+          />
         </div>
       )}
     </PanelShell>
