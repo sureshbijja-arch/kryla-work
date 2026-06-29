@@ -36,6 +36,11 @@ export async function POST(req: NextRequest) {
         status:            "pending",
         notification_sent: false,
         confirmation_sent: false,
+        // legacy columns with NOT NULL constraints — keep in sync
+        client_name:       data.customerName,
+        client_phone:      data.customerPhone,
+        service_requested: data.service,
+        requested_slot:    data.preferredDate ?? '',
       })
       .select()
       .single()
