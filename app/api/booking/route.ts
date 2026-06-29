@@ -50,11 +50,15 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Fire notification job (WhatsApp or email depending on plan)
-    await inngest.send({
-      name: "kryla/booking.created",
-      data: { bookingId: booking.id },
-    })
+    // Fire notification job — non-fatal: booking is saved regardless
+    try {
+      await inngest.send({
+        name: "kryla/booking.created",
+        data: { bookingId: booking.id },
+      })
+    } catch (notifyErr) {
+      console.error("[booking] Inngest send failed (non-fatal):", notifyErr)
+    }
 
     return NextResponse.json({ success: true, bookingId: booking.id })
   } catch (err) {

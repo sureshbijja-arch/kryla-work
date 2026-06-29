@@ -43,15 +43,25 @@ export default function BookingForm({
           message: form.message || undefined,
         }),
       })
-      const data = await res.json()
+
+      let data: { error?: unknown; success?: boolean } = {}
+      try {
+        data = await res.json()
+      } catch {
+        const text = await res.text().catch(() => '')
+        setErrorMsg(`Server error (${res.status})${text ? ': ' + text.slice(0, 120) : ''}`)
+        setStatus('error')
+        return
+      }
+
       if (!res.ok) {
         setErrorMsg(typeof data.error === 'string' ? data.error : 'Something went wrong — please try again')
         setStatus('error')
         return
       }
       setStatus('success')
-    } catch {
-      setErrorMsg('Check your connection and try again')
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Check your connection and try again')
       setStatus('error')
     }
   }
