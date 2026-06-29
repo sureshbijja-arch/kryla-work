@@ -1,6 +1,6 @@
 import BookingForm from '../BookingForm'
-import { KrylaLogo, Footer, WhatsAppIcon, SectionHeading, FaqList } from '../shared'
-import { ACCENT, PAGE_BG, FONT_CLASS, waUrl } from '../../types'
+import { KrylaLogo, Footer, WhatsAppIcon, SectionHeading, FaqList, GalleryGrid } from '../shared'
+import { ACCENT, PAGE_BG, FONT_CLASS, waUrl, mapsUrl } from '../../types'
 import type { ProfileData } from '../../types'
 
 export default function StudioTemplate({ data }: { data: ProfileData }) {
@@ -8,6 +8,7 @@ export default function StudioTemplate({ data }: { data: ProfileData }) {
     providerId, firstName, lastName, location, whatsappNumber,
     headline, subheadline, bio, ctaPrimary, ctaSecondary,
     services, highlights, faq, palette, font, showSections,
+    avatarUrl = null, gallery = [],
   } = data
 
   const accent    = ACCENT[palette]
@@ -19,7 +20,15 @@ export default function StudioTemplate({ data }: { data: ProfileData }) {
   return (
     <div style={{ background: bg }} className={`min-h-screen ${fontClass}`}>
       <nav className="max-w-2xl mx-auto px-6 pt-6 flex justify-between items-center">
-        <span className="text-xs text-[#999]">{location}</span>
+        {location ? (
+          <div>
+            <span className="text-xs text-[#999]">{location}</span>
+            <a href={mapsUrl(location)} target="_blank" rel="noopener noreferrer"
+               className="block text-[10px] font-semibold text-[#F5A623] hover:underline">
+              📍 Get Directions
+            </a>
+          </div>
+        ) : <span />}
         <KrylaLogo />
       </nav>
 
@@ -28,6 +37,9 @@ export default function StudioTemplate({ data }: { data: ProfileData }) {
         {/* Hero */}
         {showSections.hero && (
           <section className="pt-14 pb-10">
+            {avatarUrl && (
+              <img src={avatarUrl} alt={fullName} className="w-16 h-16 rounded-full object-cover border-2 border-[#E5E5E5] mb-5" />
+            )}
             <p className="text-sm font-semibold mb-3" style={{ color: accent }}>{fullName}</p>
             <h1 className="text-4xl sm:text-5xl font-bold text-[#0D0D0D] leading-tight mb-4">
               {headline}
@@ -133,6 +145,8 @@ export default function StudioTemplate({ data }: { data: ProfileData }) {
             <FaqList items={faq} />
           </section>
         )}
+
+        <GalleryGrid images={gallery} />
       </main>
 
       <Footer />

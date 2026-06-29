@@ -37,6 +37,22 @@ export function SectionHeading({ children }: { children: React.ReactNode }) {
   )
 }
 
+export function GalleryGrid({ images }: { images: string[] }) {
+  if (!images.length) return null
+  return (
+    <section className="py-8 border-t border-[#E5E5E5]">
+      <SectionHeading>Gallery</SectionHeading>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {images.map((url, i) => (
+          <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+            <img src={url} alt={`Gallery ${i + 1}`} className="w-full aspect-square object-cover rounded-xl" />
+          </a>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 export function FaqList({ items }: { items: { question: string; answer: string }[] }) {
   return (
     <div className="space-y-2">

@@ -14,6 +14,7 @@ const PLANS = [
       'Public profile page',
       'Bio, services & FAQ',
       'WhatsApp contact button',
+      'Google Maps directions on your location',
     ],
   },
   {
@@ -36,6 +37,7 @@ const PLANS = [
     tagline: 'Your own address on the internet.',
     features: [
       'Everything in Sprout',
+      'Upload profile photo & gallery',
       'Your own domain (priya.com)',
       'Analytics — see who\'s visiting',
     ],
@@ -48,6 +50,7 @@ const PLANS = [
     tagline: 'Your spot runs itself.',
     features: [
       'Everything in Grow',
+      'Post scrolling ads on your page',
       'Update your page via WhatsApp',
       'Review collection',
     ],

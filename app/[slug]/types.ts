@@ -28,6 +28,14 @@ export interface ShowSections {
   contact: boolean
 }
 
+export interface Ad {
+  id: string
+  title: string
+  description: string | null
+  imageUrl: string | null
+  linkUrl: string | null
+}
+
 export interface ProfileData {
   providerId: string
   firstName: string
@@ -47,6 +55,9 @@ export interface ProfileData {
   palette: PaletteKey
   font: FontKey
   showSections: ShowSections
+  avatarUrl?: string | null
+  gallery?: string[]
+  ads?: Ad[]
 }
 
 export const ACCENT: Record<PaletteKey, string> = {
@@ -71,6 +82,10 @@ export const FONT_CLASS: Record<FontKey, string> = {
   inter:     'font-inter',
   georgia:   'font-georgia',
   trebuchet: 'font-trebuchet',
+}
+
+export function mapsUrl(location: string) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`
 }
 
 export function waUrl(whatsappNumber: string, firstName: string) {

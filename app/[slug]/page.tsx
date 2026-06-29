@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { ProfileData, PaletteKey, FontKey, ShowSections } from './types'
+import AdsScroller from './components/AdsScroller'
 import StudioTemplate from './components/templates/StudioTemplate'
 import FocusTemplate from './components/templates/FocusTemplate'
 import PortfolioTemplate from './components/templates/PortfolioTemplate'
@@ -58,13 +59,22 @@ export default async function MemberProfilePage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select(
-      'headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, show_sections'
-    )
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, show_sections')
     .eq('provider_id', provider.id)
     .single()
 
   if (!page) return notFound()
+
+  // These queries depend on columns added in migration 20260629_profile_media —
+  // they fail gracefully if the migration hasn't been run yet.
+  const [avatarRes, galleryRes] = await Promise.allSettled([
+    supabaseAdmin.from('providers').select('avatar_url').eq('id', provider.id).single(),
+    supabaseAdmin.from('pages').select('gallery').eq('provider_id', provider.id).single(),
+  ])
+
+  const avatarUrl  = avatarRes.status  === 'fulfilled' ? (avatarRes.value.data?.avatar_url  ?? null) : null
+  const galleryRaw = galleryRes.status === 'fulfilled' ? (galleryRes.value.data?.gallery     ?? [])   : []
+  const gallery    = Array.isArray(galleryRaw) ? (galleryRaw as string[]) : []
 
   const defaultShowSections: ShowSections = {
     hero: true, services: true, highlights: true,
@@ -99,6 +109,8 @@ export default async function MemberProfilePage({ params }: Props) {
     palette: (page.palette as PaletteKey) ?? 'professional',
     font: (page.font as FontKey) ?? 'inter',
     showSections,
+    avatarUrl,
+    gallery,
   }
 
   const isTutor = provider.persona === 'tutor'
@@ -138,6 +150,7 @@ export default async function MemberProfilePage({ params }: Props) {
       ) : (
         <FocusTemplate data={profileData} />
       )}
+      <AdsScroller slug={params.slug} />
       <MySpaceBadge slug={params.slug} />
     </>
   )

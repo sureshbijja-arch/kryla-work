@@ -6,12 +6,21 @@ import BookingsTab from '@/app/my-space/BookingsTab'
 import PlanSection from '@/app/my-space/PlanSection'
 
 type AuthState = 'loading' | 'login_email' | 'login_code' | 'checking' | 'not_owner' | 'ready'
-type Tab = 'chat' | 'bookings' | 'plan'
+type Tab = 'chat' | 'media' | 'ads' | 'bookings' | 'plan'
 
 interface Message {
   role: 'user' | 'assistant'
   content: string
   changed?: boolean
+}
+
+interface AdItem {
+  id: string
+  title: string
+  description: string | null
+  imageUrl: string | null
+  linkUrl: string | null
+  status: 'pending' | 'approved' | 'rejected'
 }
 
 interface OwnerData {
@@ -23,9 +32,16 @@ interface OwnerData {
     planStatus: string
     region: 'india' | 'usa'
     pageLive: boolean
+    customPersonaName?: string | null
+    avatarUrl?: string | null
   }
+  personaTemplateStatus: 'generating' | 'ready' | 'failed' | null
   currentProfile: Record<string, unknown>
+  ads: AdItem[]
 }
+
+const PLAN_RANK: Record<string, number> = { seed: 0, sprout: 1, grow: 2, thrive: 3, elevate: 4 }
+const planRank = (p: string) => PLAN_RANK[p] ?? 0
 
 export default function MySpacePanel({ slug, onClose }: { slug: string; onClose: () => void }) {
   const [authState, setAuthState] = useState<AuthState>('loading')
@@ -43,6 +59,25 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
   const bottomRef  = useRef<HTMLDivElement>(null)
   const inputRef   = useRef<HTMLTextAreaElement>(null)
 
+  // Media tab state
+  const [avatarUrl, setAvatarUrl]         = useState<string | null>(null)
+  const [gallery, setGallery]             = useState<string[]>([])
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const [galleryUploading, setGalleryUploading] = useState(false)
+  const [avatarError, setAvatarError]     = useState('')
+  const [galleryError, setGalleryError]   = useState('')
+
+  // Ads tab state
+  const [ads, setAds]                   = useState<AdItem[]>([])
+  const [adTitle, setAdTitle]           = useState('')
+  const [adDescription, setAdDescription] = useState('')
+  const [adLink, setAdLink]             = useState('')
+  const [adImageUrl, setAdImageUrl]     = useState('')
+  const [adImageUploading, setAdImageUploading] = useState(false)
+  const [adSubmitting, setAdSubmitting] = useState(false)
+  const [adError, setAdError]           = useState('')
+  const [adSuccess, setAdSuccess]       = useState(false)
+
   const supabase = createClient()
 
   const checkOwner = useCallback(async () => {
@@ -51,6 +86,9 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
     const data = await res.json()
     if (data.isOwner) {
       setOwnerData(data)
+      setAvatarUrl(data.provider.avatarUrl ?? null)
+      setGallery(Array.isArray(data.currentProfile?.gallery) ? data.currentProfile.gallery as string[] : [])
+      setAds(data.ads ?? [])
       setMessages([{
         role: 'assistant',
         content: `Hi ${data.provider.firstName}! Tell me what you'd like to change — your headline, bio, services, colours, or anything else.`,
@@ -63,11 +101,8 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        checkOwner()
-      } else {
-        setAuthState('login_email')
-      }
+      if (user) checkOwner()
+      else setAuthState('login_email')
     })
   }, [checkOwner, supabase.auth])
 
@@ -120,9 +155,115 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
     }
   }
 
-  const isSeed = !ownerData?.provider.plan || ownerData.provider.plan === 'seed'
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !ownerData) return
+    setAvatarUploading(true)
+    setAvatarError('')
+    const form = new FormData()
+    form.append('file', file)
+    form.append('type', 'avatar')
+    form.append('slug', ownerData.provider.slug)
+    try {
+      const res  = await fetch('/api/my-space/upload', { method: 'POST', body: form })
+      const data = await res.json()
+      if (!res.ok) { setAvatarError(data.error ?? 'Upload failed'); return }
+      setAvatarUrl(data.url)
+    } catch {
+      setAvatarError('Upload failed — please try again.')
+    } finally {
+      setAvatarUploading(false)
+      e.target.value = ''
+    }
+  }
 
-  // ── Panel content by auth state ──────────────────────────────────────────
+  async function handleGalleryUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !ownerData) return
+    setGalleryUploading(true)
+    setGalleryError('')
+    const form = new FormData()
+    form.append('file', file)
+    form.append('type', 'gallery')
+    form.append('slug', ownerData.provider.slug)
+    try {
+      const res  = await fetch('/api/my-space/upload', { method: 'POST', body: form })
+      const data = await res.json()
+      if (!res.ok) { setGalleryError(data.error ?? 'Upload failed'); return }
+      setGallery(prev => [...prev, data.url])
+    } catch {
+      setGalleryError('Upload failed — please try again.')
+    } finally {
+      setGalleryUploading(false)
+      e.target.value = ''
+    }
+  }
+
+  async function handleAdImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !ownerData) return
+    setAdImageUploading(true)
+    const form = new FormData()
+    form.append('file', file)
+    form.append('type', 'ad')
+    form.append('slug', ownerData.provider.slug)
+    try {
+      const res  = await fetch('/api/my-space/upload', { method: 'POST', body: form })
+      const data = await res.json()
+      if (!res.ok) { setAdError(data.error ?? 'Image upload failed'); return }
+      setAdImageUrl(data.url)
+    } catch {
+      setAdError('Image upload failed.')
+    } finally {
+      setAdImageUploading(false)
+      e.target.value = ''
+    }
+  }
+
+  async function handleAdSubmit() {
+    if (!adTitle.trim() || !ownerData) return
+    setAdSubmitting(true)
+    setAdError('')
+    setAdSuccess(false)
+    try {
+      const res  = await fetch('/api/ads/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug: ownerData.provider.slug,
+          title: adTitle,
+          description: adDescription || undefined,
+          imageUrl: adImageUrl || undefined,
+          linkUrl: adLink || undefined,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setAdError(data.error ?? 'Failed to submit ad'); return }
+      setAds(prev => [{
+        id: data.adId,
+        title: adTitle,
+        description: adDescription || null,
+        imageUrl: adImageUrl || null,
+        linkUrl: adLink || null,
+        status: 'approved',
+      }, ...prev])
+      setAdTitle('')
+      setAdDescription('')
+      setAdLink('')
+      setAdImageUrl('')
+      setAdSuccess(true)
+    } catch {
+      setAdError('Something went wrong — please try again.')
+    } finally {
+      setAdSubmitting(false)
+    }
+  }
+
+  const isSeed    = !ownerData?.provider.plan || ownerData.provider.plan === 'seed'
+  const canUpload = planRank(ownerData?.provider.plan ?? 'seed') >= 2  // grow+
+  const canAds    = planRank(ownerData?.provider.plan ?? 'seed') >= 3  // thrive+
+
+  // ── Auth states ──────────────────────────────────────────────────────────
 
   if (authState === 'loading' || authState === 'checking') {
     return (
@@ -200,13 +341,28 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
 
   // ── Ready state ──────────────────────────────────────────────────────────
 
+  const showPersonaBanner = ownerData?.personaTemplateStatus === 'generating' || ownerData?.personaTemplateStatus === 'failed'
+
   return (
     <PanelShell onClose={onClose}>
+      {showPersonaBanner && (
+        <div className="mx-4 mt-3 flex items-center gap-2.5 bg-[#FFFBF0] border border-[#F5A623]/40 rounded-xl px-3.5 py-2.5">
+          <div className="w-2 h-2 rounded-full bg-[#F5A623] animate-pulse shrink-0" />
+          <p className="text-xs text-[#666]">Your page is being personalized — it&apos;ll look even better soon.</p>
+        </div>
+      )}
+
       {/* Tabs */}
-      <div className="border-b border-[#E5E5E5] px-4 flex items-center gap-5">
-        {([['chat', 'Edit profile'], ['bookings', 'Bookings'], ['plan', 'My plan']] as const).map(([key, label]) => (
+      <div className="border-b border-[#E5E5E5] px-4 flex items-center gap-4 overflow-x-auto scrollbar-none">
+        {([
+          ['chat',     'Edit'],
+          ['media',    'Media'],
+          ['ads',      'Ads'],
+          ['bookings', 'Bookings'],
+          ['plan',     'Plan'],
+        ] as const).map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)}
-            className={`py-3 text-xs font-semibold border-b-2 transition-colors ${
+            className={`py-3 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors ${
               tab === key ? 'border-[#0D0D0D] text-[#0D0D0D]' : 'border-transparent text-[#999] hover:text-[#0D0D0D]'
             }`}>
             {label}
@@ -214,7 +370,7 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
         ))}
       </div>
 
-      {/* Chat tab */}
+      {/* Edit (chat) tab */}
       {tab === 'chat' && (
         <>
           {isSeed && (
@@ -277,6 +433,135 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
         </>
       )}
 
+      {/* Media tab */}
+      {tab === 'media' && ownerData && (
+        <div className="flex-1 overflow-y-auto">
+          {!canUpload ? (
+            <UpgradeBanner plan="Grow" onUpgrade={() => setTab('plan')} />
+          ) : (
+            <>
+              {/* Profile photo */}
+              <div className="px-4 pt-5 pb-4 border-b border-[#E5E5E5]">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#0D0D0D] mb-3">Profile photo</p>
+                <div className="flex items-center gap-4">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Avatar" className="w-16 h-16 rounded-full object-cover border border-[#E5E5E5]" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-[#F5F5F5] flex items-center justify-center text-2xl font-semibold text-[#bbb]">
+                      {ownerData.provider.firstName[0]?.toUpperCase()}
+                    </div>
+                  )}
+                  <label className="cursor-pointer text-sm font-semibold text-[#0D0D0D] border border-[#E5E5E5] rounded-xl px-4 py-2 hover:bg-[#F5F5F5] transition-colors">
+                    {avatarUploading ? 'Uploading…' : avatarUrl ? 'Change photo' : 'Upload photo'}
+                    <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={avatarUploading} />
+                  </label>
+                </div>
+                {avatarError && <p className="text-red-500 text-xs mt-2">{avatarError}</p>}
+              </div>
+
+              {/* Gallery */}
+              <div className="px-4 pt-5 pb-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#0D0D0D] mb-3">Gallery</p>
+                {gallery.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    {gallery.map((url, i) => (
+                      <img key={i} src={url} alt="" className="w-full aspect-square object-cover rounded-lg border border-[#E5E5E5]" />
+                    ))}
+                  </div>
+                )}
+                {gallery.length === 0 && (
+                  <p className="text-xs text-[#999] mb-3">No images yet.</p>
+                )}
+                <label className="cursor-pointer inline-flex items-center gap-1.5 text-sm font-semibold text-[#0D0D0D] border border-[#E5E5E5] rounded-xl px-4 py-2 hover:bg-[#F5F5F5] transition-colors">
+                  {galleryUploading ? 'Uploading…' : '+ Add image'}
+                  <input type="file" accept="image/*" className="hidden" onChange={handleGalleryUpload} disabled={galleryUploading} />
+                </label>
+                {galleryError && <p className="text-red-500 text-xs mt-2">{galleryError}</p>}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Ads tab */}
+      {tab === 'ads' && ownerData && (
+        <div className="flex-1 overflow-y-auto">
+          {!canAds ? (
+            <UpgradeBanner plan="Thrive" onUpgrade={() => setTab('plan')} />
+          ) : (
+            <>
+              {/* Existing ads */}
+              <div className="px-4 pt-5 border-b border-[#E5E5E5] pb-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#0D0D0D] mb-3">Your ads</p>
+                {ads.length === 0 ? (
+                  <p className="text-xs text-[#999]">No ads yet. Submit one below.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {ads.map(ad => (
+                      <div key={ad.id} className="border border-[#E5E5E5] rounded-xl p-3">
+                        <div className="flex justify-between items-start gap-2">
+                          <p className="text-sm font-semibold text-[#0D0D0D] flex-1 min-w-0 truncate">{ad.title}</p>
+                          <span className={`shrink-0 text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide ${
+                            ad.status === 'approved' ? 'bg-green-100 text-green-700' :
+                            ad.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                            'bg-yellow-100 text-yellow-700'
+                          }`}>{ad.status}</span>
+                        </div>
+                        {ad.description && <p className="text-xs text-[#666] mt-0.5 leading-relaxed">{ad.description}</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* New ad form */}
+              <div className="px-4 pt-5 pb-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#0D0D0D] mb-3">New ad</p>
+                <input
+                  value={adTitle}
+                  onChange={e => { setAdTitle(e.target.value); setAdSuccess(false) }}
+                  placeholder="Title *"
+                  maxLength={100}
+                  className="w-full border border-[#E5E5E5] rounded-xl px-3 py-2.5 text-sm mb-2 focus:outline-none focus:border-[#0D0D0D] transition-colors" />
+                <textarea
+                  value={adDescription}
+                  onChange={e => setAdDescription(e.target.value)}
+                  placeholder="Description (optional)"
+                  rows={2}
+                  maxLength={500}
+                  className="w-full border border-[#E5E5E5] rounded-xl px-3 py-2.5 text-sm mb-2 resize-none focus:outline-none focus:border-[#0D0D0D] transition-colors" />
+                <input
+                  value={adLink}
+                  onChange={e => setAdLink(e.target.value)}
+                  placeholder="Link URL (optional)"
+                  type="url"
+                  className="w-full border border-[#E5E5E5] rounded-xl px-3 py-2.5 text-sm mb-2 focus:outline-none focus:border-[#0D0D0D] transition-colors" />
+
+                {/* Ad image */}
+                <div className="flex items-center gap-3 mb-3">
+                  {adImageUrl && (
+                    <img src={adImageUrl} alt="Ad" className="w-12 h-12 rounded-lg object-cover border border-[#E5E5E5]" />
+                  )}
+                  <label className="cursor-pointer text-xs font-semibold text-[#666] border border-[#E5E5E5] rounded-xl px-3 py-2 hover:bg-[#F5F5F5] transition-colors">
+                    {adImageUploading ? 'Uploading…' : adImageUrl ? 'Change image' : '+ Ad image (optional)'}
+                    <input type="file" accept="image/*" className="hidden" onChange={handleAdImageUpload} disabled={adImageUploading} />
+                  </label>
+                </div>
+
+                {adError   && <p className="text-red-500 text-xs mb-2">{adError}</p>}
+                {adSuccess  && <p className="text-green-600 text-xs mb-2">Ad is now live on your page!</p>}
+                <button
+                  onClick={handleAdSubmit}
+                  disabled={adSubmitting || !adTitle.trim()}
+                  className="w-full bg-[#0D0D0D] text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-40 hover:opacity-80 transition-opacity">
+                  {adSubmitting ? 'Submitting…' : 'Submit for approval →'}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
       {/* Bookings tab */}
       {tab === 'bookings' && ownerData && (
         <div className="flex-1 overflow-y-auto">
@@ -294,10 +579,23 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
   )
 }
 
+function UpgradeBanner({ plan, onUpgrade }: { plan: string; onUpgrade: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center h-full px-6 py-12 text-center">
+      <p className="text-2xl mb-3">⬆️</p>
+      <p className="font-semibold text-[#0D0D0D] mb-1">Upgrade to {plan}</p>
+      <p className="text-sm text-[#666] mb-5">This feature is available on the {plan} plan and above.</p>
+      <button onClick={onUpgrade}
+        className="bg-[#0D0D0D] text-white rounded-xl px-5 py-2.5 text-sm font-semibold hover:opacity-80 transition-opacity">
+        See plans →
+      </button>
+    </div>
+  )
+}
+
 function PanelShell({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
     <div className="flex flex-col h-full bg-white">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E5E5] shrink-0">
         <div className="flex items-center gap-2">
           <svg width="18" height="18" viewBox="0 0 22 22" fill="none">

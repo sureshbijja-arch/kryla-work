@@ -1,6 +1,6 @@
 import BookingForm from '../BookingForm'
-import { KrylaLogo, Footer, WhatsAppIcon, SectionHeading, FaqList } from '../shared'
-import { ACCENT, PAGE_BG, FONT_CLASS, waUrl } from '../../types'
+import { KrylaLogo, Footer, WhatsAppIcon, SectionHeading, FaqList, GalleryGrid } from '../shared'
+import { ACCENT, PAGE_BG, FONT_CLASS, waUrl, mapsUrl } from '../../types'
 import type { ProfileData } from '../../types'
 
 export default function ClinicTemplate({ data }: { data: ProfileData }) {
@@ -8,6 +8,7 @@ export default function ClinicTemplate({ data }: { data: ProfileData }) {
     providerId, firstName, lastName, location, whatsappNumber,
     headline, subheadline, bio, ctaPrimary,
     services, highlights, faq, palette, font, showSections,
+    avatarUrl = null, gallery = [],
   } = data
 
   const accent = ACCENT[palette]
@@ -21,9 +22,22 @@ export default function ClinicTemplate({ data }: { data: ProfileData }) {
       {/* Professional header */}
       <header className="border-b border-[#E5E5E5] bg-white">
         <div className="max-w-2xl mx-auto px-6 py-5 flex justify-between items-center">
-          <div>
-            <p className="font-bold text-[#0D0D0D] text-lg">Dr. {fullName}</p>
-            <p className="text-xs text-[#999] mt-0.5">{location}</p>
+          <div className="flex items-center gap-3">
+            {avatarUrl && (
+              <img src={avatarUrl} alt={fullName} className="w-10 h-10 rounded-full object-cover border-2 border-[#E5E5E5] shrink-0" />
+            )}
+            <div>
+              <p className="font-bold text-[#0D0D0D] text-lg">Dr. {fullName}</p>
+              {location ? (
+                <>
+                  <span className="text-xs text-[#999] mt-0.5 block">{location}</span>
+                  <a href={mapsUrl(location)} target="_blank" rel="noopener noreferrer"
+                     className="block text-[10px] font-semibold text-[#F5A623] hover:underline">
+                    📍 Get Directions
+                  </a>
+                </>
+              ) : null}
+            </div>
           </div>
           <div className="flex items-center gap-4">
             {wa && showSections.contact && (
@@ -129,6 +143,8 @@ export default function ClinicTemplate({ data }: { data: ProfileData }) {
             <FaqList items={faq} />
           </section>
         )}
+
+        <GalleryGrid images={gallery} />
       </main>
 
       <Footer />

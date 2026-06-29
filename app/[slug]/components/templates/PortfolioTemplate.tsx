@@ -1,6 +1,6 @@
 import BookingForm from '../BookingForm'
-import { KrylaLogo, Footer, WhatsAppIcon, SectionHeading, FaqList } from '../shared'
-import { ACCENT, PAGE_BG, FONT_CLASS, waUrl } from '../../types'
+import { KrylaLogo, Footer, WhatsAppIcon, SectionHeading, FaqList, GalleryGrid } from '../shared'
+import { ACCENT, PAGE_BG, FONT_CLASS, waUrl, mapsUrl } from '../../types'
 import type { ProfileData } from '../../types'
 
 export default function PortfolioTemplate({ data }: { data: ProfileData }) {
@@ -8,6 +8,7 @@ export default function PortfolioTemplate({ data }: { data: ProfileData }) {
     providerId, firstName, lastName, location, whatsappNumber,
     headline, subheadline, bio, ctaPrimary, ctaSecondary,
     services, highlights, faq, palette, font, showSections,
+    avatarUrl = null, gallery = [],
   } = data
 
   const accent = ACCENT[palette]
@@ -28,7 +29,18 @@ export default function PortfolioTemplate({ data }: { data: ProfileData }) {
         {/* Hero */}
         {showSections.hero && (
           <section className="pt-14 pb-12 border-b border-[#E5E5E5]">
-            <p className="text-sm text-[#999] mb-3">{location}</p>
+            {avatarUrl && (
+              <img src={avatarUrl} alt={fullName} className="w-16 h-16 rounded-full object-cover border-2 border-[#E5E5E5] mb-5" />
+            )}
+            {location ? (
+              <div className="mb-3">
+                <span className="text-sm text-[#999]">{location}</span>
+                <a href={mapsUrl(location)} target="_blank" rel="noopener noreferrer"
+                   className="block text-[10px] font-semibold text-[#F5A623] hover:underline mt-0.5">
+                  📍 Get Directions
+                </a>
+              </div>
+            ) : null}
             <h1 className="text-4xl sm:text-5xl font-bold text-[#0D0D0D] leading-tight mb-4 max-w-xl">{headline}</h1>
             <p className="text-lg text-[#666666] leading-relaxed mb-8 max-w-lg">{subheadline}</p>
             <div className="flex flex-wrap gap-3">
@@ -128,6 +140,8 @@ export default function PortfolioTemplate({ data }: { data: ProfileData }) {
             <FaqList items={faq} />
           </section>
         )}
+
+        <GalleryGrid images={gallery} />
       </main>
 
       <Footer />

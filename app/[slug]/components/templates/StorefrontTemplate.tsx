@@ -1,6 +1,6 @@
 import BookingForm from '../BookingForm'
-import { KrylaLogo, Footer, WhatsAppIcon, SectionHeading, FaqList } from '../shared'
-import { ACCENT, PAGE_BG, FONT_CLASS, waUrl } from '../../types'
+import { KrylaLogo, Footer, WhatsAppIcon, SectionHeading, FaqList, GalleryGrid } from '../shared'
+import { ACCENT, PAGE_BG, FONT_CLASS, waUrl, mapsUrl } from '../../types'
 import type { ProfileData } from '../../types'
 
 export default function StorefrontTemplate({ data }: { data: ProfileData }) {
@@ -8,6 +8,7 @@ export default function StorefrontTemplate({ data }: { data: ProfileData }) {
     providerId, firstName, lastName, location, whatsappNumber,
     headline, subheadline, bio, ctaPrimary, ctaSecondary,
     services, highlights, faq, palette, font, showSections,
+    avatarUrl = null, gallery = [],
   } = data
 
   const accent = ACCENT[palette]
@@ -21,9 +22,22 @@ export default function StorefrontTemplate({ data }: { data: ProfileData }) {
       {/* Header bar */}
       <header style={{ background: accent }} className="px-6 py-4">
         <div className="max-w-2xl mx-auto flex justify-between items-center">
-          <div>
-            <p className="font-bold text-white text-lg">{fullName}</p>
-            <p className="text-white/70 text-xs">{location}</p>
+          <div className="flex items-center gap-3">
+            {avatarUrl && (
+              <img src={avatarUrl} alt={fullName} className="w-10 h-10 rounded-full object-cover border-2 border-white/20 shrink-0" />
+            )}
+            <div>
+              <p className="font-bold text-white text-lg">{fullName}</p>
+              {location ? (
+                <>
+                  <span className="text-white/70 text-xs">{location}</span>
+                  <a href={mapsUrl(location)} target="_blank" rel="noopener noreferrer"
+                     className="block text-[10px] font-semibold text-white/60 hover:text-white">
+                    📍 Get Directions
+                  </a>
+                </>
+              ) : null}
+            </div>
           </div>
           <KrylaLogo />
         </div>
@@ -131,6 +145,8 @@ export default function StorefrontTemplate({ data }: { data: ProfileData }) {
             <FaqList items={faq} />
           </section>
         )}
+
+        <GalleryGrid images={gallery} />
       </main>
 
       <Footer />
