@@ -138,7 +138,7 @@ export default async function MemberProfilePage({ params }: Props) {
       ) : (
         <FocusTemplate data={profileData} />
       )}
-      <MySpaceBadge />
+      <MySpaceBadge slug={params.slug} />
     </>
   )
 }
