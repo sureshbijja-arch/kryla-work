@@ -17,13 +17,14 @@ export default function BookingForm({
   ctaLabel?: string
 }) {
   const [form, setForm] = useState({
-    customerName: '',
+    customerName:  '',
+    customerEmail: '',
     customerPhone: '',
-    service: services[0]?.name ?? '',
+    service:       services[0]?.name ?? '',
     preferredDate: '',
-    message: '',
+    message:       '',
   })
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [status, setStatus]   = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
@@ -36,11 +37,12 @@ export default function BookingForm({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           providerId,
-          customerName: form.customerName,
+          customerName:  form.customerName,
+          customerEmail: form.customerEmail,
           customerPhone: form.customerPhone,
-          service: form.service || services[0]?.name || 'General inquiry',
+          service:       form.service || services[0]?.name || 'General inquiry',
           preferredDate: form.preferredDate || undefined,
-          message: form.message || undefined,
+          message:       form.message || undefined,
         }),
       })
 
@@ -80,7 +82,7 @@ export default function BookingForm({
     )
   }
 
-  const input = 'w-full border border-[#E5E5E5] rounded-lg px-3 py-2.5 text-sm text-[#0D0D0D] bg-white focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]'
+  const inputCls = 'w-full border border-[#E5E5E5] rounded-lg px-3 py-2.5 text-sm text-[#0D0D0D] bg-white focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]'
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -90,15 +92,23 @@ export default function BookingForm({
           <input required type="text" placeholder="Priya Sharma"
             value={form.customerName}
             onChange={e => setForm(f => ({ ...f, customerName: e.target.value }))}
-            className={input} />
+            className={inputCls} />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-[#0D0D0D] uppercase tracking-wide mb-1.5">WhatsApp number</label>
-          <input required type="tel" placeholder="+91 98765 43210"
-            value={form.customerPhone}
-            onChange={e => setForm(f => ({ ...f, customerPhone: e.target.value }))}
-            className={input} />
+          <label className="block text-xs font-semibold text-[#0D0D0D] uppercase tracking-wide mb-1.5">Email</label>
+          <input required type="email" placeholder="priya@example.com"
+            value={form.customerEmail}
+            onChange={e => setForm(f => ({ ...f, customerEmail: e.target.value }))}
+            className={inputCls} />
         </div>
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-[#0D0D0D] uppercase tracking-wide mb-1.5">WhatsApp number</label>
+        <input required type="tel" placeholder="+91 98765 43210"
+          value={form.customerPhone}
+          onChange={e => setForm(f => ({ ...f, customerPhone: e.target.value }))}
+          className={inputCls} />
       </div>
 
       {services.length > 0 && (
@@ -106,7 +116,7 @@ export default function BookingForm({
           <label className="block text-xs font-semibold text-[#0D0D0D] uppercase tracking-wide mb-1.5">Service</label>
           <select value={form.service}
             onChange={e => setForm(f => ({ ...f, service: e.target.value }))}
-            className={input}>
+            className={inputCls}>
             {services.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
           </select>
         </div>
@@ -121,7 +131,7 @@ export default function BookingForm({
             min={new Date().toISOString().split('T')[0]}
             value={form.preferredDate}
             onChange={e => setForm(f => ({ ...f, preferredDate: e.target.value }))}
-            className={input} />
+            className={inputCls} />
         </div>
         <div>
           <label className="block text-xs font-semibold text-[#0D0D0D] uppercase tracking-wide mb-1.5">
@@ -130,7 +140,7 @@ export default function BookingForm({
           <input type="text" placeholder="Anything to share…"
             value={form.message}
             onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
-            className={input} />
+            className={inputCls} />
         </div>
       </div>
 

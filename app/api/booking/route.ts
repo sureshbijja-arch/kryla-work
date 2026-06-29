@@ -1,17 +1,12 @@
-/**
- * POST /api/booking
- *
- * A customer submits a booking request from the Member's profile page.
- * Creates the booking row, then fires a notification job.
- */
-
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { supabaseAdmin } from "@/lib/supabase/admin"
+import { sendEmail } from "@/lib/email"
 
 const schema = z.object({
   providerId:    z.string().uuid(),
   customerName:  z.string().min(1).max(100),
+  customerEmail: z.string().email(),
   customerPhone: z.string().min(7).max(20),
   service:       z.string().min(1),
   preferredDate: z.string().optional(),
@@ -20,8 +15,8 @@ const schema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const body   = await req.json()
-    const data   = schema.parse(body)
+    const body = await req.json()
+    const data = schema.parse(body)
 
     const { data: booking, error } = await supabaseAdmin
       .from("bookings")
@@ -35,9 +30,10 @@ export async function POST(req: NextRequest) {
         status:            "pending",
         notification_sent: false,
         confirmation_sent: false,
-        // legacy columns with NOT NULL constraints — keep in sync
+        // legacy NOT NULL columns — keep in sync
         client_name:       data.customerName,
         client_phone:      data.customerPhone,
+        client_email:      data.customerEmail,
         service_requested: data.service,
         requested_slot:    data.preferredDate ?? '',
       })
@@ -52,7 +48,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Email the member — non-fatal: booking is saved regardless
+    // Notify the member — non-fatal
     try {
       const { data: provider } = await supabaseAdmin
         .from('providers')
@@ -60,38 +56,34 @@ export async function POST(req: NextRequest) {
         .eq('id', data.providerId)
         .single()
 
-      if (provider?.email && process.env.RESEND_API_KEY) {
-        const dateLine = data.preferredDate ? `<p><strong>Preferred date:</strong> ${data.preferredDate}</p>` : ''
-        const msgLine  = data.message       ? `<p><strong>Message:</strong> ${data.message}</p>` : ''
+      if (provider?.email) {
+        const dateLine = data.preferredDate ? `<p style="margin:6px 0"><strong>Preferred date:</strong> ${data.preferredDate}</p>` : ''
+        const msgLine  = data.message       ? `<p style="margin:6px 0"><strong>Message:</strong> ${data.message}</p>` : ''
 
-        await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            from: 'Kryla <hello@kryla.work>',
-            to: provider.email,
-            subject: `New booking request from ${data.customerName}`,
-            html: `
-              <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#0D0D0D">
-                <p style="font-size:18px;font-weight:700;margin-bottom:4px">New booking request</p>
-                <p style="color:#666;margin-top:0">Hi ${provider.first_name}, someone wants to book with you.</p>
-                <hr style="border:none;border-top:1px solid #E5E5E5;margin:16px 0"/>
-                <p><strong>Name:</strong> ${data.customerName}</p>
-                <p><strong>WhatsApp:</strong> ${data.customerPhone}</p>
-                <p><strong>Service:</strong> ${data.service}</p>
-                ${dateLine}
-                ${msgLine}
-                <hr style="border:none;border-top:1px solid #E5E5E5;margin:16px 0"/>
-                <p style="color:#666;font-size:13px">Log in to <a href="https://kryla.work/my-space" style="color:#F5A623">My Space</a> to accept or decline.</p>
-              </div>`,
-          }),
+        await sendEmail({
+          to: provider.email,
+          subject: `New booking from ${data.customerName}`,
+          html: `
+            <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#0D0D0D">
+              <p style="font-size:20px;font-weight:700;margin-bottom:4px">New booking request</p>
+              <p style="color:#666;margin-top:0">Hi ${provider.first_name}, someone wants to book with you on Kryla.</p>
+              <hr style="border:none;border-top:1px solid #E5E5E5;margin:16px 0"/>
+              <p style="margin:6px 0"><strong>Name:</strong> ${data.customerName}</p>
+              <p style="margin:6px 0"><strong>Email:</strong> ${data.customerEmail}</p>
+              <p style="margin:6px 0"><strong>WhatsApp:</strong> ${data.customerPhone}</p>
+              <p style="margin:6px 0"><strong>Service:</strong> ${data.service}</p>
+              ${dateLine}
+              ${msgLine}
+              <hr style="border:none;border-top:1px solid #E5E5E5;margin:16px 0"/>
+              <a href="https://kryla.work/my-space"
+                style="display:inline-block;background:#0D0D0D;color:#fff;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:600;font-size:14px">
+                Accept or decline in My Space →
+              </a>
+            </div>`,
         })
       }
-    } catch (emailErr) {
-      console.error('[booking] Email failed (non-fatal):', emailErr)
+    } catch (err) {
+      console.error('[booking] Member email failed (non-fatal):', err)
     }
 
     return NextResponse.json({ success: true, bookingId: booking.id })
