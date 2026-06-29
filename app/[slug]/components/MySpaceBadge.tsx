@@ -12,7 +12,7 @@ export default function MySpaceBadge({ slug }: { slug: string }) {
       <button
         onClick={() => setOpen(true)}
         title="My Space"
-        className="fixed bottom-5 right-5 z-40 flex items-center gap-2 bg-[#0D0D0D]/90 backdrop-blur-sm text-white rounded-full pl-2.5 pr-4 py-2 shadow-lg hover:bg-[#0D0D0D] transition-colors">
+        className="fixed bottom-20 right-5 xl:bottom-5 z-50 flex items-center gap-2 bg-[#0D0D0D]/90 backdrop-blur-sm text-white rounded-full pl-2.5 pr-4 py-2 shadow-lg hover:bg-[#0D0D0D] transition-colors">
         <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/10">
           <svg width="12" height="12" viewBox="0 0 22 22" fill="none">
             <line x1="11" y1="2"  x2="11" y2="20" stroke="white"   strokeWidth="3" strokeLinecap="round" />
