@@ -146,6 +146,12 @@ Dynamic accent tokens set as **inline styles** on the LayoutRenderer wrapper (no
 - Both select `sections`, `design_mode`, `gallery` from pages table
 
 ### My Space (Dashboard)
+
+> **IMPORTANT:** My Space has TWO parallel implementations that must always be kept in sync:
+> 1. **`/my-space` page** — `app/my-space/SpaceClient.tsx` (full-page, server-loaded)
+> 2. **Member page popup** — `app/[slug]/components/MySpacePanel.tsx` (slide-in panel, client-only auth)
+> When adding a new tab or feature to one, add it to both.
+
 At `/my-space` — protected by Supabase email OTP auth (middleware guards route).
 Tabs: **Edit profile** (AI chat editor) | **Services** (service card manager) | **Page layout** (section builder) | **Bookings** | **My plan**
 

@@ -4,10 +4,12 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import BookingsTab from '@/app/my-space/BookingsTab'
 import PlanSection from '@/app/my-space/PlanSection'
+import ServicesTab from '@/app/my-space/ServicesTab'
+import type { ServiceItem } from '@/app/my-space/ServicesTab'
 import { TEMPLATE_LABEL, FONT_LABEL, type LayoutOption } from '@/lib/layouts'
 
 type AuthState = 'loading' | 'login_email' | 'login_code' | 'checking' | 'not_owner' | 'ready'
-type Tab = 'chat' | 'media' | 'ads' | 'layouts' | 'bookings' | 'plan'
+type Tab = 'chat' | 'services' | 'media' | 'ads' | 'layouts' | 'bookings' | 'plan'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -444,6 +446,7 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
       <div className="border-b border-[#E5E5E5] px-4 flex items-center gap-4 overflow-x-auto scrollbar-none">
         {([
           ['chat',     'Edit'],
+          ['services', 'Services'],
           ['media',    'Media'],
           ['ads',      'Ads'],
           ['layouts',  'Layouts'],
@@ -526,6 +529,16 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
             </button>
           </div>
         </>
+      )}
+
+      {/* Services tab */}
+      {tab === 'services' && ownerData && (
+        <ServicesTab
+          providerId={ownerData.provider.id}
+          slug={ownerData.provider.slug}
+          initialServices={(ownerData.currentProfile?.services as ServiceItem[] | null) ?? []}
+          plan={ownerData.provider.plan}
+        />
       )}
 
       {/* Media tab */}
