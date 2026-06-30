@@ -43,7 +43,7 @@ export default function LayoutRenderer({ sections, data }: Props) {
           case 'gallery':
             return <GallerySection key={i} data={data} variant={s.variant} />
           case 'faq':
-            return <FaqSection key={i} data={data} variant={s.variant} />
+            return <FaqSection key={i} data={data} accent={accent} variant={s.variant} />
           case 'contact':
             return <ContactSection key={i} data={data} accent={accent} variant={s.variant} />
           default:
