@@ -35,17 +35,29 @@ function GenericBadge({ label }: { label: string }) {
   )
 }
 
+function ServiceCTA({ action, label, target }: { action: string; label: string; target: string }) {
+  if (action !== 'book' && action !== 'enquire') return null
+  return (
+    <a href={target}
+      className="inline-block text-xs font-black text-white px-3 py-1.5 transition-opacity hover:opacity-80"
+      style={{ borderRadius: 'var(--radius-btn)', background: 'var(--color-accent)' }}>
+      {label} →
+    </a>
+  )
+}
+
 /* ── FEATURES ─────────────────────────────────────────────────────────────── */
 function Features({ data }: { data: ProfileData }) {
-  const { services, showSections } = data
+  const { services, showSections, persona } = data
   if (!showSections.services || !services.length) return null
+  const cfg = getPersonaConfig(persona)
   const [hovered, setHovered] = useState<number | null>(null)
 
   return (
     <section className="border-t border-[#E5E5E5]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-2xl mx-auto px-6">
-        <SectionLabel text="What I offer" />
+        <SectionLabel text={cfg.servicesLabel} />
         <div className="space-y-3">
           {services.map((s, i) => {
             const active = hovered === i
@@ -85,10 +97,7 @@ function Features({ data }: { data: ProfileData }) {
                           {s.name}
                         </p>
                         {s.badge && (
-                          <span className="text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full shrink-0"
-                            style={{ background: 'var(--color-accent-surface)', color: 'var(--color-accent)' }}>
-                            {s.badge}
-                          </span>
+                          <GenericBadge label={s.badge} />
                         )}
                       </div>
                       <div className="shrink-0 text-right">
@@ -96,17 +105,17 @@ function Features({ data }: { data: ProfileData }) {
                           <p className="text-sm font-black" style={{ color: 'var(--color-accent)' }}>{s.price}</p>
                         )}
                         {s.duration_or_unit && (
-                          <p className="text-sm font-black transition-colors duration-200"
-                            style={{ color: active ? 'var(--color-accent)' : 'var(--color-accent)' }}>
+                          <p className="text-sm font-black" style={{ color: 'var(--color-accent)' }}>
                             {s.duration_or_unit}
                           </p>
                         )}
                       </div>
                     </div>
-                    <p className="text-sm leading-relaxed transition-colors duration-200"
+                    <p className="text-sm leading-relaxed transition-colors duration-200 mb-3"
                       style={{ color: active ? 'rgba(255,255,255,0.5)' : '#666' }}>
                       {s.description}
                     </p>
+                    <ServiceCTA action={cfg.serviceCardAction} label={cfg.orderLabel} target={cfg.heroCtaTarget} />
                   </div>
                 </div>
               </div>
@@ -120,17 +129,19 @@ function Features({ data }: { data: ProfileData }) {
 
 /* ── GRID ─────────────────────────────────────────────────────────────────── */
 function Grid({ data }: { data: ProfileData }) {
-  const { services, showSections } = data
+  const { services, showSections, persona } = data
   if (!showSections.services || !services.length) return null
+  const cfg = getPersonaConfig(persona)
+
   return (
     <section className="border-t border-[#E5E5E5]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto px-6">
-        <SectionLabel text="Services" />
+        <SectionLabel text={cfg.servicesLabel} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {services.map((s, i) => (
             <div key={i}
-              className="group bg-white hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 cursor-default overflow-hidden"
+              className="group bg-white hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 cursor-default overflow-hidden flex flex-col"
               style={{
                 borderRadius: 'var(--radius-card)',
                 border: '1.5px solid var(--color-accent-border)',
@@ -147,16 +158,11 @@ function Grid({ data }: { data: ProfileData }) {
                   )}
                 </div>
               )}
-              <div className="p-6">
+              <div className="p-6 flex-1 flex flex-col">
                 <div className="flex justify-between items-start gap-2 mb-3">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-black text-[#0D0D0D] text-base">{s.name}</p>
-                    {!s.image_url && s.badge && (
-                      <span className="text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full"
-                        style={{ background: 'var(--color-accent-surface)', color: 'var(--color-accent)' }}>
-                        {s.badge}
-                      </span>
-                    )}
+                    {!s.image_url && s.badge && <GenericBadge label={s.badge} />}
                   </div>
                   <div className="flex flex-col items-end gap-1 shrink-0">
                     {s.price && (
@@ -170,7 +176,8 @@ function Grid({ data }: { data: ProfileData }) {
                     )}
                   </div>
                 </div>
-                <p className="text-sm text-[#666] leading-relaxed">{s.description}</p>
+                <p className="text-sm text-[#666] leading-relaxed flex-1 mb-4">{s.description}</p>
+                <ServiceCTA action={cfg.serviceCardAction} label={cfg.orderLabel} target={cfg.heroCtaTarget} />
               </div>
             </div>
           ))}
@@ -186,8 +193,8 @@ function Menu({ data }: { data: ProfileData }) {
   if (!showSections.services || !services.length) return null
 
   const cfg = getPersonaConfig(persona)
-  const [orderItem, setOrderItem]       = useState<OrderItem | null>(null)
-  const [customOpen, setCustomOpen]     = useState(false)
+  const [orderItem, setOrderItem]   = useState<OrderItem | null>(null)
+  const [customOpen, setCustomOpen] = useState(false)
   const accentColor = `var(--color-accent)`
 
   return (
@@ -243,7 +250,6 @@ function Menu({ data }: { data: ProfileData }) {
               </div>
             ))}
 
-            {/* Custom order card */}
             {cfg.hasCustomOrder && (
               <div
                 className="flex items-center justify-between gap-4 px-5 py-4 border border-dashed cursor-pointer hover:shadow-lg transition-all duration-200"
@@ -285,15 +291,16 @@ function Menu({ data }: { data: ProfileData }) {
 
 /* ── PRICING ──────────────────────────────────────────────────────────────── */
 function Pricing({ data }: { data: ProfileData }) {
-  const { services, showSections } = data
+  const { services, showSections, persona } = data
   if (!showSections.services || !services.length) return null
+  const cfg = getPersonaConfig(persona)
   const [hov, setHov] = useState<number | null>(null)
 
   return (
-    <section className="border-t border-[#E5E5E5]"
+    <section id="book" className="border-t border-[#E5E5E5]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto px-6">
-        <SectionLabel text="Pricing" />
+        <SectionLabel text={cfg.servicesLabel} />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {services.map((s, i) => {
             const active = hov === i
@@ -313,11 +320,11 @@ function Pricing({ data }: { data: ProfileData }) {
                   transform: active ? 'scale(1.02) translateY(-4px)' : 'scale(1)',
                 }}>
                 {s.image_url && (
-                <div className="w-full h-36 overflow-hidden">
-                  <img src={s.image_url} alt={s.name} className="w-full h-full object-cover" />
-                </div>
-              )}
-              <div className="p-6 flex-1 flex flex-col">
+                  <div className="w-full h-36 overflow-hidden">
+                    <img src={s.image_url} alt={s.name} className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="p-6 flex-1 flex flex-col">
                   {(s.price || s.duration_or_unit) && (
                     <p className="text-4xl font-black mb-2" style={{ color: 'var(--color-accent)' }}>
                       {s.price || s.duration_or_unit}
@@ -326,21 +333,18 @@ function Pricing({ data }: { data: ProfileData }) {
                   <div className="flex items-center gap-2 mb-3">
                     <p className={`font-black text-xl ${featured ? 'text-white' : 'text-[#0D0D0D]'}`}>{s.name}</p>
                     {s.badge && (
-                      <span className="text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full shrink-0"
-                        style={{ background: 'var(--color-accent-surface)', color: 'var(--color-accent)' }}>
-                        {s.badge}
-                      </span>
+                      <GenericBadge label={s.badge} />
                     )}
                   </div>
                   <p className={`text-sm leading-relaxed flex-1 ${featured ? 'text-white/40' : 'text-[#666]'}`}>{s.description}</p>
-                  <a href="#book"
+                  <a href={cfg.heroCtaTarget}
                     className="mt-6 text-center text-sm font-black py-3.5 transition-all hover:opacity-90 hover:scale-[1.02] text-white"
                     style={{
                       borderRadius: 'var(--radius-btn)',
                       background: featured ? 'var(--color-accent)' : '#0D0D0D',
                       boxShadow: featured ? '0 8px 24px var(--color-accent-glow)' : '0 8px 24px rgba(0,0,0,0.2)',
                     }}>
-                    Book →
+                    {cfg.orderLabel} →
                   </a>
                 </div>
               </div>
@@ -352,34 +356,32 @@ function Pricing({ data }: { data: ProfileData }) {
   )
 }
 
-/* ── LIST (default) ───────────────────────────────────────────────────────── */
+/* ── LIST ─────────────────────────────────────────────────────────────────── */
 function List({ data }: { data: ProfileData }) {
-  const { services, showSections } = data
+  const { services, showSections, persona } = data
   if (!showSections.services || !services.length) return null
+  const cfg = getPersonaConfig(persona)
+
   return (
     <section className="border-t border-[#E5E5E5]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-2xl mx-auto px-6">
-        <SectionLabel text="What I offer" />
+        <SectionLabel text={cfg.servicesLabel} />
         <div className="space-y-5">
           {services.map((s, i) => (
-            <div key={i} className="flex items-center gap-4 cursor-default">
+            <div key={i} className="flex items-start gap-4 cursor-default pb-5 border-b border-[#F0F0F0] last:border-0 last:pb-0">
               {s.image_url && (
                 <div className="shrink-0 w-14 h-14 overflow-hidden rounded-xl">
                   <img src={s.image_url} alt={s.name} className="w-full h-full object-cover" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap mb-0.5">
                   <p className="font-black text-[#0D0D0D]">{s.name}</p>
-                  {s.badge && (
-                    <span className="text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full shrink-0"
-                      style={{ background: 'var(--color-accent-surface)', color: 'var(--color-accent)' }}>
-                      {s.badge}
-                    </span>
-                  )}
+                  {s.badge && <GenericBadge label={s.badge} />}
                 </div>
-                <p className="text-sm text-[#666] mt-0.5 leading-relaxed">{s.description}</p>
+                <p className="text-sm text-[#666] leading-relaxed mb-2">{s.description}</p>
+                <ServiceCTA action={cfg.serviceCardAction} label={cfg.orderLabel} target={cfg.heroCtaTarget} />
               </div>
               <div className="shrink-0 text-right">
                 {s.price && (

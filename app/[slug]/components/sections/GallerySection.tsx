@@ -7,6 +7,12 @@ interface Props {
   variant: string
 }
 
+function galleryLabel(persona: string) {
+  if (persona === 'photographer') return 'My Portfolio'
+  if (persona === 'baker' || persona === 'chef') return 'Our Work'
+  return 'Gallery'
+}
+
 function Img({ url, i, className = '' }: { url: string; i: number; className?: string }) {
   const [loaded, setLoaded] = useState(false)
   return (
@@ -30,10 +36,10 @@ function Featured({ data }: { data: ProfileData }) {
   const [first, ...rest] = gallery
 
   return (
-    <section className="border-t border-[#E5E5E5]"
+    <section id="portfolio" className="border-t border-[#E5E5E5]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto px-6">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">Gallery</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">{galleryLabel(data.persona ?? '')}</p>
         <div className="grid grid-cols-3 gap-3" style={{ gridTemplateRows: 'auto auto' }}>
           {first && (
             <a href={first} target="_blank" rel="noopener noreferrer"
@@ -60,10 +66,10 @@ function Masonry({ data }: { data: ProfileData }) {
   const gallery = data.gallery ?? []
   if (!gallery.length) return null
   return (
-    <section className="border-t border-[#E5E5E5]"
+    <section id="portfolio" className="border-t border-[#E5E5E5]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto px-6">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">Gallery</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">{galleryLabel(data.persona ?? '')}</p>
         <div className="columns-2 sm:columns-3 gap-3">
           {gallery.map((url, i) => (
             <a key={i} href={url} target="_blank" rel="noopener noreferrer"
@@ -84,11 +90,11 @@ function Scroll({ data }: { data: ProfileData }) {
   const gallery = data.gallery ?? []
   if (!gallery.length) return null
   return (
-    <section className="border-t border-[#E5E5E5]"
+    <section id="portfolio" className="border-t border-[#E5E5E5]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto">
         <div className="px-6 mb-6">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999]">Gallery</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999]">{galleryLabel(data.persona ?? '')}</p>
         </div>
         <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide px-6">
           {gallery.map((url, i) => (
@@ -109,10 +115,10 @@ function Grid({ data }: { data: ProfileData }) {
   const gallery = data.gallery ?? []
   if (!gallery.length) return null
   return (
-    <section className="border-t border-[#E5E5E5]"
+    <section id="portfolio" className="border-t border-[#E5E5E5]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto px-6">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">Gallery</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">{galleryLabel(data.persona ?? '')}</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {gallery.map((url, i) => (
             <a key={i} href={url} target="_blank" rel="noopener noreferrer"
