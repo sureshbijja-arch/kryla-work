@@ -120,6 +120,17 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
     if (tab === 'chat') bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, tab])
 
+  // Fetch layouts from DB when Layouts tab is first opened
+  useEffect(() => {
+    if (tab !== 'layouts' || layoutsLoaded || !ownerData) return
+    const persona = (ownerData.currentProfile?.persona as string | undefined) ?? ownerData.provider.persona ?? 'other'
+    fetch(`/api/my-space/layouts?persona=${encodeURIComponent(persona)}`)
+      .then(r => r.json())
+      .then(data => { setLayouts(data.layouts ?? []); setLayoutsLoaded(true) })
+      .catch(() => setLayoutsLoaded(true))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, layoutsLoaded, ownerData])
+
   async function sendOtp() {
     setAuthLoading(true)
     setAuthError('')
@@ -414,17 +425,6 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
       </PanelShell>
     )
   }
-
-  // Fetch layouts from DB when Layouts tab is first opened
-  useEffect(() => {
-    if (tab !== 'layouts' || layoutsLoaded || !ownerData) return
-    const persona = (ownerData.currentProfile?.persona as string | undefined) ?? ownerData.provider.persona ?? 'other'
-    fetch(`/api/my-space/layouts?persona=${encodeURIComponent(persona)}`)
-      .then(r => r.json())
-      .then(data => { setLayouts(data.layouts ?? []); setLayoutsLoaded(true) })
-      .catch(() => setLayoutsLoaded(true))
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, layoutsLoaded, ownerData])
 
   // ── Ready state ──────────────────────────────────────────────────────────
 
