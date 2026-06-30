@@ -33,7 +33,7 @@ function WelcomeContent() {
           </a>
           <div className="flex gap-2.5 justify-center flex-wrap">
             <Link
-              href="/my-space"
+              href={`/${slug}`}
               className="bg-[#0D0D0D] text-white rounded-xl px-5 py-2.5 text-sm font-semibold hover:bg-[#222] transition-colors">
               Go to My Space →
             </Link>

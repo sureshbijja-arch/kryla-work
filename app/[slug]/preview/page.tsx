@@ -22,7 +22,6 @@ export default async function PreviewPage({ params }: Props) {
     .from('providers')
     .select('id, first_name, last_name, persona, location, whatsapp_number, email, plan')
     .eq('slug', params.slug)
-    .eq('page_live', true)
     .single()
 
   if (!provider) return notFound()
