@@ -1,17 +1,21 @@
 import { inngest, BUILD_PAGE_EVENT } from '@/lib/inngest'
 import { createServerClient } from '@/lib/supabase'
+import { getAllVerticals } from '@/config/verticals'
 import Anthropic from '@anthropic-ai/sdk'
 import type { BuildPageJobPayload } from '@/lib/inngest'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-const TEMPLATE_MAP: Record<string, string> = {
-  tutor:'focus', trainer:'focus', baker:'portfolio', photographer:'portfolio',
-  salon:'storefront', chef:'storefront', doctor:'clinic', musician:'focus', other:'focus',
-}
-const PALETTE_MAP: Record<string, string> = {
-  tutor:'professional', trainer:'fresh', baker:'warm', photographer:'minimal',
-  salon:'creative', chef:'warm', doctor:'calm', musician:'creative', other:'professional',
+// Derived from config/verticals — adding a persona there auto-updates these maps
+const TEMPLATE_MAP: Record<string, string> = Object.fromEntries(
+  getAllVerticals().map((v) => [v.id, v.defaultTemplate])
+)
+const PALETTE_MAP: Record<string, string> = Object.fromEntries(
+  getAllVerticals().map((v) => [v.id, v.defaultPalette])
+)
+const DESIGN_MODE_MAP: Record<string, string> = {
+  baker: 'craft', chef: 'craft', salon: 'craft', trainer: 'craft', other: 'craft',
+  photographer: 'editorial', doctor: 'editorial', musician: 'editorial', tutor: 'editorial',
 }
 
 function buildPrompt(p: BuildPageJobPayload): string {
@@ -101,6 +105,7 @@ export const buildPageFunction = inngest.createFunction(
         schema_type: content.schema_type,
         template: TEMPLATE_MAP[payload.persona] ?? 'focus',
         palette: PALETTE_MAP[payload.persona] ?? 'professional',
+        design_mode: DESIGN_MODE_MAP[payload.persona] ?? 'craft',
         font: 'inter',
         show_sections: {
           hero: true, services: true, highlights: true,

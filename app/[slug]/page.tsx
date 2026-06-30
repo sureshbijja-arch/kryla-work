@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import type { ProfileData, PaletteKey, FontKey, ShowSections } from './types'
+import type { ProfileData, PaletteKey, FontKey, DesignMode, ShowSections } from './types'
 import AdsScroller from './components/AdsScroller'
 import StudioTemplate from './components/templates/StudioTemplate'
 import FocusTemplate from './components/templates/FocusTemplate'
@@ -61,7 +61,7 @@ export default async function MemberProfilePage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, show_sections, sections')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, show_sections, sections')
     .eq('provider_id', provider.id)
     .single()
 
@@ -110,6 +110,7 @@ export default async function MemberProfilePage({ params }: Props) {
     faq: Array.isArray(page.faq) ? page.faq : [],
     palette: (page.palette as PaletteKey) ?? 'professional',
     font: (page.font as FontKey) ?? 'inter',
+    designMode: (page.design_mode as DesignMode) ?? 'craft',
     showSections,
     avatarUrl,
     gallery,

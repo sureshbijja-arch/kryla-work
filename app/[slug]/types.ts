@@ -1,6 +1,19 @@
-export type PaletteKey = 'professional' | 'fresh' | 'warm' | 'minimal' | 'creative' | 'calm'
-export type FontKey    = 'inter' | 'georgia' | 'trebuchet'
+export type PaletteKey  = 'professional' | 'fresh' | 'warm' | 'minimal' | 'creative' | 'calm'
+export type FontKey     = 'inter' | 'georgia' | 'trebuchet'
 export type TemplateKey = 'focus' | 'portfolio' | 'storefront' | 'clinic'
+export type DesignMode  = 'craft' | 'editorial' | 'product'
+
+export const DESIGN_MODE: Record<string, DesignMode> = {
+  baker:       'craft',
+  chef:        'craft',
+  salon:       'craft',
+  trainer:     'craft',
+  other:       'craft',
+  photographer:'editorial',
+  doctor:      'editorial',
+  musician:    'editorial',
+  tutor:       'editorial',
+}
 
 export interface ServiceItem {
   name: string
@@ -54,6 +67,7 @@ export interface ProfileData {
   faq: FaqItem[]
   palette: PaletteKey
   font: FontKey
+  designMode: DesignMode
   showSections: ShowSections
   avatarUrl?: string | null
   gallery?: string[]

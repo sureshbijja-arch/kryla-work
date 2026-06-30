@@ -9,7 +9,6 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Kryla design tokens
         amber: {
           brand: "#F5A623",
           dark:  "#C17A3A",
@@ -22,12 +21,34 @@ const config: Config = {
           border:  "#E5E5E5",
           success: "#22C55E",
         },
+        // Dynamic accent tokens — set as CSS vars on LayoutRenderer wrapper
+        accent: {
+          DEFAULT: 'var(--color-accent)',
+          surface: 'var(--color-accent-surface)',
+          border:  'var(--color-accent-border)',
+          glow:    'var(--color-accent-glow)',
+        },
       },
       fontFamily: {
-        // 3 template fonts
         inter:     ["Inter", "sans-serif"],
         georgia:   ["Georgia", "serif"],
         trebuchet: ["Trebuchet MS", "sans-serif"],
+      },
+      // Design system — values read from CSS custom properties set by [data-mode]
+      fontSize: {
+        'display':    'var(--type-display)',
+        'heading':    'var(--type-heading)',
+        'subheading': 'var(--type-subheading)',
+        'body-base':  'var(--type-body)',
+        'label':      'var(--type-label)',
+      },
+      spacing: {
+        'section': 'var(--space-section)',
+        'card':    'var(--space-card)',
+      },
+      borderRadius: {
+        'card': 'var(--radius-card)',
+        'btn':  'var(--radius-btn)',
       },
     },
   },

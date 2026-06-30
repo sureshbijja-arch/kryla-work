@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import type { ProfileData, PaletteKey, FontKey, ShowSections } from '../types'
+import type { ProfileData, PaletteKey, FontKey, DesignMode, ShowSections } from '../types'
 import AdsScroller from '../components/AdsScroller'
 import StudioTemplate from '../components/templates/StudioTemplate'
 import FocusTemplate from '../components/templates/FocusTemplate'
@@ -29,7 +29,7 @@ export default async function PreviewPage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, show_sections, sections, draft_data')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, show_sections, sections, draft_data')
     .eq('provider_id', provider.id)
     .single()
 
@@ -82,8 +82,9 @@ export default async function PreviewPage({ params }: Props) {
     services:   Array.isArray(dp.services)   ? dp.services   as ProfileData['services']   : (Array.isArray(page.services)   ? page.services   : []),
     highlights: Array.isArray(dp.highlights) ? dp.highlights as ProfileData['highlights'] : (Array.isArray(page.highlights) ? page.highlights : []),
     faq:        Array.isArray(dp.faq)        ? dp.faq        as ProfileData['faq']        : (Array.isArray(page.faq)        ? page.faq        : []),
-    palette:    ((dp.palette as PaletteKey) ?? (page.palette as PaletteKey)) ?? 'professional',
-    font:       ((dp.font    as FontKey)    ?? (page.font    as FontKey))    ?? 'inter',
+    palette:    ((dp.palette as PaletteKey)    ?? (page.palette    as PaletteKey))    ?? 'professional',
+    font:       ((dp.font    as FontKey)       ?? (page.font       as FontKey))       ?? 'inter',
+    designMode: ((dp.design_mode as DesignMode) ?? (page.design_mode as DesignMode)) ?? 'craft',
     showSections,
     avatarUrl,
     gallery,
