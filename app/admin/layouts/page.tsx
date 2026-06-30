@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
   ACCENT, PAGE_BG, TEMPLATE_LABEL, FONT_LABEL, PERSONAS,
-  type TemplateKey, type PaletteKey, type FontKey, type PersonaKey,
+  type TemplateKey, type PaletteKey, type FontKey,
 } from '@/lib/layouts'
 
 interface Preset {
@@ -17,6 +17,7 @@ interface Preset {
   font:        string
   sort_order:  number
   active:      boolean
+  image_url:   string | null
   created_at:  string
 }
 
@@ -28,11 +29,13 @@ interface FormState {
   palette:     string
   font:        string
   sort_order:  string
+  imageUrl:    string
 }
 
 const BLANK_FORM: FormState = {
   persona: 'tutor', name: '', description: '',
-  template: 'focus', palette: 'professional', font: 'inter', sort_order: '0',
+  template: 'focus', palette: 'professional', font: 'inter',
+  sort_order: '0', imageUrl: '',
 }
 
 const PERSONA_COLOUR: Record<string, string> = {
@@ -44,26 +47,26 @@ const PERSONA_COLOUR: Record<string, string> = {
 type AuthState = 'loading' | 'login_email' | 'login_code' | 'not_admin' | 'ready'
 
 export default function AdminLayoutsPage() {
-  const [authState, setAuthState]   = useState<AuthState>('loading')
-  const [email, setEmail]           = useState('')
-  const [code, setCode]             = useState('')
-  const [authError, setAuthError]   = useState('')
+  const [authState, setAuthState]     = useState<AuthState>('loading')
+  const [email, setEmail]             = useState('')
+  const [code, setCode]               = useState('')
+  const [authError, setAuthError]     = useState('')
   const [authLoading, setAuthLoading] = useState(false)
 
-  const [presets, setPresets]           = useState<Preset[]>([])
-  const [filterPersona, setFilterPersona] = useState('all')
-  const [editingId, setEditingId]       = useState<string | null>(null)
-  const [editForm, setEditForm]         = useState<FormState>(BLANK_FORM)
-  const [showCreate, setShowCreate]     = useState(false)
-  const [createForm, setCreateForm]     = useState<FormState>(BLANK_FORM)
-  const [saving, setSaving]             = useState(false)
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
-  const [error, setError]               = useState('')
+  const [presets, setPresets]                   = useState<Preset[]>([])
+  const [filterPersona, setFilterPersona]       = useState('all')
+  const [editingId, setEditingId]               = useState<string | null>(null)
+  const [editForm, setEditForm]                 = useState<FormState>(BLANK_FORM)
+  const [showCreate, setShowCreate]             = useState(false)
+  const [createForm, setCreateForm]             = useState<FormState>(BLANK_FORM)
+  const [saving, setSaving]                     = useState(false)
+  const [deleteConfirm, setDeleteConfirm]       = useState<string | null>(null)
+  const [error, setError]                       = useState('')
 
   const supabase = createClient()
 
   async function load() {
-    const res  = await fetch('/api/admin/layouts')
+    const res = await fetch('/api/admin/layouts')
     if (res.status === 401) { setAuthState('login_email'); return }
     if (res.status === 403) { setAuthState('not_admin'); return }
     const data = await res.json()
@@ -100,7 +103,11 @@ export default function AdminLayoutsPage() {
     const res = await fetch('/api/admin/layouts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...createForm, sort_order: Number(createForm.sort_order) }),
+      body: JSON.stringify({
+        ...createForm,
+        sort_order: Number(createForm.sort_order),
+        image_url: createForm.imageUrl || null,
+      }),
     })
     const data = await res.json()
     setSaving(false)
@@ -115,7 +122,11 @@ export default function AdminLayoutsPage() {
     const res = await fetch(`/api/admin/layouts/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...editForm, sort_order: Number(editForm.sort_order) }),
+      body: JSON.stringify({
+        ...editForm,
+        sort_order: Number(editForm.sort_order),
+        image_url: editForm.imageUrl || null,
+      }),
     })
     const data = await res.json()
     setSaving(false)
@@ -226,7 +237,11 @@ export default function AdminLayoutsPage() {
       {showCreate && (
         <div className="border border-[#E5E5E5] rounded-2xl p-5 mb-6 bg-[#FAFAFA]">
           <p className="text-xs font-semibold uppercase tracking-wide text-[#0D0D0D] mb-4">New preset</p>
-          <PresetForm form={createForm} onChange={setCreateForm} />
+          <PresetForm
+            form={createForm}
+            onChange={setCreateForm}
+            onUpload={url => setCreateForm(f => ({ ...f, imageUrl: url }))}
+          />
           <button onClick={handleCreate} disabled={saving || !createForm.name.trim()}
             className="mt-4 bg-[#0D0D0D] text-white text-sm font-semibold rounded-xl px-5 py-2.5 disabled:opacity-40 hover:opacity-80 transition-opacity">
             {saving ? 'Saving…' : 'Create preset'}
@@ -260,24 +275,32 @@ export default function AdminLayoutsPage() {
           }`}>
             {editingId === p.id ? (
               <div className="p-4 bg-[#FAFAFA]">
-                <PresetForm form={editForm} onChange={setEditForm} />
+                <PresetForm
+                  form={editForm}
+                  onChange={setEditForm}
+                  onUpload={url => setEditForm(f => ({ ...f, imageUrl: url }))}
+                />
                 <div className="flex gap-2 mt-4">
                   <button onClick={() => handleUpdate(p.id)} disabled={saving}
                     className="bg-[#0D0D0D] text-white text-sm font-semibold rounded-xl px-4 py-2 disabled:opacity-40 hover:opacity-80 transition-opacity">
                     {saving ? 'Saving…' : 'Save'}
                   </button>
                   <button onClick={() => setEditingId(null)}
-                    className="text-sm text-[#666] hover:text-[#0D0D0D] px-4 py-2">
-                    Cancel
-                  </button>
+                    className="text-sm text-[#666] hover:text-[#0D0D0D] px-4 py-2">Cancel</button>
                 </div>
               </div>
             ) : (
               <div className="flex items-center gap-3 p-4">
-                {/* Colour swatch */}
-                <div className="shrink-0 w-10 h-10 rounded-xl overflow-hidden border border-[#E5E5E5]">
-                  <div style={{ background: ACCENT[p.palette as PaletteKey] ?? '#ccc' }} className="h-3 w-full" />
-                  <div style={{ background: PAGE_BG[p.palette as PaletteKey] ?? '#fff' }} className="flex-1 h-7" />
+                {/* Thumbnail or colour swatch */}
+                <div className="shrink-0 w-14 h-10 rounded-xl overflow-hidden border border-[#E5E5E5]">
+                  {p.image_url ? (
+                    <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <>
+                      <div style={{ background: ACCENT[p.palette as PaletteKey] ?? '#ccc' }} className="h-3 w-full" />
+                      <div style={{ background: PAGE_BG[p.palette as PaletteKey] ?? '#fff' }} className="h-7 w-full" />
+                    </>
+                  )}
                 </div>
 
                 {/* Meta */}
@@ -304,31 +327,31 @@ export default function AdminLayoutsPage() {
 
                 {/* Actions */}
                 <div className="shrink-0 flex items-center gap-2">
-                  {/* Active toggle */}
                   <button onClick={() => handleToggleActive(p)} title={p.active ? 'Deactivate' : 'Activate'}
                     className={`w-9 h-5 rounded-full transition-colors relative ${p.active ? 'bg-[#22C55E]' : 'bg-[#D1D5DB]'}`}>
                     <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
                       p.active ? 'translate-x-4' : 'translate-x-0.5'
                     }`} />
                   </button>
-
-                  <button onClick={() => { setEditingId(p.id); setEditForm({
-                    persona: p.persona, name: p.name, description: p.description,
-                    template: p.template, palette: p.palette, font: p.font,
-                    sort_order: String(p.sort_order),
-                  }); setError('') }}
+                  <button onClick={() => {
+                    setEditingId(p.id)
+                    setEditForm({
+                      persona: p.persona, name: p.name, description: p.description,
+                      template: p.template, palette: p.palette, font: p.font,
+                      sort_order: String(p.sort_order), imageUrl: p.image_url ?? '',
+                    })
+                    setError('')
+                  }}
                     className="text-xs font-semibold text-[#666] hover:text-[#0D0D0D] px-2 py-1 rounded-lg hover:bg-[#F5F5F5] transition-colors">
                     Edit
                   </button>
-
                   {deleteConfirm === p.id ? (
                     <div className="flex items-center gap-1">
                       <button onClick={() => handleDelete(p.id)}
                         className="text-xs font-semibold text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">
                         Confirm
                       </button>
-                      <button onClick={() => setDeleteConfirm(null)}
-                        className="text-xs text-[#999] hover:text-[#0D0D0D] px-1">✕</button>
+                      <button onClick={() => setDeleteConfirm(null)} className="text-xs text-[#999] hover:text-[#0D0D0D] px-1">✕</button>
                     </div>
                   ) : (
                     <button onClick={() => setDeleteConfirm(p.id)}
@@ -348,8 +371,34 @@ export default function AdminLayoutsPage() {
 
 // ── Sub-components ──────────────────────────────────────────────────────────
 
-function PresetForm({ form, onChange }: { form: FormState; onChange: (f: FormState) => void }) {
+function PresetForm({ form, onChange, onUpload }: {
+  form:     FormState
+  onChange: (f: FormState) => void
+  onUpload: (url: string) => void
+}) {
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+
   const field = (key: keyof FormState) => (value: string) => onChange({ ...form, [key]: value })
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true); setUploadError('')
+    const fd = new FormData()
+    fd.append('file', file)
+    try {
+      const res  = await fetch('/api/admin/layouts/upload', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) { setUploadError(data.error ?? 'Upload failed'); return }
+      onUpload(data.url)
+    } catch {
+      setUploadError('Upload failed — try again.')
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
+  }
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -359,7 +408,7 @@ function PresetForm({ form, onChange }: { form: FormState; onChange: (f: FormSta
           {PERSONAS.map(p => <option key={p} value={p}>{p}</option>)}
         </select>
       </div>
-      <div className="col-span-2 sm:col-span-1">
+      <div className="col-span-1">
         <label className="field-label">Name</label>
         <input value={form.name} onChange={e => field('name')(e.target.value)}
           placeholder="e.g. Artisan" className="field-input" />
@@ -378,9 +427,7 @@ function PresetForm({ form, onChange }: { form: FormState; onChange: (f: FormSta
       <div>
         <label className="field-label">Palette</label>
         <select value={form.palette} onChange={e => field('palette')(e.target.value)} className="field-input">
-          {Object.keys(ACCENT).map(k => (
-            <option key={k} value={k}>{k}</option>
-          ))}
+          {Object.keys(ACCENT).map(k => <option key={k} value={k}>{k}</option>)}
         </select>
       </div>
       <div>
@@ -391,8 +438,28 @@ function PresetForm({ form, onChange }: { form: FormState; onChange: (f: FormSta
       </div>
       <div>
         <label className="field-label">Sort order</label>
-        <input type="number" value={form.sort_order} onChange={e => field('sort_order')(e.target.value)}
-          className="field-input" />
+        <input type="number" value={form.sort_order} onChange={e => field('sort_order')(e.target.value)} className="field-input" />
+      </div>
+
+      {/* Image upload */}
+      <div className="col-span-2 sm:col-span-2">
+        <label className="field-label">Preview image (optional)</label>
+        <div className="flex items-center gap-3">
+          {form.imageUrl && (
+            <img src={form.imageUrl} alt="Preview" className="w-20 h-14 object-cover rounded-xl border border-[#E5E5E5]" />
+          )}
+          <label className="cursor-pointer text-xs font-semibold text-[#666] border border-[#E5E5E5] rounded-xl px-3 py-2 hover:bg-[#F5F5F5] transition-colors">
+            {uploading ? 'Uploading…' : form.imageUrl ? 'Change image' : '+ Upload image'}
+            <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
+          </label>
+          {form.imageUrl && (
+            <button type="button" onClick={() => onUpload('')}
+              className="text-xs text-[#999] hover:text-red-500 transition-colors">
+              Remove
+            </button>
+          )}
+        </div>
+        {uploadError && <p className="text-red-500 text-xs mt-1">{uploadError}</p>}
       </div>
     </div>
   )
@@ -409,30 +476,18 @@ function Shell({ children }: { children: React.ReactNode }) {
         </div>
         {children}
       </div>
-
       <style jsx global>{`
         .field-label {
-          display: block;
-          font-size: 10px;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          color: #6B7280;
-          margin-bottom: 4px;
+          display: block; font-size: 10px; font-weight: 600;
+          text-transform: uppercase; letter-spacing: 0.05em;
+          color: #6B7280; margin-bottom: 4px;
         }
         .field-input {
-          width: 100%;
-          border: 1px solid #E5E5E5;
-          border-radius: 10px;
-          padding: 8px 12px;
-          font-size: 13px;
-          background: white;
-          outline: none;
-          transition: border-color 0.15s;
+          width: 100%; border: 1px solid #E5E5E5; border-radius: 10px;
+          padding: 8px 12px; font-size: 13px; background: white;
+          outline: none; transition: border-color 0.15s;
         }
-        .field-input:focus {
-          border-color: #0D0D0D;
-        }
+        .field-input:focus { border-color: #0D0D0D; }
       `}</style>
     </div>
   )

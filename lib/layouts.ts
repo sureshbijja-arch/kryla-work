@@ -11,6 +11,7 @@ export interface LayoutOption {
   font:        FontKey
   accent:      string
   bg:          string
+  imageUrl:    string | null
 }
 
 export const ACCENT: Record<PaletteKey, string> = {
@@ -55,6 +56,7 @@ export type PersonaKey = typeof PERSONAS[number]
 export function enrichLayout(row: {
   id: string; name: string; description: string
   template: string; palette: string; font: string
+  image_url?: string | null
 }): LayoutOption {
   const palette = row.palette as PaletteKey
   return {
@@ -66,5 +68,6 @@ export function enrichLayout(row: {
     font:        row.font as FontKey,
     accent:      ACCENT[palette] ?? '#F5A623',
     bg:          PAGE_BG[palette] ?? '#FFFFFF',
+    imageUrl:    row.image_url ?? null,
   }
 }

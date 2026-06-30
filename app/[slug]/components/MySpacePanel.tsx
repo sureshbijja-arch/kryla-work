@@ -697,13 +697,19 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
                   }`}
                 >
                   {/* Mini visual preview */}
-                  <div style={{ background: lo.bg }} className="w-full h-[72px] relative">
-                    <div style={{ background: lo.accent }} className="h-2.5 w-full" />
-                    <div className="px-2.5 pt-2 space-y-1.5">
-                      <div style={{ background: lo.accent }} className="h-1.5 w-2/3 rounded-full opacity-60" />
-                      <div className="h-1 w-1/2 rounded-full opacity-25" style={{ background: '#374151' }} />
-                      <div className="h-1 w-3/4 rounded-full opacity-15" style={{ background: '#374151' }} />
-                    </div>
+                  <div className="w-full h-[72px] relative overflow-hidden">
+                    {lo.imageUrl ? (
+                      <img src={lo.imageUrl} alt={lo.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div style={{ background: lo.bg }} className="w-full h-full">
+                        <div style={{ background: lo.accent }} className="h-2.5 w-full" />
+                        <div className="px-2.5 pt-2 space-y-1.5">
+                          <div style={{ background: lo.accent }} className="h-1.5 w-2/3 rounded-full opacity-60" />
+                          <div className="h-1 w-1/2 rounded-full opacity-25" style={{ background: '#374151' }} />
+                          <div className="h-1 w-3/4 rounded-full opacity-15" style={{ background: '#374151' }} />
+                        </div>
+                      </div>
+                    )}
                     {isCurrent && !isApplying && (
                       <div className="absolute top-1.5 right-1.5 w-[18px] h-[18px] bg-[#22C55E] rounded-full flex items-center justify-center">
                         <svg width="8" height="8" viewBox="0 0 12 12" fill="none">
@@ -717,6 +723,7 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
                       </div>
                     )}
                   </div>
+
 
                   {/* Card info */}
                   <div className="p-2.5">
