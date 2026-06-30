@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { mapsUrl, waUrl } from '../../types'
 import type { ProfileData } from '../../types'
+import { getPersonaConfig } from '../../personaConfig'
 
 interface Props {
   data: ProfileData
@@ -74,14 +75,25 @@ function LocationLink({ location, dark }: { location: string; dark?: boolean }) 
   )
 }
 
-function CTAs({ wa, showBooking, showContact, ctaPrimary, ctaSecondary, dark }: {
+function LeadTimeStrip({ notice }: { notice: string }) {
+  return (
+    <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full text-xs font-semibold"
+      style={{ background: 'var(--color-accent-surface)', color: 'var(--color-accent)', border: '1px solid var(--color-accent-border)' }}>
+      <span>⏱</span>
+      {notice}
+    </div>
+  )
+}
+
+function CTAs({ wa, showBooking, showContact, ctaPrimary, ctaSecondary, ctaTarget, dark }: {
   wa: string | null; showBooking: boolean; showContact: boolean
-  ctaPrimary: string; ctaSecondary: string; dark?: boolean
+  ctaPrimary: string; ctaSecondary: string; ctaTarget?: string; dark?: boolean
 }) {
+  const href = ctaTarget ?? '#book'
   return (
     <div className="flex flex-wrap gap-3">
       {showBooking && (
-        <a href="#book"
+        <a href={href}
           className="group flex items-center gap-2 px-7 py-3.5 font-black text-white text-sm transition-all hover:opacity-90 hover:scale-[1.02]"
           style={{
             background: 'var(--color-accent)',
@@ -133,9 +145,10 @@ function HeroPhoto({ data }: { data: ProfileData }) {
   }, [])
 
   const { firstName, lastName, location, whatsappNumber, headline, subheadline,
-    ctaPrimary, ctaSecondary, showSections, avatarUrl, gallery } = data
+    ctaPrimary, ctaSecondary, showSections, avatarUrl, gallery, persona } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
+  const pcfg = getPersonaConfig(persona)
   const bg = gallery?.length ? gallery[0] : avatarUrl
   const showAvatar = !!(avatarUrl && gallery?.length)
 
@@ -191,8 +204,9 @@ function HeroPhoto({ data }: { data: ProfileData }) {
           {subheadline}
         </p>
         <div className="h-up h-up-4">
+          {pcfg.leadTimeNotice && <LeadTimeStrip notice={pcfg.leadTimeNotice} />}
           <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
-            ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} dark />
+            ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} dark />
         </div>
       </div>
     </section>
@@ -204,9 +218,10 @@ function HeroPhoto({ data }: { data: ProfileData }) {
 ──────────────────────────────────────────────────────────────────────────── */
 function HeroDark({ data, framesConfig }: { data: ProfileData; framesConfig?: Props['framesConfig'] }) {
   const { firstName, lastName, location, whatsappNumber, headline, subheadline,
-    ctaPrimary, ctaSecondary, showSections, avatarUrl, gallery } = data
+    ctaPrimary, ctaSecondary, showSections, avatarUrl, gallery, persona } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
+  const pcfg = getPersonaConfig(persona)
   const maxFrames = framesConfig === undefined ? 2 : (framesConfig.enabled ? framesConfig.count : 0)
   const frames = gallery?.length ? gallery.slice(0, maxFrames) : []
 
@@ -284,8 +299,9 @@ function HeroDark({ data, framesConfig }: { data: ProfileData; framesConfig?: Pr
           {subheadline}
         </p>
         <div className="h-up h-up-4">
+          {pcfg.leadTimeNotice && <LeadTimeStrip notice={pcfg.leadTimeNotice} />}
           <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
-            ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} dark />
+            ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} dark />
         </div>
       </div>
     </section>
@@ -297,9 +313,10 @@ function HeroDark({ data, framesConfig }: { data: ProfileData; framesConfig?: Pr
 ──────────────────────────────────────────────────────────────────────────── */
 function HeroGradient({ data }: { data: ProfileData }) {
   const { firstName, lastName, location, whatsappNumber, headline, subheadline,
-    ctaPrimary, ctaSecondary, showSections, avatarUrl } = data
+    ctaPrimary, ctaSecondary, showSections, avatarUrl, persona } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
+  const pcfg = getPersonaConfig(persona)
 
   return (
     <section className="relative overflow-hidden">
@@ -350,8 +367,9 @@ function HeroGradient({ data }: { data: ProfileData }) {
           </a>
         )}
         <div className="h-up h-up-4">
+          {pcfg.leadTimeNotice && <LeadTimeStrip notice={pcfg.leadTimeNotice} />}
           <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
-            ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} />
+            ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} />
         </div>
       </div>
     </section>
@@ -363,9 +381,10 @@ function HeroGradient({ data }: { data: ProfileData }) {
 ──────────────────────────────────────────────────────────────────────────── */
 function HeroSplit({ data }: { data: ProfileData }) {
   const { firstName, lastName, location, whatsappNumber, headline, subheadline,
-    ctaPrimary, ctaSecondary, showSections, avatarUrl } = data
+    ctaPrimary, ctaSecondary, showSections, avatarUrl, persona } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
+  const pcfg = getPersonaConfig(persona)
 
   return (
     <section className="relative overflow-hidden" style={{ background: 'var(--sec-custom-bg, white)' }}>
@@ -394,8 +413,9 @@ function HeroSplit({ data }: { data: ProfileData }) {
             {subheadline}
           </p>
           <div className="h-up h-up-4">
+            {pcfg.leadTimeNotice && <LeadTimeStrip notice={pcfg.leadTimeNotice} />}
             <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
-              ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} />
+              ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} />
           </div>
         </div>
         {avatarUrl && (
@@ -428,9 +448,10 @@ function HeroSplit({ data }: { data: ProfileData }) {
 ──────────────────────────────────────────────────────────────────────────── */
 function HeroBanner({ data }: { data: ProfileData }) {
   const { firstName, lastName, location, whatsappNumber, headline, subheadline,
-    ctaPrimary, ctaSecondary, showSections, avatarUrl } = data
+    ctaPrimary, ctaSecondary, showSections, avatarUrl, persona } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
+  const pcfg = getPersonaConfig(persona)
 
   return (
     <section>
@@ -466,8 +487,9 @@ function HeroBanner({ data }: { data: ProfileData }) {
           {subheadline}
         </p>
         <div className="h-up h-up-2">
+          {pcfg.leadTimeNotice && <LeadTimeStrip notice={pcfg.leadTimeNotice} />}
           <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
-            ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} />
+            ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} />
         </div>
       </div>
     </section>
@@ -479,9 +501,10 @@ function HeroBanner({ data }: { data: ProfileData }) {
 ──────────────────────────────────────────────────────────────────────────── */
 function HeroCentered({ data, framesConfig }: { data: ProfileData; framesConfig?: Props['framesConfig'] }) {
   const { firstName, lastName, location, whatsappNumber, headline, subheadline,
-    ctaPrimary, ctaSecondary, showSections, avatarUrl, gallery } = data
+    ctaPrimary, ctaSecondary, showSections, avatarUrl, gallery, persona } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
+  const pcfg = getPersonaConfig(persona)
   const maxFrames = framesConfig === undefined ? 3 : (framesConfig.enabled ? framesConfig.count : 0)
   const frames = gallery?.length ? gallery.slice(0, maxFrames) : []
 
@@ -554,9 +577,10 @@ function HeroCentered({ data, framesConfig }: { data: ProfileData; framesConfig?
           </a>
         )}
         <div className="h-up h-up-4">
+          {pcfg.leadTimeNotice && <LeadTimeStrip notice={pcfg.leadTimeNotice} />}
           <div className="flex flex-wrap gap-3 justify-center">
             <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
-              ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} />
+              ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} />
           </div>
         </div>
       </div>
@@ -569,9 +593,10 @@ function HeroCentered({ data, framesConfig }: { data: ProfileData; framesConfig?
 ──────────────────────────────────────────────────────────────────────────── */
 function HeroMinimal({ data }: { data: ProfileData }) {
   const { firstName, lastName, location, whatsappNumber, headline, subheadline,
-    ctaPrimary, ctaSecondary, showSections, avatarUrl } = data
+    ctaPrimary, ctaSecondary, showSections, avatarUrl, persona } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
+  const pcfg = getPersonaConfig(persona)
 
   return (
     <section className="relative overflow-hidden" style={{ background: 'var(--sec-custom-bg, white)' }}>
@@ -608,8 +633,9 @@ function HeroMinimal({ data }: { data: ProfileData }) {
           {subheadline}
         </p>
         <div className="h-up h-up-4">
+          {pcfg.leadTimeNotice && <LeadTimeStrip notice={pcfg.leadTimeNotice} />}
           <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
-            ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} />
+            ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} />
         </div>
       </div>
     </section>

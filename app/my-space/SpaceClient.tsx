@@ -7,6 +7,7 @@ import SectionsTab from './SectionsTab'
 import type { SectionEntry } from './SectionsTab'
 import ServicesTab from './ServicesTab'
 import type { ServiceItem } from './ServicesTab'
+import { getPersonaConfig } from '@/app/[slug]/personaConfig'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -88,6 +89,7 @@ export default function SpaceClient({
   const inputRef              = useRef<HTMLTextAreaElement>(null)
 
   const isSeed = !plan || plan === 'seed'
+  const bookingsTabLabel = getPersonaConfig(currentProfile.persona).tabLabel
 
   useEffect(() => {
     if (tab === 'chat') bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -202,7 +204,7 @@ export default function SpaceClient({
         <div className="px-4 flex items-center justify-between">
           <div className="flex items-center gap-1">
             {([
-              { key: 'bookings', label: 'Bookings' },
+              { key: 'bookings', label: bookingsTabLabel },
               { key: 'plan',     label: 'My plan' },
             ] as const).map(({ key, label }) => (
               <button

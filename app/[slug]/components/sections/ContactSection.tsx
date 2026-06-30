@@ -1,8 +1,10 @@
 'use client'
+import { useState } from 'react'
 import BookingForm from '../BookingForm'
 import { WhatsAppIcon } from '../shared'
 import { waUrl, mapsUrl } from '../../types'
 import type { ProfileData } from '../../types'
+import { getPersonaConfig } from '../../personaConfig'
 
 interface Props {
   data: ProfileData
@@ -18,14 +20,106 @@ const STYLES = `
 .contact-in { animation: revealUp 0.6s cubic-bezier(.22,1,.36,1) both; }
 `
 
+function EnquiryForm({ providerId, accentColor }: { providerId: string; accentColor: string }) {
+  const [name,       setName]       = useState('')
+  const [phone,      setPhone]      = useState('')
+  const [message,    setMessage]    = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [done,       setDone]       = useState(false)
+  const [error,      setError]      = useState('')
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault()
+    setSubmitting(true)
+    setError('')
+    try {
+      const res = await fetch('/api/booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          providerId,
+          customerName:  name.trim(),
+          customerPhone: phone.trim(),
+          service:       'General Enquiry',
+          message:       message.trim() || undefined,
+        }),
+      })
+      if (!res.ok) throw new Error()
+      setDone(true)
+    } catch {
+      setError('Something went wrong. Please try WhatsApp instead.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (done) return (
+    <div className="text-center py-6">
+      <p className="font-black text-[#0D0D0D]">Message sent!</p>
+      <p className="text-sm text-[#999] mt-1">We'll get back to you on WhatsApp shortly.</p>
+    </div>
+  )
+
+  return (
+    <form onSubmit={submit} className="space-y-3">
+      <input required value={name} onChange={e => setName(e.target.value)}
+        placeholder="Your name *"
+        className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]" />
+      <input required type="tel" value={phone} onChange={e => setPhone(e.target.value)}
+        placeholder="WhatsApp number *"
+        className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]" />
+      <textarea value={message} onChange={e => setMessage(e.target.value)}
+        placeholder="Your message (optional)"
+        rows={3}
+        className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]" />
+      {error && <p className="text-red-500 text-xs">{error}</p>}
+      <button type="submit"
+        disabled={submitting || !name.trim() || !phone.trim()}
+        className="w-full py-3.5 rounded-2xl text-sm font-black text-white transition-opacity disabled:opacity-50"
+        style={{ background: accentColor }}>
+        {submitting ? 'Sending…' : 'Send Message →'}
+      </button>
+    </form>
+  )
+}
+
 export default function ContactSection({ data, accent: _accent, variant }: Props) {
   const {
     providerId, firstName, location, whatsappNumber, email,
-    services, showSections, ctaSecondary,
+    services, showSections, ctaSecondary, persona,
   } = data
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
   const showBooking = showSections.booking
   const showContact = showSections.contact
+  const pcfg = getPersonaConfig(persona)
+  const contactLabel = pcfg.contactLabel
+
+  /* ── ENQUIRY (baker / chef — WhatsApp first, simple form) ───────────── */
+  if (variant === 'enquiry') return (
+    <section id="book" className="border-t border-[#E5E5E5]"
+      style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
+      <style>{STYLES}</style>
+      <div className="max-w-2xl mx-auto px-6">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">{contactLabel}</p>
+        <div className="space-y-4">
+          {wa && showContact && (
+            <a href={wa} target="_blank" rel="noopener noreferrer"
+              className="contact-in flex items-center gap-3 px-6 py-5 font-black text-white w-full justify-center hover:opacity-90 hover:scale-[1.01] transition-all"
+              style={{ borderRadius: 'var(--radius-btn)', background: '#25D366', boxShadow: '0 16px 48px rgba(37,211,102,0.4)' }}>
+              <WhatsAppIcon />
+              WhatsApp {firstName}
+            </a>
+          )}
+          <div className="relative flex items-center gap-3 my-2">
+            <div className="flex-1 h-px bg-[#E5E5E5]" />
+            <span className="text-xs text-[#bbb] font-semibold">or send a message</span>
+            <div className="flex-1 h-px bg-[#E5E5E5]" />
+          </div>
+          <EnquiryForm providerId={providerId} accentColor="var(--color-accent)" />
+        </div>
+      </div>
+    </section>
+  )
 
   /* ── DARK ─────────────────────────────────────────────────────────────── */
   if (variant === 'dark') return (
@@ -35,7 +129,7 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
         style={{ background: 'radial-gradient(ellipse 60% 70% at 80% 50%, var(--color-accent-surface) 0%, transparent 60%)' }} />
       <div className="relative max-w-2xl mx-auto px-6">
         <p className="contact-in text-[10px] font-black uppercase tracking-[0.2em] mb-8" style={{ color: 'var(--color-accent)' }}>
-          Get in touch
+          {contactLabel}
         </p>
         {showBooking ? (
           <div className="contact-in" style={{ animationDelay: '0.1s' }}>
@@ -66,7 +160,7 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">Get in touch</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">{contactLabel}</p>
         {wa && showContact && (
           <a href={wa} target="_blank" rel="noopener noreferrer"
             className="contact-in flex items-center gap-3 px-6 py-5 font-black text-white w-full justify-center hover:opacity-90 hover:scale-[1.01] transition-all"
@@ -85,7 +179,7 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">Get in touch</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">{contactLabel}</p>
         <div className="space-y-2">
           {wa && showContact && (
             <a href={wa} target="_blank" rel="noopener noreferrer"
@@ -141,7 +235,7 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">Get in touch</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">{contactLabel}</p>
         {showBooking ? (
           <>
             <BookingForm providerId={providerId} services={services} accentColor="var(--color-accent)" firstName={firstName} />

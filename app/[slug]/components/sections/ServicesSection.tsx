@@ -1,6 +1,9 @@
 'use client'
 import { useState } from 'react'
 import type { ProfileData } from '../../types'
+import { getPersonaConfig } from '../../personaConfig'
+import OrderModal, { type OrderItem } from '../OrderModal'
+import CustomOrderModal from '../CustomOrderModal'
 
 interface Props {
   data: ProfileData
@@ -11,6 +14,26 @@ interface Props {
 const SectionLabel = ({ text }: { text: string }) => (
   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-8">{text}</p>
 )
+
+const DIETARY_BADGES = new Set(['eggless', 'vegan', 'nut-free', 'jain-friendly', 'gluten-free', 'dairy-free'])
+function isDietary(badge: string) { return DIETARY_BADGES.has(badge.toLowerCase()) }
+
+function DieteticBadge({ label }: { label: string }) {
+  return (
+    <span className="text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]">
+      {label}
+    </span>
+  )
+}
+
+function GenericBadge({ label }: { label: string }) {
+  return (
+    <span className="text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full"
+      style={{ background: 'var(--color-accent-surface)', color: 'var(--color-accent)' }}>
+      {label}
+    </span>
+  )
+}
 
 /* ── FEATURES ─────────────────────────────────────────────────────────────── */
 function Features({ data }: { data: ProfileData }) {
@@ -159,48 +182,104 @@ function Grid({ data }: { data: ProfileData }) {
 
 /* ── MENU ─────────────────────────────────────────────────────────────────── */
 function Menu({ data }: { data: ProfileData }) {
-  const { services, showSections } = data
+  const { services, showSections, persona, providerId } = data
   if (!showSections.services || !services.length) return null
+
+  const cfg = getPersonaConfig(persona)
+  const [orderItem, setOrderItem]       = useState<OrderItem | null>(null)
+  const [customOpen, setCustomOpen]     = useState(false)
+  const accentColor = `var(--color-accent)`
+
   return (
-    <section className="border-t border-[#E5E5E5]"
-      style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
-      <div className="max-w-2xl mx-auto px-6">
-        <SectionLabel text="Menu" />
-        <div className="space-y-2">
-          {services.map((s, i) => (
-            <div key={i}
-              className="group flex items-center gap-4 bg-white hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-default overflow-hidden"
-              style={{ borderRadius: 'var(--radius-card)', border: '1.5px solid var(--color-accent-border)' }}>
-              {s.image_url && (
-                <div className="shrink-0 w-20 h-20 overflow-hidden">
-                  <img src={s.image_url} alt={s.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                </div>
-              )}
-              <div className="flex-1 min-w-0 py-4 pl-4" style={{ paddingLeft: s.image_url ? undefined : '1.25rem' }}>
-                <div className="flex items-center gap-2">
-                  <p className="font-black text-[#0D0D0D]">{s.name}</p>
-                  {s.badge && (
-                    <span className="text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full"
-                      style={{ background: 'var(--color-accent-surface)', color: 'var(--color-accent)' }}>
-                      {s.badge}
-                    </span>
+    <>
+      <section id="menu" className="border-t border-[#E5E5E5]"
+        style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
+        <div className="max-w-2xl mx-auto px-6">
+          <SectionLabel text={cfg.servicesLabel} />
+          <div className="space-y-2">
+            {services.map((s, i) => (
+              <div key={i}
+                className="group flex items-start gap-4 bg-white hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+                style={{ borderRadius: 'var(--radius-card)', border: '1.5px solid var(--color-accent-border)' }}>
+                {s.image_url && (
+                  <div className="shrink-0 w-20 h-20 overflow-hidden rounded-l-[inherit]">
+                    <img src={s.image_url} alt={s.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0 py-4" style={{ paddingLeft: s.image_url ? undefined : '1.25rem' }}>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-black text-[#0D0D0D]">{s.name}</p>
+                    {s.badge && (isDietary(s.badge)
+                      ? <DieteticBadge label={s.badge} />
+                      : <GenericBadge label={s.badge} />
+                    )}
+                  </div>
+                  <p className="text-sm text-[#666] mt-0.5 leading-relaxed">{s.description}</p>
+                  {s.duration_or_unit && (
+                    <p className="text-xs text-[#999] mt-1">{s.duration_or_unit}</p>
+                  )}
+                  {cfg.serviceCardAction === 'order' && s.price && (
+                    <div className="flex items-center gap-3 mt-2.5">
+                      <span className="text-sm font-black" style={{ color: accentColor }}>{s.price}</span>
+                      <button
+                        onClick={() => setOrderItem({
+                          name: s.name,
+                          description: s.description ?? undefined,
+                          price: s.price ?? undefined,
+                          image_url: s.image_url ?? undefined,
+                        })}
+                        className="px-3 py-1 text-xs font-black text-white transition-opacity hover:opacity-80"
+                        style={{ borderRadius: 'var(--radius-btn)', background: accentColor }}>
+                        {cfg.orderLabel} →
+                      </button>
+                    </div>
                   )}
                 </div>
-                <p className="text-sm text-[#666] mt-0.5 leading-relaxed">{s.description}</p>
-                {s.duration_or_unit && (
-                  <p className="text-xs text-[#999] mt-1">{s.duration_or_unit}</p>
+                {cfg.serviceCardAction !== 'order' && s.price && (
+                  <span className="shrink-0 text-base font-black pr-5 pt-4" style={{ color: accentColor }}>
+                    {s.price}
+                  </span>
                 )}
               </div>
-              {s.price && (
-                <span className="shrink-0 text-base font-black pr-5" style={{ color: 'var(--color-accent)' }}>
-                  {s.price}
-                </span>
-              )}
-            </div>
-          ))}
+            ))}
+
+            {/* Custom order card */}
+            {cfg.hasCustomOrder && (
+              <div
+                className="flex items-center justify-between gap-4 px-5 py-4 border border-dashed cursor-pointer hover:shadow-lg transition-all duration-200"
+                style={{ borderRadius: 'var(--radius-card)', borderColor: 'var(--color-accent-border)' }}
+                onClick={() => setCustomOpen(true)}>
+                <div>
+                  <p className="font-black text-[#0D0D0D]">Something special in mind?</p>
+                  <p className="text-sm text-[#999] mt-0.5">Share your vision — we'll make it happen</p>
+                </div>
+                <button
+                  className="shrink-0 text-xs font-black text-white px-3 py-2 transition-opacity hover:opacity-80"
+                  style={{ borderRadius: 'var(--radius-btn)', background: accentColor }}>
+                  Custom Order
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {orderItem && (
+        <OrderModal
+          item={orderItem}
+          providerId={providerId}
+          accentColor={accentColor}
+          onClose={() => setOrderItem(null)}
+        />
+      )}
+      {customOpen && (
+        <CustomOrderModal
+          providerId={providerId}
+          accentColor={accentColor}
+          onClose={() => setCustomOpen(false)}
+        />
+      )}
+    </>
   )
 }
 

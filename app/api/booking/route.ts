@@ -6,7 +6,7 @@ import { sendEmail } from "@/lib/email"
 const schema = z.object({
   providerId:    z.string().uuid(),
   customerName:  z.string().min(1).max(100),
-  customerEmail: z.string().email(),
+  customerEmail: z.string().email().optional(),
   customerPhone: z.string().min(7).max(20),
   service:       z.string().min(1),
   preferredDate: z.string().optional(),
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
         // legacy NOT NULL columns — keep in sync
         client_name:       data.customerName,
         client_phone:      data.customerPhone,
-        client_email:      data.customerEmail,
+        client_email:      data.customerEmail ?? '',
         service_requested: data.service,
         requested_slot:    data.preferredDate ?? '',
       })

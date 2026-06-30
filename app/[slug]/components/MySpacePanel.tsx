@@ -9,6 +9,7 @@ import type { ServiceItem } from '@/app/my-space/ServicesTab'
 import SectionsTab from '@/app/my-space/SectionsTab'
 import type { SectionEntry } from '@/app/my-space/SectionsTab'
 import { TEMPLATE_LABEL, FONT_LABEL, type LayoutOption } from '@/lib/layouts'
+import { getPersonaConfig } from '../personaConfig'
 
 type AuthState = 'loading' | 'login_email' | 'login_code' | 'checking' | 'not_owner' | 'ready'
 type Tab = 'chat' | 'services' | 'sections' | 'media' | 'ads' | 'layouts' | 'bookings' | 'plan'
@@ -453,9 +454,9 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
           ['media',    'Media'],
           ['ads',      'Ads'],
           ['layouts',  'Layouts'],
-          ['bookings', 'Bookings'],
+          ['bookings', getPersonaConfig(ownerData?.provider.persona ?? 'other').tabLabel],
           ['plan',     'Plan'],
-        ] as const).map(([key, label]) => (
+        ] as [Tab, string][]).map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)}
             className={`py-3 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors ${
               tab === key ? 'border-[#0D0D0D] text-[#0D0D0D]' : 'border-transparent text-[#999] hover:text-[#0D0D0D]'

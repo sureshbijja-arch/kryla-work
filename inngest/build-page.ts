@@ -23,12 +23,13 @@ type Section = { sectionKey: string; variant: string; order: number }
 // Smart defaults per persona — hero is always 'auto' so resolveVariant() picks the right layout
 const PERSONA_SECTIONS: Record<string, Section[]> = {
   baker: [
-    { sectionKey: 'hero',       variant: 'auto',     order: 1 },
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
     { sectionKey: 'services',   variant: 'menu',      order: 2 },
-    { sectionKey: 'highlights', variant: 'stats',     order: 3 },
+    { sectionKey: 'gallery',    variant: 'grid',      order: 3 },
     { sectionKey: 'bio',        variant: 'callout',   order: 4 },
-    { sectionKey: 'faq',        variant: 'accordion', order: 5 },
-    { sectionKey: 'contact',    variant: 'both',      order: 6 },
+    { sectionKey: 'highlights', variant: 'icons',     order: 5 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 6 },
+    { sectionKey: 'contact',    variant: 'enquiry',   order: 7 },
   ],
   chef: [
     { sectionKey: 'hero',       variant: 'auto',      order: 1 },
