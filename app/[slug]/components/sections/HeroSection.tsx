@@ -1,4 +1,5 @@
 'use client'
+import { useState, useEffect } from 'react'
 import { mapsUrl, waUrl } from '../../types'
 import type { ProfileData } from '../../types'
 
@@ -420,7 +421,107 @@ function HeroMinimal({ data, accent }: { data: ProfileData; accent: string }) {
   )
 }
 
+/* ─────────────────────────── PHOTO ────────────────────────────────────────── */
+function HeroPhoto({ data, accent }: { data: ProfileData; accent: string }) {
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 80)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  const { firstName, lastName, location, whatsappNumber, headline, subheadline,
+    ctaPrimary, ctaSecondary, showSections, avatarUrl, gallery } = data
+  const fullName = [firstName, lastName].filter(Boolean).join(' ')
+  const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
+  const bgImage = gallery && gallery.length > 0 ? gallery[0] : avatarUrl
+  const showInlineAvatar = !!(avatarUrl && gallery && gallery.length > 0)
+
+  return (
+    <section className="relative min-h-screen overflow-hidden flex flex-col">
+      <style>{STYLES}</style>
+
+      {/* Full-bleed background */}
+      {bgImage && (
+        <div className="absolute inset-0">
+          <img src={bgImage} alt="" className="w-full h-full object-cover" aria-hidden />
+        </div>
+      )}
+      {!bgImage && (
+        <div className="absolute inset-0" style={{ background: '#111' }} />
+      )}
+
+      {/* Scrim: transparent top → dark bottom */}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.93) 0%, rgba(0,0,0,0.55) 40%, rgba(0,0,0,0.12) 100%)' }} />
+
+      {/* Sticky blur nav */}
+      <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
+        style={{
+          background: scrolled ? 'rgba(10,10,10,0.85)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(24px) saturate(180%)' : 'none',
+          WebkitBackdropFilter: scrolled ? 'blur(24px) saturate(180%)' : 'none',
+          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.07)' : 'none',
+        }}>
+        <div className="max-w-2xl mx-auto px-6 py-4 flex justify-between items-center">
+          {location ? (
+            <a href={mapsUrl(location)} target="_blank" rel="noopener noreferrer"
+              className="text-xs font-semibold text-white/40 hover:text-white/90 transition-colors">
+              📍 {location}
+            </a>
+          ) : <span />}
+          <KLogo dark accent={accent} />
+        </div>
+      </nav>
+
+      {/* Content pinned to bottom */}
+      <div className="relative z-10 flex-1 flex flex-col justify-end max-w-2xl mx-auto w-full px-6 pb-14 pt-28">
+        {showInlineAvatar && (
+          <div className="hero-fadeup hero-fadeup-1 mb-6">
+            <img src={avatarUrl!} alt={fullName}
+              className="w-16 h-16 rounded-full object-cover shadow-2xl"
+              style={{ border: `2px solid ${accent}`, boxShadow: `0 0 0 3px rgba(255,255,255,0.1)` }} />
+          </div>
+        )}
+
+        <p className="hero-fadeup hero-fadeup-1 text-[10px] font-black uppercase tracking-[0.25em] mb-4"
+          style={{ color: accent }}>{fullName}</p>
+
+        <h1 className="hero-fadeup hero-fadeup-2 font-black text-white leading-[1.05] tracking-tight mb-5"
+          style={{ fontSize: 'clamp(2.5rem, 9vw, 5.5rem)' }}>
+          {headline}
+        </h1>
+
+        <p className="hero-fadeup hero-fadeup-3 text-lg text-white/45 leading-relaxed mb-10 max-w-md">
+          {subheadline}
+        </p>
+
+        <div className="hero-fadeup hero-fadeup-4 flex flex-wrap gap-3">
+          {showSections.booking && (
+            <a href="#book"
+              className="group flex items-center gap-2 px-7 py-4 rounded-full font-black text-[#0D0D0D] text-sm hover:scale-[1.03] transition-all"
+              style={{ background: 'white', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+              {ctaPrimary}
+              <svg className="group-hover:translate-x-1 transition-transform" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
+          )}
+          {wa && showSections.contact && (
+            <a href={wa} target="_blank" rel="noopener noreferrer"
+              className="px-7 py-4 rounded-full font-bold text-sm text-white/70 hover:text-white hover:bg-white/10 transition-all"
+              style={{ border: '1.5px solid rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)' }}>
+              {ctaSecondary || 'WhatsApp'}
+            </a>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export default function HeroSection({ data, accent, variant, showNav = true }: Props) {
+  if (variant === 'photo')    return <HeroPhoto data={data} accent={accent} />
   if (variant === 'dark')     return <HeroDark data={data} accent={accent} />
   if (variant === 'gradient') return <HeroGradient data={data} accent={accent} />
   if (variant === 'split')    return <HeroSplit data={data} accent={accent} />
