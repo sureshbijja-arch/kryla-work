@@ -36,7 +36,9 @@ const PERSONA_SECTIONS: Record<string, Section[]> = {
     { sectionKey: 'services',   variant: 'menu',      order: 2 },
     { sectionKey: 'gallery',    variant: 'grid',      order: 3 },
     { sectionKey: 'bio',        variant: 'callout',   order: 4 },
-    { sectionKey: 'contact',    variant: 'whatsapp',  order: 5 },
+    { sectionKey: 'highlights', variant: 'icons',     order: 5 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 6 },
+    { sectionKey: 'contact',    variant: 'enquiry',   order: 7 },
   ],
   salon: [
     { sectionKey: 'hero',       variant: 'auto',      order: 1 },
