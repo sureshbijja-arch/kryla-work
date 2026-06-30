@@ -12,9 +12,10 @@ interface Props {
   slug: string
   initialServices: ServiceItem[]
   plan: string
+  onPreview?: () => void
 }
 
-export default function ServicesTab({ providerId, slug, initialServices, plan }: Props) {
+export default function ServicesTab({ providerId, slug, initialServices, plan, onPreview }: Props) {
   const [services, setServices] = useState<ServiceItem[]>(initialServices)
   const [expanded, setExpanded]   = useState<number | null>(null)
   const [saving, setSaving]         = useState(false)
@@ -152,10 +153,18 @@ export default function ServicesTab({ providerId, slug, initialServices, plan }:
             </button>
             {saved && (
               <>
-                <a href={`/${slug}/preview`} target="_blank" rel="noopener noreferrer"
-                  className="px-3 py-2 rounded-lg text-xs font-semibold border border-[#E5E5E5] text-[#666] hover:border-[#0D0D0D] hover:text-[#0D0D0D] transition-colors">
-                  Preview ↗
-                </a>
+                {onPreview ? (
+                  <button
+                    onClick={onPreview}
+                    className="px-3 py-2 rounded-lg text-xs font-semibold border border-[#E5E5E5] text-[#666] hover:border-[#0D0D0D] hover:text-[#0D0D0D] transition-colors">
+                    Preview ↗
+                  </button>
+                ) : (
+                  <a href={`/${slug}/preview`} target="_blank" rel="noopener noreferrer"
+                    className="px-3 py-2 rounded-lg text-xs font-semibold border border-[#E5E5E5] text-[#666] hover:border-[#0D0D0D] hover:text-[#0D0D0D] transition-colors">
+                    Preview ↗
+                  </a>
+                )}
                 <button
                   onClick={publish}
                   disabled={publishing || published}

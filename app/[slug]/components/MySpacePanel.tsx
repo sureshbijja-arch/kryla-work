@@ -538,6 +538,7 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
           slug={ownerData.provider.slug}
           initialServices={(ownerData.currentProfile?.services as ServiceItem[] | null) ?? []}
           plan={ownerData.provider.plan}
+          onPreview={() => { setPreviewTs(Date.now()); setPreviewOpen(true) }}
         />
       )}
 
@@ -816,7 +817,7 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
           {/* Draft preview — force-dynamic, always fresh from DB */}
           <iframe
             key={previewTs}
-            src={`/preview?t=${previewTs}`}
+            src={`/${ownerData.provider.slug}/preview?t=${previewTs}`}
             className="flex-1 border-0 w-full"
             title="Preview of your page"
           />

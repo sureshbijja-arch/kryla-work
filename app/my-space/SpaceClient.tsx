@@ -72,6 +72,10 @@ export default function SpaceClient({
     { sectionKey: 'contact',    variant: 'both',      order: 6 },
   ]
   const [tab, setTab] = useState<'chat' | 'services' | 'sections' | 'bookings' | 'plan'>('chat')
+  const [previewOpen, setPreviewOpen]   = useState(false)
+  const [previewTs, setPreviewTs]       = useState(0)
+  const [spPublishing, setSpPublishing] = useState(false)
+  const [spPublishDone, setSpPublishDone] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -128,6 +132,26 @@ export default function SpaceClient({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       send()
+    }
+  }
+
+  async function handleSpacePreviewPublish() {
+    if (spPublishing || spPublishDone) return
+    setSpPublishing(true)
+    try {
+      const res = await fetch('/api/my-space/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug }),
+      })
+      if (res.ok) {
+        setSpPublishDone(true)
+        setTimeout(() => { setPreviewOpen(false); setSpPublishDone(false) }, 2000)
+      }
+    } catch {
+      // silent
+    } finally {
+      setSpPublishing(false)
     }
   }
 
@@ -305,6 +329,7 @@ export default function SpaceClient({
           slug={slug}
           initialServices={currentProfile.services}
           plan={plan}
+          onPreview={() => { setPreviewTs(Date.now()); setPreviewOpen(true) }}
         />
       )}
 
@@ -325,6 +350,38 @@ export default function SpaceClient({
       {tab === 'plan' && (
         <div className="flex-1 overflow-y-auto">
           <PlanSection currentPlan={plan} region={region} />
+        </div>
+      )}
+
+      {previewOpen && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-white">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E5E5] shrink-0 bg-white gap-3">
+            <button
+              onClick={() => { setPreviewOpen(false); setSpPublishDone(false) }}
+              className="flex items-center gap-1.5 text-sm font-semibold text-[#666] hover:text-[#0D0D0D] transition-colors shrink-0">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Back
+            </button>
+            <span className="text-xs font-semibold text-[#999] uppercase tracking-widest">Preview</span>
+            <button
+              onClick={handleSpacePreviewPublish}
+              disabled={spPublishing || spPublishDone}
+              className={`shrink-0 text-xs font-semibold px-4 py-2 rounded-xl transition-all ${
+                spPublishDone
+                  ? 'bg-[#22C55E] text-white'
+                  : 'bg-[#0D0D0D] text-white hover:opacity-80 disabled:opacity-50'
+              }`}>
+              {spPublishing ? 'Publishing…' : spPublishDone ? '✓ Live!' : 'Confirm & Publish →'}
+            </button>
+          </div>
+          <iframe
+            key={previewTs}
+            src={`/${slug}/preview?t=${previewTs}`}
+            className="flex-1 border-0 w-full"
+            title="Preview of your page"
+          />
         </div>
       )}
     </div>
