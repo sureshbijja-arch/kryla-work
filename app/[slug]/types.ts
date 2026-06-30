@@ -1,3 +1,8 @@
+export interface SectionStyle {
+  bg?: { type: 'color' | 'photo'; value: string }
+  frames?: { enabled: boolean; count: 1 | 2 | 3 }
+}
+
 export type PaletteKey  = 'professional' | 'fresh' | 'warm' | 'minimal' | 'creative' | 'calm'
 export type FontKey     = 'inter' | 'georgia' | 'trebuchet'
 export type TemplateKey = 'focus' | 'portfolio' | 'storefront' | 'clinic'

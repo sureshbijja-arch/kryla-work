@@ -8,6 +8,7 @@ interface Props {
   accent: string
   variant: string
   showNav?: boolean
+  framesConfig?: { enabled: boolean; count: 1 | 2 | 3 }
 }
 
 // Animations injected once — all variants share this stylesheet
@@ -201,15 +202,16 @@ function HeroPhoto({ data }: { data: ProfileData }) {
 /* ── DARK ────────────────────────────────────────────────────────────────────
    Deep black, single accent orb, large white headline, minimal decoration.
 ──────────────────────────────────────────────────────────────────────────── */
-function HeroDark({ data }: { data: ProfileData }) {
+function HeroDark({ data, framesConfig }: { data: ProfileData; framesConfig?: Props['framesConfig'] }) {
   const { firstName, lastName, location, whatsappNumber, headline, subheadline,
     ctaPrimary, ctaSecondary, showSections, avatarUrl, gallery } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
-  const frames = gallery?.length ? gallery.slice(0, 2) : []
+  const maxFrames = framesConfig === undefined ? 2 : (framesConfig.enabled ? framesConfig.count : 0)
+  const frames = gallery?.length ? gallery.slice(0, maxFrames) : []
 
   return (
-    <section className="relative overflow-hidden flex flex-col" style={{ background: '#0D0D0D', minHeight: '100svh' }}>
+    <section className="relative overflow-hidden flex flex-col" style={{ background: 'var(--sec-custom-bg, #0D0D0D)', minHeight: '100svh' }}>
       <style>{STYLES}</style>
 
       {/* Dot grid */}
@@ -366,7 +368,7 @@ function HeroSplit({ data }: { data: ProfileData }) {
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
 
   return (
-    <section className="relative overflow-hidden bg-white">
+    <section className="relative overflow-hidden" style={{ background: 'var(--sec-custom-bg, white)' }}>
       <style>{STYLES}</style>
       <nav className="max-w-5xl mx-auto px-6 pt-6 flex justify-between items-center">
         {location ? <LocationLink location={location} /> : <span />}
@@ -475,12 +477,13 @@ function HeroBanner({ data }: { data: ProfileData }) {
 /* ── CENTERED ─────────────────────────────────────────────────────────────────
    Everything centered. Avatar with glow ring. Generous space above and below.
 ──────────────────────────────────────────────────────────────────────────── */
-function HeroCentered({ data }: { data: ProfileData }) {
+function HeroCentered({ data, framesConfig }: { data: ProfileData; framesConfig?: Props['framesConfig'] }) {
   const { firstName, lastName, location, whatsappNumber, headline, subheadline,
     ctaPrimary, ctaSecondary, showSections, avatarUrl, gallery } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
-  const frames = gallery?.length ? gallery.slice(0, 3) : []
+  const maxFrames = framesConfig === undefined ? 3 : (framesConfig.enabled ? framesConfig.count : 0)
+  const frames = gallery?.length ? gallery.slice(0, maxFrames) : []
 
   return (
     <section className="relative overflow-hidden">
@@ -571,7 +574,7 @@ function HeroMinimal({ data }: { data: ProfileData }) {
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
 
   return (
-    <section className="relative overflow-hidden bg-white">
+    <section className="relative overflow-hidden" style={{ background: 'var(--sec-custom-bg, white)' }}>
       <style>{STYLES}</style>
       <nav className="max-w-2xl mx-auto px-6 pt-6 flex justify-between items-center">
         {location ? <LocationLink location={location} /> : <span />}
@@ -614,12 +617,12 @@ function HeroMinimal({ data }: { data: ProfileData }) {
 }
 
 /* ── Entry point ─────────────────────────────────────────────────────────── */
-export default function HeroSection({ data, variant }: Props) {
+export default function HeroSection({ data, variant, framesConfig }: Props) {
   if (variant === 'photo')    return <HeroPhoto data={data} />
-  if (variant === 'dark')     return <HeroDark data={data} />
+  if (variant === 'dark')     return <HeroDark data={data} framesConfig={framesConfig} />
   if (variant === 'gradient') return <HeroGradient data={data} />
   if (variant === 'split')    return <HeroSplit data={data} />
   if (variant === 'banner')   return <HeroBanner data={data} />
-  if (variant === 'centered') return <HeroCentered data={data} />
+  if (variant === 'centered') return <HeroCentered data={data} framesConfig={framesConfig} />
   return <HeroMinimal data={data} />
 }

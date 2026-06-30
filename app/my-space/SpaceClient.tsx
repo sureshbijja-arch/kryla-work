@@ -338,6 +338,7 @@ export default function SpaceClient({
           providerId={providerId}
           slug={slug}
           initialSections={defaultSections}
+          plan={plan}
         />
       )}
 

@@ -9,12 +9,13 @@ import GallerySection from './sections/GallerySection'
 import FaqSection from './sections/FaqSection'
 import ContactSection from './sections/ContactSection'
 import { ACCENT, PAGE_BG, FONT_CLASS } from '../types'
-import type { ProfileData, PaletteKey, FontKey, DesignMode } from '../types'
+import type { ProfileData, PaletteKey, FontKey, DesignMode, SectionStyle } from '../types'
 
 export interface SectionEntry {
   sectionKey: string
   variant: string
   order: number
+  style?: SectionStyle
 }
 
 interface Props {
@@ -30,12 +31,32 @@ export default function LayoutRenderer({ sections, data }: Props) {
 
   const sorted = [...sections].sort((a, b) => a.order - b.order)
 
-  // Resolve auto variant for hero based on member content
   function resolveVariant(sectionKey: string, variant: string): string {
     if (variant !== 'auto' || sectionKey !== 'hero') return variant
     if (data.gallery && data.gallery.length > 0) return 'photo'
     if (data.avatarUrl) return designMode === 'editorial' ? 'centered' : 'split'
     return 'dark'
+  }
+
+  function wrapWithBg(node: React.ReactNode, style: SectionStyle | undefined, key: number): React.ReactNode {
+    const bgCfg = style?.bg
+    if (!bgCfg) return node
+
+    if (bgCfg.type === 'color') {
+      return (
+        <div key={`bg-${key}`} style={{ ['--sec-custom-bg' as string]: bgCfg.value, background: bgCfg.value }}>
+          {node}
+        </div>
+      )
+    }
+
+    return (
+      <div key={`bg-${key}`} className="relative overflow-hidden" style={{ ['--sec-custom-bg' as string]: 'transparent' }}>
+        <img src={bgCfg.value} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(0,0,0,0.42)' }} />
+        <div className="relative z-10">{node}</div>
+      </div>
+    )
   }
 
   return (
@@ -57,7 +78,7 @@ export default function LayoutRenderer({ sections, data }: Props) {
         let node: React.ReactNode = null
         switch (s.sectionKey) {
           case 'hero':
-            node = <HeroSection key={i} data={data} accent={accent} variant={variant} showNav={isFirst} />
+            node = <HeroSection key={i} data={data} accent={accent} variant={variant} showNav={isFirst} framesConfig={s.style?.frames} />
             break
           case 'services':
             node = <ServicesSection key={i} data={data} accent={accent} variant={variant} />
@@ -80,9 +101,9 @@ export default function LayoutRenderer({ sections, data }: Props) {
           default:
             return null
         }
-        // Hero renders immediately — every other section fades up on scroll
-        if (s.sectionKey === 'hero') return node
-        return <AnimateIn key={i} delay={0}>{node}</AnimateIn>
+        const wrapped = wrapWithBg(node, s.style, i)
+        if (s.sectionKey === 'hero') return wrapped
+        return <AnimateIn key={i} delay={0}>{wrapped}</AnimateIn>
       })}
       <Footer />
     </div>

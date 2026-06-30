@@ -48,8 +48,10 @@ export async function POST(req: NextRequest) {
   if (!provider) return NextResponse.json({ error: 'Not your page' }, { status: 403 })
 
   const rank = PLAN_RANK[provider.plan ?? 'seed'] ?? 0
-  if (rank < 2) {
-    return NextResponse.json({ error: 'Media uploads require the Grow plan or higher' }, { status: 403 })
+  const minRank = type === 'section-bg' ? 1 : 2
+  if (rank < minRank) {
+    const planName = minRank >= 2 ? 'Grow' : 'Sprout'
+    return NextResponse.json({ error: `This feature requires the ${planName} plan or higher` }, { status: 403 })
   }
 
   if (blob.size > MAX_BYTES) {
