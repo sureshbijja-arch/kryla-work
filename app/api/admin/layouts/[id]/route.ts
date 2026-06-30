@@ -18,7 +18,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const body = await req.json() as Record<string, unknown>
 
-  const allowed = ['persona', 'name', 'description', 'template', 'palette', 'font', 'sort_order', 'active', 'image_url']
+  const allowed = ['persona', 'name', 'description', 'template', 'palette', 'font', 'sort_order', 'active', 'image_url', 'sections']
   const patch = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)))
 
   const { data, error } = await supabaseAdmin

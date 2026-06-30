@@ -8,6 +8,8 @@ import FocusTemplate from './components/templates/FocusTemplate'
 import PortfolioTemplate from './components/templates/PortfolioTemplate'
 import StorefrontTemplate from './components/templates/StorefrontTemplate'
 import ClinicTemplate from './components/templates/ClinicTemplate'
+import LayoutRenderer from './components/LayoutRenderer'
+import type { SectionEntry } from './components/LayoutRenderer'
 import MySpaceBadge from './components/MySpaceBadge'
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'kryla.work'
@@ -59,7 +61,7 @@ export default async function MemberProfilePage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, show_sections')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, show_sections, sections')
     .eq('provider_id', provider.id)
     .single()
 
@@ -113,6 +115,7 @@ export default async function MemberProfilePage({ params }: Props) {
     gallery,
   }
 
+  const pageSections = Array.isArray(page.sections) ? (page.sections as SectionEntry[]) : null
   const isTutor = provider.persona === 'tutor'
 
   const jsonLd = page.schema_type
@@ -139,7 +142,9 @@ export default async function MemberProfilePage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      {isTutor ? (
+      {pageSections ? (
+        <LayoutRenderer sections={pageSections} data={profileData} />
+      ) : isTutor ? (
         <StudioTemplate data={profileData} />
       ) : template === 'portfolio' ? (
         <PortfolioTemplate data={profileData} />

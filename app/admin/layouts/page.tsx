@@ -7,6 +7,8 @@ import {
   type TemplateKey, type PaletteKey, type FontKey,
 } from '@/lib/layouts'
 
+// ── Types ──────────────────────────────────────────────────────────────────
+
 interface Preset {
   id:          string
   persona:     string
@@ -18,7 +20,20 @@ interface Preset {
   sort_order:  number
   active:      boolean
   image_url:   string | null
+  sections:    SectionEntry[] | null
   created_at:  string
+}
+
+interface SectionEntry {
+  sectionKey: string
+  variant:    string
+  order:      number
+}
+
+interface SectionType {
+  key:      string
+  label:    string
+  variants: { key: string; label: string }[]
 }
 
 interface FormState {
@@ -30,12 +45,15 @@ interface FormState {
   font:        string
   sort_order:  string
   imageUrl:    string
+  useSections: boolean
+  sections:    SectionEntry[]
 }
 
 const BLANK_FORM: FormState = {
   persona: 'tutor', name: '', description: '',
   template: 'focus', palette: 'professional', font: 'inter',
   sort_order: '0', imageUrl: '',
+  useSections: false, sections: [],
 }
 
 const PERSONA_COLOUR: Record<string, string> = {
@@ -46,6 +64,8 @@ const PERSONA_COLOUR: Record<string, string> = {
 
 type AuthState = 'loading' | 'login_email' | 'login_code' | 'not_admin' | 'ready'
 
+// ── Main page ──────────────────────────────────────────────────────────────
+
 export default function AdminLayoutsPage() {
   const [authState, setAuthState]     = useState<AuthState>('loading')
   const [email, setEmail]             = useState('')
@@ -53,15 +73,16 @@ export default function AdminLayoutsPage() {
   const [authError, setAuthError]     = useState('')
   const [authLoading, setAuthLoading] = useState(false)
 
-  const [presets, setPresets]                   = useState<Preset[]>([])
-  const [filterPersona, setFilterPersona]       = useState('all')
-  const [editingId, setEditingId]               = useState<string | null>(null)
-  const [editForm, setEditForm]                 = useState<FormState>(BLANK_FORM)
-  const [showCreate, setShowCreate]             = useState(false)
-  const [createForm, setCreateForm]             = useState<FormState>(BLANK_FORM)
-  const [saving, setSaving]                     = useState(false)
-  const [deleteConfirm, setDeleteConfirm]       = useState<string | null>(null)
-  const [error, setError]                       = useState('')
+  const [presets, setPresets]             = useState<Preset[]>([])
+  const [sectionTypes, setSectionTypes]   = useState<SectionType[]>([])
+  const [filterPersona, setFilterPersona] = useState('all')
+  const [editingId, setEditingId]         = useState<string | null>(null)
+  const [editForm, setEditForm]           = useState<FormState>(BLANK_FORM)
+  const [showCreate, setShowCreate]       = useState(false)
+  const [createForm, setCreateForm]       = useState<FormState>(BLANK_FORM)
+  const [saving, setSaving]               = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [error, setError]                 = useState('')
 
   const supabase = createClient()
 
@@ -74,9 +95,19 @@ export default function AdminLayoutsPage() {
     setAuthState('ready')
   }
 
+  async function loadSectionTypes() {
+    try {
+      const res = await fetch('/api/admin/layouts/sections')
+      if (res.ok) {
+        const data = await res.json()
+        setSectionTypes(data.sections ?? [])
+      }
+    } catch { /* non-fatal */ }
+  }
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) load()
+      if (user) { load(); loadSectionTypes() }
       else setAuthState('login_email')
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -95,7 +126,21 @@ export default function AdminLayoutsPage() {
     const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' })
     setAuthLoading(false)
     if (error) { setAuthError(error.message); return }
-    await load()
+    await load(); await loadSectionTypes()
+  }
+
+  function formPayload(form: FormState) {
+    return {
+      persona:     form.persona,
+      name:        form.name,
+      description: form.description,
+      template:    form.template,
+      palette:     form.palette,
+      font:        form.font,
+      sort_order:  Number(form.sort_order),
+      image_url:   form.imageUrl || null,
+      sections:    form.useSections && form.sections.length > 0 ? form.sections : null,
+    }
   }
 
   async function handleCreate() {
@@ -103,11 +148,7 @@ export default function AdminLayoutsPage() {
     const res = await fetch('/api/admin/layouts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...createForm,
-        sort_order: Number(createForm.sort_order),
-        image_url: createForm.imageUrl || null,
-      }),
+      body: JSON.stringify(formPayload(createForm)),
     })
     const data = await res.json()
     setSaving(false)
@@ -122,11 +163,7 @@ export default function AdminLayoutsPage() {
     const res = await fetch(`/api/admin/layouts/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...editForm,
-        sort_order: Number(editForm.sort_order),
-        image_url: editForm.imageUrl || null,
-      }),
+      body: JSON.stringify(formPayload(editForm)),
     })
     const data = await res.json()
     setSaving(false)
@@ -156,7 +193,7 @@ export default function AdminLayoutsPage() {
     ? presets
     : presets.filter(p => p.persona === filterPersona)
 
-  // ── Auth ─────────────────────────────────────────────────────────────────
+  // ── Auth ──────────────────────────────────────────────────────────────────
 
   if (authState === 'loading') {
     return <Shell><div className="flex items-center justify-center h-40 text-[#999] text-sm">Loading…</div></Shell>
@@ -241,6 +278,7 @@ export default function AdminLayoutsPage() {
             form={createForm}
             onChange={setCreateForm}
             onUpload={url => setCreateForm(f => ({ ...f, imageUrl: url }))}
+            sectionTypes={sectionTypes}
           />
           <button onClick={handleCreate} disabled={saving || !createForm.name.trim()}
             className="mt-4 bg-[#0D0D0D] text-white text-sm font-semibold rounded-xl px-5 py-2.5 disabled:opacity-40 hover:opacity-80 transition-opacity">
@@ -279,6 +317,7 @@ export default function AdminLayoutsPage() {
                   form={editForm}
                   onChange={setEditForm}
                   onUpload={url => setEditForm(f => ({ ...f, imageUrl: url }))}
+                  sectionTypes={sectionTypes}
                 />
                 <div className="flex gap-2 mt-4">
                   <button onClick={() => handleUpdate(p.id)} disabled={saving}
@@ -311,6 +350,11 @@ export default function AdminLayoutsPage() {
                       style={{ background: PERSONA_COLOUR[p.persona] ?? '#6B7280' }}>
                       {p.persona}
                     </span>
+                    {p.sections && p.sections.length > 0 && (
+                      <span className="text-[10px] font-semibold uppercase tracking-wide rounded-full px-2 py-0.5 bg-[#0D0D0D] text-white">
+                        {p.sections.length} sections
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-[#888] mt-0.5">{p.description}</p>
                   <div className="flex gap-1 mt-1.5 flex-wrap">
@@ -319,6 +363,11 @@ export default function AdminLayoutsPage() {
                         {tag}
                       </span>
                     ))}
+                    {p.sections && p.sections.length > 0 && (
+                      <span className="text-[9px] font-semibold uppercase tracking-wide bg-[#EFF6FF] text-[#3B82F6] rounded px-1.5 py-0.5">
+                        {p.sections.map(s => s.sectionKey).join(' › ')}
+                      </span>
+                    )}
                     <span className="text-[9px] font-semibold uppercase tracking-wide bg-[#F0F0F0] text-[#666] rounded px-1.5 py-0.5">
                       order {p.sort_order}
                     </span>
@@ -335,10 +384,13 @@ export default function AdminLayoutsPage() {
                   </button>
                   <button onClick={() => {
                     setEditingId(p.id)
+                    const hasSections = Array.isArray(p.sections) && p.sections.length > 0
                     setEditForm({
                       persona: p.persona, name: p.name, description: p.description,
                       template: p.template, palette: p.palette, font: p.font,
                       sort_order: String(p.sort_order), imageUrl: p.image_url ?? '',
+                      useSections: hasSections,
+                      sections: hasSections ? p.sections! : [],
                     })
                     setError('')
                   }}
@@ -369,15 +421,16 @@ export default function AdminLayoutsPage() {
   )
 }
 
-// ── Sub-components ──────────────────────────────────────────────────────────
+// ── PresetForm ─────────────────────────────────────────────────────────────
 
-function PresetForm({ form, onChange, onUpload }: {
-  form:     FormState
-  onChange: (f: FormState) => void
-  onUpload: (url: string) => void
+function PresetForm({ form, onChange, onUpload, sectionTypes }: {
+  form:         FormState
+  onChange:     (f: FormState) => void
+  onUpload:     (url: string) => void
+  sectionTypes: SectionType[]
 }) {
-  const [uploading, setUploading] = useState(false)
-  const [uploadError, setUploadError] = useState('')
+  const [uploading, setUploading]       = useState(false)
+  const [uploadError, setUploadError]   = useState('')
 
   const field = (key: keyof FormState) => (value: string) => onChange({ ...form, [key]: value })
 
@@ -385,8 +438,7 @@ function PresetForm({ form, onChange, onUpload }: {
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true); setUploadError('')
-    const fd = new FormData()
-    fd.append('file', file)
+    const fd = new FormData(); fd.append('file', file)
     try {
       const res  = await fetch('/api/admin/layouts/upload', { method: 'POST', body: fd })
       const data = await res.json()
@@ -395,75 +447,191 @@ function PresetForm({ form, onChange, onUpload }: {
     } catch {
       setUploadError('Upload failed — try again.')
     } finally {
-      setUploading(false)
-      e.target.value = ''
+      setUploading(false); e.target.value = ''
     }
   }
 
+  function addSection(key: string) {
+    if (form.sections.some(s => s.sectionKey === key)) return
+    const st = sectionTypes.find(s => s.key === key)
+    const defaultVariant = st?.variants?.[0]?.key ?? 'default'
+    const next = [...form.sections, { sectionKey: key, variant: defaultVariant, order: form.sections.length }]
+    onChange({ ...form, sections: next })
+  }
+
+  function removeSection(key: string) {
+    const next = form.sections
+      .filter(s => s.sectionKey !== key)
+      .map((s, i) => ({ ...s, order: i }))
+    onChange({ ...form, sections: next })
+  }
+
+  function setVariant(key: string, variant: string) {
+    const next = form.sections.map(s => s.sectionKey === key ? { ...s, variant } : s)
+    onChange({ ...form, sections: next })
+  }
+
+  function moveSection(key: string, dir: -1 | 1) {
+    const sorted = [...form.sections].sort((a, b) => a.order - b.order)
+    const idx = sorted.findIndex(s => s.sectionKey === key)
+    const swapIdx = idx + dir
+    if (swapIdx < 0 || swapIdx >= sorted.length) return
+    const next = sorted.map((s, i) => {
+      if (i === idx)     return { ...s, order: swapIdx }
+      if (i === swapIdx) return { ...s, order: idx }
+      return s
+    })
+    onChange({ ...form, sections: next })
+  }
+
+  const sortedSections = [...form.sections].sort((a, b) => a.order - b.order)
+  const usedKeys = new Set(form.sections.map(s => s.sectionKey))
+
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      <div>
-        <label className="field-label">Persona</label>
-        <select value={form.persona} onChange={e => field('persona')(e.target.value)} className="field-input">
-          {PERSONAS.map(p => <option key={p} value={p}>{p}</option>)}
-        </select>
-      </div>
-      <div className="col-span-1">
-        <label className="field-label">Name</label>
-        <input value={form.name} onChange={e => field('name')(e.target.value)}
-          placeholder="e.g. Artisan" className="field-input" />
-      </div>
-      <div className="col-span-2 sm:col-span-1">
-        <label className="field-label">Description</label>
-        <input value={form.description} onChange={e => field('description')(e.target.value)}
-          placeholder="One-line description" className="field-input" />
-      </div>
-      <div>
-        <label className="field-label">Template</label>
-        <select value={form.template} onChange={e => field('template')(e.target.value)} className="field-input">
-          {Object.entries(TEMPLATE_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-        </select>
-      </div>
-      <div>
-        <label className="field-label">Palette</label>
-        <select value={form.palette} onChange={e => field('palette')(e.target.value)} className="field-input">
-          {Object.keys(ACCENT).map(k => <option key={k} value={k}>{k}</option>)}
-        </select>
-      </div>
-      <div>
-        <label className="field-label">Font</label>
-        <select value={form.font} onChange={e => field('font')(e.target.value)} className="field-input">
-          {Object.entries(FONT_LABEL).map(([k, v]) => <option key={k} value={k}>{v} ({k})</option>)}
-        </select>
-      </div>
-      <div>
-        <label className="field-label">Sort order</label>
-        <input type="number" value={form.sort_order} onChange={e => field('sort_order')(e.target.value)} className="field-input" />
+    <div className="space-y-4">
+      {/* Core fields */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div>
+          <label className="field-label">Persona</label>
+          <select value={form.persona} onChange={e => field('persona')(e.target.value)} className="field-input">
+            {PERSONAS.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="field-label">Name</label>
+          <input value={form.name} onChange={e => field('name')(e.target.value)}
+            placeholder="e.g. Artisan" className="field-input" />
+        </div>
+        <div className="col-span-2 sm:col-span-1">
+          <label className="field-label">Description</label>
+          <input value={form.description} onChange={e => field('description')(e.target.value)}
+            placeholder="One-line description" className="field-input" />
+        </div>
+        <div>
+          <label className="field-label">Template (fallback)</label>
+          <select value={form.template} onChange={e => field('template')(e.target.value)} className="field-input">
+            {Object.entries(TEMPLATE_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="field-label">Palette</label>
+          <select value={form.palette} onChange={e => field('palette')(e.target.value)} className="field-input">
+            {Object.keys(ACCENT).map(k => <option key={k} value={k}>{k}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="field-label">Font</label>
+          <select value={form.font} onChange={e => field('font')(e.target.value)} className="field-input">
+            {Object.entries(FONT_LABEL).map(([k, v]) => <option key={k} value={k}>{v} ({k})</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="field-label">Sort order</label>
+          <input type="number" value={form.sort_order} onChange={e => field('sort_order')(e.target.value)} className="field-input" />
+        </div>
+        <div className="col-span-2">
+          <label className="field-label">Preview image (optional)</label>
+          <div className="flex items-center gap-3">
+            {form.imageUrl && (
+              <img src={form.imageUrl} alt="Preview" className="w-20 h-14 object-cover rounded-xl border border-[#E5E5E5]" />
+            )}
+            <label className="cursor-pointer text-xs font-semibold text-[#666] border border-[#E5E5E5] rounded-xl px-3 py-2 hover:bg-[#F5F5F5] transition-colors">
+              {uploading ? 'Uploading…' : form.imageUrl ? 'Change image' : '+ Upload image'}
+              <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
+            </label>
+            {form.imageUrl && (
+              <button type="button" onClick={() => onUpload('')}
+                className="text-xs text-[#999] hover:text-red-500 transition-colors">Remove</button>
+            )}
+          </div>
+          {uploadError && <p className="text-red-500 text-xs mt-1">{uploadError}</p>}
+        </div>
       </div>
 
-      {/* Image upload */}
-      <div className="col-span-2 sm:col-span-2">
-        <label className="field-label">Preview image (optional)</label>
-        <div className="flex items-center gap-3">
-          {form.imageUrl && (
-            <img src={form.imageUrl} alt="Preview" className="w-20 h-14 object-cover rounded-xl border border-[#E5E5E5]" />
-          )}
-          <label className="cursor-pointer text-xs font-semibold text-[#666] border border-[#E5E5E5] rounded-xl px-3 py-2 hover:bg-[#F5F5F5] transition-colors">
-            {uploading ? 'Uploading…' : form.imageUrl ? 'Change image' : '+ Upload image'}
-            <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
-          </label>
-          {form.imageUrl && (
-            <button type="button" onClick={() => onUpload('')}
-              className="text-xs text-[#999] hover:text-red-500 transition-colors">
-              Remove
-            </button>
+      {/* Section builder toggle */}
+      <div className="border-t border-[#E5E5E5] pt-4">
+        <label className="flex items-center gap-3 cursor-pointer select-none">
+          <button type="button"
+            onClick={() => onChange({ ...form, useSections: !form.useSections, sections: form.useSections ? [] : form.sections })}
+            className={`w-10 h-5 rounded-full transition-colors relative shrink-0 ${form.useSections ? 'bg-[#0D0D0D]' : 'bg-[#D1D5DB]'}`}>
+            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${form.useSections ? 'translate-x-5' : 'translate-x-0.5'}`} />
+          </button>
+          <span className="text-sm font-semibold text-[#0D0D0D]">Use section builder</span>
+          <span className="text-xs text-[#999]">Compose this layout section by section</span>
+        </label>
+      </div>
+
+      {/* Section builder */}
+      {form.useSections && (
+        <div className="border border-[#E5E5E5] rounded-2xl overflow-hidden">
+          {/* Available sections to add */}
+          <div className="p-4 bg-[#F9F9F9] border-b border-[#E5E5E5]">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#666] mb-3">Add sections</p>
+            <div className="flex flex-wrap gap-2">
+              {sectionTypes.map(st => (
+                <button key={st.key} type="button"
+                  onClick={() => usedKeys.has(st.key) ? removeSection(st.key) : addSection(st.key)}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${
+                    usedKeys.has(st.key)
+                      ? 'bg-[#0D0D0D] text-white border-[#0D0D0D]'
+                      : 'border-[#E5E5E5] text-[#666] hover:border-[#0D0D0D] hover:text-[#0D0D0D] bg-white'
+                  }`}>
+                  {usedKeys.has(st.key) ? '✓ ' : '+ '}{st.label}
+                </button>
+              ))}
+              {sectionTypes.length === 0 && (
+                <p className="text-xs text-[#999]">Loading section types…</p>
+              )}
+            </div>
+          </div>
+
+          {/* Composition list */}
+          {sortedSections.length > 0 ? (
+            <div className="divide-y divide-[#E5E5E5]">
+              {sortedSections.map((s, i) => {
+                const st = sectionTypes.find(x => x.key === s.sectionKey)
+                return (
+                  <div key={s.sectionKey} className="flex items-center gap-3 px-4 py-3 bg-white">
+                    {/* Order controls */}
+                    <div className="flex flex-col gap-0.5 shrink-0">
+                      <button type="button" onClick={() => moveSection(s.sectionKey, -1)} disabled={i === 0}
+                        className="text-[#999] hover:text-[#0D0D0D] disabled:opacity-20 text-xs leading-none">▲</button>
+                      <button type="button" onClick={() => moveSection(s.sectionKey, 1)} disabled={i === sortedSections.length - 1}
+                        className="text-[#999] hover:text-[#0D0D0D] disabled:opacity-20 text-xs leading-none">▼</button>
+                    </div>
+
+                    {/* Order number */}
+                    <span className="text-xs font-bold text-[#999] w-4 shrink-0">{i + 1}</span>
+
+                    {/* Section label */}
+                    <span className="text-sm font-semibold text-[#0D0D0D] w-28 shrink-0">{st?.label ?? s.sectionKey}</span>
+
+                    {/* Variant picker */}
+                    <select value={s.variant}
+                      onChange={e => setVariant(s.sectionKey, e.target.value)}
+                      className="flex-1 text-xs border border-[#E5E5E5] rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:border-[#0D0D0D]">
+                      {st?.variants.map(v => (
+                        <option key={v.key} value={v.key}>{v.label}</option>
+                      ))}
+                    </select>
+
+                    {/* Remove */}
+                    <button type="button" onClick={() => removeSection(s.sectionKey)}
+                      className="text-xs text-[#999] hover:text-red-500 transition-colors shrink-0 ml-1">✕</button>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <p className="text-xs text-[#999] p-4 text-center">Add sections above to compose the layout.</p>
           )}
         </div>
-        {uploadError && <p className="text-red-500 text-xs mt-1">{uploadError}</p>}
-      </div>
+      )}
     </div>
   )
 }
+
+// ── Shell ──────────────────────────────────────────────────────────────────
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (

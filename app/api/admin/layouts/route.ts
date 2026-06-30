@@ -37,12 +37,18 @@ export async function POST(req: NextRequest) {
 
   const { persona, name, description, template, palette, font, sort_order } = body
   const image_url = (body as Record<string, unknown>).image_url as string | null | undefined
+  const sections  = (body as Record<string, unknown>).sections  as unknown[] | null | undefined
   if (!persona || !name || !template || !palette || !font)
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
 
   const { data, error } = await supabaseAdmin
     .from('layout_presets')
-    .insert({ persona, name, description: description ?? '', template, palette, font, sort_order: sort_order ?? 0, image_url: image_url ?? null })
+    .insert({
+      persona, name, description: description ?? '',
+      template, palette, font, sort_order: sort_order ?? 0,
+      image_url: image_url ?? null,
+      sections: sections ?? null,
+    })
     .select()
     .single()
 

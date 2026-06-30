@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await supabaseAdmin
     .from('layout_presets')
-    .select('id, name, description, template, palette, font, sort_order, image_url')
+    .select('id, name, description, template, palette, font, sort_order, image_url, sections')
     .in('persona', [persona, 'all'])
     .eq('active', true)
     .order('sort_order', { ascending: true })

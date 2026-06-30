@@ -320,10 +320,11 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          slug: ownerData.provider.slug,
+          slug:     ownerData.provider.slug,
           template: lo.template,
           palette:  lo.palette,
           font:     lo.font,
+          sections: lo.sections ?? null,
         }),
       })
       if (res.ok) {

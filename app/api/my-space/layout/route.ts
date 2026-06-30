@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import type { SectionEntry } from '@/lib/layouts'
 
 const PLAN_RANK: Record<string, number> = { seed: 0, sprout: 1, grow: 2, thrive: 3, elevate: 4 }
 
@@ -13,9 +14,11 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { slug, template, palette, font } = await req.json() as {
+  const body = await req.json() as {
     slug: string; template: string; palette: string; font: string
+    sections?: SectionEntry[] | null
   }
+  const { slug, template, palette, font, sections } = body
   if (!slug || !template || !palette || !font)
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
@@ -43,8 +46,11 @@ export async function POST(req: NextRequest) {
   type DraftShape = { pages: Record<string, unknown>; providers: Record<string, unknown> }
   const existing = (currentPage?.draft_data ?? {}) as Partial<DraftShape>
 
+  const pageUpdates: Record<string, unknown> = { template, palette, font }
+  if (sections && Array.isArray(sections)) pageUpdates.sections = sections
+
   const newDraft: DraftShape = {
-    pages:     { ...(existing.pages ?? {}), template, palette, font },
+    pages:     { ...(existing.pages ?? {}), ...pageUpdates },
     providers: existing.providers ?? {},
   }
 

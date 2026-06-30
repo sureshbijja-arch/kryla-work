@@ -7,6 +7,8 @@ import FocusTemplate from '../components/templates/FocusTemplate'
 import PortfolioTemplate from '../components/templates/PortfolioTemplate'
 import StorefrontTemplate from '../components/templates/StorefrontTemplate'
 import ClinicTemplate from '../components/templates/ClinicTemplate'
+import LayoutRenderer from '../components/LayoutRenderer'
+import type { SectionEntry } from '../components/LayoutRenderer'
 
 // Always renders fresh from DB — never cached. Used as the draft preview.
 export const dynamic = 'force-dynamic'
@@ -27,7 +29,7 @@ export default async function PreviewPage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, show_sections, draft_data')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, show_sections, sections, draft_data')
     .eq('provider_id', provider.id)
     .single()
 
@@ -89,10 +91,15 @@ export default async function PreviewPage({ params }: Props) {
 
   const isTutor  = provider.persona === 'tutor'
   const template = ((dp.template as string) ?? page.template) as string
+  const draftSections = dp.sections as SectionEntry[] | undefined | null
+  const liveSections  = Array.isArray(page.sections) ? (page.sections as SectionEntry[]) : null
+  const pageSections  = draftSections ?? liveSections
 
   return (
     <>
-      {isTutor ? (
+      {pageSections ? (
+        <LayoutRenderer sections={pageSections} data={profileData} />
+      ) : isTutor ? (
         <StudioTemplate data={profileData} />
       ) : template === 'portfolio' ? (
         <PortfolioTemplate data={profileData} />

@@ -2,6 +2,12 @@ export type TemplateKey = 'focus' | 'portfolio' | 'storefront' | 'clinic'
 export type PaletteKey  = 'professional' | 'fresh' | 'warm' | 'minimal' | 'creative' | 'calm'
 export type FontKey     = 'inter' | 'georgia' | 'trebuchet'
 
+export interface SectionEntry {
+  sectionKey: string
+  variant:    string
+  order:      number
+}
+
 export interface LayoutOption {
   id:          string
   name:        string
@@ -12,6 +18,7 @@ export interface LayoutOption {
   accent:      string
   bg:          string
   imageUrl:    string | null
+  sections:    SectionEntry[] | null
 }
 
 export const ACCENT: Record<PaletteKey, string> = {
@@ -52,11 +59,11 @@ export const PERSONAS = [
 
 export type PersonaKey = typeof PERSONAS[number]
 
-// Enrich a raw DB row with derived accent / bg colours
 export function enrichLayout(row: {
   id: string; name: string; description: string
   template: string; palette: string; font: string
   image_url?: string | null
+  sections?: SectionEntry[] | null
 }): LayoutOption {
   const palette = row.palette as PaletteKey
   return {
@@ -69,5 +76,6 @@ export function enrichLayout(row: {
     accent:      ACCENT[palette] ?? '#F5A623',
     bg:          PAGE_BG[palette] ?? '#FFFFFF',
     imageUrl:    row.image_url ?? null,
+    sections:    row.sections ?? null,
   }
 }
