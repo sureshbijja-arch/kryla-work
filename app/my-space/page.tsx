@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import SpaceClient from './SpaceClient'
 import type { SectionEntry } from './SectionsTab'
+import type { ServiceItem } from './ServicesTab'
 
 export const dynamic = 'force-dynamic'
 
@@ -64,7 +65,7 @@ export default async function MySpacePage() {
         bio: page?.bio ?? '',
         ctaPrimary: page?.cta_primary ?? '',
         ctaSecondary: page?.cta_secondary ?? '',
-        services: page?.services ?? [],
+        services: (page?.services as ServiceItem[] | null) ?? [],
         highlights: page?.highlights ?? [],
         faq: page?.faq ?? [],
         palette: page?.palette ?? 'professional',

@@ -24,12 +24,23 @@ const STYLES = `
   0%,100% { opacity:.06; }
   50%      { opacity:.12; }
 }
+@keyframes floatFrame {
+  0%,100% { transform: translateY(0px) rotate(var(--f-rot,0deg)); }
+  50%      { transform: translateY(-18px) rotate(var(--f-rot,0deg)); }
+}
 .h-up   { animation: fadeUp .65s cubic-bezier(.22,1,.36,1) both; }
 .h-up-1 { animation-delay:.06s; }
 .h-up-2 { animation-delay:.16s; }
 .h-up-3 { animation-delay:.26s; }
 .h-up-4 { animation-delay:.38s; }
 `
+
+interface FrameConfig { top: string; left?: string; right?: string; rot: string; dur: string; delay: string }
+const FRAME_CONFIGS: FrameConfig[] = [
+  { top: '8%',  left:  '2%', rot: '-6deg', dur: '9s',  delay: '0s'   },
+  { top: '52%', left:  '1%', rot:  '4deg', dur: '11s', delay: '1.8s' },
+  { top: '12%', right: '2%', rot: '-3deg', dur: '8s',  delay: '3.2s' },
+]
 
 function KLogo({ dark = false }: { dark?: boolean }) {
   const line = dark ? 'white' : '#0D0D0D'
@@ -192,9 +203,10 @@ function HeroPhoto({ data }: { data: ProfileData }) {
 ──────────────────────────────────────────────────────────────────────────── */
 function HeroDark({ data }: { data: ProfileData }) {
   const { firstName, lastName, location, whatsappNumber, headline, subheadline,
-    ctaPrimary, ctaSecondary, showSections, avatarUrl } = data
+    ctaPrimary, ctaSecondary, showSections, avatarUrl, gallery } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
+  const frames = gallery?.length ? gallery.slice(0, 2) : []
 
   return (
     <section className="relative overflow-hidden flex flex-col" style={{ background: '#0D0D0D', minHeight: '100svh' }}>
@@ -212,6 +224,31 @@ function HeroDark({ data }: { data: ProfileData }) {
           opacity: .07, filter: 'blur(110px)',
           animation: 'floatOrb 14s ease-in-out infinite',
         }} />
+
+      {/* Floating image frames — only when gallery exists */}
+      {frames.map((src, i) => {
+        const cfg = FRAME_CONFIGS[i]
+        return (
+          <div key={i} className="absolute pointer-events-none hidden sm:block"
+            style={{
+              top: cfg.top,
+              left: cfg.left,
+              right: cfg.right,
+              ['--f-rot' as string]: cfg.rot,
+              animation: `floatFrame ${cfg.dur} ease-in-out ${cfg.delay} infinite`,
+              opacity: 0.28,
+              zIndex: 0,
+            }}>
+            <img src={src} alt="" aria-hidden
+              className="w-28 h-36 sm:w-32 sm:h-44 object-cover"
+              style={{
+                borderRadius: 'var(--radius-card)',
+                filter: 'brightness(0.7) saturate(0.8)',
+                border: '1.5px solid rgba(255,255,255,0.1)',
+              }} />
+          </div>
+        )
+      })}
 
       <nav className="relative z-10 flex justify-between items-center px-6 pt-6 max-w-2xl mx-auto w-full">
         {location ? <LocationLink location={location} dark /> : <span />}
@@ -440,15 +477,40 @@ function HeroBanner({ data }: { data: ProfileData }) {
 ──────────────────────────────────────────────────────────────────────────── */
 function HeroCentered({ data }: { data: ProfileData }) {
   const { firstName, lastName, location, whatsappNumber, headline, subheadline,
-    ctaPrimary, ctaSecondary, showSections, avatarUrl } = data
+    ctaPrimary, ctaSecondary, showSections, avatarUrl, gallery } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
+  const frames = gallery?.length ? gallery.slice(0, 3) : []
 
   return (
     <section className="relative overflow-hidden">
       <style>{STYLES}</style>
       <div className="absolute top-0 left-0 right-0 h-72 pointer-events-none"
         style={{ background: 'linear-gradient(180deg, var(--color-accent-surface) 0%, transparent 100%)' }} />
+
+      {/* Floating image frames */}
+      {frames.map((src, i) => {
+        const cfg = FRAME_CONFIGS[i]
+        return (
+          <div key={i} className="absolute pointer-events-none hidden sm:block"
+            style={{
+              top: cfg.top,
+              left: cfg.left,
+              right: cfg.right,
+              ['--f-rot' as string]: cfg.rot,
+              animation: `floatFrame ${cfg.dur} ease-in-out ${cfg.delay} infinite`,
+              opacity: 0.72,
+              zIndex: 0,
+            }}>
+            <img src={src} alt="" aria-hidden
+              className="w-28 h-36 sm:w-32 sm:h-44 object-cover shadow-2xl"
+              style={{
+                borderRadius: 'var(--radius-card)',
+                border: '2px solid rgba(255,255,255,0.6)',
+              }} />
+          </div>
+        )
+      })}
       <nav className="relative max-w-2xl mx-auto px-6 pt-6 flex justify-end">
         <KLogo />
       </nav>

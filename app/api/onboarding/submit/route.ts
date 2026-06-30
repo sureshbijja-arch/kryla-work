@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase'
-import { inngest, BUILD_PAGE_EVENT } from '@/lib/inngest'
+import { inngest, BUILD_PAGE_EVENT, GENERATE_PERSONA_EVENT } from '@/lib/inngest'
 import { validateSlug, RESERVED_SLUGS } from '@/lib/slug'
 import type { OnboardingAnswers } from '@/types/onboarding'
 
@@ -13,6 +13,11 @@ export async function POST(req: NextRequest) {
   }
 
   const { persona, firstName, lastName, tagline, location, slug, whatsappCountryCode, whatsappNumber, email, plan, region } = body
+  const rawCustomPersona = (body as unknown as Record<string, unknown>).customPersonaName
+  const customPersonaName = typeof rawCustomPersona === 'string' ? rawCustomPersona.trim() : ''
+  const normalizedPersonaName = persona === 'other' && customPersonaName.length >= 2
+    ? customPersonaName.slice(0, 60).toLowerCase()
+    : undefined
 
   if (!persona || !firstName || !slug || !plan) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -69,6 +74,7 @@ export async function POST(req: NextRequest) {
       first_name: firstName.trim(),
       last_name: lastName?.trim() || '',
       persona,
+      custom_persona_name: normalizedPersonaName ?? null,
       location: location?.trim() || '',
       whatsapp_number: whatsapp,
       email: email?.trim() || null,
@@ -120,6 +126,34 @@ export async function POST(req: NextRequest) {
     // Non-fatal — provider row exists, build can still proceed
   }
 
+  // Insert persona_templates row BEFORE firing build-page (spec constraint)
+  let shouldFireGenerate = false
+  if (normalizedPersonaName) {
+    try {
+      const { data: ptExisting } = await supabase
+        .from('persona_templates')
+        .select('persona_name')
+        .eq('persona_name', normalizedPersonaName)
+        .maybeSingle()
+
+      if (!ptExisting) {
+        const { error: insertError } = await supabase
+          .from('persona_templates')
+          .insert({ persona_name: normalizedPersonaName })
+        if (!insertError) {
+          shouldFireGenerate = true
+          console.log('[submit] persona_templates row created for:', normalizedPersonaName)
+        } else if (insertError.code !== '23505') {
+          console.error('[submit] persona_templates insert failed:', insertError.message)
+        }
+      } else {
+        console.log('[submit] persona_templates already exists for:', normalizedPersonaName)
+      }
+    } catch (err) {
+      console.error('[submit] persona_templates handling failed:', JSON.stringify(err))
+    }
+  }
+
   console.log('[submit] 6. sending to Inngest...')
   try {
     await inngest.send({
@@ -130,10 +164,21 @@ export async function POST(req: NextRequest) {
         tagline: tagline?.trim() || '', location: location?.trim() || '', plan,
       },
     })
-    console.log('[submit] 7. Inngest sent, returning success')
+    console.log('[submit] 7. Inngest build event sent')
   } catch (err) {
     console.error('[submit] Inngest send failed:', JSON.stringify(err))
-    // Non-fatal — member is created, build will be retried or triggered manually
+  }
+
+  if (shouldFireGenerate && normalizedPersonaName) {
+    try {
+      await inngest.send({
+        name: GENERATE_PERSONA_EVENT,
+        data: { personaName: normalizedPersonaName, providerId, slug },
+      })
+      console.log('[submit] generate-persona event sent for:', normalizedPersonaName)
+    } catch (err) {
+      console.error('[submit] generate-persona send failed:', JSON.stringify(err))
+    }
   }
 
   return NextResponse.json({ ok: true, providerId, slug, presenceUrl: `https://${slug}.kryla.work` })

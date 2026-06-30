@@ -14,3 +14,11 @@ export interface BuildPageJobPayload {
 }
 
 export const BUILD_PAGE_EVENT = 'kryla/page.build.requested'
+
+export interface GeneratePersonaPayload {
+  personaName: string
+  providerId: string
+  slug: string
+}
+
+export const GENERATE_PERSONA_EVENT = 'kryla/persona.template.generate'

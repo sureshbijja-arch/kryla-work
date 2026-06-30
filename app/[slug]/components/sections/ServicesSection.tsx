@@ -87,26 +87,48 @@ function Grid({ data }: { data: ProfileData }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {services.map((s, i) => (
             <div key={i}
-              className="group bg-white hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 cursor-default p-6"
+              className="group bg-white hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 cursor-default overflow-hidden"
               style={{
                 borderRadius: 'var(--radius-card)',
                 border: '1.5px solid var(--color-accent-border)',
                 boxShadow: '0 2px 16px var(--color-accent-surface)',
               }}>
-              <div className="flex justify-between items-start gap-2 mb-3">
-                <p className="font-black text-[#0D0D0D] text-base">{s.name}</p>
-                {s.duration_or_unit && (
-                  <span className="text-xs font-black px-3 py-1.5 shrink-0 text-white"
-                    style={{
-                      borderRadius: 'var(--radius-btn)',
-                      background: 'var(--color-accent)',
-                      boxShadow: '0 4px 12px var(--color-accent-glow)',
-                    }}>
-                    {s.duration_or_unit}
-                  </span>
-                )}
+              {s.image_url && (
+                <div className="w-full h-44 overflow-hidden relative">
+                  <img src={s.image_url} alt={s.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  {s.badge && (
+                    <span className="absolute top-3 left-3 text-[10px] font-black uppercase tracking-wide px-2 py-1 rounded-full text-white"
+                      style={{ background: 'var(--color-accent)' }}>
+                      {s.badge}
+                    </span>
+                  )}
+                </div>
+              )}
+              <div className="p-6">
+                <div className="flex justify-between items-start gap-2 mb-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-black text-[#0D0D0D] text-base">{s.name}</p>
+                    {!s.image_url && s.badge && (
+                      <span className="text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full"
+                        style={{ background: 'var(--color-accent-surface)', color: 'var(--color-accent)' }}>
+                        {s.badge}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    {s.price && (
+                      <span className="text-sm font-black" style={{ color: 'var(--color-accent)' }}>{s.price}</span>
+                    )}
+                    {s.duration_or_unit && (
+                      <span className="text-xs font-black px-3 py-1 text-white"
+                        style={{ borderRadius: 'var(--radius-btn)', background: 'var(--color-accent)', boxShadow: '0 4px 12px var(--color-accent-glow)' }}>
+                        {s.duration_or_unit}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <p className="text-sm text-[#666] leading-relaxed">{s.description}</p>
               </div>
-              <p className="text-sm text-[#666] leading-relaxed">{s.description}</p>
             </div>
           ))}
         </div>
@@ -127,18 +149,31 @@ function Menu({ data }: { data: ProfileData }) {
         <div className="space-y-2">
           {services.map((s, i) => (
             <div key={i}
-              className="group flex justify-between items-start gap-4 bg-white hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-default px-5 py-4"
-              style={{
-                borderRadius: 'var(--radius-card)',
-                border: '1.5px solid var(--color-accent-border)',
-              }}>
-              <div>
-                <p className="font-black text-[#0D0D0D]">{s.name}</p>
+              className="group flex items-center gap-4 bg-white hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-default overflow-hidden"
+              style={{ borderRadius: 'var(--radius-card)', border: '1.5px solid var(--color-accent-border)' }}>
+              {s.image_url && (
+                <div className="shrink-0 w-20 h-20 overflow-hidden">
+                  <img src={s.image_url} alt={s.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0 py-4 pl-4" style={{ paddingLeft: s.image_url ? undefined : '1.25rem' }}>
+                <div className="flex items-center gap-2">
+                  <p className="font-black text-[#0D0D0D]">{s.name}</p>
+                  {s.badge && (
+                    <span className="text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full"
+                      style={{ background: 'var(--color-accent-surface)', color: 'var(--color-accent)' }}>
+                      {s.badge}
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-[#666] mt-0.5 leading-relaxed">{s.description}</p>
+                {s.duration_or_unit && (
+                  <p className="text-xs text-[#999] mt-1">{s.duration_or_unit}</p>
+                )}
               </div>
-              {s.duration_or_unit && (
-                <span className="shrink-0 text-base font-black mt-0.5" style={{ color: 'var(--color-accent)' }}>
-                  {s.duration_or_unit}
+              {s.price && (
+                <span className="shrink-0 text-base font-black pr-5" style={{ color: 'var(--color-accent)' }}>
+                  {s.price}
                 </span>
               )}
             </div>
@@ -178,13 +213,26 @@ function Pricing({ data }: { data: ProfileData }) {
                     : active ? '0 20px 60px var(--color-accent-surface)' : '0 2px 16px var(--color-accent-surface)',
                   transform: active ? 'scale(1.02) translateY(-4px)' : 'scale(1)',
                 }}>
-                <div className="p-6 flex-1 flex flex-col">
-                  {s.duration_or_unit && (
+                {s.image_url && (
+                <div className="w-full h-36 overflow-hidden">
+                  <img src={s.image_url} alt={s.name} className="w-full h-full object-cover" />
+                </div>
+              )}
+              <div className="p-6 flex-1 flex flex-col">
+                  {(s.price || s.duration_or_unit) && (
                     <p className="text-4xl font-black mb-2" style={{ color: 'var(--color-accent)' }}>
-                      {s.duration_or_unit}
+                      {s.price || s.duration_or_unit}
                     </p>
                   )}
-                  <p className={`font-black text-xl mb-3 ${featured ? 'text-white' : 'text-[#0D0D0D]'}`}>{s.name}</p>
+                  <div className="flex items-center gap-2 mb-3">
+                    <p className={`font-black text-xl ${featured ? 'text-white' : 'text-[#0D0D0D]'}`}>{s.name}</p>
+                    {s.badge && (
+                      <span className="text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full shrink-0"
+                        style={{ background: 'var(--color-accent-surface)', color: 'var(--color-accent)' }}>
+                        {s.badge}
+                      </span>
+                    )}
+                  </div>
                   <p className={`text-sm leading-relaxed flex-1 ${featured ? 'text-white/40' : 'text-[#666]'}`}>{s.description}</p>
                   <a href="#book"
                     className="mt-6 text-center text-sm font-black py-3.5 transition-all hover:opacity-90 hover:scale-[1.02] text-white"

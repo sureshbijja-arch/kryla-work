@@ -1,4 +1,6 @@
+import React from 'react'
 import { Footer } from './shared'
+import AnimateIn from './AnimateIn'
 import HeroSection from './sections/HeroSection'
 import ServicesSection from './sections/ServicesSection'
 import HighlightsSection from './sections/HighlightsSection'
@@ -52,24 +54,35 @@ export default function LayoutRenderer({ sections, data }: Props) {
       {sorted.map((s, i) => {
         const isFirst = i === 0
         const variant = resolveVariant(s.sectionKey, s.variant)
+        let node: React.ReactNode = null
         switch (s.sectionKey) {
           case 'hero':
-            return <HeroSection key={i} data={data} accent={accent} variant={variant} showNav={isFirst} />
+            node = <HeroSection key={i} data={data} accent={accent} variant={variant} showNav={isFirst} />
+            break
           case 'services':
-            return <ServicesSection key={i} data={data} accent={accent} variant={variant} />
+            node = <ServicesSection key={i} data={data} accent={accent} variant={variant} />
+            break
           case 'highlights':
-            return <HighlightsSection key={i} data={data} accent={accent} variant={variant} />
+            node = <HighlightsSection key={i} data={data} accent={accent} variant={variant} />
+            break
           case 'bio':
-            return <BioSection key={i} data={data} accent={accent} variant={variant} />
+            node = <BioSection key={i} data={data} accent={accent} variant={variant} />
+            break
           case 'gallery':
-            return <GallerySection key={i} data={data} variant={variant} />
+            node = <GallerySection key={i} data={data} variant={variant} />
+            break
           case 'faq':
-            return <FaqSection key={i} data={data} accent={accent} variant={variant} />
+            node = <FaqSection key={i} data={data} accent={accent} variant={variant} />
+            break
           case 'contact':
-            return <ContactSection key={i} data={data} accent={accent} variant={variant} />
+            node = <ContactSection key={i} data={data} accent={accent} variant={variant} />
+            break
           default:
             return null
         }
+        // Hero renders immediately — every other section fades up on scroll
+        if (s.sectionKey === 'hero') return node
+        return <AnimateIn key={i} delay={0}>{node}</AnimateIn>
       })}
       <Footer />
     </div>

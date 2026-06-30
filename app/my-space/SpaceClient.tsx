@@ -5,6 +5,8 @@ import PlanSection from './PlanSection'
 import BookingsTab from './BookingsTab'
 import SectionsTab from './SectionsTab'
 import type { SectionEntry } from './SectionsTab'
+import ServicesTab from './ServicesTab'
+import type { ServiceItem } from './ServicesTab'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -24,7 +26,7 @@ interface CurrentProfile {
   bio: string
   ctaPrimary: string
   ctaSecondary: string
-  services: unknown[]
+  services: ServiceItem[]
   highlights: unknown[]
   faq: unknown[]
   palette: string
@@ -69,7 +71,7 @@ export default function SpaceClient({
     { sectionKey: 'faq',        variant: 'accordion', order: 5 },
     { sectionKey: 'contact',    variant: 'both',      order: 6 },
   ]
-  const [tab, setTab] = useState<'chat' | 'sections' | 'bookings' | 'plan'>('chat')
+  const [tab, setTab] = useState<'chat' | 'services' | 'sections' | 'bookings' | 'plan'>('chat')
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -157,6 +159,7 @@ export default function SpaceClient({
       <div className="bg-white border-b border-[#E5E5E5] px-6 flex items-center gap-6">
         {([
           { key: 'chat',     label: 'Edit profile' },
+          { key: 'services', label: 'Services' },
           { key: 'sections', label: 'Page layout' },
           { key: 'bookings', label: 'Bookings' },
           { key: 'plan',     label: 'My plan' },
@@ -275,6 +278,15 @@ export default function SpaceClient({
             </p>
           </div>
         </>
+      )}
+
+      {tab === 'services' && (
+        <ServicesTab
+          providerId={providerId}
+          slug={slug}
+          initialServices={currentProfile.services}
+          plan={plan}
+        />
       )}
 
       {tab === 'sections' && (

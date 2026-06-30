@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { toSlug, suggestSlug, validateSlug } from '@/lib/slug'
+import { getAllVerticals } from '@/config/verticals'
 import type { OnboardingAnswers, Persona, Plan, Region } from '@/types/onboarding'
 
 type Step = 1 | 2 | 3 | 4 | 5
@@ -13,17 +14,7 @@ interface SlugStatus {
   message: string | null
 }
 
-const PERSONAS: { id: Persona; emoji: string; label: string }[] = [
-  { id: 'tutor',        emoji: '📚', label: 'Tutor' },
-  { id: 'trainer',      emoji: '💪', label: 'Fitness trainer' },
-  { id: 'baker',        emoji: '🧁', label: 'Baker' },
-  { id: 'photographer', emoji: '📷', label: 'Photographer' },
-  { id: 'salon',        emoji: '✂️',  label: 'Salon / stylist' },
-  { id: 'chef',         emoji: '🍱', label: 'Home chef' },
-  { id: 'doctor',       emoji: '🩺', label: 'Doctor' },
-  { id: 'musician',     emoji: '🎵', label: 'Music teacher' },
-  { id: 'other',        emoji: '✨', label: 'Something else' },
-]
+const PERSONAS = getAllVerticals().map((v) => ({ id: v.id as Persona, emoji: v.emoji, label: v.label }))
 
 const PLANS: {
   id: Plan; emoji: string; label: string
@@ -42,6 +33,7 @@ export default function OnboardingPage() {
   const [answers, setAnswers] = useState<Partial<OnboardingAnswers>>({
     plan: 'seed', region: 'usa', whatsappCountryCode: '+1',
   })
+  const [customPersonaName, setCustomPersonaName] = useState('')
   const [slug, setSlug] = useState('')
   const [slugStatus, setSlugStatus] = useState<SlugStatus>({ checking: false, available: null, message: null })
   const [submitting, setSubmitting] = useState(false)
@@ -130,7 +122,7 @@ export default function OnboardingPage() {
       const res = await fetch('/api/onboarding/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...answers, slug }),
+        body: JSON.stringify({ ...answers, slug, customPersonaName: customPersonaName.trim() || undefined }),
       })
       const data = await res.json()
       if (!res.ok || !data.ok) {
@@ -153,7 +145,7 @@ export default function OnboardingPage() {
     }
   }
 
-  const canProceed1 = !!answers.persona
+  const canProceed1 = !!answers.persona && (answers.persona !== 'other' || customPersonaName.trim().length >= 2)
   const canProceed2 = !!(answers.firstName?.trim() && answers.tagline?.trim())
   const canProceed3 = slugStatus.available === true
   const canProceed4 = !!answers.plan
@@ -194,7 +186,7 @@ export default function OnboardingPage() {
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-[#C17A3A] mb-1">Getting you started</p>
                 <h1 className="text-2xl font-semibold text-[#0D0D0D] mb-1">What do you do?</h1>
                 <p className="text-sm text-[#666] mb-6 leading-relaxed">Pick the one that fits you best — we'll shape your presence around it.</p>
-                <div className="grid grid-cols-3 gap-2.5 mb-6">
+                <div className="grid grid-cols-3 gap-2.5 mb-4">
                   {PERSONAS.map((p) => (
                     <button key={p.id} onClick={() => setAnswers((a) => ({ ...a, persona: p.id }))}
                       className={`border rounded-xl py-3.5 px-3 text-center transition-all ${answers.persona === p.id ? 'border-[#F5A623] bg-[#FFFBF5] shadow-[0_0_0_3px_rgba(245,166,35,0.15)]' : 'border-[#E5E5E5] hover:border-[#F5A623] hover:bg-[#FFFBF5]'}`}>
@@ -203,7 +195,19 @@ export default function OnboardingPage() {
                     </button>
                   ))}
                 </div>
-                <div className="flex justify-end">
+                {answers.persona === 'other' && (
+                  <div className="mb-4">
+                    <label className="block text-xs font-medium text-[#444] mb-1.5">What do you do? <span className="font-normal text-[#999]">we&apos;ll build a page just for you</span></label>
+                    <input
+                      type="text"
+                      placeholder="e.g. car detailer, crystal healer, immigration consultant"
+                      value={customPersonaName}
+                      onChange={(e) => setCustomPersonaName(e.target.value)}
+                      className="w-full border border-[#E5E5E5] rounded-lg px-3.5 py-2.5 text-sm text-[#0D0D0D] placeholder:text-[#999] focus:outline-none focus:border-[#F5A623] focus:shadow-[0_0_0_3px_rgba(245,166,35,0.1)] transition-all"
+                    />
+                  </div>
+                )}
+                <div className="flex justify-end mt-2">
                   <button onClick={goNext} disabled={!canProceed1}
                     className="bg-[#0D0D0D] text-white rounded-xl px-7 py-3 text-sm font-semibold disabled:bg-[#E5E5E5] disabled:text-[#999] disabled:cursor-not-allowed hover:bg-[#222] transition-colors">
                     Continue →

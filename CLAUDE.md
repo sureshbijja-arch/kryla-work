@@ -58,6 +58,8 @@
 | `/api/booking` | POST | Customer booking submission |
 | `/api/my-space/chat` | POST | AI chat editor — updates pages via draft_data |
 | `/api/my-space/sections` | POST | Updates pages.sections (auth-gated by email ownership) |
+| `/api/my-space/services` | POST | Updates pages.services array (auth-gated by email ownership) |
+| `/api/my-space/upload` | POST | Uploads image to profile-media bucket; types: avatar, gallery, service (Grow+) |
 | `/api/revalidate` | POST | ISR revalidation trigger from Inngest (requires REVALIDATE_SECRET) |
 
 ### /api/onboarding/submit — key behaviour
@@ -145,7 +147,14 @@ Dynamic accent tokens set as **inline styles** on the LayoutRenderer wrapper (no
 
 ### My Space (Dashboard)
 At `/my-space` — protected by Supabase email OTP auth (middleware guards route).
-Tabs: **Edit profile** (AI chat editor) | **Page layout** (section builder) | **Bookings** | **My plan**
+Tabs: **Edit profile** (AI chat editor) | **Services** (service card manager) | **Page layout** (section builder) | **Bookings** | **My plan**
+
+Services tab (`app/my-space/ServicesTab.tsx`):
+- Add, edit, delete, reorder services
+- Fields: name, description, price, duration_or_unit, badge (Popular/New/Best Value), image_url
+- Image upload per service (Grow+ — enforced by `/api/my-space/upload`)
+- Save → POST `/api/my-space/services`
+- `ServiceItem` type defined here (name, description, price, duration_or_unit, image_url?, badge?)
 
 Section builder (`app/my-space/SectionsTab.tsx`):
 - Reorder with up/down buttons

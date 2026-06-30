@@ -19,6 +19,9 @@ export interface ServiceItem {
   name: string
   description: string
   duration_or_unit: string | null
+  price?: string | null
+  image_url?: string | null
+  badge?: string | null
 }
 
 export interface HighlightItem {

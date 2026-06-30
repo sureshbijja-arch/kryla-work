@@ -68,6 +68,27 @@
   --radius-btn:      0.5rem;
 }
 
+/* ── Scroll entrance ────────────────────────────────────────────────────── */
+@keyframes sectionFadeUp {
+  from { opacity: 0; transform: translateY(36px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Floating image frames (hero) ───────────────────────────────────────── */
+@keyframes floatFrame {
+  0%, 100% { transform: translateY(0px) rotate(var(--f-rot)); }
+  50%       { transform: translateY(-18px) rotate(var(--f-rot)); }
+}
+
+/* ── Accessibility ──────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 * { box-sizing: border-box; }
 
 body {
