@@ -64,6 +64,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
+  // Don't double-prefix: if the path already starts with /{slug}, serve as-is
+  if (url.pathname === `/${slug}` || url.pathname.startsWith(`/${slug}/`)) {
+    return NextResponse.next()
+  }
+
   url.pathname = `/${slug}${url.pathname === '/' ? '' : url.pathname}`
   return NextResponse.rewrite(url)
 }
