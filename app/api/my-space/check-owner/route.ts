@@ -34,7 +34,7 @@ export async function GET(req: Request) {
   const [pageRes, avatarRes, galleryRes, adsRes] = await Promise.allSettled([
     supabaseAdmin
       .from('pages')
-      .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, palette, font, template, show_sections, draft_data')
+      .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, palette, font, template, show_sections, sections, draft_data')
       .eq('provider_id', provider.id)
       .maybeSingle(),
     supabaseAdmin.from('providers').select('avatar_url').eq('id', provider.id).single(),
@@ -106,6 +106,7 @@ export async function GET(req: Request) {
       font:       (dp.font     as string) ?? page.font     ?? 'inter',
       template:   (dp.template as string) ?? page.template ?? 'focus',
       showSections: { ...(page.show_sections ?? {}), ...(dp.show_sections ?? {}) },
+      sections: Array.isArray(page.sections) ? page.sections : null,
       gallery,
     } : null,
   })

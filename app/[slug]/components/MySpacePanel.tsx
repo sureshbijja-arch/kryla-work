@@ -6,10 +6,12 @@ import BookingsTab from '@/app/my-space/BookingsTab'
 import PlanSection from '@/app/my-space/PlanSection'
 import ServicesTab from '@/app/my-space/ServicesTab'
 import type { ServiceItem } from '@/app/my-space/ServicesTab'
+import SectionsTab from '@/app/my-space/SectionsTab'
+import type { SectionEntry } from '@/app/my-space/SectionsTab'
 import { TEMPLATE_LABEL, FONT_LABEL, type LayoutOption } from '@/lib/layouts'
 
 type AuthState = 'loading' | 'login_email' | 'login_code' | 'checking' | 'not_owner' | 'ready'
-type Tab = 'chat' | 'services' | 'media' | 'ads' | 'layouts' | 'bookings' | 'plan'
+type Tab = 'chat' | 'services' | 'sections' | 'media' | 'ads' | 'layouts' | 'bookings' | 'plan'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -447,6 +449,7 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
         {([
           ['chat',     'Edit'],
           ['services', 'Services'],
+          ['sections', 'Page layout'],
           ['media',    'Media'],
           ['ads',      'Ads'],
           ['layouts',  'Layouts'],
@@ -541,6 +544,27 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
           onPreview={() => { setPreviewTs(Date.now()); setPreviewOpen(true) }}
         />
       )}
+
+      {/* Page layout tab */}
+      {tab === 'sections' && ownerData && (() => {
+        const DEFAULT_SECTIONS: SectionEntry[] = [
+          { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+          { sectionKey: 'services',   variant: 'features',  order: 2 },
+          { sectionKey: 'highlights', variant: 'icons',     order: 3 },
+          { sectionKey: 'bio',        variant: 'paragraph', order: 4 },
+          { sectionKey: 'faq',        variant: 'accordion', order: 5 },
+          { sectionKey: 'contact',    variant: 'both',      order: 6 },
+        ]
+        const initialSections = (ownerData.currentProfile?.sections as SectionEntry[] | null) ?? DEFAULT_SECTIONS
+        return (
+          <SectionsTab
+            providerId={ownerData.provider.id}
+            slug={ownerData.provider.slug}
+            initialSections={initialSections}
+            plan={ownerData.provider.plan}
+          />
+        )
+      })()}
 
       {/* Media tab */}
       {tab === 'media' && ownerData && (
