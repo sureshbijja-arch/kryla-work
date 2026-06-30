@@ -156,26 +156,28 @@ export default function SpaceClient({
       </header>
 
       {/* Tabs */}
-      <div className="bg-white border-b border-[#E5E5E5] px-6 flex items-center gap-6">
-        {([
-          { key: 'chat',     label: 'Edit profile' },
-          { key: 'services', label: 'Services' },
-          { key: 'sections', label: 'Page layout' },
-          { key: 'bookings', label: 'Bookings' },
-          { key: 'plan',     label: 'My plan' },
-        ] as const).map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className={`py-3 text-sm font-semibold border-b-2 transition-colors ${
-              tab === key
-                ? 'border-[#0D0D0D] text-[#0D0D0D]'
-                : 'border-transparent text-[#999] hover:text-[#0D0D0D]'
-            }`}>
-            {label}
-          </button>
-        ))}
-        <div className="ml-auto pb-2 flex items-center gap-2 flex-wrap">
+      <div className="bg-white border-b border-[#E5E5E5] flex items-center">
+        <div className="flex items-center gap-1 overflow-x-auto px-4 scrollbar-none flex-1 min-w-0">
+          {([
+            { key: 'chat',     label: 'Edit profile' },
+            { key: 'services', label: 'Services' },
+            { key: 'sections', label: 'Page layout' },
+            { key: 'bookings', label: 'Bookings' },
+            { key: 'plan',     label: 'My plan' },
+          ] as const).map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className={`shrink-0 py-3 px-2 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${
+                tab === key
+                  ? 'border-[#0D0D0D] text-[#0D0D0D]'
+                  : 'border-transparent text-[#999] hover:text-[#0D0D0D]'
+              }`}>
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="shrink-0 pr-4 pb-2 flex items-center gap-2 flex-wrap">
           <span className="text-xs text-[#999]">Style:</span>
           <Tag label={TEMPLATE_LABELS[currentProfile.template] ?? currentProfile.template} />
           <Tag label={PALETTE_LABELS[currentProfile.palette] ?? currentProfile.palette} />
