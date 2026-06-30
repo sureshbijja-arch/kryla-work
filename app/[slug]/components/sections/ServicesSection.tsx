@@ -38,6 +38,12 @@ function Features({ data }: { data: ProfileData }) {
                   boxShadow: active ? '0 20px 60px rgba(0,0,0,0.25), 0 0 0 1px var(--color-accent)' : 'none',
                   transform: active ? 'scale(1.01)' : 'scale(1)',
                 }}>
+                {s.image_url && (
+                  <div className="w-full h-40 overflow-hidden">
+                    <img src={s.image_url} alt={s.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  </div>
+                )}
                 <div className="flex items-start gap-5 p-6">
                   <div className="shrink-0 w-12 h-12 flex items-center justify-center font-black text-sm transition-all duration-300"
                     style={{
@@ -50,15 +56,29 @@ function Features({ data }: { data: ProfileData }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-4 mb-1.5">
-                      <p className="font-black text-lg leading-tight transition-colors duration-200"
-                        style={{ color: active ? 'white' : '#0D0D0D' }}>
-                        {s.name}
-                      </p>
-                      {s.duration_or_unit && (
-                        <span className="shrink-0 text-sm font-black" style={{ color: 'var(--color-accent)' }}>
-                          {s.duration_or_unit}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-black text-lg leading-tight transition-colors duration-200"
+                          style={{ color: active ? 'white' : '#0D0D0D' }}>
+                          {s.name}
+                        </p>
+                        {s.badge && (
+                          <span className="text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full shrink-0"
+                            style={{ background: 'var(--color-accent-surface)', color: 'var(--color-accent)' }}>
+                            {s.badge}
+                          </span>
+                        )}
+                      </div>
+                      <div className="shrink-0 text-right">
+                        {s.price && (
+                          <p className="text-sm font-black" style={{ color: 'var(--color-accent)' }}>{s.price}</p>
+                        )}
+                        {s.duration_or_unit && (
+                          <p className="text-sm font-black transition-colors duration-200"
+                            style={{ color: active ? 'var(--color-accent)' : 'var(--color-accent)' }}>
+                            {s.duration_or_unit}
+                          </p>
+                        )}
+                      </div>
                     </div>
                     <p className="text-sm leading-relaxed transition-colors duration-200"
                       style={{ color: active ? 'rgba(255,255,255,0.5)' : '#666' }}>
@@ -264,21 +284,39 @@ function List({ data }: { data: ProfileData }) {
         <SectionLabel text="What I offer" />
         <div className="space-y-5">
           {services.map((s, i) => (
-            <div key={i} className="flex justify-between items-start gap-4 cursor-default">
-              <div className="flex-1">
-                <p className="font-black text-[#0D0D0D]">{s.name}</p>
+            <div key={i} className="flex items-center gap-4 cursor-default">
+              {s.image_url && (
+                <div className="shrink-0 w-14 h-14 overflow-hidden rounded-xl">
+                  <img src={s.image_url} alt={s.name} className="w-full h-full object-cover" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-black text-[#0D0D0D]">{s.name}</p>
+                  {s.badge && (
+                    <span className="text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full shrink-0"
+                      style={{ background: 'var(--color-accent-surface)', color: 'var(--color-accent)' }}>
+                      {s.badge}
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-[#666] mt-0.5 leading-relaxed">{s.description}</p>
               </div>
-              {s.duration_or_unit && (
-                <span className="shrink-0 text-xs font-black mt-0.5 px-3 py-1.5"
-                  style={{
-                    borderRadius: 'var(--radius-btn)',
-                    background: 'var(--color-accent-surface)',
-                    color: 'var(--color-accent)',
-                  }}>
-                  {s.duration_or_unit}
-                </span>
-              )}
+              <div className="shrink-0 text-right">
+                {s.price && (
+                  <p className="text-sm font-black" style={{ color: 'var(--color-accent)' }}>{s.price}</p>
+                )}
+                {s.duration_or_unit && (
+                  <span className="text-xs font-black px-3 py-1.5 block mt-1"
+                    style={{
+                      borderRadius: 'var(--radius-btn)',
+                      background: 'var(--color-accent-surface)',
+                      color: 'var(--color-accent)',
+                    }}>
+                    {s.duration_or_unit}
+                  </span>
+                )}
+              </div>
             </div>
           ))}
         </div>

@@ -17,10 +17,12 @@ interface Props {
 export default function ServicesTab({ providerId, slug, initialServices, plan }: Props) {
   const [services, setServices] = useState<ServiceItem[]>(initialServices)
   const [expanded, setExpanded]   = useState<number | null>(null)
-  const [saving, setSaving]       = useState(false)
-  const [saved, setSaved]         = useState(false)
-  const [error, setError]         = useState('')
-  const [uploading, setUploading] = useState<number | null>(null)
+  const [saving, setSaving]         = useState(false)
+  const [saved, setSaved]           = useState(false)
+  const [publishing, setPublishing] = useState(false)
+  const [published, setPublished]   = useState(false)
+  const [error, setError]           = useState('')
+  const [uploading, setUploading]   = useState<number | null>(null)
 
   const canUploadImages = (PLAN_RANK[plan] ?? 0) >= 2
 
@@ -81,6 +83,7 @@ export default function ServicesTab({ providerId, slug, initialServices, plan }:
   async function save() {
     setSaving(true)
     setError('')
+    setPublished(false)
     try {
       const res = await fetch('/api/my-space/services', {
         method: 'POST',
@@ -96,6 +99,24 @@ export default function ServicesTab({ providerId, slug, initialServices, plan }:
     }
   }
 
+  async function publish() {
+    setPublishing(true)
+    setError('')
+    try {
+      const res = await fetch('/api/my-space/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug }),
+      })
+      if (!res.ok) throw new Error('Publish failed')
+      setPublished(true)
+    } catch {
+      setError('Could not publish — please try again')
+    } finally {
+      setPublishing(false)
+    }
+  }
+
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="max-w-xl mx-auto px-4 py-6 space-y-3">
@@ -106,8 +127,8 @@ export default function ServicesTab({ providerId, slug, initialServices, plan }:
             <p className="text-sm font-black text-[#0D0D0D]">My services</p>
             <p className="text-xs text-[#999] mt-0.5">Click a service to edit · add photos, price and details</p>
           </div>
-          <div className="flex items-center gap-3">
-            {saved && (
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            {saved && !published && (
               <span className="flex items-center gap-1 text-xs text-[#22C55E] font-semibold">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                   <path d="M2 6l3 3 5-5" stroke="#22C55E" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -115,12 +136,35 @@ export default function ServicesTab({ providerId, slug, initialServices, plan }:
                 Saved
               </span>
             )}
+            {published && (
+              <span className="flex items-center gap-1 text-xs text-[#22C55E] font-semibold">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M2 6l3 3 5-5" stroke="#22C55E" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Live!
+              </span>
+            )}
             <button
               onClick={save}
               disabled={saving}
-              className="px-4 py-2 rounded-lg text-xs font-black text-white bg-[#0D0D0D] disabled:opacity-40 hover:opacity-80 transition-opacity">
+              className="px-3 py-2 rounded-lg text-xs font-black text-white bg-[#0D0D0D] disabled:opacity-40 hover:opacity-80 transition-opacity">
               {saving ? 'Saving…' : 'Save'}
             </button>
+            {saved && (
+              <>
+                <a href={`/${slug}/preview`} target="_blank" rel="noopener noreferrer"
+                  className="px-3 py-2 rounded-lg text-xs font-semibold border border-[#E5E5E5] text-[#666] hover:border-[#0D0D0D] hover:text-[#0D0D0D] transition-colors">
+                  Preview ↗
+                </a>
+                <button
+                  onClick={publish}
+                  disabled={publishing || published}
+                  className="px-3 py-2 rounded-lg text-xs font-black text-white disabled:opacity-40 hover:opacity-80 transition-opacity"
+                  style={{ background: published ? '#22C55E' : 'var(--color-accent, #F5A623)' }}>
+                  {publishing ? 'Publishing…' : published ? '✓ Live' : 'Publish →'}
+                </button>
+              </>
+            )}
           </div>
         </div>
 
