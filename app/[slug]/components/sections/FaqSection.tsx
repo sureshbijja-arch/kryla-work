@@ -15,14 +15,15 @@ const STYLES = `
 }
 `
 
-/* ── ACCORDION ───────────────────────────────────────────────────────────────── */
-function Accordion({ data, accent }: { data: ProfileData; accent: string }) {
+/* ── ACCORDION ────────────────────────────────────────────────────────────── */
+function Accordion({ data }: { data: ProfileData }) {
   const { faq, showSections } = data
   if (!showSections.faq || !faq.length) return null
   const [open, setOpen] = useState<number | null>(null)
 
   return (
-    <section className="py-16 border-t border-[#E5E5E5]">
+    <section className="border-t border-[#E5E5E5]"
+      style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-8">Questions</p>
@@ -31,22 +32,23 @@ function Accordion({ data, accent }: { data: ProfileData; accent: string }) {
             const isOpen = open === i
             return (
               <div key={i}
-                className="rounded-3xl overflow-hidden transition-all duration-300 cursor-pointer"
+                className="overflow-hidden transition-all duration-300 cursor-pointer"
                 style={{
-                  border: `1.5px solid ${isOpen ? accent : '#E5E5E5'}`,
-                  boxShadow: isOpen ? `0 8px 32px ${accent}15` : 'none',
-                  background: isOpen ? `${accent}06` : 'white',
+                  borderRadius: 'var(--radius-card)',
+                  border: `1.5px solid ${isOpen ? 'var(--color-accent)' : '#E5E5E5'}`,
+                  boxShadow: isOpen ? '0 8px 32px var(--color-accent-surface)' : 'none',
+                  background: isOpen ? 'var(--color-accent-surface)' : 'white',
                 }}
                 onClick={() => setOpen(isOpen ? null : i)}>
                 <div className="flex justify-between items-center px-5 py-4 select-none">
-                  <p className={`font-black text-sm transition-colors ${isOpen ? '' : 'text-[#0D0D0D]'}`}
-                    style={{ color: isOpen ? accent : '#0D0D0D' }}>
+                  <p className="font-black text-sm transition-colors"
+                    style={{ color: isOpen ? 'var(--color-accent)' : '#0D0D0D' }}>
                     {f.question}
                   </p>
                   <div
                     className="ml-4 shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300"
                     style={{
-                      background: isOpen ? accent : '#F0F0F0',
+                      background: isOpen ? 'var(--color-accent)' : '#F0F0F0',
                       transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                     }}>
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -70,19 +72,23 @@ function Accordion({ data, accent }: { data: ProfileData; accent: string }) {
   )
 }
 
-/* ── TWO-COL ─────────────────────────────────────────────────────────────────── */
-function TwoCol({ data, accent }: { data: ProfileData; accent: string }) {
+/* ── TWO-COL ──────────────────────────────────────────────────────────────── */
+function TwoCol({ data }: { data: ProfileData }) {
   const { faq, showSections } = data
   if (!showSections.faq || !faq.length) return null
   return (
-    <section className="py-16 border-t border-[#E5E5E5]">
+    <section className="border-t border-[#E5E5E5]"
+      style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto px-6">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-8">Frequently asked</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {faq.map((f, i) => (
             <div key={i}
-              className="rounded-3xl p-6 bg-white hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-default"
-              style={{ border: `1.5px solid ${accent}18`, boxShadow: `0 2px 16px ${accent}08` }}>
+              className="bg-white hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-default p-6"
+              style={{
+                borderRadius: 'var(--radius-card)',
+                border: '1.5px solid var(--color-accent-border)',
+              }}>
               <p className="font-black text-[#0D0D0D] text-sm mb-3 leading-snug">{f.question}</p>
               <p className="text-sm text-[#666] leading-relaxed">{f.answer}</p>
             </div>
@@ -93,7 +99,7 @@ function TwoCol({ data, accent }: { data: ProfileData; accent: string }) {
   )
 }
 
-export default function FaqSection({ data, variant, accent }: Props) {
-  if (variant === 'twocol') return <TwoCol data={data} accent={accent} />
-  return <Accordion data={data} accent={accent} />
+export default function FaqSection({ data, variant, accent: _accent }: Props) {
+  if (variant === 'twocol') return <TwoCol data={data} />
+  return <Accordion data={data} />
 }

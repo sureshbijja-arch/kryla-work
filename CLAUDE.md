@@ -56,6 +56,9 @@
 | `/api/inngest` | GET/POST/PUT | Inngest serve endpoint |
 | `/api/notify/build-failed` | POST | Logs build failures (WhatsApp send is Week 4 placeholder) |
 | `/api/booking` | POST | Customer booking submission |
+| `/api/my-space/chat` | POST | AI chat editor — updates pages via draft_data |
+| `/api/my-space/sections` | POST | Updates pages.sections (auth-gated by email ownership) |
+| `/api/revalidate` | POST | ISR revalidation trigger from Inngest (requires REVALIDATE_SECRET) |
 
 ### /api/onboarding/submit — key behaviour
 
@@ -98,6 +101,59 @@ Handles `page_live` as boolean OR string `'true'` (old schema compatibility).
 
 **Palette mapping:** tutor → professional | trainer → fresh | baker/chef → warm | photographer → minimal | salon → creative | doctor → calm
 
+**Design mode mapping:** baker/chef/salon/trainer/other → craft | photographer/doctor/musician/tutor → editorial
+
+**Sections mapping (PERSONA_SECTIONS):** Each persona has a curated `SectionEntry[]` default written to `pages.sections` at build time. Hero always uses `variant: 'auto'` — resolved at render time by `resolveVariant()` in LayoutRenderer.
+
+---
+
+## Design System
+
+### Design Modes
+Three modes defined in `app/[slug]/types.ts` as `DesignMode = 'craft' | 'editorial' | 'product'`:
+- **craft** — baker, chef, salon, trainer, other. Warm feel: 4.5rem headline, 5rem section spacing, 1.5rem card radius, pill buttons
+- **editorial** — photographer, doctor, musician, tutor. Magazine feel: 6rem headline, 6.5rem spacing, 1rem card radius, 0.75rem buttons
+- **product** — reserved for future tech/SaaS personas
+
+### CSS Custom Properties (`app/globals.css`)
+Set per `[data-mode]` attribute on the LayoutRenderer wrapper div:
+```
+--type-display    --type-heading    --type-subheading    --type-body    --type-label
+--fw-display      --space-section   --space-card
+--radius-card     --radius-btn
+```
+Dynamic accent tokens set as **inline styles** on the LayoutRenderer wrapper (not via `[data-mode]`):
+```
+--color-accent    --color-accent-surface    --color-accent-border    --color-accent-glow
+```
+
+### Tailwind Extensions (`tailwind.config.ts`)
+`text-display`, `text-heading`, `text-subheading`, `text-body-base`, `text-label` → CSS vars
+`p-section`, `p-card` → CSS vars | `rounded-card`, `rounded-btn` → CSS vars
+`bg-accent`, `bg-accent-surface`, `border-accent-border`, `shadow-accent-glow` → CSS vars
+
+### Section Layout Engine
+- `pages.sections` — `SectionEntry[]` → `{ sectionKey, variant, order }`
+- `LayoutRenderer` reads `sections`, sorts by order, renders each section component
+- `resolveVariant(sectionKey, variant)` — converts `auto` hero variant: gallery → `photo`, avatar+editorial → `centered`, avatar+craft → `split`, no media → `dark`
+- `section_types` table — registry of valid sections and their variants (used by admin UI)
+
+### Member Page Routes
+- `app/[slug]/page.tsx` — live public page (ISR, 1h revalidate)
+- `app/[slug]/preview/page.tsx` — always-fresh draft preview (force-dynamic)
+- Both select `sections`, `design_mode`, `gallery` from pages table
+
+### My Space (Dashboard)
+At `/my-space` — protected by Supabase email OTP auth (middleware guards route).
+Tabs: **Edit profile** (AI chat editor) | **Page layout** (section builder) | **Bookings** | **My plan**
+
+Section builder (`app/my-space/SectionsTab.tsx`):
+- Reorder with up/down buttons
+- Swap variant via pill picker (expands on card click)
+- Add/remove sections
+- Save → POST `/api/my-space/sections` (verifies email ownership)
+- Preview link opens `/[slug]/preview`
+
 ---
 
 ## Database Tables
@@ -118,6 +174,8 @@ Handles `page_live` as boolean OR string `'true'` (old schema compatibility).
 | region | text | usa / india |
 | page_live | boolean | set true by Inngest after build completes |
 | verified | boolean | |
+| custom_persona_name | text | set when persona='other' |
+| avatar_url | text | profile photo URL (Supabase Storage, profile-media bucket) |
 
 ### pages
 | Column | Type | Notes |
@@ -139,6 +197,10 @@ Handles `page_live` as boolean OR string `'true'` (old schema compatibility).
 | font | text | default: inter |
 | show_sections | jsonb | {hero, services, highlights, booking, faq, contact} |
 | build_version | int | |
+| gallery | jsonb | array of image URLs (Supabase Storage, profile-media bucket) |
+| sections | jsonb | array of {sectionKey, variant, order} — drives LayoutRenderer; null = use legacy template |
+| design_mode | text | craft \| editorial \| product — controls CSS token values; default 'craft' |
+| draft_data | jsonb | pending edits from AI chat (pages + providers sub-keys) |
 
 ### onboarding_answers
 | Column | Type |
@@ -157,6 +219,20 @@ Handles `page_live` as boolean OR string `'true'` (old schema compatibility).
 | region | text |
 | claude_prompt | text |
 | claude_response | text |
+
+### ads
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid | PK |
+| provider_id | uuid | FK → providers.id |
+| title | text | max 100 chars |
+| description | text | max 500 chars, nullable |
+| image_url | text | nullable, Supabase Storage |
+| link_url | text | nullable |
+| status | text | pending / approved / rejected |
+| created_at | timestamptz | |
+
+**Plan gating:** upload (avatar + gallery) requires Grow+; posting ads requires Thrive+.
 
 ### build_failures
 Columns: id (uuid PK), provider_id (uuid), slug (text), failed_at (timestamptz)
@@ -210,6 +286,7 @@ STRIPE_SECRET_KEY=               # Week 5
 STRIPE_WEBHOOK_SECRET=           # Week 5
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=  # Week 5
 RESEND_API_KEY=                  # Week 5
+REVALIDATE_SECRET=               # Random string — used by /api/revalidate to authorize ISR revalidation from Inngest jobs
 ```
 
 ---
@@ -245,18 +322,27 @@ RESEND_API_KEY=                  # Week 5
 
 ## What's Next
 
-1. **Member profile page** — `[slug].kryla.work` public presence page (reads from `pages` table)
-2. **Dashboard** — logged-in view at `/dashboard`: bookings, edit bio, share page
-3. **WhatsApp notifications** — build-complete message, booking alerts (Week 4)
-4. **Payments** — Stripe (USA) / Razorpay (India) for Sprout+ plans (Week 5)
+1. **WhatsApp notifications** — build-complete message, booking alerts (Week 4)
+2. **Payments** — Stripe (USA) / Razorpay (India) for Sprout+ plans (Week 5)
+3. **Avatar/gallery upload UI** — drag-drop uploader in My Space for Grow+ members
+4. **Custom domains** — Phase 2
+
+## What's Built
+
+- ✅ Public member pages at `[slug].kryla.work` — LayoutRenderer with section engine
+- ✅ Design system — 3 design modes, CSS custom properties, Tailwind token extensions
+- ✅ Section builder — all 7 section types, multiple variants each, scroll/hover animations
+- ✅ Persona-smart defaults — PERSONA_SECTIONS in Inngest, auto variant in hero
+- ✅ Auth / login — Supabase email OTP at `/login`, session via `@supabase/ssr`
+- ✅ My Space dashboard — AI chat editor, section builder tab, bookings tab, plan tab
+- ✅ Bookings — form on public page → DB → viewable in My Space
+- ✅ Draft data — AI edits saved to draft_data, applied on preview
 
 ## What's NOT Built Yet
 
-- Auth / login (Supabase OTP)
-- Member dashboard ("Your space")
-- Public member pages at `[slug].kryla.work` (middleware + `app/[slug]/page.tsx` placeholder exists)
 - WhatsApp sending (Week 4)
 - Stripe / Razorpay (Week 5)
+- Avatar/gallery upload UI in My Space (media upload endpoint exists, UI not built)
 - Custom domains (Phase 2)
 - All 6 AI agents (Phase 3)
 - SEO tooling beyond basic meta tags

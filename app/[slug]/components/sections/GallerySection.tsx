@@ -7,13 +7,6 @@ interface Props {
   variant: string
 }
 
-const STYLES = `
-@keyframes revealUp {
-  from { opacity:0; transform:translateY(24px) scale(0.97); }
-  to   { opacity:1; transform:translateY(0) scale(1); }
-}
-`
-
 function Img({ url, i, className = '' }: { url: string; i: number; className?: string }) {
   const [loaded, setLoaded] = useState(false)
   return (
@@ -30,28 +23,29 @@ function Img({ url, i, className = '' }: { url: string; i: number; className?: s
   )
 }
 
-/* ── FEATURED ────────────────────────────────────────────────────────────────── */
+/* ── FEATURED ─────────────────────────────────────────────────────────────── */
 function Featured({ data }: { data: ProfileData }) {
   const gallery = data.gallery ?? []
   if (!gallery.length) return null
   const [first, ...rest] = gallery
 
   return (
-    <section className="py-16 border-t border-[#E5E5E5]">
-      <style>{STYLES}</style>
+    <section className="border-t border-[#E5E5E5]"
+      style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto px-6">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">Gallery</p>
         <div className="grid grid-cols-3 gap-3" style={{ gridTemplateRows: 'auto auto' }}>
           {first && (
             <a href={first} target="_blank" rel="noopener noreferrer"
-              className="group col-span-2 row-span-2 rounded-3xl overflow-hidden block"
-              style={{ aspectRatio: '4/5' }}>
+              className="group col-span-2 row-span-2 overflow-hidden block"
+              style={{ borderRadius: 'var(--radius-card)', aspectRatio: '4/5' }}>
               <Img url={first} i={0} className="w-full h-full" />
             </a>
           )}
           {rest.slice(0, 4).map((url, i) => (
             <a key={i} href={url} target="_blank" rel="noopener noreferrer"
-              className="group rounded-2xl overflow-hidden block aspect-square">
+              className="group overflow-hidden block aspect-square"
+              style={{ borderRadius: 'var(--radius-card)' }}>
               <Img url={url} i={i + 1} className="w-full h-full" />
             </a>
           ))}
@@ -61,18 +55,20 @@ function Featured({ data }: { data: ProfileData }) {
   )
 }
 
-/* ── MASONRY ─────────────────────────────────────────────────────────────────── */
+/* ── MASONRY ──────────────────────────────────────────────────────────────── */
 function Masonry({ data }: { data: ProfileData }) {
   const gallery = data.gallery ?? []
   if (!gallery.length) return null
   return (
-    <section className="py-16 border-t border-[#E5E5E5]">
+    <section className="border-t border-[#E5E5E5]"
+      style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto px-6">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">Gallery</p>
         <div className="columns-2 sm:columns-3 gap-3">
           {gallery.map((url, i) => (
             <a key={i} href={url} target="_blank" rel="noopener noreferrer"
-              className="group block mb-3 rounded-2xl overflow-hidden break-inside-avoid">
+              className="group block mb-3 overflow-hidden break-inside-avoid"
+              style={{ borderRadius: 'var(--radius-card)' }}>
               <img src={url} alt={`Gallery ${i + 1}`}
                 className="w-full object-cover transition-transform duration-500 group-hover:scale-105" />
             </a>
@@ -83,12 +79,13 @@ function Masonry({ data }: { data: ProfileData }) {
   )
 }
 
-/* ── SCROLL ──────────────────────────────────────────────────────────────────── */
+/* ── SCROLL ───────────────────────────────────────────────────────────────── */
 function Scroll({ data }: { data: ProfileData }) {
   const gallery = data.gallery ?? []
   if (!gallery.length) return null
   return (
-    <section className="py-16 border-t border-[#E5E5E5]">
+    <section className="border-t border-[#E5E5E5]"
+      style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto">
         <div className="px-6 mb-6">
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999]">Gallery</p>
@@ -96,7 +93,8 @@ function Scroll({ data }: { data: ProfileData }) {
         <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide px-6">
           {gallery.map((url, i) => (
             <a key={i} href={url} target="_blank" rel="noopener noreferrer"
-              className="group snap-start shrink-0 w-60 h-60 sm:w-72 sm:h-72 rounded-3xl overflow-hidden">
+              className="group snap-start shrink-0 w-60 h-60 sm:w-72 sm:h-72 overflow-hidden"
+              style={{ borderRadius: 'var(--radius-card)' }}>
               <Img url={url} i={i} className="w-full h-full" />
             </a>
           ))}
@@ -106,18 +104,20 @@ function Scroll({ data }: { data: ProfileData }) {
   )
 }
 
-/* ── GRID (default) ──────────────────────────────────────────────────────────── */
+/* ── GRID (default) ───────────────────────────────────────────────────────── */
 function Grid({ data }: { data: ProfileData }) {
   const gallery = data.gallery ?? []
   if (!gallery.length) return null
   return (
-    <section className="py-16 border-t border-[#E5E5E5]">
+    <section className="border-t border-[#E5E5E5]"
+      style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto px-6">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">Gallery</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {gallery.map((url, i) => (
             <a key={i} href={url} target="_blank" rel="noopener noreferrer"
-              className="group rounded-3xl overflow-hidden block aspect-square">
+              className="group overflow-hidden block aspect-square"
+              style={{ borderRadius: 'var(--radius-card)' }}>
               <Img url={url} i={i} className="w-full h-full" />
             </a>
           ))}

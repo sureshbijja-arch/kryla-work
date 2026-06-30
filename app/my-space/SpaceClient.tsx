@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react'
 import PlanSection from './PlanSection'
 import BookingsTab from './BookingsTab'
+import SectionsTab from './SectionsTab'
+import type { SectionEntry } from './SectionsTab'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -29,6 +31,8 @@ interface CurrentProfile {
   font: string
   template: string
   showSections: Record<string, boolean>
+  sections: SectionEntry[] | null
+  designMode: string
 }
 
 interface Props {
@@ -57,7 +61,15 @@ export default function SpaceClient({
   providerId, slug, firstName, pageLive,
   plan, region, currentProfile,
 }: Props) {
-  const [tab, setTab] = useState<'chat' | 'bookings' | 'plan'>('chat')
+  const defaultSections: SectionEntry[] = currentProfile.sections ?? [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'services',   variant: 'features',  order: 2 },
+    { sectionKey: 'highlights', variant: 'icons',     order: 3 },
+    { sectionKey: 'bio',        variant: 'paragraph', order: 4 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 5 },
+    { sectionKey: 'contact',    variant: 'both',      order: 6 },
+  ]
+  const [tab, setTab] = useState<'chat' | 'sections' | 'bookings' | 'plan'>('chat')
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -145,6 +157,7 @@ export default function SpaceClient({
       <div className="bg-white border-b border-[#E5E5E5] px-6 flex items-center gap-6">
         {([
           { key: 'chat',     label: 'Edit profile' },
+          { key: 'sections', label: 'Page layout' },
           { key: 'bookings', label: 'Bookings' },
           { key: 'plan',     label: 'My plan' },
         ] as const).map(({ key, label }) => (
@@ -262,6 +275,14 @@ export default function SpaceClient({
             </p>
           </div>
         </>
+      )}
+
+      {tab === 'sections' && (
+        <SectionsTab
+          providerId={providerId}
+          slug={slug}
+          initialSections={defaultSections}
+        />
       )}
 
       {tab === 'bookings' && (

@@ -10,138 +10,255 @@ interface Props {
   showNav?: boolean
 }
 
+// Animations injected once — all variants share this stylesheet
 const STYLES = `
-@keyframes floatA {
+@keyframes floatOrb {
   0%,100% { transform: translate(0,0) scale(1); }
-  33% { transform: translate(30px,-40px) scale(1.05); }
-  66% { transform: translate(-20px,20px) scale(0.97); }
-}
-@keyframes floatB {
-  0%,100% { transform: translate(0,0) scale(1); }
-  40% { transform: translate(-35px,25px) scale(1.08); }
-  70% { transform: translate(20px,-30px) scale(0.95); }
+  50%      { transform: translate(24px,-32px) scale(1.06); }
 }
 @keyframes fadeUp {
-  from { opacity:0; transform:translateY(32px); }
+  from { opacity:0; transform:translateY(28px); }
   to   { opacity:1; transform:translateY(0); }
 }
-@keyframes glowPulse {
-  0%,100% { box-shadow: 0 0 0 4px var(--a-40), 0 0 40px var(--a-30); }
-  50%     { box-shadow: 0 0 0 6px var(--a-60), 0 0 80px var(--a-40); }
+@keyframes accentPulse {
+  0%,100% { opacity:.06; }
+  50%      { opacity:.12; }
 }
-.hero-fadeup { animation: fadeUp 0.7s cubic-bezier(.22,1,.36,1) both; }
-.hero-fadeup-1 { animation-delay: 0.05s; }
-.hero-fadeup-2 { animation-delay: 0.15s; }
-.hero-fadeup-3 { animation-delay: 0.25s; }
-.hero-fadeup-4 { animation-delay: 0.38s; }
+.h-up   { animation: fadeUp .65s cubic-bezier(.22,1,.36,1) both; }
+.h-up-1 { animation-delay:.06s; }
+.h-up-2 { animation-delay:.16s; }
+.h-up-3 { animation-delay:.26s; }
+.h-up-4 { animation-delay:.38s; }
 `
 
-function KLogo({ dark = false, accent }: { dark?: boolean; accent: string }) {
+function KLogo({ dark = false }: { dark?: boolean }) {
   const line = dark ? 'white' : '#0D0D0D'
+  const acc  = 'var(--color-accent)'
   return (
-    <a href="https://kryla.work" className="flex items-center gap-1.5 opacity-40 hover:opacity-100 transition-opacity">
+    <a href="https://kryla.work"
+      className="flex items-center gap-1.5 transition-opacity"
+      style={{ opacity: .35 }}
+      onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+      onMouseLeave={e => (e.currentTarget.style.opacity = '.35')}>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <line x1="7" y1="4" x2="7" y2="20" stroke={line} strokeWidth="2.5" strokeLinecap="round"/>
-        <line x1="7" y1="12" x2="17" y2="4" stroke={line} strokeWidth="2.5" strokeLinecap="round"/>
-        <line x1="7" y1="12" x2="17" y2="20" stroke={accent} strokeWidth="2.5" strokeLinecap="round"/>
+        <line x1="7" y1="4"  x2="7"  y2="20" stroke={line} strokeWidth="2.5" strokeLinecap="round"/>
+        <line x1="7" y1="12" x2="17" y2="4"  stroke={line} strokeWidth="2.5" strokeLinecap="round"/>
+        <line x1="7" y1="12" x2="17" y2="20" stroke={acc}  strokeWidth="2.5" strokeLinecap="round"/>
       </svg>
-      <span className="text-xs font-bold" style={{ color: dark ? 'rgba(255,255,255,0.5)' : '#0D0D0D' }}>
-        kryla<span style={{ color: accent }}>.work</span>
+      <span className="text-xs font-bold" style={{ color: dark ? 'rgba(255,255,255,.45)' : '#0D0D0D' }}>
+        kryla<span style={{ color: acc }}>.work</span>
       </span>
     </a>
   )
 }
 
-/* ─────────────────────────── DARK ─────────────────────────────────────────── */
-function HeroDark({ data, accent }: { data: ProfileData; accent: string }) {
-  const { firstName, lastName, location, whatsappNumber, headline, subheadline, ctaPrimary, ctaSecondary, showSections, avatarUrl } = data
+function LocationLink({ location, dark }: { location: string; dark?: boolean }) {
+  return (
+    <a href={mapsUrl(location)} target="_blank" rel="noopener noreferrer"
+      className="text-xs font-semibold transition-colors"
+      style={{ color: dark ? 'rgba(255,255,255,.3)' : '#999' }}>
+      📍 {location}
+    </a>
+  )
+}
+
+function CTAs({ wa, showBooking, showContact, ctaPrimary, ctaSecondary, dark }: {
+  wa: string | null; showBooking: boolean; showContact: boolean
+  ctaPrimary: string; ctaSecondary: string; dark?: boolean
+}) {
+  return (
+    <div className="flex flex-wrap gap-3">
+      {showBooking && (
+        <a href="#book"
+          className="group flex items-center gap-2 px-7 py-3.5 font-black text-white text-sm transition-all hover:opacity-90 hover:scale-[1.02]"
+          style={{
+            background: 'var(--color-accent)',
+            borderRadius: 'var(--radius-btn)',
+            boxShadow: '0 8px 28px var(--color-accent-glow)',
+          }}>
+          {ctaPrimary}
+          <svg className="group-hover:translate-x-0.5 transition-transform" width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2 7h10M8 3l4 4-4 4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </a>
+      )}
+      {wa && showContact && (
+        <a href={wa} target="_blank" rel="noopener noreferrer"
+          className="px-7 py-3.5 font-bold text-sm transition-all"
+          style={{
+            borderRadius: 'var(--radius-btn)',
+            border: dark ? '1.5px solid rgba(255,255,255,.15)' : '1.5px solid var(--color-accent-border)',
+            color: dark ? 'rgba(255,255,255,.5)' : '#333',
+            backdropFilter: dark ? 'blur(8px)' : undefined,
+          }}
+          onMouseEnter={e => {
+            const el = e.currentTarget as HTMLAnchorElement
+            el.style.color = dark ? 'white' : '#0D0D0D'
+            el.style.borderColor = dark ? 'rgba(255,255,255,.4)' : '#0D0D0D'
+          }}
+          onMouseLeave={e => {
+            const el = e.currentTarget as HTMLAnchorElement
+            el.style.color = dark ? 'rgba(255,255,255,.5)' : '#333'
+            el.style.borderColor = dark ? 'rgba(255,255,255,.15)' : 'var(--color-accent-border)'
+          }}>
+          {ctaSecondary || 'Get in touch'}
+        </a>
+      )}
+    </div>
+  )
+}
+
+/* ── PHOTO ───────────────────────────────────────────────────────────────────
+   Full-bleed background image (gallery[0] or avatar), dark scrim, text bottom.
+   Sticky blur-nav appears on scroll.
+──────────────────────────────────────────────────────────────────────────── */
+function HeroPhoto({ data }: { data: ProfileData }) {
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 80)
+    window.addEventListener('scroll', fn, { passive: true })
+    return () => window.removeEventListener('scroll', fn)
+  }, [])
+
+  const { firstName, lastName, location, whatsappNumber, headline, subheadline,
+    ctaPrimary, ctaSecondary, showSections, avatarUrl, gallery } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
+  const bg = gallery?.length ? gallery[0] : avatarUrl
+  const showAvatar = !!(avatarUrl && gallery?.length)
 
   return (
-    <section className="relative min-h-screen flex flex-col overflow-hidden"
-      style={{ background: '#0D0D0D', ['--a-40' as string]: `${accent}66`, ['--a-60' as string]: `${accent}99`, ['--a-30' as string]: `${accent}4d` }}>
+    <section className="relative overflow-hidden flex flex-col" style={{ minHeight: '100svh' }}>
       <style>{STYLES}</style>
 
-      {/* Dot grid */}
+      {bg && <img src={bg} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />}
+      {!bg && <div className="absolute inset-0" style={{ background: '#111' }} />}
+
+      {/* Scrim */}
       <div className="absolute inset-0 pointer-events-none"
-        style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+        style={{ background: 'linear-gradient(to top, rgba(0,0,0,.92) 0%, rgba(0,0,0,.5) 38%, rgba(0,0,0,.08) 100%)' }} />
 
-      {/* Orb A */}
-      <div className="absolute pointer-events-none rounded-full"
-        style={{ width: 700, height: 700, top: '-20%', right: '-15%', background: accent, opacity: 0.07, filter: 'blur(120px)', animation: 'floatA 12s ease-in-out infinite' }} />
-      {/* Orb B */}
-      <div className="absolute pointer-events-none rounded-full"
-        style={{ width: 500, height: 500, bottom: '-10%', left: '-10%', background: accent, opacity: 0.05, filter: 'blur(100px)', animation: 'floatB 16s ease-in-out infinite' }} />
-
-      {/* Nav */}
-      <nav className="relative z-10 flex justify-between items-center px-6 pt-6 max-w-2xl mx-auto w-full">
-        {location ? (
-          <a href={mapsUrl(location)} target="_blank" rel="noopener noreferrer"
-            className="text-xs font-semibold text-white/30 hover:text-white/70 transition-colors">
-            📍 {location}
-          </a>
-        ) : <span />}
-        <KLogo dark accent={accent} />
+      {/* Blur nav — fades in on scroll */}
+      <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
+        style={{
+          background: scrolled ? 'rgba(8,8,8,.88)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(24px) saturate(180%)' : 'none',
+          WebkitBackdropFilter: scrolled ? 'blur(24px) saturate(180%)' : 'none',
+          borderBottom: scrolled ? '1px solid rgba(255,255,255,.06)' : 'none',
+        }}>
+        <div className="max-w-2xl mx-auto px-6 py-4 flex justify-between items-center">
+          {location ? <LocationLink location={location} dark /> : <span />}
+          <KLogo dark />
+        </div>
       </nav>
 
-      {/* Content */}
-      <div className="relative z-10 flex-1 flex flex-col justify-center max-w-2xl mx-auto w-full px-6 py-16">
-        {avatarUrl && (
-          <div className="hero-fadeup hero-fadeup-1 mb-8 inline-block">
-            <img src={avatarUrl} alt={fullName}
-              className="w-24 h-24 rounded-full object-cover"
+      {/* Content — bottom anchored */}
+      <div className="relative z-10 flex-1 flex flex-col justify-end max-w-2xl mx-auto w-full px-6"
+        style={{ paddingBottom: 'var(--space-section)', paddingTop: '7rem' }}>
+        {showAvatar && (
+          <div className="h-up h-up-1 mb-6">
+            <img src={avatarUrl!} alt={fullName}
+              className="w-16 h-16 object-cover shadow-2xl"
               style={{
-                outline: `3px solid ${accent}`,
-                outlineOffset: 5,
-                boxShadow: `0 0 0 8px ${accent}20, 0 0 60px ${accent}30`,
-                animation: 'glowPulse 3s ease-in-out infinite',
+                borderRadius: 'var(--radius-card)',
+                border: '2px solid var(--color-accent)',
+                boxShadow: '0 0 0 4px rgba(255,255,255,.08)',
               }} />
           </div>
         )}
-
-        <p className="hero-fadeup hero-fadeup-1 text-[10px] font-black uppercase tracking-[0.25em] mb-5"
-          style={{ color: accent }}>{fullName}</p>
-
-        <h1 className="hero-fadeup hero-fadeup-2 font-black leading-[1.0] tracking-tight mb-6"
-          style={{
-            fontSize: 'clamp(3rem, 10vw, 6rem)',
-            backgroundImage: `linear-gradient(135deg, #ffffff 50%, ${accent}cc)`,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}>
+        <p className="h-up h-up-1 font-black uppercase tracking-[.22em] mb-4"
+          style={{ fontSize: 'var(--type-label)', color: 'var(--color-accent)' }}>
+          {fullName}
+        </p>
+        <h1 className="h-up h-up-2 font-black text-white leading-[1.04] tracking-tight mb-5"
+          style={{ fontSize: 'var(--type-display)' }}>
           {headline}
         </h1>
-
-        <p className="hero-fadeup hero-fadeup-3 text-lg sm:text-xl text-white/35 leading-relaxed mb-10 max-w-md">
+        <p className="h-up h-up-3 text-white/40 leading-relaxed mb-10 max-w-md"
+          style={{ fontSize: 'var(--type-subheading)' }}>
           {subheadline}
         </p>
-
-        <div className="hero-fadeup hero-fadeup-4 flex flex-wrap gap-3">
-          {showSections.booking && (
-            <a href="#book"
-              className="group relative px-8 py-4 rounded-full font-black text-white text-sm overflow-hidden transition-all hover:scale-[1.03]"
-              style={{ background: accent, boxShadow: `0 8px 32px ${accent}50` }}>
-              {ctaPrimary}
-            </a>
-          )}
-          {wa && showSections.contact && (
-            <a href={wa} target="_blank" rel="noopener noreferrer"
-              className="px-8 py-4 rounded-full font-bold text-sm text-white/50 hover:text-white transition-all hover:bg-white/10"
-              style={{ border: '1px solid rgba(255,255,255,0.12)' }}>
-              {ctaSecondary || 'WhatsApp'}
-            </a>
-          )}
+        <div className="h-up h-up-4">
+          <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
+            ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} dark />
         </div>
       </div>
     </section>
   )
 }
 
-/* ─────────────────────────── GRADIENT ─────────────────────────────────────── */
-function HeroGradient({ data, accent }: { data: ProfileData; accent: string }) {
-  const { firstName, lastName, location, whatsappNumber, headline, subheadline, ctaPrimary, ctaSecondary, showSections, avatarUrl } = data
+/* ── DARK ────────────────────────────────────────────────────────────────────
+   Deep black, single accent orb, large white headline, minimal decoration.
+──────────────────────────────────────────────────────────────────────────── */
+function HeroDark({ data }: { data: ProfileData }) {
+  const { firstName, lastName, location, whatsappNumber, headline, subheadline,
+    ctaPrimary, ctaSecondary, showSections, avatarUrl } = data
+  const fullName = [firstName, lastName].filter(Boolean).join(' ')
+  const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
+
+  return (
+    <section className="relative overflow-hidden flex flex-col" style={{ background: '#0D0D0D', minHeight: '100svh' }}>
+      <style>{STYLES}</style>
+
+      {/* Dot grid */}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,.055) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+
+      {/* Single accent orb */}
+      <div className="absolute pointer-events-none rounded-full"
+        style={{
+          width: 600, height: 600, top: '-15%', right: '-10%',
+          background: 'var(--color-accent)',
+          opacity: .07, filter: 'blur(110px)',
+          animation: 'floatOrb 14s ease-in-out infinite',
+        }} />
+
+      <nav className="relative z-10 flex justify-between items-center px-6 pt-6 max-w-2xl mx-auto w-full">
+        {location ? <LocationLink location={location} dark /> : <span />}
+        <KLogo dark />
+      </nav>
+
+      <div className="relative z-10 flex-1 flex flex-col justify-center max-w-2xl mx-auto w-full px-6"
+        style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
+        {avatarUrl && (
+          <div className="h-up h-up-1 mb-8 inline-block">
+            <img src={avatarUrl} alt={fullName}
+              className="w-20 h-20 object-cover"
+              style={{
+                borderRadius: 'var(--radius-card)',
+                outline: '3px solid var(--color-accent)',
+                outlineOffset: 5,
+                boxShadow: '0 0 0 8px var(--color-accent-surface), 0 0 48px var(--color-accent-glow)',
+              }} />
+          </div>
+        )}
+        <p className="h-up h-up-1 font-black uppercase tracking-[.22em] mb-5"
+          style={{ fontSize: 'var(--type-label)', color: 'var(--color-accent)' }}>
+          {fullName}
+        </p>
+        <h1 className="h-up h-up-2 font-black text-white leading-[1.04] tracking-tight mb-5"
+          style={{ fontSize: 'var(--type-display)' }}>
+          {headline}
+        </h1>
+        <p className="h-up h-up-3 text-white/35 leading-relaxed mb-10 max-w-md"
+          style={{ fontSize: 'var(--type-subheading)' }}>
+          {subheadline}
+        </p>
+        <div className="h-up h-up-4">
+          <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
+            ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} dark />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ── GRADIENT ────────────────────────────────────────────────────────────────
+   Soft aurora tint, content-forward, editorial feel.
+──────────────────────────────────────────────────────────────────────────── */
+function HeroGradient({ data }: { data: ProfileData }) {
+  const { firstName, lastName, location, whatsappNumber, headline, subheadline,
+    ctaPrimary, ctaSecondary, showSections, avatarUrl } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
 
@@ -149,62 +266,65 @@ function HeroGradient({ data, accent }: { data: ProfileData; accent: string }) {
     <section className="relative overflow-hidden">
       <style>{STYLES}</style>
       <div className="absolute inset-0 pointer-events-none"
-        style={{ background: `radial-gradient(ellipse 80% 60% at 60% -10%, ${accent}20 0%, transparent 70%), radial-gradient(ellipse 60% 80% at -10% 80%, ${accent}12 0%, transparent 60%)` }} />
-      <div className="absolute inset-0 pointer-events-none"
-        style={{ backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+        style={{ background: 'radial-gradient(ellipse 80% 60% at 65% -5%, var(--color-accent-border) 0%, transparent 70%), radial-gradient(ellipse 50% 70% at -5% 85%, var(--color-accent-surface) 0%, transparent 60%)' }} />
 
       <nav className="relative flex justify-between items-center px-6 pt-6 max-w-2xl mx-auto">
-        {location ? (
-          <a href={mapsUrl(location)} target="_blank" rel="noopener noreferrer"
-            className="text-xs font-semibold text-[#999] hover:text-[#0D0D0D] transition-colors">
-            📍 {location}
-          </a>
-        ) : <span />}
-        <KLogo accent={accent} />
+        {location ? <LocationLink location={location} /> : <span />}
+        <KLogo />
       </nav>
 
-      <div className="relative max-w-2xl mx-auto px-6 pt-12 pb-20">
+      <div className="relative max-w-2xl mx-auto px-6"
+        style={{ paddingTop: 'calc(var(--space-section) * .75)', paddingBottom: 'var(--space-section)' }}>
         {avatarUrl && (
-          <div className="hero-fadeup hero-fadeup-1 mb-7 relative inline-block">
-            <div className="w-28 h-28 rounded-2xl overflow-hidden shadow-2xl"
-              style={{ outline: `2px solid ${accent}50`, outlineOffset: 3, boxShadow: `0 20px 60px ${accent}25` }}>
-              <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
-            </div>
+          <div className="h-up h-up-1 mb-7 inline-block">
+            <img src={avatarUrl} alt={fullName}
+              className="w-24 h-24 object-cover shadow-2xl"
+              style={{
+                borderRadius: 'var(--radius-card)',
+                outline: '2px solid var(--color-accent-border)',
+                outlineOffset: 3,
+                boxShadow: '0 16px 48px var(--color-accent-glow)',
+              }} />
           </div>
         )}
-        <div className="hero-fadeup hero-fadeup-1 inline-flex items-center gap-2 mb-5 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest"
-          style={{ background: `${accent}15`, color: accent, border: `1px solid ${accent}30` }}>
+        <div className="h-up h-up-1 inline-flex items-center gap-2 mb-5 px-4 py-2 text-xs font-black uppercase tracking-widest"
+          style={{
+            borderRadius: 'var(--radius-btn)',
+            background: 'var(--color-accent-surface)',
+            color: 'var(--color-accent)',
+            border: '1px solid var(--color-accent-border)',
+          }}>
           {fullName}
         </div>
-        <h1 className="hero-fadeup hero-fadeup-2 font-black text-[#0D0D0D] leading-tight tracking-tight mb-5"
-          style={{ fontSize: 'clamp(2.5rem, 8vw, 5rem)' }}>
+        <h1 className="h-up h-up-2 font-black text-[#0D0D0D] leading-[1.04] tracking-tight mb-5"
+          style={{ fontSize: 'var(--type-display)' }}>
           {headline}
         </h1>
-        <p className="hero-fadeup hero-fadeup-3 text-xl text-[#666] leading-relaxed mb-8 max-w-lg">{subheadline}</p>
-        <div className="hero-fadeup hero-fadeup-4 flex flex-wrap gap-3">
-          {showSections.booking && (
-            <a href="#book"
-              className="px-7 py-4 rounded-xl font-black text-white text-sm hover:opacity-90 hover:scale-[1.02] transition-all"
-              style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)`, boxShadow: `0 8px 24px ${accent}35` }}>
-              {ctaPrimary}
-            </a>
-          )}
-          {wa && showSections.contact && (
-            <a href={wa} target="_blank" rel="noopener noreferrer"
-              className="px-7 py-4 rounded-xl font-bold text-sm border-2 text-[#333] hover:bg-[#0D0D0D] hover:text-white hover:border-[#0D0D0D] transition-all"
-              style={{ borderColor: `${accent}40` }}>
-              {ctaSecondary || 'Get in touch'}
-            </a>
-          )}
+        <p className="h-up h-up-3 text-[#555] leading-relaxed mb-8 max-w-lg"
+          style={{ fontSize: 'var(--type-subheading)' }}>
+          {subheadline}
+        </p>
+        {location && (
+          <a href={mapsUrl(location)} target="_blank" rel="noopener noreferrer"
+            className="block text-xs text-[#999] hover:text-[#0D0D0D] transition-colors mb-8">
+            📍 {location}
+          </a>
+        )}
+        <div className="h-up h-up-4">
+          <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
+            ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} />
         </div>
       </div>
     </section>
   )
 }
 
-/* ─────────────────────────── SPLIT ────────────────────────────────────────── */
-function HeroSplit({ data, accent }: { data: ProfileData; accent: string }) {
-  const { firstName, lastName, location, whatsappNumber, headline, subheadline, ctaPrimary, ctaSecondary, showSections, avatarUrl } = data
+/* ── SPLIT ────────────────────────────────────────────────────────────────────
+   Text left, photo right with offset accent shadow block.
+──────────────────────────────────────────────────────────────────────────── */
+function HeroSplit({ data }: { data: ProfileData }) {
+  const { firstName, lastName, location, whatsappNumber, headline, subheadline,
+    ctaPrimary, ctaSecondary, showSections, avatarUrl } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
 
@@ -212,45 +332,48 @@ function HeroSplit({ data, accent }: { data: ProfileData; accent: string }) {
     <section className="relative overflow-hidden bg-white">
       <style>{STYLES}</style>
       <nav className="max-w-5xl mx-auto px-6 pt-6 flex justify-between items-center">
-        {location ? (
-          <a href={mapsUrl(location)} target="_blank" rel="noopener noreferrer"
-            className="text-xs font-semibold text-[#999] hover:text-[#0D0D0D] transition-colors">
-            📍 {location}
-          </a>
-        ) : <span />}
-        <KLogo accent={accent} />
+        {location ? <LocationLink location={location} /> : <span />}
+        <KLogo />
       </nav>
-      <div className="max-w-5xl mx-auto px-6 pt-10 pb-20 flex flex-col sm:flex-row gap-12 items-center">
+      <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row gap-12 items-center"
+        style={{ paddingTop: 'calc(var(--space-section) * .7)', paddingBottom: 'var(--space-section)' }}>
         <div className="flex-1 order-2 sm:order-1">
-          <div className="hero-fadeup hero-fadeup-1 inline-flex items-center gap-2 mb-6 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest"
-            style={{ background: `${accent}15`, color: accent }}>
+          <div className="h-up h-up-1 inline-flex items-center gap-2 mb-6 px-3 py-1.5 text-xs font-black uppercase tracking-widest"
+            style={{
+              borderRadius: 'var(--radius-btn)',
+              background: 'var(--color-accent-surface)',
+              color: 'var(--color-accent)',
+            }}>
             {fullName}
           </div>
-          <h1 className="hero-fadeup hero-fadeup-2 font-black text-[#0D0D0D] leading-tight tracking-tight mb-5"
-            style={{ fontSize: 'clamp(2.5rem, 7vw, 4.5rem)' }}>{headline}</h1>
-          <p className="hero-fadeup hero-fadeup-3 text-xl text-[#666] leading-relaxed mb-8 max-w-md">{subheadline}</p>
-          <div className="hero-fadeup hero-fadeup-4 flex flex-wrap gap-3">
-            {showSections.booking && (
-              <a href="#book"
-                className="px-7 py-4 rounded-full font-black text-white text-sm hover:opacity-90 hover:scale-[1.02] transition-all shadow-xl"
-                style={{ background: accent, boxShadow: `0 8px 32px ${accent}40` }}>
-                {ctaPrimary}
-              </a>
-            )}
-            {wa && showSections.contact && (
-              <a href={wa} target="_blank" rel="noopener noreferrer"
-                className="px-7 py-4 rounded-full font-bold text-sm border-2 border-[#E5E5E5] text-[#0D0D0D] hover:border-[#0D0D0D] transition-all">
-                {ctaSecondary || `Message ${firstName}`}
-              </a>
-            )}
+          <h1 className="h-up h-up-2 font-black text-[#0D0D0D] leading-[1.04] tracking-tight mb-5"
+            style={{ fontSize: 'var(--type-display)' }}>
+            {headline}
+          </h1>
+          <p className="h-up h-up-3 text-[#555] leading-relaxed mb-8 max-w-md"
+            style={{ fontSize: 'var(--type-subheading)' }}>
+            {subheadline}
+          </p>
+          <div className="h-up h-up-4">
+            <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
+              ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} />
           </div>
         </div>
         {avatarUrl && (
-          <div className="order-1 sm:order-2 shrink-0 hero-fadeup hero-fadeup-2">
+          <div className="order-1 sm:order-2 shrink-0 h-up h-up-2">
             <div className="relative">
-              <div className="absolute rounded-[2.5rem] pointer-events-none"
-                style={{ inset: 0, background: `${accent}15`, transform: 'translate(12px,12px)' }} />
-              <div className="relative w-64 h-64 sm:w-80 sm:h-80 rounded-[2.5rem] overflow-hidden shadow-2xl">
+              {/* Offset accent block */}
+              <div className="absolute inset-0 pointer-events-none"
+                style={{
+                  borderRadius: 'var(--radius-card)',
+                  background: 'var(--color-accent-surface)',
+                  transform: 'translate(10px,10px)',
+                }} />
+              <div className="relative w-64 h-64 sm:w-80 sm:h-80 overflow-hidden"
+                style={{
+                  borderRadius: 'var(--radius-card)',
+                  boxShadow: '0 24px 64px rgba(0,0,0,.14)',
+                }}>
                 <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
               </div>
             </div>
@@ -261,118 +384,127 @@ function HeroSplit({ data, accent }: { data: ProfileData; accent: string }) {
   )
 }
 
-/* ─────────────────────────── BANNER ───────────────────────────────────────── */
-function HeroBanner({ data, accent }: { data: ProfileData; accent: string }) {
-  const { firstName, lastName, location, whatsappNumber, headline, subheadline, ctaPrimary, ctaSecondary, showSections, avatarUrl } = data
+/* ── BANNER ───────────────────────────────────────────────────────────────────
+   Accent-colored header with rounded bottom edge pulling into white content.
+──────────────────────────────────────────────────────────────────────────── */
+function HeroBanner({ data }: { data: ProfileData }) {
+  const { firstName, lastName, location, whatsappNumber, headline, subheadline,
+    ctaPrimary, ctaSecondary, showSections, avatarUrl } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
 
   return (
     <section>
       <style>{STYLES}</style>
-      <header className="relative pb-20 overflow-hidden" style={{ background: accent }}>
+      <header className="relative overflow-hidden pb-20" style={{ background: 'var(--color-accent)' }}>
         <div className="absolute inset-0 pointer-events-none"
-          style={{ backgroundImage: 'radial-gradient(circle at 70% 30%, rgba(255,255,255,0.15) 0%, transparent 60%)' }} />
+          style={{ backgroundImage: 'radial-gradient(circle at 70% 30%, rgba(255,255,255,.18) 0%, transparent 60%)' }} />
         <div className="relative max-w-2xl mx-auto px-6 pt-5 flex justify-between items-start">
           <div>
-            <p className="text-white/60 text-xs font-black uppercase tracking-widest mb-1">{fullName}</p>
-            {location && <a href={mapsUrl(location)} target="_blank" rel="noopener noreferrer"
-              className="text-white/50 text-xs hover:text-white transition-colors">📍 {location}</a>}
+            <p className="text-white/60 font-black uppercase tracking-widest" style={{ fontSize: 'var(--type-label)' }}>
+              {fullName}
+            </p>
+            {location && <LocationLink location={location} dark />}
           </div>
-          <KLogo dark accent="#F5A623" />
+          <KLogo dark />
         </div>
         {avatarUrl && (
           <div className="relative max-w-2xl mx-auto px-6 mt-8">
             <img src={avatarUrl} alt={fullName}
-              className="w-24 h-24 rounded-2xl object-cover shadow-2xl"
-              style={{ border: '4px solid rgba(255,255,255,0.25)' }} />
+              className="w-24 h-24 object-cover shadow-2xl"
+              style={{ borderRadius: 'var(--radius-card)', border: '4px solid rgba(255,255,255,.2)' }} />
           </div>
         )}
-        <div className="absolute bottom-0 left-0 right-0 h-12 bg-white" style={{ borderRadius: '2rem 2rem 0 0' }} />
+        <div className="absolute bottom-0 left-0 right-0 h-10 bg-white" style={{ borderRadius: '2rem 2rem 0 0' }} />
       </header>
-      <div className="max-w-2xl mx-auto px-6 pt-8 pb-14">
-        <h1 className="hero-fadeup font-black text-[#0D0D0D] leading-tight tracking-tight mb-4"
-          style={{ fontSize: 'clamp(2rem, 8vw, 4rem)' }}>{headline}</h1>
-        <p className="hero-fadeup hero-fadeup-1 text-lg text-[#666] leading-relaxed mb-8">{subheadline}</p>
-        <div className="hero-fadeup hero-fadeup-2 flex flex-wrap gap-3">
-          {showSections.booking && (
-            <a href="#book" className="px-6 py-3.5 rounded-xl font-black text-white text-sm hover:opacity-90 transition-all"
-              style={{ background: accent, boxShadow: `0 8px 24px ${accent}40` }}>
-              {ctaPrimary}
-            </a>
-          )}
-          {wa && showSections.contact && (
-            <a href={wa} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm bg-[#25D366] text-white hover:opacity-90 transition-opacity">
-              {ctaSecondary || 'WhatsApp'}
-            </a>
-          )}
+      <div className="max-w-2xl mx-auto px-6"
+        style={{ paddingTop: 'calc(var(--space-section) * .6)', paddingBottom: 'var(--space-section)' }}>
+        <h1 className="h-up font-black text-[#0D0D0D] leading-[1.04] tracking-tight mb-4"
+          style={{ fontSize: 'var(--type-heading)' }}>
+          {headline}
+        </h1>
+        <p className="h-up h-up-1 text-[#555] leading-relaxed mb-8" style={{ fontSize: 'var(--type-subheading)' }}>
+          {subheadline}
+        </p>
+        <div className="h-up h-up-2">
+          <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
+            ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} />
         </div>
       </div>
     </section>
   )
 }
 
-/* ─────────────────────────── CENTERED ─────────────────────────────────────── */
-function HeroCentered({ data, accent }: { data: ProfileData; accent: string }) {
-  const { firstName, lastName, location, whatsappNumber, headline, subheadline, ctaPrimary, ctaSecondary, showSections, avatarUrl } = data
+/* ── CENTERED ─────────────────────────────────────────────────────────────────
+   Everything centered. Avatar with glow ring. Generous space above and below.
+──────────────────────────────────────────────────────────────────────────── */
+function HeroCentered({ data }: { data: ProfileData }) {
+  const { firstName, lastName, location, whatsappNumber, headline, subheadline,
+    ctaPrimary, ctaSecondary, showSections, avatarUrl } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
 
   return (
     <section className="relative overflow-hidden">
       <style>{STYLES}</style>
-      <div className="absolute top-0 right-0 left-0 h-64 pointer-events-none"
-        style={{ background: `linear-gradient(180deg, ${accent}0a 0%, transparent 100%)` }} />
+      <div className="absolute top-0 left-0 right-0 h-72 pointer-events-none"
+        style={{ background: 'linear-gradient(180deg, var(--color-accent-surface) 0%, transparent 100%)' }} />
       <nav className="relative max-w-2xl mx-auto px-6 pt-6 flex justify-end">
-        <KLogo accent={accent} />
+        <KLogo />
       </nav>
-      <div className="relative max-w-2xl mx-auto px-6 pt-14 pb-20 flex flex-col items-center text-center">
+      <div className="relative max-w-2xl mx-auto px-6 flex flex-col items-center text-center"
+        style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
         {avatarUrl && (
-          <div className="hero-fadeup hero-fadeup-1 mb-6"
-            style={{ filter: `drop-shadow(0 0 24px ${accent}40)` }}>
+          <div className="h-up h-up-1 mb-7">
             <img src={avatarUrl} alt={fullName}
-              className="w-32 h-32 rounded-full object-cover"
-              style={{ outline: `4px solid ${accent}`, outlineOffset: 6, boxShadow: `0 0 0 12px ${accent}15` }} />
+              className="w-32 h-32 object-cover"
+              style={{
+                borderRadius: '50%',
+                outline: '3px solid var(--color-accent)',
+                outlineOffset: 6,
+                boxShadow: '0 0 0 12px var(--color-accent-surface), 0 16px 48px var(--color-accent-glow)',
+              }} />
           </div>
         )}
-        <div className="hero-fadeup hero-fadeup-1 inline-flex items-center gap-2 mb-5 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest"
-          style={{ background: `${accent}15`, color: accent }}>
+        <div className="h-up h-up-1 inline-flex items-center gap-2 mb-5 px-4 py-2 text-xs font-black uppercase tracking-widest"
+          style={{
+            borderRadius: 'var(--radius-btn)',
+            background: 'var(--color-accent-surface)',
+            color: 'var(--color-accent)',
+          }}>
           {fullName}
         </div>
-        <h1 className="hero-fadeup hero-fadeup-2 font-black text-[#0D0D0D] leading-tight tracking-tight mb-5 max-w-xl"
-          style={{ fontSize: 'clamp(2.5rem, 8vw, 5rem)' }}>{headline}</h1>
-        <p className="hero-fadeup hero-fadeup-3 text-xl text-[#666] leading-relaxed mb-10 max-w-md">{subheadline}</p>
+        <h1 className="h-up h-up-2 font-black text-[#0D0D0D] leading-[1.04] tracking-tight mb-5 max-w-xl"
+          style={{ fontSize: 'var(--type-display)' }}>
+          {headline}
+        </h1>
+        <p className="h-up h-up-3 text-[#555] leading-relaxed mb-10 max-w-md"
+          style={{ fontSize: 'var(--type-subheading)' }}>
+          {subheadline}
+        </p>
         {location && (
           <a href={mapsUrl(location)} target="_blank" rel="noopener noreferrer"
             className="text-xs text-[#999] hover:text-[#0D0D0D] transition-colors mb-8 block">
             📍 {location}
           </a>
         )}
-        <div className="hero-fadeup hero-fadeup-4 flex flex-wrap gap-3 justify-center">
-          {showSections.booking && (
-            <a href="#book"
-              className="px-8 py-4 rounded-full font-black text-white text-sm hover:opacity-90 hover:scale-[1.02] transition-all"
-              style={{ background: accent, boxShadow: `0 8px 32px ${accent}40` }}>
-              {ctaPrimary}
-            </a>
-          )}
-          {wa && showSections.contact && (
-            <a href={wa} target="_blank" rel="noopener noreferrer"
-              className="px-8 py-4 rounded-full font-bold text-sm border-2 text-[#0D0D0D] hover:bg-[#0D0D0D] hover:text-white hover:border-[#0D0D0D] transition-all"
-              style={{ borderColor: '#E5E5E5' }}>
-              {ctaSecondary || 'Get in touch'}
-            </a>
-          )}
+        <div className="h-up h-up-4">
+          <div className="flex flex-wrap gap-3 justify-center">
+            <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
+              ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} />
+          </div>
         </div>
       </div>
     </section>
   )
 }
 
-/* ─────────────────────────── MINIMAL (default) ─────────────────────────────── */
-function HeroMinimal({ data, accent }: { data: ProfileData; accent: string }) {
-  const { firstName, lastName, location, whatsappNumber, headline, subheadline, ctaPrimary, ctaSecondary, showSections, avatarUrl } = data
+/* ── MINIMAL ──────────────────────────────────────────────────────────────────
+   Left-aligned, clean, typography leads. Default for most members.
+──────────────────────────────────────────────────────────────────────────── */
+function HeroMinimal({ data }: { data: ProfileData }) {
+  const { firstName, lastName, location, whatsappNumber, headline, subheadline,
+    ctaPrimary, ctaSecondary, showSections, avatarUrl } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
 
@@ -380,152 +512,52 @@ function HeroMinimal({ data, accent }: { data: ProfileData; accent: string }) {
     <section className="relative overflow-hidden bg-white">
       <style>{STYLES}</style>
       <nav className="max-w-2xl mx-auto px-6 pt-6 flex justify-between items-center">
-        {location ? (
-          <a href={mapsUrl(location)} target="_blank" rel="noopener noreferrer"
-            className="text-xs font-semibold text-[#999] hover:text-[#0D0D0D] transition-colors">
-            📍 {location}
-          </a>
-        ) : <span />}
-        <KLogo accent={accent} />
+        {location ? <LocationLink location={location} /> : <span />}
+        <KLogo />
       </nav>
-      <div className="max-w-2xl mx-auto px-6 pt-14 pb-14">
+      <div className="max-w-2xl mx-auto px-6"
+        style={{ paddingTop: 'calc(var(--space-section) * .8)', paddingBottom: 'var(--space-section)' }}>
         {avatarUrl && (
           <img src={avatarUrl} alt={fullName}
-            className="hero-fadeup w-20 h-20 rounded-2xl object-cover shadow-xl mb-6"
-            style={{ outline: `2px solid ${accent}30`, outlineOffset: 2 }} />
+            className="h-up w-20 h-20 object-cover shadow-xl mb-6"
+            style={{
+              borderRadius: 'var(--radius-card)',
+              outline: '2px solid var(--color-accent-border)',
+              outlineOffset: 2,
+            }} />
         )}
-        <div className="hero-fadeup hero-fadeup-1 inline-flex items-center gap-2 mb-5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest"
-          style={{ background: `${accent}12`, color: accent }}>
+        <div className="h-up h-up-1 inline-flex items-center gap-2 mb-5 px-3 py-1 text-xs font-black uppercase tracking-widest"
+          style={{
+            borderRadius: 'var(--radius-btn)',
+            background: 'var(--color-accent-surface)',
+            color: 'var(--color-accent)',
+          }}>
           {fullName}
         </div>
-        <h1 className="hero-fadeup hero-fadeup-2 font-black text-[#0D0D0D] leading-tight tracking-tight mb-5"
-          style={{ fontSize: 'clamp(2.5rem, 8vw, 5rem)' }}>{headline}</h1>
-        <p className="hero-fadeup hero-fadeup-3 text-xl text-[#666] leading-relaxed mb-8">{subheadline}</p>
-        <div className="hero-fadeup hero-fadeup-4 flex flex-wrap gap-3">
-          {showSections.booking && (
-            <a href="#book"
-              className="px-7 py-3.5 rounded-full font-black text-white text-sm hover:opacity-90 hover:scale-[1.02] transition-all shadow-lg"
-              style={{ background: accent }}>
-              {ctaPrimary}
-            </a>
-          )}
-          {wa && showSections.contact && (
-            <a href={wa} target="_blank" rel="noopener noreferrer"
-              className="px-7 py-3.5 rounded-full font-bold text-sm border-2 border-[#E5E5E5] text-[#0D0D0D] hover:border-[#0D0D0D] transition-all">
-              {ctaSecondary || `WhatsApp ${firstName}`}
-            </a>
-          )}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ─────────────────────────── PHOTO ────────────────────────────────────────── */
-function HeroPhoto({ data, accent }: { data: ProfileData; accent: string }) {
-  const [scrolled, setScrolled] = useState(false)
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 80)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  const { firstName, lastName, location, whatsappNumber, headline, subheadline,
-    ctaPrimary, ctaSecondary, showSections, avatarUrl, gallery } = data
-  const fullName = [firstName, lastName].filter(Boolean).join(' ')
-  const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
-  const bgImage = gallery && gallery.length > 0 ? gallery[0] : avatarUrl
-  const showInlineAvatar = !!(avatarUrl && gallery && gallery.length > 0)
-
-  return (
-    <section className="relative min-h-screen overflow-hidden flex flex-col">
-      <style>{STYLES}</style>
-
-      {/* Full-bleed background */}
-      {bgImage && (
-        <div className="absolute inset-0">
-          <img src={bgImage} alt="" className="w-full h-full object-cover" aria-hidden />
-        </div>
-      )}
-      {!bgImage && (
-        <div className="absolute inset-0" style={{ background: '#111' }} />
-      )}
-
-      {/* Scrim: transparent top → dark bottom */}
-      <div className="absolute inset-0 pointer-events-none"
-        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.93) 0%, rgba(0,0,0,0.55) 40%, rgba(0,0,0,0.12) 100%)' }} />
-
-      {/* Sticky blur nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
-        style={{
-          background: scrolled ? 'rgba(10,10,10,0.85)' : 'transparent',
-          backdropFilter: scrolled ? 'blur(24px) saturate(180%)' : 'none',
-          WebkitBackdropFilter: scrolled ? 'blur(24px) saturate(180%)' : 'none',
-          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.07)' : 'none',
-        }}>
-        <div className="max-w-2xl mx-auto px-6 py-4 flex justify-between items-center">
-          {location ? (
-            <a href={mapsUrl(location)} target="_blank" rel="noopener noreferrer"
-              className="text-xs font-semibold text-white/40 hover:text-white/90 transition-colors">
-              📍 {location}
-            </a>
-          ) : <span />}
-          <KLogo dark accent={accent} />
-        </div>
-      </nav>
-
-      {/* Content pinned to bottom */}
-      <div className="relative z-10 flex-1 flex flex-col justify-end max-w-2xl mx-auto w-full px-6 pb-14 pt-28">
-        {showInlineAvatar && (
-          <div className="hero-fadeup hero-fadeup-1 mb-6">
-            <img src={avatarUrl!} alt={fullName}
-              className="w-16 h-16 rounded-full object-cover shadow-2xl"
-              style={{ border: `2px solid ${accent}`, boxShadow: `0 0 0 3px rgba(255,255,255,0.1)` }} />
-          </div>
-        )}
-
-        <p className="hero-fadeup hero-fadeup-1 text-[10px] font-black uppercase tracking-[0.25em] mb-4"
-          style={{ color: accent }}>{fullName}</p>
-
-        <h1 className="hero-fadeup hero-fadeup-2 font-black text-white leading-[1.05] tracking-tight mb-5"
-          style={{ fontSize: 'clamp(2.5rem, 9vw, 5.5rem)' }}>
+        <h1 className="h-up h-up-2 font-black text-[#0D0D0D] leading-[1.04] tracking-tight mb-5"
+          style={{ fontSize: 'var(--type-display)' }}>
           {headline}
         </h1>
-
-        <p className="hero-fadeup hero-fadeup-3 text-lg text-white/45 leading-relaxed mb-10 max-w-md">
+        <p className="h-up h-up-3 text-[#555] leading-relaxed mb-8"
+          style={{ fontSize: 'var(--type-subheading)' }}>
           {subheadline}
         </p>
-
-        <div className="hero-fadeup hero-fadeup-4 flex flex-wrap gap-3">
-          {showSections.booking && (
-            <a href="#book"
-              className="group flex items-center gap-2 px-7 py-4 rounded-full font-black text-[#0D0D0D] text-sm hover:scale-[1.03] transition-all"
-              style={{ background: 'white', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
-              {ctaPrimary}
-              <svg className="group-hover:translate-x-1 transition-transform" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </a>
-          )}
-          {wa && showSections.contact && (
-            <a href={wa} target="_blank" rel="noopener noreferrer"
-              className="px-7 py-4 rounded-full font-bold text-sm text-white/70 hover:text-white hover:bg-white/10 transition-all"
-              style={{ border: '1.5px solid rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)' }}>
-              {ctaSecondary || 'WhatsApp'}
-            </a>
-          )}
+        <div className="h-up h-up-4">
+          <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
+            ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} />
         </div>
       </div>
     </section>
   )
 }
 
-export default function HeroSection({ data, accent, variant, showNav = true }: Props) {
-  if (variant === 'photo')    return <HeroPhoto data={data} accent={accent} />
-  if (variant === 'dark')     return <HeroDark data={data} accent={accent} />
-  if (variant === 'gradient') return <HeroGradient data={data} accent={accent} />
-  if (variant === 'split')    return <HeroSplit data={data} accent={accent} />
-  if (variant === 'banner')   return <HeroBanner data={data} accent={accent} />
-  if (variant === 'centered') return <HeroCentered data={data} accent={accent} />
-  return <HeroMinimal data={data} accent={accent} />
+/* ── Entry point ─────────────────────────────────────────────────────────── */
+export default function HeroSection({ data, variant }: Props) {
+  if (variant === 'photo')    return <HeroPhoto data={data} />
+  if (variant === 'dark')     return <HeroDark data={data} />
+  if (variant === 'gradient') return <HeroGradient data={data} />
+  if (variant === 'split')    return <HeroSplit data={data} />
+  if (variant === 'banner')   return <HeroBanner data={data} />
+  if (variant === 'centered') return <HeroCentered data={data} />
+  return <HeroMinimal data={data} />
 }

@@ -18,6 +18,82 @@ const DESIGN_MODE_MAP: Record<string, string> = {
   photographer: 'editorial', doctor: 'editorial', musician: 'editorial', tutor: 'editorial',
 }
 
+type Section = { sectionKey: string; variant: string; order: number }
+
+// Smart defaults per persona — hero is always 'auto' so resolveVariant() picks the right layout
+const PERSONA_SECTIONS: Record<string, Section[]> = {
+  baker: [
+    { sectionKey: 'hero',       variant: 'auto',     order: 1 },
+    { sectionKey: 'services',   variant: 'menu',      order: 2 },
+    { sectionKey: 'highlights', variant: 'stats',     order: 3 },
+    { sectionKey: 'bio',        variant: 'callout',   order: 4 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 5 },
+    { sectionKey: 'contact',    variant: 'both',      order: 6 },
+  ],
+  chef: [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'services',   variant: 'menu',      order: 2 },
+    { sectionKey: 'gallery',    variant: 'grid',      order: 3 },
+    { sectionKey: 'bio',        variant: 'callout',   order: 4 },
+    { sectionKey: 'contact',    variant: 'whatsapp',  order: 5 },
+  ],
+  salon: [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'services',   variant: 'pricing',   order: 2 },
+    { sectionKey: 'gallery',    variant: 'scroll',    order: 3 },
+    { sectionKey: 'highlights', variant: 'cards',     order: 4 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 5 },
+    { sectionKey: 'contact',    variant: 'minimal',   order: 6 },
+  ],
+  trainer: [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'highlights', variant: 'numbered',  order: 2 },
+    { sectionKey: 'services',   variant: 'features',  order: 3 },
+    { sectionKey: 'bio',        variant: 'accent',    order: 4 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 5 },
+    { sectionKey: 'contact',    variant: 'both',      order: 6 },
+  ],
+  photographer: [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'gallery',    variant: 'featured',  order: 2 },
+    { sectionKey: 'bio',        variant: 'dark',      order: 3 },
+    { sectionKey: 'services',   variant: 'list',      order: 4 },
+    { sectionKey: 'contact',    variant: 'minimal',   order: 5 },
+  ],
+  doctor: [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'highlights', variant: 'numbered',  order: 2 },
+    { sectionKey: 'services',   variant: 'grid',      order: 3 },
+    { sectionKey: 'bio',        variant: 'paragraph', order: 4 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 5 },
+    { sectionKey: 'contact',    variant: 'both',      order: 6 },
+  ],
+  musician: [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'bio',        variant: 'dark',      order: 2 },
+    { sectionKey: 'gallery',    variant: 'scroll',    order: 3 },
+    { sectionKey: 'services',   variant: 'list',      order: 4 },
+    { sectionKey: 'highlights', variant: 'stats',     order: 5 },
+    { sectionKey: 'contact',    variant: 'minimal',   order: 6 },
+  ],
+  tutor: [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'highlights', variant: 'numbered',  order: 2 },
+    { sectionKey: 'services',   variant: 'features',  order: 3 },
+    { sectionKey: 'bio',        variant: 'callout',   order: 4 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 5 },
+    { sectionKey: 'contact',    variant: 'both',      order: 6 },
+  ],
+  other: [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'services',   variant: 'features',  order: 2 },
+    { sectionKey: 'highlights', variant: 'icons',     order: 3 },
+    { sectionKey: 'bio',        variant: 'paragraph', order: 4 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 5 },
+    { sectionKey: 'contact',    variant: 'both',      order: 6 },
+  ],
+}
+
 function buildPrompt(p: BuildPageJobPayload): string {
   const name = `${p.firstName} ${p.lastName}`.trim()
   return `You are building a professional online presence for ${name}, a ${p.persona} based in ${p.location || 'their city'}.
@@ -106,6 +182,7 @@ export const buildPageFunction = inngest.createFunction(
         template: TEMPLATE_MAP[payload.persona] ?? 'focus',
         palette: PALETTE_MAP[payload.persona] ?? 'professional',
         design_mode: DESIGN_MODE_MAP[payload.persona] ?? 'craft',
+        sections: PERSONA_SECTIONS[payload.persona] ?? PERSONA_SECTIONS.other,
         font: 'inter',
         show_sections: {
           hero: true, services: true, highlights: true,

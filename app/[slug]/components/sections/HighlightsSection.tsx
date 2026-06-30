@@ -33,39 +33,47 @@ function useReveal() {
   return { ref, visible }
 }
 
-/* ── STATS ──────────────────────────────────────────────────────────────────── */
-function StatsCard({ h, i, accent, visible }: { h: { icon: string; title: string; body: string }; i: number; accent: string; visible: boolean }) {
+/* ── STATS ────────────────────────────────────────────────────────────────── */
+function StatsCard({
+  h, i, visible,
+}: { h: { icon: string; title: string; body: string }; i: number; visible: boolean }) {
   const isDark = i === 0
   return (
     <div
-      className="h-reveal rounded-3xl p-6 sm:p-8 text-center hover:scale-[1.04] transition-transform duration-300 cursor-default"
+      className="h-reveal text-center hover:scale-[1.04] transition-transform duration-300 cursor-default p-6 sm:p-8"
       style={{
-        background: isDark ? '#0D0D0D' : i === 1 ? `${accent}10` : `${accent}08`,
-        border: isDark ? 'none' : `1.5px solid ${accent}25`,
-        boxShadow: isDark ? `0 24px 80px rgba(0,0,0,0.4), 0 0 0 1px ${accent}20` : `0 4px 24px ${accent}15`,
-        animationDelay: `${i * 0.1}s`,
+        borderRadius: 'var(--radius-card)',
+        background: isDark ? '#0D0D0D' : i === 1 ? 'var(--color-accent-surface)' : 'var(--color-accent-surface)',
+        border: isDark ? 'none' : '1.5px solid var(--color-accent-border)',
+        boxShadow: isDark
+          ? '0 24px 80px rgba(0,0,0,0.4), 0 0 0 1px var(--color-accent-border)'
+          : '0 4px 24px var(--color-accent-surface)',
         ...(visible ? { animation: `revealUp 0.6s ${i * 0.1}s cubic-bezier(.22,1,.36,1) both` } : {}),
         opacity: visible ? undefined : 0,
+        animationDelay: `${i * 0.1}s`,
       }}>
       <div className="text-5xl sm:text-6xl mb-4 select-none">{h.icon}</div>
-      <p className={`text-base sm:text-lg font-black leading-tight mb-2 ${isDark ? 'text-white' : 'text-[#0D0D0D]'}`}>{h.title}</p>
+      <p className={`text-base sm:text-lg font-black leading-tight mb-2 ${isDark ? 'text-white' : 'text-[#0D0D0D]'}`}>
+        {h.title}
+      </p>
       <p className={`text-xs leading-relaxed ${isDark ? 'text-white/35' : 'text-[#888]'}`}>{h.body}</p>
     </div>
   )
 }
 
-function Stats({ data, accent }: { data: ProfileData; accent: string }) {
+function Stats({ data }: { data: ProfileData }) {
   const { highlights, showSections } = data
   const { ref, visible } = useReveal()
   if (!showSections.highlights || !highlights.length) return null
 
   return (
-    <section className="py-16 border-t border-[#E5E5E5]">
+    <section className="border-t border-[#E5E5E5]"
+      style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div ref={ref} className="max-w-3xl mx-auto px-6">
         <div className={`grid gap-4 ${highlights.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
           {highlights.map((h, i) => (
-            <StatsCard key={i} h={h} i={i} accent={accent} visible={visible} />
+            <StatsCard key={i} h={h} i={i} visible={visible} />
           ))}
         </div>
       </div>
@@ -73,26 +81,27 @@ function Stats({ data, accent }: { data: ProfileData; accent: string }) {
   )
 }
 
-/* ── CARDS ──────────────────────────────────────────────────────────────────── */
-function Cards({ data, accent }: { data: ProfileData; accent: string }) {
+/* ── CARDS ────────────────────────────────────────────────────────────────── */
+function Cards({ data }: { data: ProfileData }) {
   const { highlights, showSections } = data
   const { ref, visible } = useReveal()
   if (!showSections.highlights || !highlights.length) return null
 
   return (
-    <section className="py-16 border-t border-[#E5E5E5]">
+    <section className="border-t border-[#E5E5E5]"
+      style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div ref={ref} className="max-w-3xl mx-auto px-6">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {highlights.map((h, i) => (
             <div key={i}
-              className="h-reveal rounded-3xl p-7 bg-white text-center group hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
+              className="h-reveal bg-white text-center group hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 p-7"
               style={{
-                border: `1.5px solid ${accent}20`,
-                boxShadow: `0 2px 20px ${accent}10`,
-                animationDelay: `${i * 0.12}s`,
+                borderRadius: 'var(--radius-card)',
+                border: '1.5px solid var(--color-accent-border)',
                 ...(visible ? { animation: `revealUp 0.6s ${i * 0.12}s cubic-bezier(.22,1,.36,1) both` } : {}),
                 opacity: visible ? undefined : 0,
+                animationDelay: `${i * 0.12}s`,
               }}>
               <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300 select-none">{h.icon}</div>
               <p className="font-black text-[#0D0D0D] mb-2 text-base">{h.title}</p>
@@ -105,22 +114,24 @@ function Cards({ data, accent }: { data: ProfileData; accent: string }) {
   )
 }
 
-/* ── STRIP ──────────────────────────────────────────────────────────────────── */
-function Strip({ data, accent }: { data: ProfileData; accent: string }) {
+/* ── STRIP ────────────────────────────────────────────────────────────────── */
+function Strip({ data }: { data: ProfileData }) {
   const { highlights, showSections } = data
   if (!showSections.highlights || !highlights.length) return null
   return (
-    <section className="py-16 border-t border-[#E5E5E5] overflow-hidden">
+    <section className="border-t border-[#E5E5E5] overflow-hidden"
+      style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto mb-5 px-6">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999]">Why choose me</p>
       </div>
       <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory px-6 scrollbar-hide">
         {highlights.map((h, i) => (
           <div key={i}
-            className="snap-start shrink-0 w-48 rounded-3xl p-6 text-center hover:scale-[1.03] transition-transform duration-200"
+            className="snap-start shrink-0 w-48 p-6 text-center hover:scale-[1.03] transition-transform duration-200"
             style={{
-              background: i === 0 ? '#0D0D0D' : `${accent}09`,
-              border: i === 0 ? 'none' : `1.5px solid ${accent}20`,
+              borderRadius: 'var(--radius-card)',
+              background: i === 0 ? '#0D0D0D' : 'var(--color-accent-surface)',
+              border: i === 0 ? 'none' : '1.5px solid var(--color-accent-border)',
               boxShadow: i === 0 ? '0 16px 48px rgba(0,0,0,0.3)' : 'none',
             }}>
             <div className="text-4xl mb-3 select-none">{h.icon}</div>
@@ -133,13 +144,14 @@ function Strip({ data, accent }: { data: ProfileData; accent: string }) {
   )
 }
 
-/* ── NUMBERED ───────────────────────────────────────────────────────────────── */
+/* ── NUMBERED ─────────────────────────────────────────────────────────────── */
 function Numbered({ data, accent }: { data: ProfileData; accent: string }) {
   const { highlights, showSections } = data
   const { ref, visible } = useReveal()
   if (!showSections.highlights || !highlights.length) return null
   return (
-    <section className="py-16 border-t border-[#E5E5E5]">
+    <section className="border-t border-[#E5E5E5]"
+      style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-8">How it works</p>
@@ -148,12 +160,16 @@ function Numbered({ data, accent }: { data: ProfileData; accent: string }) {
             <div key={i}
               className="h-reveal flex items-start gap-5 group"
               style={{
-                animationDelay: `${i * 0.12}s`,
                 ...(visible ? { animation: `revealUp 0.6s ${i * 0.12}s cubic-bezier(.22,1,.36,1) both` } : {}),
                 opacity: visible ? undefined : 0,
+                animationDelay: `${i * 0.12}s`,
               }}>
-              <div className="shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white shadow-xl group-hover:scale-110 transition-transform duration-200"
-                style={{ background: `linear-gradient(135deg, ${accent}, ${accent}bb)`, boxShadow: `0 8px 24px ${accent}40` }}>
+              <div className="shrink-0 w-12 h-12 flex items-center justify-center font-black text-white shadow-xl group-hover:scale-110 transition-transform duration-200"
+                style={{
+                  borderRadius: 'var(--radius-card)',
+                  background: `linear-gradient(135deg, ${accent}, ${accent}bb)`,
+                  boxShadow: '0 8px 24px var(--color-accent-glow)',
+                }}>
                 {i + 1}
               </div>
               <div className="pt-2">
@@ -168,13 +184,14 @@ function Numbered({ data, accent }: { data: ProfileData; accent: string }) {
   )
 }
 
-/* ── ICONS (default) ────────────────────────────────────────────────────────── */
-function Icons({ data, accent }: { data: ProfileData; accent: string }) {
+/* ── ICONS (default) ──────────────────────────────────────────────────────── */
+function Icons({ data }: { data: ProfileData }) {
   const { highlights, showSections } = data
   const { ref, visible } = useReveal()
   if (!showSections.highlights || !highlights.length) return null
   return (
-    <section className="py-16 border-t border-[#E5E5E5]">
+    <section className="border-t border-[#E5E5E5]"
+      style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
         <div ref={ref} className="grid grid-cols-3 gap-6">
@@ -182,9 +199,9 @@ function Icons({ data, accent }: { data: ProfileData; accent: string }) {
             <div key={i}
               className="h-reveal text-center group"
               style={{
-                animationDelay: `${i * 0.1}s`,
                 ...(visible ? { animation: `revealUp 0.6s ${i * 0.1}s cubic-bezier(.22,1,.36,1) both` } : {}),
                 opacity: visible ? undefined : 0,
+                animationDelay: `${i * 0.1}s`,
               }}>
               <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-200 select-none">{h.icon}</div>
               <p className="font-black text-[#0D0D0D] text-sm">{h.title}</p>
@@ -198,9 +215,9 @@ function Icons({ data, accent }: { data: ProfileData; accent: string }) {
 }
 
 export default function HighlightsSection({ data, accent, variant }: Props) {
-  if (variant === 'stats')    return <Stats data={data} accent={accent} />
-  if (variant === 'cards')    return <Cards data={data} accent={accent} />
-  if (variant === 'strip')    return <Strip data={data} accent={accent} />
+  if (variant === 'stats')    return <Stats data={data} />
+  if (variant === 'cards')    return <Cards data={data} />
+  if (variant === 'strip')    return <Strip data={data} />
   if (variant === 'numbered') return <Numbered data={data} accent={accent} />
-  return <Icons data={data} accent={accent} />
+  return <Icons data={data} />
 }

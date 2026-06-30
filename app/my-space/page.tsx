@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import SpaceClient from './SpaceClient'
+import type { SectionEntry } from './SectionsTab'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,7 +39,7 @@ export default async function MySpacePage() {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, palette, font, template, show_sections')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, palette, font, template, show_sections, sections, design_mode')
     .eq('provider_id', provider.id)
     .single()
 
@@ -73,6 +74,8 @@ export default async function MySpacePage() {
           hero: true, services: true, highlights: true,
           booking: true, faq: true, contact: true,
         },
+        sections: (page?.sections as SectionEntry[] | null) ?? null,
+        designMode: (page?.design_mode as string) ?? 'craft',
       }}
     />
   )
