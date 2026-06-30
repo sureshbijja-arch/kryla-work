@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import BookingsTab from '@/app/my-space/BookingsTab'
 import PlanSection from '@/app/my-space/PlanSection'
-import { getLayouts, TEMPLATE_LABEL, FONT_LABEL, type LayoutOption } from '@/lib/layouts'
+import { TEMPLATE_LABEL, FONT_LABEL, type LayoutOption } from '@/lib/layouts'
 
 type AuthState = 'loading' | 'login_email' | 'login_code' | 'checking' | 'not_owner' | 'ready'
 type Tab = 'chat' | 'media' | 'ads' | 'layouts' | 'bookings' | 'plan'
@@ -60,6 +60,8 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
   const [publishDone, setPublishDone] = useState(false)
   const [applyingLayout, setApplyingLayout] = useState<string | null>(null)
   const [appliedLayout,  setAppliedLayout]  = useState<string | null>(null)
+  const [layouts, setLayouts]               = useState<LayoutOption[]>([])
+  const [layoutsLoaded, setLayoutsLoaded]   = useState(false)
 
   const [messages, setMessages]   = useState<Message[]>([])
   const [chatInput, setChatInput] = useState('')
@@ -413,10 +415,18 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
     )
   }
 
-  // ── Ready state ──────────────────────────────────────────────────────────
+  // Fetch layouts from DB when Layouts tab is first opened
+  useEffect(() => {
+    if (tab !== 'layouts' || layoutsLoaded || !ownerData) return
+    const persona = (ownerData.currentProfile?.persona as string | undefined) ?? ownerData.provider.persona ?? 'other'
+    fetch(`/api/my-space/layouts?persona=${encodeURIComponent(persona)}`)
+      .then(r => r.json())
+      .then(data => { setLayouts(data.layouts ?? []); setLayoutsLoaded(true) })
+      .catch(() => setLayoutsLoaded(true))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, layoutsLoaded, ownerData])
 
-  const persona  = (ownerData?.currentProfile?.persona as string | undefined) ?? (ownerData?.provider.persona ?? 'other')
-  const layouts  = getLayouts(persona)
+  // ── Ready state ──────────────────────────────────────────────────────────
 
   const showPersonaBanner = ownerData?.personaTemplateStatus === 'generating' || ownerData?.personaTemplateStatus === 'failed'
 
