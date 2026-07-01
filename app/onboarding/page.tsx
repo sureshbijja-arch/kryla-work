@@ -284,6 +284,14 @@ export default function OnboardingPage() {
                       className="flex-1 border border-[#E5E5E5] rounded-lg px-3.5 py-2.5 text-sm text-[#0D0D0D] placeholder:text-[#999] focus:outline-none focus:border-[#F5A623] transition-all" />
                   </div>
                   <p className="text-xs text-[#999] mt-1.5">We'll send you a WhatsApp when new business comes in. You can change this anytime.</p>
+                  <button type="button"
+                    onClick={() => setAnswers((a) => ({ ...a, whatsappPublic: !(a.whatsappPublic ?? true) }))}
+                    className="mt-3 flex items-center gap-2.5 group">
+                    <div className={`w-9 h-5 rounded-full transition-colors relative ${(answers.whatsappPublic ?? true) ? 'bg-[#22C55E]' : 'bg-[#E5E5E5]'}`}>
+                      <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${(answers.whatsappPublic ?? true) ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                    </div>
+                    <span className="text-xs text-[#444]">Show my WhatsApp number on my page</span>
+                  </button>
                 </div>
                 <div className="mb-6">
                   <label className="block text-xs font-medium text-[#444] mb-1.5">Your email <span className="font-normal text-[#999]">optional</span></label>

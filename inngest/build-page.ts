@@ -3,6 +3,7 @@ import { createServerClient } from '@/lib/supabase'
 import { getAllVerticals } from '@/config/verticals'
 import Anthropic from '@anthropic-ai/sdk'
 import type { BuildPageJobPayload } from '@/lib/inngest'
+import { sendWhatsAppMessage, buildPageLiveMessage } from '@/lib/whatsapp'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -206,6 +207,17 @@ export const buildPageFunction = inngest.createFunction(
         .update({ page_live: true })
         .eq('id', providerId)
       if (error) throw new Error('mark live failed: ' + error.message)
+    })
+
+    await step.run('notify-member-page-live', async () => {
+      const { data: provider } = await supabase
+        .from('providers')
+        .select('first_name, whatsapp_number')
+        .eq('id', providerId)
+        .single()
+      if (!provider?.whatsapp_number) return
+      const msg = buildPageLiveMessage({ memberName: provider.first_name ?? 'there', slug })
+      await sendWhatsAppMessage({ to: provider.whatsapp_number, text: msg })
     })
 
     return { ok: true, providerId, slug }

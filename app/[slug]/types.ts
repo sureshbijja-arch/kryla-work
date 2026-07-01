@@ -64,6 +64,7 @@ export interface ProfileData {
   persona: string
   location: string
   whatsappNumber: string | null
+  whatsappPublic: boolean
   email: string | null
   headline: string
   subheadline: string
@@ -110,7 +111,10 @@ export function mapsUrl(location: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`
 }
 
-export function waUrl(whatsappNumber: string, firstName: string) {
+export function waUrl(whatsappNumber: string, firstName: string, headline?: string) {
   const num = whatsappNumber.replace(/\D/g, '')
-  return `https://wa.me/${num}?text=Hi%20${encodeURIComponent(firstName)}!%20I%20found%20you%20on%20Kryla.`
+  const text = headline
+    ? `Hi ${firstName}, I found you on kryla.work — I'd like to enquire about ${headline}`
+    : `Hi ${firstName}, I found you on kryla.work`
+  return `https://wa.me/${num}?text=${encodeURIComponent(text)}`
 }

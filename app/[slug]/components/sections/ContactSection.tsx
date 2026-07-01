@@ -85,10 +85,10 @@ function EnquiryForm({ providerId, accentColor }: { providerId: string; accentCo
 
 export default function ContactSection({ data, accent: _accent, variant }: Props) {
   const {
-    providerId, firstName, location, whatsappNumber, email,
-    services, showSections, ctaSecondary, persona,
+    providerId, firstName, location, whatsappNumber, whatsappPublic,
+    email, services, showSections, ctaSecondary, persona, headline,
   } = data
-  const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
+  const wa = whatsappNumber && whatsappPublic ? waUrl(whatsappNumber, firstName, headline) : null
   const showBooking = showSections.booking
   const showContact = showSections.contact
   const pcfg = getPersonaConfig(persona)

@@ -11,6 +11,7 @@ export interface OnboardingAnswers {
   slug: string
   whatsappCountryCode: string
   whatsappNumber: string
+  whatsappPublic?: boolean
   email?: string
   plan: Plan
   region: Region

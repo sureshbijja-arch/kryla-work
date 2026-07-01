@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  const { persona, firstName, lastName, tagline, location, slug, whatsappCountryCode, whatsappNumber, email, plan, region } = body
+  const { persona, firstName, lastName, tagline, location, slug, whatsappCountryCode, whatsappNumber, whatsappPublic, email, plan, region } = body
   const rawCustomPersona = (body as unknown as Record<string, unknown>).customPersonaName
   const customPersonaName = typeof rawCustomPersona === 'string' ? rawCustomPersona.trim() : ''
   const normalizedPersonaName = persona === 'other' && customPersonaName.length >= 2
@@ -77,6 +77,7 @@ export async function POST(req: NextRequest) {
       custom_persona_name: normalizedPersonaName ?? null,
       location: location?.trim() || '',
       whatsapp_number: whatsapp,
+      whatsapp_public: whatsappPublic !== false,
       email: email?.trim() || null,
       plan,
       plan_status: plan === 'seed' ? 'active' : 'pending_payment',

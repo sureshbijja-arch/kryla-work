@@ -72,6 +72,7 @@ export default async function PreviewPage({ params }: Props) {
     persona:      provider.persona    ?? '',
     location:        ((dpr.location        as string) ?? provider.location)       ?? '',
     whatsappNumber:  ((dpr.whatsapp_number as string) ?? provider.whatsapp_number) ?? null,
+    whatsappPublic: (provider as Record<string, unknown>).whatsapp_public !== false,
     email:        provider.email ?? null,
     headline:     (dp.headline     as string) ?? page.headline     ?? '',
     subheadline:  (dp.subheadline  as string) ?? page.subheadline  ?? '',

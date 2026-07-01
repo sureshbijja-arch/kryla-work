@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { supabaseAdmin } from "@/lib/supabase/admin"
 import { sendEmail } from "@/lib/email"
+import { sendWhatsAppMessage, buildNewBookingMessage } from "@/lib/whatsapp"
 
 const schema = z.object({
   providerId:    z.string().uuid(),
@@ -52,9 +53,21 @@ export async function POST(req: NextRequest) {
     try {
       const { data: provider } = await supabaseAdmin
         .from('providers')
-        .select('email, first_name')
+        .select('email, first_name, whatsapp_number')
         .eq('id', data.providerId)
         .single()
+
+      if (provider?.whatsapp_number) {
+        const msg = buildNewBookingMessage({
+          memberName:   provider.first_name ?? 'there',
+          customerName: data.customerName,
+          service:      data.service,
+          preferredDate: data.preferredDate,
+          bookingId:    booking.id,
+        })
+        await sendWhatsAppMessage({ to: provider.whatsapp_number, text: msg })
+        await supabaseAdmin.from('bookings').update({ notification_sent: true }).eq('id', booking.id)
+      }
 
       if (provider?.email) {
         const dateLine = data.preferredDate ? `<p style="margin:6px 0"><strong>Preferred date:</strong> ${data.preferredDate}</p>` : ''

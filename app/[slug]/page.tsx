@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function MemberProfilePage({ params }: Props) {
   const { data: provider } = await supabaseAdmin
     .from('providers')
-    .select('id, first_name, last_name, persona, location, whatsapp_number, email, plan')
+    .select('id, first_name, last_name, persona, location, whatsapp_number, whatsapp_public, email, plan')
     .eq('slug', params.slug)
     .eq('page_live', true)
     .single()
@@ -99,6 +99,7 @@ export default async function MemberProfilePage({ params }: Props) {
     persona: provider.persona ?? '',
     location: provider.location ?? '',
     whatsappNumber: provider.whatsapp_number ?? null,
+    whatsappPublic: provider.whatsapp_public !== false,
     email: provider.email ?? null,
     headline: page.headline ?? '',
     subheadline: page.subheadline ?? '',

@@ -50,7 +50,7 @@ export async function sendWhatsAppMessage(
   }
 }
 
-/** Notify a Member about a new booking */
+/** Notify a member about a new booking */
 export function buildNewBookingMessage(opts: {
   memberName: string
   customerName: string
@@ -62,6 +62,18 @@ export function buildNewBookingMessage(opts: {
   return (
     `${opts.memberName}, someone wants to book you! 🎉\n\n` +
     `*${opts.customerName}* wants ${opts.service}${date}.\n\n` +
-    `Reply ACCEPT or REJECT, or tap here to manage it on Kryla.`
+    `Manage it in My Space: https://kryla.work/my-space`
+  )
+}
+
+/** Notify a member that their page just went live */
+export function buildPageLiveMessage(opts: {
+  memberName: string
+  slug: string
+}) {
+  return (
+    `Hi ${opts.memberName}, your Kryla page is live! 🚀\n\n` +
+    `Share it with your customers: https://kryla.work/${opts.slug}\n\n` +
+    `Log in to manage your page: https://kryla.work/my-space`
   )
 }
