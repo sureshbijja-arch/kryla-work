@@ -189,6 +189,7 @@ export default function SpaceClient({
             { key: 'chat',     label: 'Edit profile' },
             { key: 'services', label: 'Services' },
             { key: 'sections', label: 'Page layout' },
+            { key: 'messages', label: 'Messages' },
           ] as const).map(({ key, label }) => (
             <button
               key={key}
@@ -205,9 +206,8 @@ export default function SpaceClient({
         <div className="px-4 flex items-center justify-between">
           <div className="flex items-center gap-1">
             {([
-              { key: 'bookings',  label: bookingsTabLabel },
-              { key: 'messages',  label: isSeed ? 'Messages' : 'Messages' },
-              { key: 'plan',      label: 'My plan' },
+              { key: 'bookings', label: bookingsTabLabel },
+              { key: 'plan',     label: 'My plan' },
             ] as const).map(({ key, label }) => (
               <button
                 key={key}
