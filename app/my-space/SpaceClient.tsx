@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import PlanSection from './PlanSection'
 import BookingsTab from './BookingsTab'
+import MessagesTab from './MessagesTab'
 import SectionsTab from './SectionsTab'
 import type { SectionEntry } from './SectionsTab'
 import ServicesTab from './ServicesTab'
@@ -72,7 +73,7 @@ export default function SpaceClient({
     { sectionKey: 'faq',        variant: 'accordion', order: 5 },
     { sectionKey: 'contact',    variant: 'both',      order: 6 },
   ]
-  const [tab, setTab] = useState<'chat' | 'services' | 'sections' | 'bookings' | 'plan'>('chat')
+  const [tab, setTab] = useState<'chat' | 'services' | 'sections' | 'bookings' | 'messages' | 'plan'>('chat')
   const [previewOpen, setPreviewOpen]   = useState(false)
   const [previewTs, setPreviewTs]       = useState(0)
   const [spPublishing, setSpPublishing] = useState(false)
@@ -204,8 +205,9 @@ export default function SpaceClient({
         <div className="px-4 flex items-center justify-between">
           <div className="flex items-center gap-1">
             {([
-              { key: 'bookings', label: bookingsTabLabel },
-              { key: 'plan',     label: 'My plan' },
+              { key: 'bookings',  label: bookingsTabLabel },
+              { key: 'messages',  label: isSeed ? 'Messages' : 'Messages' },
+              { key: 'plan',      label: 'My plan' },
             ] as const).map(({ key, label }) => (
               <button
                 key={key}
@@ -348,6 +350,27 @@ export default function SpaceClient({
         <div className="flex-1 overflow-y-auto">
           <BookingsTab providerId={providerId} />
         </div>
+      )}
+
+      {tab === 'messages' && (
+        isSeed ? (
+          <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 text-center">
+            <p className="text-2xl mb-3">💬</p>
+            <p className="font-semibold text-[#0D0D0D] mb-1">Upgrade to Sprout</p>
+            <p className="text-sm text-[#666] mb-5 max-w-xs">
+              Connect WhatsApp Business and reply to customers directly from My Space.
+            </p>
+            <button
+              onClick={() => setTab('plan')}
+              className="bg-[#0D0D0D] text-white rounded-xl px-5 py-2.5 text-sm font-semibold hover:opacity-80 transition-opacity">
+              See plans →
+            </button>
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col min-h-0">
+            <MessagesTab providerId={providerId} />
+          </div>
+        )
       )}
 
       {tab === 'plan' && (

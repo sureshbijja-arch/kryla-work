@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import BookingsTab from '@/app/my-space/BookingsTab'
+import MessagesTab from '@/app/my-space/MessagesTab'
 import PlanSection from '@/app/my-space/PlanSection'
 import ServicesTab from '@/app/my-space/ServicesTab'
 import type { ServiceItem } from '@/app/my-space/ServicesTab'
@@ -12,7 +13,7 @@ import { TEMPLATE_LABEL, FONT_LABEL, type LayoutOption } from '@/lib/layouts'
 import { getPersonaConfig } from '../personaConfig'
 
 type AuthState = 'loading' | 'login_email' | 'login_code' | 'checking' | 'not_owner' | 'ready'
-type Tab = 'chat' | 'services' | 'sections' | 'media' | 'ads' | 'layouts' | 'bookings' | 'plan'
+type Tab = 'chat' | 'services' | 'sections' | 'media' | 'ads' | 'layouts' | 'bookings' | 'messages' | 'plan'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -454,8 +455,9 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
           ['media',    'Media'],
           ['ads',      'Ads'],
           ['layouts',  'Layouts'],
-          ['bookings', getPersonaConfig(ownerData?.provider.persona ?? 'other').tabLabel],
-          ['plan',     'Plan'],
+          ['bookings',  getPersonaConfig(ownerData?.provider.persona ?? 'other').tabLabel],
+          ['messages',  'Messages'],
+          ['plan',      'Plan'],
         ] as [Tab, string][]).map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)}
             className={`py-3 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors ${
@@ -803,6 +805,28 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
         <div className="flex-1 overflow-y-auto">
           <BookingsTab providerId={ownerData.provider.id} />
         </div>
+      )}
+
+      {/* Messages tab */}
+      {tab === 'messages' && ownerData && (
+        isSeed ? (
+          <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 text-center">
+            <p className="text-2xl mb-3">💬</p>
+            <p className="font-semibold text-[#0D0D0D] mb-1">Upgrade to Sprout</p>
+            <p className="text-sm text-[#666] mb-5 max-w-xs">
+              Connect WhatsApp Business and reply to customers directly from My Space.
+            </p>
+            <button
+              onClick={() => setTab('plan')}
+              className="bg-[#0D0D0D] text-white rounded-xl px-5 py-2.5 text-sm font-semibold hover:opacity-80 transition-opacity">
+              See plans →
+            </button>
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col min-h-0">
+            <MessagesTab providerId={ownerData.provider.id} />
+          </div>
+        )
       )}
 
       {/* Plan tab */}
