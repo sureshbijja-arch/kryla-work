@@ -824,7 +824,7 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
           </div>
         ) : (
           <div className="flex-1 flex flex-col min-h-0">
-            <MessagesTab providerId={ownerData.provider.id} />
+            <MessagesTab providerId={ownerData.provider.id} plan={ownerData.provider.plan} />
           </div>
         )
       )}
@@ -832,7 +832,7 @@ export default function MySpacePanel({ slug, onClose }: { slug: string; onClose:
       {/* Plan tab */}
       {tab === 'plan' && ownerData && (
         <div className="flex-1 overflow-y-auto">
-          <PlanSection currentPlan={ownerData.provider.plan} region={ownerData.provider.region} />
+          <PlanSection currentPlan={ownerData.provider.plan} region={ownerData.provider.region} onGoToMessages={() => setTab('messages')} />
         </div>
       )}
 

@@ -368,14 +368,14 @@ export default function SpaceClient({
           </div>
         ) : (
           <div className="flex-1 flex flex-col min-h-0">
-            <MessagesTab providerId={providerId} />
+            <MessagesTab providerId={providerId} plan={plan} />
           </div>
         )
       )}
 
       {tab === 'plan' && (
         <div className="flex-1 overflow-y-auto">
-          <PlanSection currentPlan={plan} region={region} />
+          <PlanSection currentPlan={plan} region={region} onGoToMessages={() => setTab('messages')} />
         </div>
       )}
 
