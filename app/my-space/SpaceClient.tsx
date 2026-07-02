@@ -20,6 +20,8 @@ interface Message {
   role: 'user' | 'assistant'
   content: string
   changed?: boolean
+  suggestTab?: string
+  suggestDesignTab?: string
 }
 
 interface CurrentProfile {
@@ -267,17 +269,16 @@ export default function SpaceClient({
       const data = await res.json()
       setMessages(prev => [
         ...prev,
-        { role: 'assistant', content: data.message, changed: data.changed },
+        {
+          role: 'assistant',
+          content: data.message,
+          changed: data.changed,
+          suggestTab: data.suggestTab,
+          suggestDesignTab: data.suggestDesignTab,
+        },
       ])
       if (data.changed) onRefresh()
       if (voiceOn && data.message) speak(data.message)
-      // Tab navigation requested by AI
-      if (data.switchTab) {
-        setTab(data.switchTab as MainTab)
-        if (data.switchTab === 'design' && data.switchDesignTab) {
-          setDesignTab(data.switchDesignTab as DesignTab)
-        }
-      }
     } catch {
       setMessages(prev => [
         ...prev,
@@ -441,6 +442,21 @@ export default function SpaceClient({
                         </svg>
                         <span className="text-[10px] text-[#22C55E] font-semibold">Draft saved · publish when ready</span>
                       </div>
+                    )}
+                    {msg.suggestTab && (
+                      <button
+                        onClick={() => {
+                          setTab(msg.suggestTab as MainTab)
+                          if (msg.suggestTab === 'design' && msg.suggestDesignTab) {
+                            setDesignTab(msg.suggestDesignTab as DesignTab)
+                          }
+                        }}
+                        className="mt-2 ml-1 flex items-center gap-1.5 text-xs font-semibold text-[#0D0D0D] bg-[#F5F5F5] hover:bg-[#E5E5E5] rounded-xl px-3 py-1.5 transition-colors">
+                        Yes, take me there
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                          <path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
                     )}
                   </div>
                 </div>
