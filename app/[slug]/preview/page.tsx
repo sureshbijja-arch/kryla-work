@@ -23,7 +23,7 @@ export default async function PreviewPage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, show_sections, sections, draft_data, translations, menu_files')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, show_sections, sections, draft_data, translations')
     .eq('provider_id', provider.id)
     .single()
 
@@ -35,14 +35,16 @@ export default async function PreviewPage({ params }: Props) {
   const dp    = draft.pages     ?? {}
   const dpr   = draft.providers ?? {}
 
-  const [avatarRes, galleryRes] = await Promise.allSettled([
+  const [avatarRes, galleryRes, menuFilesRes] = await Promise.allSettled([
     supabaseAdmin.from('providers').select('avatar_url').eq('id', provider.id).single(),
     supabaseAdmin.from('pages').select('gallery').eq('provider_id', provider.id).single(),
+    supabaseAdmin.from('pages').select('menu_files').eq('provider_id', provider.id).single(),
   ])
 
-  const avatarUrl  = avatarRes.status  === 'fulfilled' ? (avatarRes.value.data?.avatar_url  ?? null) : null
-  const galleryRaw = galleryRes.status === 'fulfilled' ? (galleryRes.value.data?.gallery     ?? [])   : []
-  const gallery    = Array.isArray(galleryRaw) ? (galleryRaw as string[]) : []
+  const avatarUrl    = avatarRes.status     === 'fulfilled' ? (avatarRes.value.data?.avatar_url ?? null) : null
+  const galleryRaw   = galleryRes.status    === 'fulfilled' ? (galleryRes.value.data?.gallery    ?? [])   : []
+  const gallery      = Array.isArray(galleryRaw) ? (galleryRaw as string[]) : []
+  const liveMenuRaw  = menuFilesRes.status  === 'fulfilled' ? (menuFilesRes.value.data as Record<string, unknown> | null)?.menu_files : undefined
 
   const defaultShowSections: ShowSections = {
     hero: true, services: true, highlights: true,
@@ -84,11 +86,9 @@ export default async function PreviewPage({ params }: Props) {
     avatarUrl,
     gallery,
     menuFiles: (() => {
-      // Draft overlay: draft menu_files replaces live (full list), else fall back to live column
       const draft_mf = dp.menu_files
       if (Array.isArray(draft_mf) && draft_mf.length > 0) return draft_mf as string[]
-      const live_mf = (page as Record<string, unknown>).menu_files
-      return Array.isArray(live_mf) ? (live_mf as string[]) : undefined
+      return Array.isArray(liveMenuRaw) ? (liveMenuRaw as string[]) : undefined
     })(),
   }
 

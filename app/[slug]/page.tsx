@@ -55,22 +55,25 @@ export default async function MemberProfilePage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, show_sections, sections, translations, menu_files')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, show_sections, sections, translations')
     .eq('provider_id', provider.id)
     .single()
 
   if (!page) return notFound()
 
-  // These queries depend on columns added in migration 20260629_profile_media —
-  // they fail gracefully if the migration hasn't been run yet.
-  const [avatarRes, galleryRes] = await Promise.allSettled([
+  // These queries depend on columns added in migrations — they fail gracefully
+  // if the migrations haven't been run yet.
+  const [avatarRes, galleryRes, menuFilesRes] = await Promise.allSettled([
     supabaseAdmin.from('providers').select('avatar_url').eq('id', provider.id).single(),
     supabaseAdmin.from('pages').select('gallery').eq('provider_id', provider.id).single(),
+    supabaseAdmin.from('pages').select('menu_files').eq('provider_id', provider.id).single(),
   ])
 
-  const avatarUrl  = avatarRes.status  === 'fulfilled' ? (avatarRes.value.data?.avatar_url  ?? null) : null
-  const galleryRaw = galleryRes.status === 'fulfilled' ? (galleryRes.value.data?.gallery     ?? [])   : []
-  const gallery    = Array.isArray(galleryRaw) ? (galleryRaw as string[]) : []
+  const avatarUrl    = avatarRes.status     === 'fulfilled' ? (avatarRes.value.data?.avatar_url ?? null) : null
+  const galleryRaw   = galleryRes.status    === 'fulfilled' ? (galleryRes.value.data?.gallery    ?? [])   : []
+  const gallery      = Array.isArray(galleryRaw) ? (galleryRaw as string[]) : []
+  const menuFilesRaw = menuFilesRes.status  === 'fulfilled' ? (menuFilesRes.value.data as Record<string, unknown> | null)?.menu_files : undefined
+  const menuFiles    = Array.isArray(menuFilesRaw) ? (menuFilesRaw as string[]) : undefined
 
   const defaultShowSections: ShowSections = {
     hero: true, services: true, highlights: true,
@@ -109,7 +112,7 @@ export default async function MemberProfilePage({ params }: Props) {
     showSections,
     avatarUrl,
     gallery,
-    menuFiles: Array.isArray((page as Record<string, unknown>).menu_files) ? ((page as Record<string, unknown>).menu_files as string[]) : undefined,
+    menuFiles,
   }
 
   const pageSections  = Array.isArray(page.sections) ? (page.sections as SectionEntry[]) : null
