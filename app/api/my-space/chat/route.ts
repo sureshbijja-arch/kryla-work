@@ -13,11 +13,18 @@ You MUST respond with ONLY valid JSON — no extra text before or after. Shape:
   "message": "string — your warm, plain-English reply (2-4 sentences max)",
   "patch_pages": {},
   "patch_providers": {},
-  "patch_booking": null
+  "patch_booking": null,
+  "switch_tab": null,
+  "switch_design_tab": null,
+  "new_suggestion": null
 }
 
 patch_booking shape (when taking action on a booking):
 { "id": "<booking-uuid>", "status": "accepted" | "rejected" | "cancelled" }
+
+switch_tab: navigate to a panel tab. Values: "chat" | "design" | "messages" | "bookings" | "plan" | "suggestions"
+switch_design_tab: (only when switch_tab is "design") sub-tab to open. Values: "services" | "sections" | "layouts" | "ads" | "media" | "language"
+new_suggestion: if the member expresses a feature request or wish about Kryla itself (e.g. "I wish Kryla had…", "it would be great if you added…", "can you add…"), capture the plain-English description here as a string. Do NOT use this for page edits.
 
 ═══════════════════════════════════════════
 PAGE CONTENT — saved as draft until member publishes
@@ -65,7 +72,9 @@ RULES
 - Messages: summarise unread threads; suggest reply wording if asked — member sends from the Messages tab
 - Ads: report status (pending/approved/rejected); member manages them in the Ads tab
 - Never say "AI" — you are Kryla
-- Keep message warm, plain English, 2-4 sentences`
+- Keep message warm, plain English, 2-4 sentences
+- Tab navigation: when a member asks to "go to", "open", "take me to", or "show me" a tab, set switch_tab (and switch_design_tab if they mention a specific sub-tab like "media" or "services"). Examples: "show me bookings" → switch_tab:"bookings"; "open the media tab" → switch_tab:"design", switch_design_tab:"media"; "take me to suggestions" → switch_tab:"suggestions"
+- Suggestions: if member says they wish Kryla had something or asks you to add a feature TO KRYLA (not to their own page), set new_suggestion with the description and switch_tab:"suggestions"`
 
 export async function POST(req: Request) {
   const supabase = createClient()
@@ -207,6 +216,9 @@ ${JSON.stringify(businessContext, null, 2)}`
     patch_pages: Record<string, unknown>
     patch_providers: Record<string, unknown>
     patch_booking: { id: string; status: string } | null
+    switch_tab: string | null
+    switch_design_tab: string | null
+    new_suggestion: string | null
   }
   try {
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
@@ -215,7 +227,15 @@ ${JSON.stringify(businessContext, null, 2)}`
     return NextResponse.json({ message: raw, changed: false })
   }
 
-  const { message, patch_pages = {}, patch_providers = {}, patch_booking = null } = parsed
+  const {
+    message,
+    patch_pages = {},
+    patch_providers = {},
+    patch_booking = null,
+    switch_tab = null,
+    switch_design_tab = null,
+    new_suggestion = null,
+  } = parsed
 
   const allowed = ['whatsapp_number', 'location']
   const safePatchProviders = Object.fromEntries(
@@ -313,5 +333,22 @@ ${JSON.stringify(businessContext, null, 2)}`
     }
   }
 
-  return NextResponse.json({ message, changed })
+  // ── Capture suggestion from chat ────────────────────────────────────────────
+  if (new_suggestion?.trim()) {
+    try {
+      await supabaseAdmin
+        .from('suggestions')
+        .insert({ provider_id: providerId, description: new_suggestion.trim() })
+    } catch {
+      // non-fatal — suggestion capture failure shouldn't break the chat response
+    }
+  }
+
+  return NextResponse.json({
+    message,
+    changed,
+    switchTab: switch_tab ?? undefined,
+    switchDesignTab: switch_design_tab ?? undefined,
+    newSuggestion: new_suggestion ?? undefined,
+  })
 }
