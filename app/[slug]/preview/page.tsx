@@ -36,15 +36,17 @@ export default async function PreviewPage({ params }: Props) {
   const dpr   = draft.providers ?? {}
 
   const [avatarRes, galleryRes, menuFilesRes] = await Promise.allSettled([
-    supabaseAdmin.from('providers').select('avatar_url').eq('id', provider.id).single(),
+    supabaseAdmin.from('providers').select('avatar_url, instagram_handle').eq('id', provider.id).single(),
     supabaseAdmin.from('pages').select('gallery').eq('provider_id', provider.id).single(),
     supabaseAdmin.from('pages').select('menu_files').eq('provider_id', provider.id).single(),
   ])
 
-  const avatarUrl    = avatarRes.status     === 'fulfilled' ? (avatarRes.value.data?.avatar_url ?? null) : null
-  const galleryRaw   = galleryRes.status    === 'fulfilled' ? (galleryRes.value.data?.gallery    ?? [])   : []
-  const gallery      = Array.isArray(galleryRaw) ? (galleryRaw as string[]) : []
-  const liveMenuRaw  = menuFilesRes.status  === 'fulfilled' ? (menuFilesRes.value.data as Record<string, unknown> | null)?.menu_files : undefined
+  const providerExtra   = avatarRes.status === 'fulfilled' ? (avatarRes.value.data as Record<string, unknown> | null) : null
+  const avatarUrl       = (providerExtra?.avatar_url as string | null) ?? null
+  const instagramHandle = (providerExtra?.instagram_handle as string | null) ?? null
+  const galleryRaw      = galleryRes.status    === 'fulfilled' ? (galleryRes.value.data?.gallery    ?? [])   : []
+  const gallery         = Array.isArray(galleryRaw) ? (galleryRaw as string[]) : []
+  const liveMenuRaw     = menuFilesRes.status  === 'fulfilled' ? (menuFilesRes.value.data as Record<string, unknown> | null)?.menu_files : undefined
 
   const defaultShowSections: ShowSections = {
     hero: true, services: true, highlights: true,
@@ -90,6 +92,7 @@ export default async function PreviewPage({ params }: Props) {
       if (Array.isArray(draft_mf) && draft_mf.length > 0) return draft_mf as string[]
       return Array.isArray(liveMenuRaw) ? (liveMenuRaw as string[]) : undefined
     })(),
+    instagramHandle,
   }
 
   const isTutor       = provider.persona === 'tutor'

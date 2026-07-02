@@ -1,8 +1,8 @@
 'use client'
 import { useState } from 'react'
 import BookingForm from '../BookingForm'
-import { WhatsAppIcon } from '../shared'
-import { waUrl, mapsUrl } from '../../types'
+import { WhatsAppIcon, InstagramIcon } from '../shared'
+import { waUrl, mapsUrl, instagramUrl } from '../../types'
 import type { ProfileData } from '../../types'
 import { getPersonaConfig } from '../../personaConfig'
 
@@ -87,8 +87,10 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
   const {
     providerId, firstName, location, whatsappNumber, whatsappPublic,
     email, services, showSections, ctaSecondary, persona, headline,
+    instagramHandle,
   } = data
   const wa = whatsappNumber && whatsappPublic ? waUrl(whatsappNumber, firstName, headline) : null
+  const ig = instagramHandle ? instagramUrl(instagramHandle) : null
   const showBooking = showSections.booking
   const showContact = showSections.contact
   const pcfg = getPersonaConfig(persona)
@@ -116,6 +118,13 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
             <div className="flex-1 h-px bg-[#E5E5E5]" />
           </div>
           <EnquiryForm providerId={providerId} accentColor="var(--color-accent)" />
+          {ig && (
+            <a href={ig} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-2 justify-center text-sm text-[#888] hover:text-[#0D0D0D] transition-colors mt-4">
+              <InstagramIcon size={15} color="currentColor" />
+              @{instagramHandle}
+            </a>
+          )}
         </div>
       </div>
     </section>
@@ -150,6 +159,13 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
             WhatsApp {firstName}
           </a>
         ) : null}
+        {ig && (
+          <a href={ig} target="_blank" rel="noopener noreferrer"
+            className="mt-6 flex items-center gap-2 justify-center text-sm text-white/30 hover:text-white/70 transition-colors">
+            <InstagramIcon size={15} color="currentColor" />
+            @{instagramHandle}
+          </a>
+        )}
       </div>
     </section>
   )
@@ -167,6 +183,13 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
             style={{ borderRadius: 'var(--radius-btn)', background: '#25D366', boxShadow: '0 16px 48px rgba(37,211,102,0.4)' }}>
             <WhatsAppIcon />
             WhatsApp {firstName}
+          </a>
+        )}
+        {ig && (
+          <a href={ig} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 justify-center text-sm text-[#888] hover:text-[#0D0D0D] transition-colors mt-4">
+            <InstagramIcon size={15} color="currentColor" />
+            @{instagramHandle}
           </a>
         )}
       </div>
@@ -224,6 +247,20 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
               </svg>
             </a>
           )}
+          {ig && (
+            <a href={ig} target="_blank" rel="noopener noreferrer"
+              className="contact-in group flex items-center gap-4 px-5 py-4 bg-white hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200"
+              style={{ borderRadius: 'var(--radius-card)', border: '1.5px solid var(--color-accent-border)', animationDelay: '0.24s' }}>
+              <div className="w-10 h-10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200"
+                style={{ borderRadius: 'var(--radius-card)', background: 'var(--color-accent-surface)' }}>
+                <InstagramIcon size={18} color="var(--color-accent)" />
+              </div>
+              <span className="font-black text-sm text-[#0D0D0D]">@{instagramHandle}</span>
+              <svg className="ml-auto text-[#CCC] group-hover:text-[#0D0D0D] group-hover:translate-x-1 transition-all" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
+          )}
         </div>
       </div>
     </section>
@@ -255,6 +292,13 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
             WhatsApp {firstName}
           </a>
         ) : null}
+        {ig && (
+          <a href={ig} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 justify-center text-sm text-[#888] hover:text-[#0D0D0D] transition-colors mt-4">
+            <InstagramIcon size={15} color="currentColor" />
+            @{instagramHandle}
+          </a>
+        )}
       </div>
     </section>
   )

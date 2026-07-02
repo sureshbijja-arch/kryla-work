@@ -66,6 +66,7 @@ export interface ProfileData {
   whatsappNumber: string | null
   whatsappPublic: boolean
   email: string | null
+  instagramHandle?: string | null
   headline: string
   subheadline: string
   bio: string
@@ -110,6 +111,10 @@ export const FONT_CLASS: Record<FontKey, string> = {
 
 export function mapsUrl(location: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`
+}
+
+export function instagramUrl(handle: string) {
+  return `https://www.instagram.com/${handle.replace(/^@/, '')}/`
 }
 
 export function waUrl(whatsappNumber: string, firstName: string, headline?: string) {
