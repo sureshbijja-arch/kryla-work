@@ -51,7 +51,7 @@ export default function LayoutsTab({
           sections: lo.sections ?? null,
         }),
       })
-      if (res.ok) setAppliedLayout(lo.id)
+      if (res.ok) { setAppliedLayout(lo.id); onPreview() }
     } catch {
       // silent
     } finally {
@@ -146,11 +146,8 @@ export default function LayoutsTab({
       </div>
 
       {appliedLayout && canLayouts && (
-        <div className="mx-4 mb-4 flex items-center justify-between gap-2 bg-[#F0FDF4] border border-[#22C55E]/30 rounded-xl px-3 py-2.5">
-          <p className="text-xs font-medium text-[#166534]">Layout saved to draft!</p>
-          <button onClick={onPreview} className="shrink-0 text-xs font-semibold text-[#166534] hover:underline">
-            Preview →
-          </button>
+        <div className="mx-4 mb-4 bg-[#F0FDF4] border border-[#22C55E]/30 rounded-xl px-3 py-2.5">
+          <p className="text-xs font-medium text-[#166534]">✓ Layout applied — your page is updated</p>
         </div>
       )}
     </div>

@@ -145,15 +145,16 @@ Dynamic accent tokens set as **inline styles** on the LayoutRenderer wrapper (no
 - `app/[slug]/preview/page.tsx` — always-fresh draft preview (force-dynamic)
 - Both select `sections`, `design_mode`, `gallery` from pages table
 
-### My Space (Dashboard)
+### My Chat (Member Dashboard)
 
-> **IMPORTANT:** My Space has TWO parallel implementations that must always be kept in sync:
-> 1. **`/my-space` page** — `app/my-space/SpaceClient.tsx` (full-page, server-loaded)
-> 2. **Member page popup** — `app/[slug]/components/MySpacePanel.tsx` (slide-in panel, client-only auth)
-> When adding a new tab or feature to one, add it to both.
+Accessed at `/{slug}/mychat` (e.g. `priya.kryla.work/mychat`). Auth-gated — middleware protects `/{slug}/mychat`. Old `/my-space` route redirects here.
 
-At `/my-space` — protected by Supabase email OTP auth (middleware guards route).
-Tabs: **Edit profile** (AI chat editor) | **Services** (service card manager) | **Page layout** (section builder) | **Bookings** | **My plan**
+**Layout:** Split view — live public page on the left (desktop only, read-only), My Chat panel on the right (400px). Mobile shows panel full-width. `router.refresh()` in SpaceClient re-renders the server page so changes appear live on the left without a separate preview step.
+
+**Single implementation:** `app/my-space/SpaceClient.tsx` (panel component). `app/[slug]/mychat/page.tsx` is the server route that auth-checks, fetches all data, and renders the split layout. No dual-implementation — MySpacePanel and MySpaceBadge were deleted.
+
+Top tabs: **Chat** | **Design** | **Messages** | **Bookings** | **My plan**
+Design sub-tabs: **Services** | **Page layout** | **Layouts** | **Ads** | **Media**
 
 Services tab (`app/my-space/ServicesTab.tsx`):
 - Add, edit, delete, reorder services

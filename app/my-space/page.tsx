@@ -20,5 +20,5 @@ export default async function MySpacePage() {
 
   if (!provider?.slug) redirect('/')
 
-  redirect(`/${provider.slug}/myspace`)
+  redirect(`/${provider.slug}/mychat`)
 }

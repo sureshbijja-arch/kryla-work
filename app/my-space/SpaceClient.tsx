@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import PlanSection from './PlanSection'
 import BookingsTab from './BookingsTab'
 import MessagesTab from './MessagesTab'
@@ -68,9 +69,11 @@ const FONT_LABELS: Record<string, string> = {
 }
 
 export default function SpaceClient({
-  providerId, slug, firstName, pageLive,
+  providerId, slug, firstName,
   plan, region, currentProfile,
 }: Props) {
+  const router = useRouter()
+
   const defaultSections: SectionEntry[] = currentProfile.sections ?? [
     { sectionKey: 'hero',       variant: 'auto',      order: 1 },
     { sectionKey: 'services',   variant: 'features',  order: 2 },
@@ -82,10 +85,6 @@ export default function SpaceClient({
 
   const [tab, setTab]             = useState<MainTab>('chat')
   const [designTab, setDesignTab] = useState<DesignTab>('services')
-  const [previewOpen, setPreviewOpen]   = useState(false)
-  const [previewTs, setPreviewTs]       = useState(0)
-  const [spPublishing, setSpPublishing] = useState(false)
-  const [spPublishDone, setSpPublishDone] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -97,8 +96,8 @@ export default function SpaceClient({
   const bottomRef             = useRef<HTMLDivElement>(null)
   const inputRef              = useRef<HTMLTextAreaElement>(null)
 
-  const isSeed         = !plan || plan === 'seed'
-  const bookingsLabel  = getPersonaConfig(currentProfile.persona).tabLabel
+  const isSeed        = !plan || plan === 'seed'
+  const bookingsLabel = getPersonaConfig(currentProfile.persona).tabLabel
 
   useEffect(() => {
     if (tab === 'chat') bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -128,6 +127,7 @@ export default function SpaceClient({
         ...prev,
         { role: 'assistant', content: data.message, changed: data.changed },
       ])
+      if (data.changed) router.refresh()
     } catch {
       setMessages(prev => [
         ...prev,
@@ -146,53 +146,24 @@ export default function SpaceClient({
     }
   }
 
-  async function handleSpacePreviewPublish() {
-    if (spPublishing || spPublishDone) return
-    setSpPublishing(true)
-    try {
-      const res = await fetch('/api/my-space/publish', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug }),
-      })
-      if (res.ok) {
-        setSpPublishDone(true)
-        setTimeout(() => { setPreviewOpen(false); setSpPublishDone(false) }, 2000)
-      }
-    } catch {
-      // silent
-    } finally {
-      setSpPublishing(false)
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
+    <div className="h-full flex flex-col bg-[#FAFAFA]">
 
-      {/* Top bar */}
-      <header className="bg-white border-b border-[#E5E5E5] px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-            <line x1="11" y1="2" x2="11" y2="20" stroke="#0D0D0D" strokeWidth="3" strokeLinecap="round" />
-            <line x1="11" y1="11" x2="3"  y2="3"  stroke="#0D0D0D" strokeWidth="3" strokeLinecap="round" />
-            <line x1="11" y1="11" x2="19" y2="3"  stroke="#0D0D0D" strokeWidth="3" strokeLinecap="round" />
-            <line x1="11" y1="11" x2="19" y2="19" stroke="#F5A623" strokeWidth="3" strokeLinecap="round" />
+      {/* Panel header */}
+      <header className="bg-white border-b border-[#E5E5E5] px-4 py-3 flex items-center justify-between shrink-0">
+        <a
+          href={`/${slug}`}
+          className="text-sm text-[#666] hover:text-[#0D0D0D] flex items-center gap-1.5 transition-colors">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span className="font-bold text-[#0D0D0D] text-sm">My Space</span>
-        </div>
-        {pageLive && (
-          <a
-            href={`/${slug}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs font-semibold text-[#F5A623] hover:underline">
-            View my page ↗
-          </a>
-        )}
+          {slug}.kryla.work
+        </a>
+        <span className="text-[11px] font-bold text-[#0D0D0D] tracking-widest uppercase">My Chat</span>
       </header>
 
       {/* Tab bar */}
-      <div className="bg-white border-b border-[#E5E5E5]">
+      <div className="bg-white border-b border-[#E5E5E5] shrink-0">
         <div className="px-4 flex items-center gap-1 overflow-x-auto scrollbar-none">
           {([
             { key: 'chat',     label: 'Chat' },
@@ -243,7 +214,7 @@ export default function SpaceClient({
       {tab === 'chat' && (
         <>
           {/* Style info strip */}
-          <div className="bg-white border-b border-[#F0F0F0] px-4 py-2 flex items-center gap-2 flex-wrap">
+          <div className="bg-white border-b border-[#F0F0F0] px-4 py-2 flex items-center gap-2 flex-wrap shrink-0">
             <span className="text-[10px] font-semibold text-[#999] uppercase tracking-wide">Style</span>
             <Tag label={TEMPLATE_LABELS[currentProfile.template] ?? currentProfile.template} />
             <Tag label={PALETTE_LABELS[currentProfile.palette] ?? currentProfile.palette} />
@@ -251,7 +222,7 @@ export default function SpaceClient({
           </div>
 
           {isSeed && (
-            <div className="max-w-2xl w-full mx-auto px-4 pt-4">
+            <div className="px-4 pt-4 shrink-0">
               <div className="flex items-center justify-between gap-3 bg-[#FFF7ED] border border-[#F5A623]/30 rounded-xl px-4 py-3">
                 <div className="flex items-center gap-2">
                   <span className="text-base">🌿</span>
@@ -268,11 +239,11 @@ export default function SpaceClient({
             </div>
           )}
 
-          <main className="flex-1 overflow-y-auto px-4 py-6 max-w-2xl w-full mx-auto">
+          <main className="flex-1 overflow-y-auto px-4 py-6">
             <div className="space-y-4">
               {messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className="max-w-[80%]">
+                  <div className="max-w-[85%]">
                     <div
                       className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                         msg.role === 'user'
@@ -286,7 +257,7 @@ export default function SpaceClient({
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                           <path d="M2 6l3 3 5-5" stroke="#22C55E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
-                        <span className="text-[10px] text-[#22C55E] font-semibold">Saved</span>
+                        <span className="text-[10px] text-[#22C55E] font-semibold">Saved · page updated</span>
                       </div>
                     )}
                   </div>
@@ -313,8 +284,8 @@ export default function SpaceClient({
             </div>
           </main>
 
-          <div className="bg-white border-t border-[#E5E5E5] px-4 py-4">
-            <div className="max-w-2xl mx-auto flex gap-3 items-end">
+          <div className="bg-white border-t border-[#E5E5E5] px-4 py-4 shrink-0">
+            <div className="flex gap-3 items-end">
               <textarea
                 ref={inputRef}
                 rows={1}
@@ -349,7 +320,7 @@ export default function SpaceClient({
           slug={slug}
           initialServices={currentProfile.services}
           plan={plan}
-          onPreview={() => { setPreviewTs(Date.now()); setPreviewOpen(true) }}
+          onPreview={() => router.refresh()}
         />
       )}
 
@@ -372,7 +343,7 @@ export default function SpaceClient({
           currentTemplate={currentProfile.template}
           currentPalette={currentProfile.palette}
           currentFont={currentProfile.font}
-          onPreview={() => { setPreviewTs(Date.now()); setPreviewOpen(true) }}
+          onPreview={() => router.refresh()}
           onUpgrade={() => setTab('plan')}
         />
       )}
@@ -405,7 +376,7 @@ export default function SpaceClient({
             <p className="text-2xl mb-3">💬</p>
             <p className="font-semibold text-[#0D0D0D] mb-1">Upgrade to Sprout</p>
             <p className="text-sm text-[#666] mb-5 max-w-xs">
-              Connect WhatsApp Business and reply to customers directly from My Space.
+              Connect WhatsApp Business and reply to customers directly from My Chat.
             </p>
             <button
               onClick={() => setTab('plan')}
@@ -431,39 +402,6 @@ export default function SpaceClient({
       {tab === 'plan' && (
         <div className="flex-1 overflow-y-auto">
           <PlanSection currentPlan={plan} region={region} onGoToMessages={() => setTab('messages')} />
-        </div>
-      )}
-
-      {/* ── Preview overlay ── */}
-      {previewOpen && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-white">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E5E5] shrink-0 bg-white gap-3">
-            <button
-              onClick={() => { setPreviewOpen(false); setSpPublishDone(false) }}
-              className="flex items-center gap-1.5 text-sm font-semibold text-[#666] hover:text-[#0D0D0D] transition-colors shrink-0">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Back
-            </button>
-            <span className="text-xs font-semibold text-[#999] uppercase tracking-widest">Preview</span>
-            <button
-              onClick={handleSpacePreviewPublish}
-              disabled={spPublishing || spPublishDone}
-              className={`shrink-0 text-xs font-semibold px-4 py-2 rounded-xl transition-all ${
-                spPublishDone
-                  ? 'bg-[#22C55E] text-white'
-                  : 'bg-[#0D0D0D] text-white hover:opacity-80 disabled:opacity-50'
-              }`}>
-              {spPublishing ? 'Publishing…' : spPublishDone ? '✓ Live!' : 'Confirm & Publish →'}
-            </button>
-          </div>
-          <iframe
-            key={previewTs}
-            src={`/${slug}/preview?t=${previewTs}`}
-            className="flex-1 border-0 w-full"
-            title="Preview of your page"
-          />
         </div>
       )}
 
