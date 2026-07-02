@@ -2,12 +2,7 @@ import { notFound } from 'next/navigation'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { ProfileData, PaletteKey, FontKey, DesignMode, ShowSections } from '../types'
 import AdsScroller from '../components/AdsScroller'
-import StudioTemplate from '../components/templates/StudioTemplate'
-import FocusTemplate from '../components/templates/FocusTemplate'
-import PortfolioTemplate from '../components/templates/PortfolioTemplate'
-import StorefrontTemplate from '../components/templates/StorefrontTemplate'
-import ClinicTemplate from '../components/templates/ClinicTemplate'
-import LayoutRenderer from '../components/LayoutRenderer'
+import LanguagePage from '../components/LanguagePage'
 import type { SectionEntry } from '../components/LayoutRenderer'
 
 // Always renders fresh from DB — never cached. Used as the draft preview.
@@ -20,7 +15,7 @@ interface Props {
 export default async function PreviewPage({ params }: Props) {
   const { data: provider } = await supabaseAdmin
     .from('providers')
-    .select('id, first_name, last_name, persona, location, whatsapp_number, email, plan')
+    .select('id, first_name, last_name, persona, location, whatsapp_number, email, plan, page_language')
     .eq('slug', params.slug)
     .single()
 
@@ -28,7 +23,7 @@ export default async function PreviewPage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, show_sections, sections, draft_data')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, show_sections, sections, draft_data, translations')
     .eq('provider_id', provider.id)
     .single()
 
@@ -90,27 +85,24 @@ export default async function PreviewPage({ params }: Props) {
     gallery,
   }
 
-  const isTutor  = provider.persona === 'tutor'
-  const template = ((dp.template as string) ?? page.template) as string
+  const isTutor       = provider.persona === 'tutor'
+  const template      = ((dp.template as string) ?? page.template) as string
   const draftSections = dp.sections as SectionEntry[] | undefined | null
   const liveSections  = Array.isArray(page.sections) ? (page.sections as SectionEntry[]) : null
   const pageSections  = draftSections ?? liveSections
+  const defaultLang   = (provider.page_language as string) ?? 'en'
+  const translations  = (page.translations ?? {}) as Record<string, Record<string, unknown>>
 
   return (
     <>
-      {pageSections ? (
-        <LayoutRenderer sections={pageSections} data={profileData} />
-      ) : isTutor ? (
-        <StudioTemplate data={profileData} />
-      ) : template === 'portfolio' ? (
-        <PortfolioTemplate data={profileData} />
-      ) : template === 'storefront' ? (
-        <StorefrontTemplate data={profileData} />
-      ) : template === 'clinic' ? (
-        <ClinicTemplate data={profileData} />
-      ) : (
-        <FocusTemplate data={profileData} />
-      )}
+      <LanguagePage
+        profileData={profileData}
+        translations={translations}
+        defaultLang={defaultLang}
+        pageSections={pageSections}
+        template={template}
+        isTutor={isTutor}
+      />
       <AdsScroller slug={params.slug} />
     </>
   )

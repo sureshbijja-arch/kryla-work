@@ -57,6 +57,23 @@ interface Props {
   onRefresh: () => void
 }
 
+const GREETINGS: Record<string, string> = {
+  hi: 'नमस्ते {{name}}! अपने पेज के बारे में कुछ भी पूछें — हेडलाइन, बायो, सेवाएं, रंग, या लेआउट।',
+  ta: 'வணக்கம் {{name}}! உங்கள் பக்கம், சேவைகள், வண்ணங்கள் எதையும் கேளுங்கள்.',
+  te: 'నమస్కారం {{name}}! మీ పేజీ, సేవలు, రంగులు గురించి ఏదైనా అడగండి.',
+  kn: 'ನಮಸ್ಕಾರ {{name}}! ನಿಮ್ಮ ಪೇಜ್, ಸೇವೆಗಳು, ರಂಗುಗಳ ಬಗ್ಗೆ ಏನಾದರೂ ಕೇಳಿ.',
+  ml: 'നമസ്കാരം {{name}}! നിങ്ങളുടെ പേജ്, സേവനങ്ങൾ, നിറങ്ങൾ എന്തും ചോദിക്കൂ.',
+  mr: 'नमस्कार {{name}}! तुमच्या पेज बद्दल काहीही विचारा — हेडलाइन, बायो, सेवा, रंग.',
+  gu: 'નમસ્તે {{name}}! તમારા પેજ વિશે કંઈ પણ પૂછો — હેડલાઈન, બાયો, સેવાઓ, રંગો.',
+  es: '¡Hola {{name}}! Pregúntame cualquier cosa sobre tu página — titular, bio, servicios, colores.',
+}
+
+function getGreeting(lang: string, name: string): string {
+  const tpl = GREETINGS[lang]
+  if (tpl) return tpl.replace('{{name}}', name)
+  return `Hi ${name}! Ask me anything about your page — change your headline, bio, services, colours, layout, or anything else.`
+}
+
 type MainTab   = 'chat' | 'design' | 'messages' | 'bookings' | 'plan'
 type DesignTab = 'services' | 'sections' | 'layouts' | 'ads' | 'media' | 'language'
 
@@ -89,10 +106,7 @@ export default function SpaceClient({
   const [publishing, setPublishing] = useState(false)
   const [published, setPublished]   = useState(false)
   const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'assistant',
-      content: `Hi ${firstName}! Ask me anything about your page — change your headline, bio, services, colours, layout, or anything else.`,
-    },
+    { role: 'assistant', content: getGreeting(pageLanguage, firstName) },
   ])
   const [input, setInput]       = useState('')
   const [loading, setLoading]   = useState(false)
