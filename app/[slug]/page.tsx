@@ -10,7 +10,6 @@ import StorefrontTemplate from './components/templates/StorefrontTemplate'
 import ClinicTemplate from './components/templates/ClinicTemplate'
 import LayoutRenderer from './components/LayoutRenderer'
 import type { SectionEntry } from './components/LayoutRenderer'
-import MySpaceBadge from './components/MySpaceBadge'
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'kryla.work'
 
@@ -158,7 +157,6 @@ export default async function MemberProfilePage({ params }: Props) {
         <FocusTemplate data={profileData} />
       )}
       <AdsScroller slug={params.slug} />
-      <MySpaceBadge slug={params.slug} />
     </>
   )
 }

@@ -8,6 +8,9 @@ import SectionsTab from './SectionsTab'
 import type { SectionEntry } from './SectionsTab'
 import ServicesTab from './ServicesTab'
 import type { ServiceItem } from './ServicesTab'
+import MediaTab from './MediaTab'
+import AdsTab from './AdsTab'
+import LayoutsTab from './LayoutsTab'
 import { getPersonaConfig } from '@/app/[slug]/personaConfig'
 
 interface Message {
@@ -50,6 +53,9 @@ interface Props {
   currentProfile: CurrentProfile
 }
 
+type MainTab   = 'chat' | 'design' | 'messages' | 'bookings' | 'plan'
+type DesignTab = 'services' | 'sections' | 'layouts' | 'ads' | 'media'
+
 const PALETTE_LABELS: Record<string, string> = {
   professional: 'Professional', fresh: 'Fresh', warm: 'Warm',
   minimal: 'Minimal', creative: 'Creative', calm: 'Calm',
@@ -73,7 +79,9 @@ export default function SpaceClient({
     { sectionKey: 'faq',        variant: 'accordion', order: 5 },
     { sectionKey: 'contact',    variant: 'both',      order: 6 },
   ]
-  const [tab, setTab] = useState<'chat' | 'services' | 'sections' | 'bookings' | 'messages' | 'plan'>('chat')
+
+  const [tab, setTab]             = useState<MainTab>('chat')
+  const [designTab, setDesignTab] = useState<DesignTab>('services')
   const [previewOpen, setPreviewOpen]   = useState(false)
   const [previewTs, setPreviewTs]       = useState(0)
   const [spPublishing, setSpPublishing] = useState(false)
@@ -81,7 +89,7 @@ export default function SpaceClient({
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: `Hi ${firstName}! I'm here to help you update your profile page. Tell me what you'd like to change — your headline, bio, services, colours, or anything else.`,
+      content: `Hi ${firstName}! Ask me anything about your page — change your headline, bio, services, colours, layout, or anything else.`,
     },
   ])
   const [input, setInput]     = useState('')
@@ -89,8 +97,8 @@ export default function SpaceClient({
   const bottomRef             = useRef<HTMLDivElement>(null)
   const inputRef              = useRef<HTMLTextAreaElement>(null)
 
-  const isSeed = !plan || plan === 'seed'
-  const bookingsTabLabel = getPersonaConfig(currentProfile.persona).tabLabel
+  const isSeed         = !plan || plan === 'seed'
+  const bookingsLabel  = getPersonaConfig(currentProfile.persona).tabLabel
 
   useEffect(() => {
     if (tab === 'chat') bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -160,6 +168,7 @@ export default function SpaceClient({
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
+
       {/* Top bar */}
       <header className="bg-white border-b border-[#E5E5E5] px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -182,15 +191,16 @@ export default function SpaceClient({
         )}
       </header>
 
-      {/* Tabs — two rows */}
+      {/* Tab bar */}
       <div className="bg-white border-b border-[#E5E5E5]">
-        <div className="px-4 flex items-center gap-1">
+        <div className="px-4 flex items-center gap-1 overflow-x-auto scrollbar-none">
           {([
-            { key: 'chat',     label: 'Edit profile' },
-            { key: 'services', label: 'Services' },
-            { key: 'sections', label: 'Page layout' },
+            { key: 'chat',     label: 'Chat' },
+            { key: 'design',   label: 'Design' },
             { key: 'messages', label: 'Messages' },
-          ] as const).map(({ key, label }) => (
+            { key: 'bookings', label: bookingsLabel },
+            { key: 'plan',     label: 'My plan' },
+          ] as { key: MainTab; label: string }[]).map(({ key, label }) => (
             <button
               key={key}
               onClick={() => setTab(key)}
@@ -203,17 +213,22 @@ export default function SpaceClient({
             </button>
           ))}
         </div>
-        <div className="px-4 flex items-center justify-between">
-          <div className="flex items-center gap-1">
+
+        {/* Design sub-tab bar */}
+        {tab === 'design' && (
+          <div className="px-4 flex items-center gap-1 border-t border-[#F0F0F0] bg-[#FAFAFA] overflow-x-auto scrollbar-none">
             {([
-              { key: 'bookings', label: bookingsTabLabel },
-              { key: 'plan',     label: 'My plan' },
-            ] as const).map(({ key, label }) => (
+              { key: 'services', label: 'Services' },
+              { key: 'sections', label: 'Page layout' },
+              { key: 'layouts',  label: 'Layouts' },
+              { key: 'ads',      label: 'Ads' },
+              { key: 'media',    label: 'Media' },
+            ] as { key: DesignTab; label: string }[]).map(({ key, label }) => (
               <button
                 key={key}
-                onClick={() => setTab(key)}
-                className={`py-2.5 px-2 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${
-                  tab === key
+                onClick={() => setDesignTab(key)}
+                className={`py-2 px-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
+                  designTab === key
                     ? 'border-[#0D0D0D] text-[#0D0D0D]'
                     : 'border-transparent text-[#999] hover:text-[#0D0D0D]'
                 }`}>
@@ -221,18 +236,20 @@ export default function SpaceClient({
               </button>
             ))}
           </div>
-          <div className="pb-2 flex items-center gap-2 flex-wrap">
-            <span className="text-xs text-[#999]">Style:</span>
+        )}
+      </div>
+
+      {/* ── Chat ── */}
+      {tab === 'chat' && (
+        <>
+          {/* Style info strip */}
+          <div className="bg-white border-b border-[#F0F0F0] px-4 py-2 flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] font-semibold text-[#999] uppercase tracking-wide">Style</span>
             <Tag label={TEMPLATE_LABELS[currentProfile.template] ?? currentProfile.template} />
             <Tag label={PALETTE_LABELS[currentProfile.palette] ?? currentProfile.palette} />
             <Tag label={FONT_LABELS[currentProfile.font] ?? currentProfile.font} />
           </div>
-        </div>
-      </div>
 
-      {tab === 'chat' && (
-        <>
-          {/* Seed upgrade nudge */}
           {isSeed && (
             <div className="max-w-2xl w-full mx-auto px-4 pt-4">
               <div className="flex items-center justify-between gap-3 bg-[#FFF7ED] border border-[#F5A623]/30 rounded-xl px-4 py-3">
@@ -251,7 +268,6 @@ export default function SpaceClient({
             </div>
           )}
 
-          {/* Chat messages */}
           <main className="flex-1 overflow-y-auto px-4 py-6 max-w-2xl w-full mx-auto">
             <div className="space-y-4">
               {messages.map((msg, i) => (
@@ -297,7 +313,6 @@ export default function SpaceClient({
             </div>
           </main>
 
-          {/* Input */}
           <div className="bg-white border-t border-[#E5E5E5] px-4 py-4">
             <div className="max-w-2xl mx-auto flex gap-3 items-end">
               <textarea
@@ -327,7 +342,8 @@ export default function SpaceClient({
         </>
       )}
 
-      {tab === 'services' && (
+      {/* ── Design: Services ── */}
+      {tab === 'design' && designTab === 'services' && (
         <ServicesTab
           providerId={providerId}
           slug={slug}
@@ -337,7 +353,8 @@ export default function SpaceClient({
         />
       )}
 
-      {tab === 'sections' && (
+      {/* ── Design: Page layout ── */}
+      {tab === 'design' && designTab === 'sections' && (
         <SectionsTab
           providerId={providerId}
           slug={slug}
@@ -346,12 +363,42 @@ export default function SpaceClient({
         />
       )}
 
-      {tab === 'bookings' && (
-        <div className="flex-1 overflow-y-auto">
-          <BookingsTab providerId={providerId} />
-        </div>
+      {/* ── Design: Layouts ── */}
+      {tab === 'design' && designTab === 'layouts' && (
+        <LayoutsTab
+          slug={slug}
+          persona={currentProfile.persona}
+          plan={plan}
+          currentTemplate={currentProfile.template}
+          currentPalette={currentProfile.palette}
+          currentFont={currentProfile.font}
+          onPreview={() => { setPreviewTs(Date.now()); setPreviewOpen(true) }}
+          onUpgrade={() => setTab('plan')}
+        />
       )}
 
+      {/* ── Design: Ads ── */}
+      {tab === 'design' && designTab === 'ads' && (
+        <AdsTab
+          providerId={providerId}
+          slug={slug}
+          plan={plan}
+          onUpgrade={() => setTab('plan')}
+        />
+      )}
+
+      {/* ── Design: Media ── */}
+      {tab === 'design' && designTab === 'media' && (
+        <MediaTab
+          providerId={providerId}
+          slug={slug}
+          firstName={firstName}
+          plan={plan}
+          onUpgrade={() => setTab('plan')}
+        />
+      )}
+
+      {/* ── Messages ── */}
       {tab === 'messages' && (
         isSeed ? (
           <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 text-center">
@@ -373,12 +420,21 @@ export default function SpaceClient({
         )
       )}
 
+      {/* ── Bookings ── */}
+      {tab === 'bookings' && (
+        <div className="flex-1 overflow-y-auto">
+          <BookingsTab providerId={providerId} />
+        </div>
+      )}
+
+      {/* ── My plan ── */}
       {tab === 'plan' && (
         <div className="flex-1 overflow-y-auto">
           <PlanSection currentPlan={plan} region={region} onGoToMessages={() => setTab('messages')} />
         </div>
       )}
 
+      {/* ── Preview overlay ── */}
       {previewOpen && (
         <div className="fixed inset-0 z-50 flex flex-col bg-white">
           <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E5E5] shrink-0 bg-white gap-3">
@@ -410,6 +466,7 @@ export default function SpaceClient({
           />
         </div>
       )}
+
     </div>
   )
 }
