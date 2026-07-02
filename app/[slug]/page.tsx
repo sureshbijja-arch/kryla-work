@@ -64,14 +64,15 @@ export default async function MemberProfilePage({ params }: Props) {
   // These queries depend on columns added in migrations — they fail gracefully
   // if the migrations haven't been run yet.
   const [avatarRes, galleryRes, menuFilesRes] = await Promise.allSettled([
-    supabaseAdmin.from('providers').select('avatar_url, instagram_handle').eq('id', provider.id).single(),
+    supabaseAdmin.from('providers').select('avatar_url, instagram_handle, nextdoor_url').eq('id', provider.id).single(),
     supabaseAdmin.from('pages').select('gallery').eq('provider_id', provider.id).single(),
     supabaseAdmin.from('pages').select('menu_files').eq('provider_id', provider.id).single(),
   ])
 
   const providerExtra   = avatarRes.status === 'fulfilled' ? (avatarRes.value.data as Record<string, unknown> | null) : null
-  const avatarUrl       = (providerExtra?.avatar_url as string | null) ?? null
+  const avatarUrl       = (providerExtra?.avatar_url       as string | null) ?? null
   const instagramHandle = (providerExtra?.instagram_handle as string | null) ?? null
+  const nextdoorUrl     = (providerExtra?.nextdoor_url     as string | null) ?? null
   const galleryRaw      = galleryRes.status    === 'fulfilled' ? (galleryRes.value.data?.gallery    ?? [])   : []
   const gallery         = Array.isArray(galleryRaw) ? (galleryRaw as string[]) : []
   const menuFilesRaw    = menuFilesRes.status  === 'fulfilled' ? (menuFilesRes.value.data as Record<string, unknown> | null)?.menu_files : undefined
@@ -116,6 +117,7 @@ export default async function MemberProfilePage({ params }: Props) {
     gallery,
     menuFiles,
     instagramHandle,
+    nextdoorUrl,
   }
 
   const pageSections  = Array.isArray(page.sections) ? (page.sections as SectionEntry[]) : null

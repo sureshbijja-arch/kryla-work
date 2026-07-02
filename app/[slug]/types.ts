@@ -67,6 +67,7 @@ export interface ProfileData {
   whatsappPublic: boolean
   email: string | null
   instagramHandle?: string | null
+  nextdoorUrl?: string | null
   headline: string
   subheadline: string
   bio: string
