@@ -30,14 +30,32 @@ Pages fields you can update:
 - font ("inter" | "georgia" | "trebuchet")
 - template ("focus" | "portfolio" | "storefront" | "clinic")
 - show_sections (full object: {hero, services, highlights, booking, faq, contact} — all booleans)
+- sections: the page layout order and style. ONLY patch this to change a section's visual variant.
+  ALWAYS return the FULL array — keep every section, only change the variant of the one being updated.
+  Valid variants:
+    hero: auto | photo | split | centered | dark | gradient | banner | minimal
+    services: list | grid | menu | pricing | features
+    highlights: icons | cards | stats | numbered | strip
+    bio: paragraph | accent | callout | dark
+    gallery: grid | featured | masonry | scroll
+    faq: accordion | twocol
+    contact: both | form | whatsapp | minimal | dark
 
 Providers fields you can update:
 - whatsapp_number (digits with country code, e.g. "919876543210")
 - location (string — city, area or full address; this automatically becomes a clickable Google Maps "Get Directions" link on the page)
 
+Member's media (read-only — uploaded via the Media tab, not patchable via chat):
+- avatarUrl: profile photo URL (if set, hero variants "photo" and "split" will show it prominently)
+- gallery: array of uploaded image URLs
+
 Rules:
 - When member says "add map", "add directions", "show my location on map", or similar: if their location is already in the current profile use it; otherwise ask them to tell you their location, then set it via patch_providers.location
-- ALWAYS return the complete array for services, highlights, and faq — never partial
+- When member asks to use their photo, show their face, or make the hero more personal:
+  - If avatarUrl is set: patch sections with hero variant "photo" or "split" (their choice; default "photo")
+  - If avatarUrl is null: tell them to upload a photo in the Media tab first, then come back
+- When member asks to change how a section looks or its layout: patch sections with the appropriate variant
+- ALWAYS return the complete array for services, highlights, faq, and sections — never partial
 - ALWAYS return the complete show_sections object if any section visibility changes
 - Never invent content the member didn't provide
 - Preserve the member's own words and voice
@@ -60,10 +78,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
   }
 
-  // Verify this session's email owns the providerId
+  // Verify ownership
   const { data: provider } = await supabaseAdmin
     .from('providers')
-    .select('id, slug, email')
+    .select('id, slug, email, avatar_url')
     .eq('id', providerId)
     .eq('email', user.email)
     .single()
@@ -72,10 +90,31 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
   }
 
+  // Fetch fresh page data (draft_data + gallery) — overrides the stale client snapshot
+  const { data: pageRow } = await supabaseAdmin
+    .from('pages')
+    .select('gallery, draft_data')
+    .eq('provider_id', providerId)
+    .maybeSingle()
+
+  type DraftShape = { pages?: Record<string, unknown>; providers?: Record<string, unknown> }
+  const draft = (pageRow?.draft_data ?? {}) as DraftShape
+  const dp    = draft.pages     ?? {}
+
+  const gallery = Array.isArray(pageRow?.gallery) ? pageRow.gallery : []
+
+  // Build the freshest possible profile: client snapshot + draft overrides + live media
+  const enrichedProfile = {
+    ...currentProfile,
+    ...dp,                          // draft values win over the stale client snapshot
+    avatarUrl: provider.avatar_url ?? null,
+    gallery,
+  }
+
   const systemWithProfile = `${SYSTEM_PROMPT}
 
 Current profile (JSON):
-${JSON.stringify(currentProfile, null, 2)}`
+${JSON.stringify(enrichedProfile, null, 2)}`
 
   const completion = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
@@ -112,19 +151,18 @@ ${JSON.stringify(currentProfile, null, 2)}`
     return NextResponse.json({ message, changed: false })
   }
 
-  // Merge into draft_data — live columns stay unchanged until member confirms & publishes
-  const { data: currentPage } = await supabaseAdmin
+  // Merge into draft_data — live columns stay unchanged until member publishes
+  const { data: currentPageFresh } = await supabaseAdmin
     .from('pages')
     .select('draft_data')
     .eq('provider_id', providerId)
     .maybeSingle()
 
-  type DraftShape = { pages: Record<string, unknown>; providers: Record<string, unknown> }
-  const existing = (currentPage?.draft_data ?? {}) as Partial<DraftShape>
+  const existingFresh = (currentPageFresh?.draft_data ?? {}) as Partial<DraftShape>
 
-  const newDraft: DraftShape = {
-    pages:     { ...(existing.pages     ?? {}), ...patch_pages },
-    providers: { ...(existing.providers ?? {}), ...safePatchProviders },
+  const newDraft = {
+    pages:     { ...(existingFresh.pages     ?? {}), ...patch_pages },
+    providers: { ...(existingFresh.providers ?? {}), ...safePatchProviders },
   }
 
   const { error } = await supabaseAdmin
