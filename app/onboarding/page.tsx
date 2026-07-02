@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { toSlug, suggestSlug, validateSlug } from '@/lib/slug'
 import { getAllVerticals } from '@/config/verticals'
 import type { OnboardingAnswers, Persona, Plan, Region } from '@/types/onboarding'
@@ -21,17 +21,20 @@ const PLANS: {
   usaPrice: string; indiaPrice: string
   perks: string[]; popular?: boolean
 }[] = [
-  { id: 'seed',   emoji: '🌱', label: 'Seed',   usaPrice: 'Free',   indiaPrice: 'Free',      perks: ['Your presence online', 'Contact form', 'Up to 10 inquiries'] },
-  { id: 'sprout', emoji: '🌿', label: 'Sprout', usaPrice: '$5/mo',  indiaPrice: '₹299/mo',   perks: ['Everything in Seed', 'Real bookings', 'WhatsApp alerts'], popular: true },
-  { id: 'grow',   emoji: '🌳', label: 'Grow',   usaPrice: '$12/mo', indiaPrice: '₹799/mo',   perks: ['Everything in Sprout', 'Your own domain', 'Analytics'] },
-  { id: 'thrive', emoji: '🚀', label: 'Thrive', usaPrice: '$25/mo', indiaPrice: '₹1,999/mo', perks: ['Everything in Grow', 'Update via WhatsApp', 'All 6 AI agents'] },
+  { id: 'sprout', emoji: '🌿', label: 'Sprout', usaPrice: '$5/mo',  indiaPrice: '₹149/mo',  perks: ['Your presence online', 'Booking form on your page', 'WhatsApp alerts on new bookings'] },
+  { id: 'grow',   emoji: '🌳', label: 'Grow',   usaPrice: '$10/mo', indiaPrice: '₹299/mo',  perks: ['Everything in Sprout', 'Upload profile photo & gallery', 'Your own domain (priya.com)'], popular: true },
+  { id: 'thrive', emoji: '🚀', label: 'Thrive', usaPrice: '$18/mo', indiaPrice: '₹399/mo',  perks: ['Everything in Grow', 'Update your page via WhatsApp', 'Scrolling ads on your page'] },
+  { id: 'elevate',emoji: '⚡', label: 'Elevate', usaPrice: '$29/mo', indiaPrice: '₹499/mo',  perks: ['Everything in Thrive', 'Online payments on your page', 'Team access & branded email'] },
 ]
 
 export default function OnboardingPage() {
-  const router = useRouter()
+  const router       = useRouter()
+  const searchParams = useSearchParams()
+  const referredBy   = searchParams.get('ref') ?? ''
+
   const [step, setStep] = useState<Step>(1)
   const [answers, setAnswers] = useState<Partial<OnboardingAnswers>>({
-    plan: 'seed', region: 'usa', whatsappCountryCode: '+1',
+    plan: 'sprout', region: 'usa', whatsappCountryCode: '+1',
   })
   const [customPersonaName, setCustomPersonaName] = useState('')
   const [slug, setSlug] = useState('')
@@ -122,7 +125,7 @@ export default function OnboardingPage() {
       const res = await fetch('/api/onboarding/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...answers, slug, customPersonaName: customPersonaName.trim() || undefined }),
+        body: JSON.stringify({ ...answers, slug, customPersonaName: customPersonaName.trim() || undefined, referredBy: referredBy || undefined }),
       })
       const data = await res.json()
       if (!res.ok || !data.ok) {
@@ -148,7 +151,7 @@ export default function OnboardingPage() {
   const canProceed1 = !!answers.persona && (answers.persona !== 'other' || customPersonaName.trim().length >= 2)
   const canProceed2 = !!(answers.firstName?.trim() && answers.tagline?.trim())
   const canProceed3 = slugStatus.available === true
-  const canProceed4 = !!answers.plan
+  const canProceed4 = !!answers.plan && answers.plan !== 'seed'
   const progressPercent = step === 5 ? 95 : (step / 5) * 100
 
   return (

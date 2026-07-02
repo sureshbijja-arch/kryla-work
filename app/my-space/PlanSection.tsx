@@ -6,26 +6,13 @@ interface Props {
 
 const PLANS = [
   {
-    id: 'seed',
-    name: 'Seed',
-    icon: '🌱',
-    price: { india: 'Free', usa: 'Free' },
-    tagline: 'Your presence online, yours to keep.',
-    features: [
-      'Public profile page',
-      'Bio, services & FAQ',
-      'WhatsApp contact button',
-      'Google Maps directions on your location',
-    ],
-  },
-  {
     id: 'sprout',
     name: 'Sprout',
     icon: '🌿',
-    price: { india: '₹299/mo', usa: '$5/mo' },
+    price: { india: '₹149/mo', usa: '$5/mo' },
     tagline: 'Bookings and real-time alerts.',
     features: [
-      'Everything in Seed',
+      'Public profile page',
       'Booking form on your page',
       'WhatsApp alert on new bookings',
     ],
@@ -34,7 +21,7 @@ const PLANS = [
     id: 'grow',
     name: 'Grow',
     icon: '🌳',
-    price: { india: '₹799/mo', usa: '$12/mo' },
+    price: { india: '₹299/mo', usa: '$10/mo' },
     tagline: 'Your own address on the internet.',
     features: [
       'Everything in Sprout',
@@ -47,7 +34,7 @@ const PLANS = [
     id: 'thrive',
     name: 'Thrive',
     icon: '🚀',
-    price: { india: '₹1,999/mo', usa: '$25/mo' },
+    price: { india: '₹399/mo', usa: '$18/mo' },
     tagline: 'Your spot runs itself.',
     features: [
       'Everything in Grow',
@@ -60,17 +47,18 @@ const PLANS = [
     id: 'elevate',
     name: 'Elevate',
     icon: '⚡',
-    price: { india: '₹3,999/mo', usa: '$45/mo' },
+    price: { india: '₹499/mo', usa: '$29/mo' },
     tagline: 'Built to scale.',
     features: [
       'Everything in Thrive',
       'Online payments on your page',
       'Team access & branded email',
+      'Custom changes — quote on request',
     ],
   },
 ]
 
-const PLAN_ORDER = ['seed', 'sprout', 'grow', 'thrive', 'elevate']
+const PLAN_ORDER = ['sprout', 'grow', 'thrive', 'elevate']
 
 export default function PlanSection({ currentPlan, region, onGoToMessages }: Props) {
   const currentIdx = PLAN_ORDER.indexOf(currentPlan)

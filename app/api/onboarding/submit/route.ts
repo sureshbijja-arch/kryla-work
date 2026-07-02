@@ -13,6 +13,8 @@ export async function POST(req: NextRequest) {
   }
 
   const { persona, firstName, lastName, tagline, location, slug, whatsappCountryCode, whatsappNumber, whatsappPublic, email, plan, region } = body
+  const rawReferredBy    = (body as unknown as Record<string, unknown>).referredBy
+  const referredBy       = typeof rawReferredBy === 'string' ? rawReferredBy.trim().toUpperCase().slice(0, 5) : null
   const rawCustomPersona = (body as unknown as Record<string, unknown>).customPersonaName
   const customPersonaName = typeof rawCustomPersona === 'string' ? rawCustomPersona.trim() : ''
   const normalizedPersonaName = persona === 'other' && customPersonaName.length >= 2
@@ -80,7 +82,8 @@ export async function POST(req: NextRequest) {
       whatsapp_public: whatsappPublic !== false,
       email: email?.trim() || null,
       plan,
-      plan_status: plan === 'seed' ? 'active' : 'pending_payment',
+      plan_status: 'pending_payment',
+      referred_by: referredBy || null,
       region,
       page_live: false,
       verified: false,

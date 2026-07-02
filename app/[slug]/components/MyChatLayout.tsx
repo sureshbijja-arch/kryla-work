@@ -15,6 +15,7 @@ interface SpaceProps {
   region: 'india' | 'usa'
   pageLanguage: string
   customDomain: string | null
+  referralCode: string | null
   currentProfile: {
     firstName: string
     lastName: string
