@@ -1,5 +1,5 @@
 export type Persona = 'tutor' | 'trainer' | 'baker' | 'photographer' | 'salon' | 'chef' | 'doctor' | 'musician' | 'advocate' | 'retailer' | 'other'
-export type Plan = 'seed' | 'sprout' | 'grow' | 'thrive' | 'elevate'
+export type Plan = 'grow' | 'thrive' | 'elevate'
 export type Region = 'usa' | 'india'
 
 export interface OnboardingAnswers {
@@ -25,7 +25,4 @@ export const PERSONA_LABELS: Record<Persona, string> = {
   other: 'Professional',
 }
 
-export const PLAN_PRICES: Record<Region, Record<Plan, string>> = {
-  usa:   { seed:'Free', sprout:'$5/mo',      grow:'$12/mo',     thrive:'$25/mo',    elevate:'$45/mo' },
-  india: { seed:'Free', sprout:'₹299/mo',    grow:'₹799/mo',    thrive:'₹1,999/mo', elevate:'₹3,999/mo' },
-}
+// Prices are defined in config/plans.ts — the single source of truth.

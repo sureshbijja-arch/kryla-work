@@ -59,11 +59,8 @@ export default async function PreviewPage({ params }: Props) {
     ...(page.show_sections as ShowSections ?? defaultShowSections),
     ...(dp.show_sections as ShowSections ?? {}),
   }
-  const isSeed = !provider.plan || provider.plan === 'seed'
-  const showSections: ShowSections = {
-    ...rawSections,
-    booking: isSeed ? false : rawSections.booking,
-  }
+  // Booking form is available on all plans (Grow is the entry tier)
+  const showSections: ShowSections = rawSections
 
   const profileData: ProfileData = {
     providerId:   provider.id,

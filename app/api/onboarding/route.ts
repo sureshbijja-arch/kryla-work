@@ -20,7 +20,7 @@ const schema = z.object({
   phone:    z.string().optional(),
   city:     z.string().optional(),
   country:  z.string().optional(),
-  plan:     z.enum(["seed", "sprout", "grow", "thrive", "elevate"]).default("seed"),
+  plan:     z.enum(["grow", "thrive", "elevate"]).default("grow"),
   answers:  z.record(z.string()),
 })
 
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
         email:    data.email,
         phone:    data.phone ?? null,
         plan:     data.plan,
-        plan_status: "active",
+        plan_status: "pending_payment",
         persona:  data.persona,
         city:     data.city ?? null,
         country:  data.country ?? null,

@@ -14,10 +14,10 @@ create table if not exists providers (
   name                 text not null,
   email                text not null unique,
   phone                text,
-  plan                 text not null default 'seed'
-                         check (plan in ('seed','sprout','grow','thrive','elevate')),
-  plan_status          text not null default 'active'
-                         check (plan_status in ('active','past_due','cancelled')),
+  plan                 text not null default 'grow'
+                         check (plan in ('grow','thrive','elevate')),
+  plan_status          text not null default 'pending_payment'
+                         check (plan_status in ('active','pending_payment','past_due','cancelled')),
   stripe_customer_id   text unique,
   razorpay_customer_id text unique,
   custom_domain        text unique,

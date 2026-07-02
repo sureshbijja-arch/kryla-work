@@ -85,12 +85,8 @@ export default async function MemberProfilePage({ params }: Props) {
 
   const rawSections: ShowSections = (page.show_sections as ShowSections) ?? defaultShowSections
 
-  // Booking form is a Sprout+ feature — gate it by plan
-  const isSeed = !provider.plan || provider.plan === 'seed'
-  const showSections: ShowSections = {
-    ...rawSections,
-    booking: isSeed ? false : rawSections.booking,
-  }
+  // Booking form is available on all plans (Grow is the entry tier)
+  const showSections: ShowSections = rawSections
 
   const profileData: ProfileData = {
     providerId: provider.id,

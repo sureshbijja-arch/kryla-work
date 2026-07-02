@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-
-const PLAN_RANK: Record<string, number> = { seed: 0, sprout: 1, grow: 2, thrive: 3, elevate: 4 }
+import { can } from '@/lib/plan'
 
 export async function POST(req: NextRequest) {
   const supabase = createClient()
@@ -32,8 +31,7 @@ export async function POST(req: NextRequest) {
 
   if (!provider) return NextResponse.json({ error: 'Not your page' }, { status: 403 })
 
-  const rank = PLAN_RANK[provider.plan ?? 'seed'] ?? 0
-  if (rank < 3) {
+  if (!can.postAds(provider.plan)) {
     return NextResponse.json({ error: 'Upgrade to Thrive to post ads' }, { status: 403 })
   }
 

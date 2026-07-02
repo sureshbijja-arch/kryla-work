@@ -11,9 +11,7 @@ interface Props {
   onUpgrade: () => void
 }
 
-const PLAN_RANK: Record<string, number> = { seed: 0, sprout: 1, grow: 2, thrive: 3, elevate: 4 }
-
-export default function MediaTab({ providerId, slug, firstName, plan, onUpgrade }: Props) {
+export default function MediaTab({ providerId, slug, firstName, plan: _plan, onUpgrade: _onUpgrade }: Props) {
   const [avatarUrl, setAvatarUrl]             = useState<string | null>(null)
   const [gallery, setGallery]                 = useState<string[]>([])
   const [loading, setLoading]                 = useState(true)
@@ -29,7 +27,6 @@ export default function MediaTab({ providerId, slug, firstName, plan, onUpgrade 
   const [socialError,  setSocialError]  = useState('')
 
   const supabase  = createClient()
-  const canUpload = (PLAN_RANK[plan] ?? 0) >= 2
 
   useEffect(() => {
     Promise.all([
@@ -168,58 +165,43 @@ export default function MediaTab({ providerId, slug, firstName, plan, onUpgrade 
           </div>
         </section>
 
-        {/* ── Photos & Media — Grow+ only ── */}
-        {!canUpload ? (
-          <section className="rounded-2xl border border-[#E5E5E5] px-5 py-6 text-center">
-            <p className="text-2xl mb-2">🖼️</p>
-            <p className="font-semibold text-[#0D0D0D] mb-1">Photos & Media</p>
-            <p className="text-sm text-[#666] mb-4 max-w-xs mx-auto">Upload your profile photo and gallery. Available on Grow and above.</p>
-            <button
-              onClick={onUpgrade}
-              className="bg-[#0D0D0D] text-white rounded-xl px-5 py-2.5 text-sm font-semibold hover:opacity-80 transition-opacity">
-              See plans →
-            </button>
-          </section>
-        ) : (
-          <>
-            <section>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#0D0D0D] mb-3">Profile photo</p>
-              <div className="flex items-center gap-4">
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="Avatar" className="w-16 h-16 rounded-full object-cover border border-[#E5E5E5]" />
-                ) : (
-                  <div className="w-16 h-16 rounded-full bg-[#F5F5F5] flex items-center justify-center text-2xl font-semibold text-[#bbb]">
-                    {firstName[0]?.toUpperCase()}
-                  </div>
-                )}
-                <label className="cursor-pointer text-sm font-semibold text-[#0D0D0D] border border-[#E5E5E5] rounded-xl px-4 py-2.5 hover:bg-[#F5F5F5] transition-colors">
-                  {avatarUploading ? 'Uploading…' : avatarUrl ? 'Change photo' : 'Upload photo'}
-                  <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={avatarUploading} />
-                </label>
+        {/* ── Photos & Media — available on all plans ── */}
+        <section>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#0D0D0D] mb-3">Profile photo</p>
+          <div className="flex items-center gap-4">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="Avatar" className="w-16 h-16 rounded-full object-cover border border-[#E5E5E5]" />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-[#F5F5F5] flex items-center justify-center text-2xl font-semibold text-[#bbb]">
+                {firstName[0]?.toUpperCase()}
               </div>
-              {avatarError && <p className="text-red-500 text-xs mt-2">{avatarError}</p>}
-            </section>
+            )}
+            <label className="cursor-pointer text-sm font-semibold text-[#0D0D0D] border border-[#E5E5E5] rounded-xl px-4 py-2.5 hover:bg-[#F5F5F5] transition-colors">
+              {avatarUploading ? 'Uploading…' : avatarUrl ? 'Change photo' : 'Upload photo'}
+              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={avatarUploading} />
+            </label>
+          </div>
+          {avatarError && <p className="text-red-500 text-xs mt-2">{avatarError}</p>}
+        </section>
 
-            <section>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#0D0D0D] mb-3">Gallery</p>
-              {gallery.length > 0 && (
-                <div className="grid grid-cols-3 gap-2 mb-3">
-                  {gallery.map((url, i) => (
-                    <img key={i} src={url} alt="" className="w-full aspect-square object-cover rounded-lg border border-[#E5E5E5]" />
-                  ))}
-                </div>
-              )}
-              {gallery.length === 0 && (
-                <p className="text-xs text-[#999] mb-3">No gallery images yet.</p>
-              )}
-              <label className="cursor-pointer inline-flex items-center gap-1.5 text-sm font-semibold text-[#0D0D0D] border border-[#E5E5E5] rounded-xl px-4 py-2.5 hover:bg-[#F5F5F5] transition-colors">
-                {galleryUploading ? 'Uploading…' : '+ Add image'}
-                <input type="file" accept="image/*" className="hidden" onChange={handleGalleryUpload} disabled={galleryUploading} />
-              </label>
-              {galleryError && <p className="text-red-500 text-xs mt-2">{galleryError}</p>}
-            </section>
-          </>
-        )}
+        <section>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#0D0D0D] mb-3">Gallery</p>
+          {gallery.length > 0 && (
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              {gallery.map((url, i) => (
+                <img key={i} src={url} alt="" className="w-full aspect-square object-cover rounded-lg border border-[#E5E5E5]" />
+              ))}
+            </div>
+          )}
+          {gallery.length === 0 && (
+            <p className="text-xs text-[#999] mb-3">No gallery images yet.</p>
+          )}
+          <label className="cursor-pointer inline-flex items-center gap-1.5 text-sm font-semibold text-[#0D0D0D] border border-[#E5E5E5] rounded-xl px-4 py-2.5 hover:bg-[#F5F5F5] transition-colors">
+            {galleryUploading ? 'Uploading…' : '+ Add image'}
+            <input type="file" accept="image/*" className="hidden" onChange={handleGalleryUpload} disabled={galleryUploading} />
+          </label>
+          {galleryError && <p className="text-red-500 text-xs mt-2">{galleryError}</p>}
+        </section>
 
       </div>
     </div>

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toSlug, suggestSlug, validateSlug } from '@/lib/slug'
 import { getAllVerticals } from '@/config/verticals'
+import { PLANS } from '@/config/plans'
 import type { OnboardingAnswers, Persona, Plan, Region } from '@/types/onboarding'
 
 type Step = 1 | 2 | 3 | 4 | 5
@@ -15,17 +16,8 @@ interface SlugStatus {
 }
 
 const PERSONAS = getAllVerticals().map((v) => ({ id: v.id as Persona, emoji: v.emoji, label: v.label }))
-
-const PLANS: {
-  id: Plan; emoji: string; label: string
-  usaPrice: string; indiaPrice: string
-  perks: string[]; popular?: boolean
-}[] = [
-  { id: 'sprout', emoji: '🌿', label: 'Sprout', usaPrice: '$5/mo',  indiaPrice: '₹149/mo',  perks: ['Your presence online', 'Booking form on your page', 'WhatsApp alerts on new bookings'] },
-  { id: 'grow',   emoji: '🌳', label: 'Grow',   usaPrice: '$10/mo', indiaPrice: '₹299/mo',  perks: ['Everything in Sprout', 'Upload profile photo & gallery', 'Your own domain (priya.com)'], popular: true },
-  { id: 'thrive', emoji: '🚀', label: 'Thrive', usaPrice: '$18/mo', indiaPrice: '₹399/mo',  perks: ['Everything in Grow', 'Update your page via WhatsApp', 'Scrolling ads on your page'] },
-  { id: 'elevate',emoji: '⚡', label: 'Elevate', usaPrice: '$29/mo', indiaPrice: '₹499/mo',  perks: ['Everything in Thrive', 'Online payments on your page', 'Team access & branded email'] },
-]
+// Only the two priced tiers are selectable at onboarding (Elevate is contact-based)
+const SELECTABLE_PLANS = PLANS.filter(p => p.usaPrice)
 
 export default function OnboardingClient() {
   const router       = useRouter()
@@ -34,7 +26,7 @@ export default function OnboardingClient() {
 
   const [step, setStep] = useState<Step>(1)
   const [answers, setAnswers] = useState<Partial<OnboardingAnswers>>({
-    plan: 'sprout', region: 'usa', whatsappCountryCode: '+1',
+    plan: 'grow', region: 'usa', whatsappCountryCode: '+1',
   })
   const [customPersonaName, setCustomPersonaName] = useState('')
   const [slug, setSlug] = useState('')
@@ -151,7 +143,7 @@ export default function OnboardingClient() {
   const canProceed1 = !!answers.persona && (answers.persona !== 'other' || customPersonaName.trim().length >= 2)
   const canProceed2 = !!(answers.firstName?.trim() && answers.tagline?.trim())
   const canProceed3 = slugStatus.available === true
-  const canProceed4 = !!answers.plan && answers.plan !== 'seed'
+  const canProceed4 = answers.plan === 'grow' || answers.plan === 'thrive'
   const progressPercent = step === 5 ? 95 : (step / 5) * 100
 
   return (
@@ -314,9 +306,9 @@ export default function OnboardingClient() {
 
             {step === 4 && (
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-[#C17A3A] mb-1">Pick your start</p>
-                <h1 className="text-2xl font-semibold text-[#0D0D0D] mb-1">How do you want to start?</h1>
-                <p className="text-sm text-[#666] mb-5 leading-relaxed">You can always move up later. Most people start free and grow from there.</p>
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-[#C17A3A] mb-1">Pick your plan</p>
+                <h1 className="text-2xl font-semibold text-[#0D0D0D] mb-1">Choose your membership</h1>
+                <p className="text-sm text-[#666] mb-5 leading-relaxed">Pick the plan that fits where you are today. You can upgrade anytime.</p>
                 <div className="flex bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg p-1 w-fit gap-1 mb-5">
                   {(['usa', 'india'] as Region[]).map((r) => (
                     <button key={r} onClick={() => setAnswers((a) => ({ ...a, region: r }))}
@@ -325,24 +317,31 @@ export default function OnboardingClient() {
                     </button>
                   ))}
                 </div>
-                <div className="grid grid-cols-2 gap-2.5 mb-5">
-                  {PLANS.map((plan) => (
-                    <button key={plan.id} onClick={() => setAnswers((a) => ({ ...a, plan: plan.id }))}
+                <div className="grid grid-cols-2 gap-2.5 mb-4">
+                  {SELECTABLE_PLANS.map((plan) => (
+                    <button key={plan.id} onClick={() => setAnswers((a) => ({ ...a, plan: plan.id as Plan }))}
                       className={`relative border rounded-xl p-4 text-left transition-all ${answers.plan === plan.id ? 'border-[#F5A623] bg-[#FFFBF5] shadow-[0_0_0_3px_rgba(245,166,35,0.15)]' : 'border-[#E5E5E5] hover:border-[#F5A623] hover:bg-[#FFFBF5]'}`}>
                       {plan.popular && (
                         <div className="absolute -top-px right-3 bg-[#F5A623] text-[#0D0D0D] text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-b-md">Most popular</div>
                       )}
-                      <div className="text-xs font-semibold text-[#0D0D0D] mb-0.5">{plan.emoji} {plan.label}</div>
+                      <div className="text-xs font-semibold text-[#0D0D0D] mb-0.5">{plan.emoji} {plan.name}</div>
                       <div className="text-lg font-bold text-[#0D0D0D] mb-2">{answers.region === 'india' ? plan.indiaPrice : plan.usaPrice}</div>
                       <ul className="space-y-1">
-                        {plan.perks.map((perk) => (
-                          <li key={perk} className="text-[11px] text-[#444] flex items-start gap-1.5">
-                            <span className="text-[#22C55E] font-bold flex-shrink-0">✓</span>{perk}
+                        {plan.features.map((f) => (
+                          <li key={f} className="text-[11px] text-[#444] flex items-start gap-1.5">
+                            <span className="text-[#22C55E] font-bold flex-shrink-0">✓</span>{f}
                           </li>
                         ))}
                       </ul>
                     </button>
                   ))}
+                </div>
+                <div className="rounded-xl border border-[#E5E5E5] bg-[#FAFAFA] px-4 py-3 mb-5 flex items-center justify-between gap-3">
+                  <div>
+                    <span className="text-sm font-semibold text-[#0D0D0D]">⚡ Elevate</span>
+                    <span className="text-xs text-[#999] ml-2">Custom work, built for your business</span>
+                  </div>
+                  <a href="mailto:hello@kryla.work" className="shrink-0 text-xs font-semibold text-[#C17A3A] hover:underline">Contact us →</a>
                 </div>
                 {submitError && <p className="text-sm text-red-500 mb-4">{submitError}</p>}
                 <div className="flex justify-between items-center">

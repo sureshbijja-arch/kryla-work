@@ -1,68 +1,13 @@
+import { PLANS, PLAN_ORDER } from '@/config/plans'
+
 interface Props {
   currentPlan: string
   region: 'india' | 'usa'
   onGoToMessages?: () => void
 }
 
-const PLANS = [
-  {
-    id: 'sprout',
-    name: 'Sprout',
-    icon: '🌿',
-    price: { india: '₹149/mo', usa: '$5/mo' },
-    tagline: 'Bookings and real-time alerts.',
-    features: [
-      'Public profile page',
-      'Booking form on your page',
-      'WhatsApp alert on new bookings',
-    ],
-  },
-  {
-    id: 'grow',
-    name: 'Grow',
-    icon: '🌳',
-    price: { india: '₹299/mo', usa: '$10/mo' },
-    tagline: 'Your own address on the internet.',
-    features: [
-      'Everything in Sprout',
-      'Upload profile photo & gallery',
-      'Your own domain (priya.com)',
-      'Analytics — see who\'s visiting',
-    ],
-  },
-  {
-    id: 'thrive',
-    name: 'Thrive',
-    icon: '🚀',
-    price: { india: '₹399/mo', usa: '$18/mo' },
-    tagline: 'Your spot runs itself.',
-    features: [
-      'Everything in Grow',
-      'Post scrolling ads on your page',
-      'Update your page via WhatsApp',
-      'Review collection',
-    ],
-  },
-  {
-    id: 'elevate',
-    name: 'Elevate',
-    icon: '⚡',
-    price: { india: '₹499/mo', usa: '$29/mo' },
-    tagline: 'Built to scale.',
-    features: [
-      'Everything in Thrive',
-      'Online payments on your page',
-      'Team access & branded email',
-      'Custom changes — quote on request',
-    ],
-  },
-]
-
-const PLAN_ORDER = ['sprout', 'grow', 'thrive', 'elevate']
-
 export default function PlanSection({ currentPlan, region, onGoToMessages }: Props) {
-  const currentIdx = PLAN_ORDER.indexOf(currentPlan)
-  const isSeed = currentPlan === 'seed'
+  const currentIdx = PLAN_ORDER.indexOf(currentPlan as 'grow' | 'thrive' | 'elevate')
 
   return (
     <div className="px-4 py-6 max-w-2xl mx-auto w-full">
@@ -70,10 +15,11 @@ export default function PlanSection({ currentPlan, region, onGoToMessages }: Pro
 
       <div className="space-y-3">
         {PLANS.map((plan) => {
-          const planIdx  = PLAN_ORDER.indexOf(plan.id)
+          const planIdx    = PLAN_ORDER.indexOf(plan.id)
           const isCurrent  = plan.id === currentPlan
           const isUpgrade  = planIdx > currentIdx
           const isDowngrade = planIdx < currentIdx
+          const isElevate  = plan.id === 'elevate'
 
           return (
             <div
@@ -86,16 +32,18 @@ export default function PlanSection({ currentPlan, region, onGoToMessages }: Pro
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-lg">{plan.icon}</span>
+                    <span className="text-lg">{plan.emoji}</span>
                     <span className="font-bold text-[#0D0D0D]">{plan.name}</span>
                     {isCurrent && (
                       <span className="text-[10px] font-semibold bg-[#0D0D0D] text-white px-2 py-0.5 rounded-full uppercase tracking-wide">
                         Current
                       </span>
                     )}
-                    <span className="text-sm font-semibold text-[#666]">
-                      {plan.price[region]}
-                    </span>
+                    {!isElevate && (
+                      <span className="text-sm font-semibold text-[#666]">
+                        {region === 'india' ? plan.indiaPrice : plan.usaPrice}
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-[#999] mb-3">{plan.tagline}</p>
                   <ul className="space-y-1">
@@ -117,13 +65,19 @@ export default function PlanSection({ currentPlan, region, onGoToMessages }: Pro
                       className="text-xs font-semibold px-4 py-2 rounded-lg border border-[#E5E5E5] text-[#bbb] cursor-default">
                       Your plan
                     </button>
+                  ) : isElevate ? (
+                    <a
+                      href="mailto:hello@kryla.work"
+                      className="text-xs font-semibold px-4 py-2 rounded-lg border border-[#0D0D0D] text-[#0D0D0D] hover:bg-[#0D0D0D] hover:text-white transition-colors">
+                      Get a quote →
+                    </a>
                   ) : (
                     <div className="text-right">
                       <button
                         disabled
                         title="Payments coming soon"
                         className="text-xs font-semibold px-4 py-2 rounded-lg border border-[#E5E5E5] text-[#999] cursor-not-allowed hover:border-[#0D0D0D] hover:text-[#0D0D0D] transition-colors">
-                        {isUpgrade ? 'Upgrade' : 'Downgrade'}
+                        {isUpgrade ? 'Upgrade' : isDowngrade ? 'Downgrade' : ''}
                       </button>
                       <p className="text-[10px] text-[#bbb] mt-1">Coming soon</p>
                     </div>
@@ -139,10 +93,10 @@ export default function PlanSection({ currentPlan, region, onGoToMessages }: Pro
         Plan changes will be available once payments are set up.
       </p>
 
-      {/* WhatsApp Business add-on card */}
+      {/* WhatsApp Business add-on card — available on all plans */}
       <div className="mt-6">
         <p className="text-xs font-semibold text-[#999] uppercase tracking-widest mb-3">Add-ons</p>
-        <div className={`rounded-2xl border p-5 bg-white ${isSeed ? 'border-[#E5E5E5]' : 'border-[#25D366]/40'}`}>
+        <div className="rounded-2xl border p-5 bg-white border-[#25D366]/40">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
@@ -151,16 +105,9 @@ export default function PlanSection({ currentPlan, region, onGoToMessages }: Pro
                   <path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.557 4.118 1.529 5.849L.057 23.286a.75.75 0 00.914.914l5.504-1.455A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.98 0-3.824-.578-5.378-1.572l-.378-.237-3.925 1.038 1.055-3.851-.249-.393A9.957 9.957 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" fill="#25D366"/>
                 </svg>
                 <span className="font-bold text-[#0D0D0D]">WhatsApp Business</span>
-                {!isSeed && (
-                  <span className="text-[10px] font-semibold bg-[#F0FDF4] text-[#166534] px-2 py-0.5 rounded-full uppercase tracking-wide">
-                    Available
-                  </span>
-                )}
-                {isSeed && (
-                  <span className="text-[10px] font-semibold bg-[#F5F5F5] text-[#999] px-2 py-0.5 rounded-full uppercase tracking-wide">
-                    Sprout+
-                  </span>
-                )}
+                <span className="text-[10px] font-semibold bg-[#F0FDF4] text-[#166534] px-2 py-0.5 rounded-full uppercase tracking-wide">
+                  Available
+                </span>
               </div>
               <p className="text-xs text-[#999] mb-3">
                 Connect your Meta Business API to receive and reply to customer messages directly inside My Space.
@@ -174,7 +121,7 @@ export default function PlanSection({ currentPlan, region, onGoToMessages }: Pro
                 ].map((f, i) => (
                   <li key={i} className="flex items-center gap-2 text-xs text-[#444]">
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0">
-                      <path d="M2 6l3 3 5-5" stroke={isSeed ? '#bbb' : '#22C55E'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M2 6l3 3 5-5" stroke="#22C55E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                     {f}
                   </li>
@@ -182,15 +129,7 @@ export default function PlanSection({ currentPlan, region, onGoToMessages }: Pro
               </ul>
             </div>
             <div className="shrink-0 pt-0.5">
-              {isSeed ? (
-                <div className="text-right">
-                  <button disabled title="Upgrade to Sprout first"
-                    className="text-xs font-semibold px-4 py-2 rounded-lg border border-[#E5E5E5] text-[#999] cursor-not-allowed">
-                    Upgrade
-                  </button>
-                  <p className="text-[10px] text-[#bbb] mt-1">Sprout+</p>
-                </div>
-              ) : onGoToMessages ? (
+              {onGoToMessages ? (
                 <button
                   onClick={onGoToMessages}
                   className="text-xs font-semibold px-4 py-2 rounded-lg border border-[#25D366] text-[#25D366] hover:bg-[#F0FDF4] transition-colors">

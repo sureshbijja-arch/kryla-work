@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { can } from '@/lib/plan'
 
 interface AdItem {
   id: string
@@ -19,8 +20,6 @@ interface Props {
   onUpgrade: () => void
 }
 
-const PLAN_RANK: Record<string, number> = { seed: 0, sprout: 1, grow: 2, thrive: 3, elevate: 4 }
-
 export default function AdsTab({ providerId, slug, plan, onUpgrade }: Props) {
   const [ads, setAds]               = useState<AdItem[]>([])
   const [loading, setLoading]       = useState(true)
@@ -34,7 +33,7 @@ export default function AdsTab({ providerId, slug, plan, onUpgrade }: Props) {
   const [adSuccess, setAdSuccess]   = useState(false)
 
   const supabase = createClient()
-  const canAds   = (PLAN_RANK[plan] ?? 0) >= 3
+  const canAds   = can.postAds(plan)
 
   useEffect(() => {
     supabase

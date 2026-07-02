@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 
-const PLAN_RANK: Record<string, number> = { seed: 0, sprout: 1, grow: 2, thrive: 3, elevate: 4 }
 const MAX_BYTES = 10 * 1024 * 1024
 const ALLOWED_TYPES: Record<string, string> = {
   'image/jpeg': 'jpg',
@@ -47,12 +46,7 @@ export async function POST(req: NextRequest) {
 
   if (!provider) return NextResponse.json({ error: 'Not your page' }, { status: 403 })
 
-  const rank = PLAN_RANK[provider.plan ?? 'seed'] ?? 0
-  const minRank = type === 'section-bg' ? 1 : 2
-  if (rank < minRank) {
-    const planName = minRank >= 2 ? 'Grow' : 'Sprout'
-    return NextResponse.json({ error: `This feature requires the ${planName} plan or higher` }, { status: 403 })
-  }
+  // All plans (Grow+) include photo & gallery upload — no gating needed
 
   if (blob.size > MAX_BYTES) {
     return NextResponse.json({ error: 'File too large (max 10 MB)' }, { status: 400 })

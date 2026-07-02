@@ -1,45 +1,56 @@
 /**
  * lib/plan.ts — Feature gating by membership plan.
  *
- * Plan order: seed < sprout < grow < thrive < elevate
- * Use these helpers everywhere instead of string comparisons.
+ * Plan order: grow < thrive < elevate
+ * Use these helpers everywhere instead of local PLAN_RANK maps.
  */
 
 import type { Plan } from "@/types"
 
-const PLAN_ORDER: Plan[] = ["seed", "sprout", "grow", "thrive", "elevate"]
+export const PLAN_ORDER: Plan[] = ["grow", "thrive", "elevate"]
 
-export function planLevel(plan: Plan): number {
-  return PLAN_ORDER.indexOf(plan)
+export function planLevel(plan: Plan | string | null | undefined): number {
+  if (!plan) return 0
+  const idx = PLAN_ORDER.indexOf(plan as Plan)
+  return idx === -1 ? 0 : idx
 }
 
-export function isAtLeast(memberPlan: Plan, required: Plan): boolean {
+export function isAtLeast(memberPlan: Plan | string | null | undefined, required: Plan): boolean {
   return planLevel(memberPlan) >= planLevel(required)
 }
 
-// Feature gates — derived from CLAUDE.md pricing table
+// Feature gates
 export const can = {
-  /** WhatsApp notifications — Sprout and above only */
-  receiveWhatsApp: (plan: Plan) => isAtLeast(plan, "sprout"),
+  /** Booking system — all plans (Grow is the floor) */
+  acceptBookings: (_plan: Plan | string | null | undefined) => true,
 
-  /** Booking system — Sprout and above */
-  acceptBookings: (plan: Plan) => isAtLeast(plan, "sprout"),
+  /** WhatsApp booking notifications — all plans (Grow is the floor) */
+  receiveWhatsApp: (_plan: Plan | string | null | undefined) => true,
 
-  /** Custom domain (priya.com) — Grow and above */
-  useCustomDomain: (plan: Plan) => isAtLeast(plan, "grow"),
+  /** Photo & gallery upload — all plans (Grow is the floor) */
+  uploadMedia: (_plan: Plan | string | null | undefined) => true,
 
-  /** Analytics — Grow and above */
-  viewAnalytics: (plan: Plan) => isAtLeast(plan, "grow"),
+  /** Analytics — all plans (Grow is the floor) */
+  viewAnalytics: (_plan: Plan | string | null | undefined) => true,
+
+  /** Custom domain (priya.com) — Thrive and above */
+  useCustomDomain: (plan: Plan | string | null | undefined) => isAtLeast(plan, "thrive"),
 
   /** Update profile via WhatsApp — Thrive and above */
-  updateViaWhatsApp: (plan: Plan) => isAtLeast(plan, "thrive"),
+  updateViaWhatsApp: (plan: Plan | string | null | undefined) => isAtLeast(plan, "thrive"),
+
+  /** Scrolling ads on page — Thrive and above */
+  postAds: (plan: Plan | string | null | undefined) => isAtLeast(plan, "thrive"),
 
   /** All 6 AI agents — Thrive and above */
-  useAllAgents: (plan: Plan) => isAtLeast(plan, "thrive"),
+  useAllAgents: (plan: Plan | string | null | undefined) => isAtLeast(plan, "thrive"),
 
-  /** Online payments — Elevate only */
-  acceptPayments: (plan: Plan) => isAtLeast(plan, "elevate"),
+  /** Online payments on page — Thrive and above */
+  acceptPayments: (plan: Plan | string | null | undefined) => isAtLeast(plan, "thrive"),
 
-  /** Team access — Elevate only */
-  addTeamMembers: (plan: Plan) => isAtLeast(plan, "elevate"),
+  /** Team access & branded email — Thrive and above */
+  addTeamMembers: (plan: Plan | string | null | undefined) => isAtLeast(plan, "thrive"),
+
+  /** Custom changes — Elevate only (handled manually, no self-serve checkout) */
+  requestCustomWork: (plan: Plan | string | null | undefined) => isAtLeast(plan, "elevate"),
 }

@@ -783,10 +783,8 @@ export default function V2Page() {
 
   const toggleLoc = () => setLoc(l => l === 'india' ? 'usa' : 'india');
 
-  const sproutP = loc === 'india' ? '₹149' : '$5';
-  const growP   = loc === 'india' ? '₹299' : '$10';
-  const thriveP = loc === 'india' ? '₹399' : '$18';
-  const eleP    = loc === 'india' ? '₹499' : '$29';
+  const growP   = loc === 'india' ? '₹299' : '$9';
+  const thriveP = loc === 'india' ? '₹599' : '$19';
 
   return (
     <div className="v2">
@@ -861,7 +859,7 @@ export default function V2Page() {
             <a href="/join" className="btn-primary">I have an invite code →</a>
             <a href="#s1" className="btn-secondary">See how it works ↓</a>
           </div>
-          <p className="hero-proof">Invite-only · Live in 15 minutes · Works on WhatsApp · From {loc === 'india' ? '₹149' : '$5'}/mo</p>
+          <p className="hero-proof">Invite-only · Live in 15 minutes · Works on WhatsApp · From {loc === 'india' ? '₹299' : '$9'}/mo</p>
         </div>
 
         {/* K mark watermark */}
@@ -922,50 +920,37 @@ export default function V2Page() {
         </div>
         <div className="pricing-grid">
 
-          {/* Sprout */}
-          <div className="plan-card">
-            <div className="plan-icon">🌿</div>
-            <div className="plan-name">Sprout</div>
-            <div className="plan-price">{sproutP} <span className="per">/mo</span></div>
-            <div className="plan-tagline">Your presence online with real bookings.</div>
-            <hr className="plan-divider" />
-            <ul className="plan-features">
-              <li>Your own spot on kryla.work</li>
-              <li>Booking form on your page</li>
-              <li>WhatsApp alert when new business comes in</li>
-            </ul>
-            <a href="/join" className="plan-btn">Join Sprout →</a>
-          </div>
-
           {/* Grow */}
-          <div className="plan-card popular">
-            <div className="plan-popular-badge">MOST POPULAR</div>
+          <div className="plan-card">
             <div className="plan-icon">🌳</div>
             <div className="plan-name">Grow</div>
             <div className="plan-price">{growP} <span className="per">/mo</span></div>
-            <div className="plan-tagline">Your own address on the internet.</div>
+            <div className="plan-tagline">Get online &amp; take bookings.</div>
             <hr className="plan-divider" />
             <ul className="plan-features">
-              <li>Everything in Sprout</li>
+              <li>Public profile page</li>
+              <li>Booking form on your page</li>
+              <li>WhatsApp alert on new bookings</li>
               <li>Upload profile photo &amp; gallery</li>
-              <li>Your own domain (priya.com)</li>
-              <li>Analytics — see who&apos;s looking you up</li>
+              <li>Analytics — see who&apos;s visiting</li>
             </ul>
             <a href="/join" className="plan-btn">Join Grow →</a>
           </div>
 
           {/* Thrive */}
-          <div className="plan-card">
+          <div className="plan-card popular">
+            <div className="plan-popular-badge">MOST POPULAR</div>
             <div className="plan-icon">🚀</div>
             <div className="plan-name">Thrive</div>
             <div className="plan-price">{thriveP} <span className="per">/mo</span></div>
-            <div className="plan-tagline">Your spot runs itself.</div>
+            <div className="plan-tagline">Everything to grow your business.</div>
             <hr className="plan-divider" />
             <ul className="plan-features">
               <li>Everything in Grow</li>
-              <li>Update your spot via WhatsApp</li>
+              <li>Your own custom domain (priya.com)</li>
+              <li>Update your page via WhatsApp</li>
               <li>Scrolling ads on your page</li>
-              <li>Review collection</li>
+              <li>Online payments &amp; team access</li>
             </ul>
             <a href="/join" className="plan-btn">Join Thrive →</a>
           </div>
@@ -974,16 +959,14 @@ export default function V2Page() {
           <div className="plan-card">
             <div className="plan-icon">⚡</div>
             <div className="plan-name">Elevate</div>
-            <div className="plan-price">{eleP} <span className="per">/mo</span></div>
-            <div className="plan-tagline">Built to scale.</div>
+            <div className="plan-price" style={{fontSize:'1.1rem', color:'#666'}}>Contact for quote</div>
+            <div className="plan-tagline">Built for you.</div>
             <hr className="plan-divider" />
             <ul className="plan-features">
               <li>Everything in Thrive</li>
-              <li>Online payments on your page</li>
-              <li>Team access &amp; branded email</li>
-              <li>Custom changes — quote on request</li>
+              <li>Custom changes built for your business</li>
             </ul>
-            <a href="/join" className="plan-btn">Join Elevate →</a>
+            <a href="mailto:hello@kryla.work" className="plan-btn" style={{background:'#444'}}>Get a quote →</a>
           </div>
 
         </div>

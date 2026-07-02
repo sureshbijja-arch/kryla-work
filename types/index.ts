@@ -3,7 +3,7 @@
  * Column names must match references/database.md exactly.
  */
 
-export type Plan = "seed" | "sprout" | "grow" | "thrive" | "elevate"
+export type Plan = "grow" | "thrive" | "elevate"
 
 export type BookingStatus = "pending" | "accepted" | "rejected" | "cancelled"
 
@@ -22,7 +22,7 @@ export interface Provider {
   email: string
   phone: string | null
   plan: Plan
-  plan_status: "active" | "past_due" | "cancelled"
+  plan_status: "active" | "pending_payment" | "past_due" | "cancelled"
   stripe_customer_id: string | null
   razorpay_customer_id: string | null
   custom_domain: string | null
