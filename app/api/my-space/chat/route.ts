@@ -84,7 +84,7 @@ export async function POST(req: Request) {
   // Verify ownership + get provider details needed for emails / media
   const { data: provider } = await supabaseAdmin
     .from('providers')
-    .select('id, slug, email, avatar_url, first_name, whatsapp_number')
+    .select('id, slug, email, avatar_url, first_name, whatsapp_number, page_language')
     .eq('id', providerId)
     .eq('email', user.email)
     .single()
@@ -173,7 +173,16 @@ export async function POST(req: Request) {
     ads: ads.map(a => ({ id: a.id, title: a.title, status: a.status })),
   }
 
-  const systemWithContext = `${SYSTEM_PROMPT}
+  const LANG_NAMES: Record<string, string> = {
+    hi: 'Hindi', ta: 'Tamil', te: 'Telugu', kn: 'Kannada',
+    ml: 'Malayalam', mr: 'Marathi', gu: 'Gujarati', es: 'Spanish',
+  }
+  const pageLang = (provider.page_language as string) ?? 'en'
+  const langInstruction = pageLang !== 'en'
+    ? `\nMember's preferred language: ${LANG_NAMES[pageLang] ?? pageLang}. Respond in ${LANG_NAMES[pageLang] ?? pageLang} unless the member writes in English.`
+    : ''
+
+  const systemWithContext = `${SYSTEM_PROMPT}${langInstruction}
 
 Current page content (JSON):
 ${JSON.stringify(enrichedProfile, null, 2)}

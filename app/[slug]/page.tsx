@@ -3,12 +3,7 @@ import type { Metadata } from 'next'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { ProfileData, PaletteKey, FontKey, DesignMode, ShowSections } from './types'
 import AdsScroller from './components/AdsScroller'
-import StudioTemplate from './components/templates/StudioTemplate'
-import FocusTemplate from './components/templates/FocusTemplate'
-import PortfolioTemplate from './components/templates/PortfolioTemplate'
-import StorefrontTemplate from './components/templates/StorefrontTemplate'
-import ClinicTemplate from './components/templates/ClinicTemplate'
-import LayoutRenderer from './components/LayoutRenderer'
+import LanguagePage from './components/LanguagePage'
 import type { SectionEntry } from './components/LayoutRenderer'
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'kryla.work'
@@ -51,7 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function MemberProfilePage({ params }: Props) {
   const { data: provider } = await supabaseAdmin
     .from('providers')
-    .select('id, first_name, last_name, persona, location, whatsapp_number, whatsapp_public, email, plan')
+    .select('id, first_name, last_name, persona, location, whatsapp_number, whatsapp_public, email, plan, page_language')
     .eq('slug', params.slug)
     .eq('page_live', true)
     .single()
@@ -60,7 +55,7 @@ export default async function MemberProfilePage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, show_sections, sections')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, show_sections, sections, translations')
     .eq('provider_id', provider.id)
     .single()
 
@@ -116,8 +111,10 @@ export default async function MemberProfilePage({ params }: Props) {
     gallery,
   }
 
-  const pageSections = Array.isArray(page.sections) ? (page.sections as SectionEntry[]) : null
-  const isTutor = provider.persona === 'tutor'
+  const pageSections  = Array.isArray(page.sections) ? (page.sections as SectionEntry[]) : null
+  const isTutor       = provider.persona === 'tutor'
+  const defaultLang   = (provider.page_language as string) ?? 'en'
+  const translations  = (page.translations ?? {}) as Record<string, Record<string, unknown>>
 
   const jsonLd = page.schema_type
     ? {
@@ -143,19 +140,14 @@ export default async function MemberProfilePage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      {pageSections ? (
-        <LayoutRenderer sections={pageSections} data={profileData} />
-      ) : isTutor ? (
-        <StudioTemplate data={profileData} />
-      ) : template === 'portfolio' ? (
-        <PortfolioTemplate data={profileData} />
-      ) : template === 'storefront' ? (
-        <StorefrontTemplate data={profileData} />
-      ) : template === 'clinic' ? (
-        <ClinicTemplate data={profileData} />
-      ) : (
-        <FocusTemplate data={profileData} />
-      )}
+      <LanguagePage
+        profileData={profileData}
+        translations={translations}
+        defaultLang={defaultLang}
+        pageSections={pageSections}
+        template={template}
+        isTutor={isTutor}
+      />
       <AdsScroller slug={params.slug} />
     </>
   )

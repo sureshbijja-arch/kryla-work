@@ -13,6 +13,7 @@ interface SpaceProps {
   plan: string
   planStatus: string
   region: 'india' | 'usa'
+  pageLanguage: string
   currentProfile: {
     firstName: string
     lastName: string

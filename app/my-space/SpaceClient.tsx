@@ -12,6 +12,7 @@ import type { ServiceItem } from './ServicesTab'
 import MediaTab from './MediaTab'
 import AdsTab from './AdsTab'
 import LayoutsTab from './LayoutsTab'
+import LanguageTab from './LanguageTab'
 import { getPersonaConfig } from '@/app/[slug]/personaConfig'
 
 interface Message {
@@ -51,12 +52,13 @@ interface Props {
   plan: string
   planStatus: string
   region: 'india' | 'usa'
+  pageLanguage: string
   currentProfile: CurrentProfile
   onRefresh: () => void
 }
 
 type MainTab   = 'chat' | 'design' | 'messages' | 'bookings' | 'plan'
-type DesignTab = 'services' | 'sections' | 'layouts' | 'ads' | 'media'
+type DesignTab = 'services' | 'sections' | 'layouts' | 'ads' | 'media' | 'language'
 
 const PALETTE_LABELS: Record<string, string> = {
   professional: 'Professional', fresh: 'Fresh', warm: 'Warm',
@@ -71,7 +73,7 @@ const FONT_LABELS: Record<string, string> = {
 
 export default function SpaceClient({
   providerId, slug, firstName,
-  plan, region, currentProfile, onRefresh,
+  plan, region, pageLanguage, currentProfile, onRefresh,
 }: Props) {
   const defaultSections: SectionEntry[] = currentProfile.sections ?? [
     { sectionKey: 'hero',       variant: 'auto',      order: 1 },
@@ -265,11 +267,12 @@ export default function SpaceClient({
         {tab === 'design' && (
           <div className="px-4 flex items-center gap-1 border-t border-[#F0F0F0] bg-[#FAFAFA] overflow-x-auto scrollbar-none">
             {([
-              { key: 'services', label: 'Services' },
-              { key: 'sections', label: 'Page layout' },
-              { key: 'layouts',  label: 'Layouts' },
-              { key: 'ads',      label: 'Ads' },
-              { key: 'media',    label: 'Media' },
+              { key: 'services',  label: 'Services' },
+              { key: 'sections',  label: 'Page layout' },
+              { key: 'layouts',   label: 'Layouts' },
+              { key: 'ads',       label: 'Ads' },
+              { key: 'media',     label: 'Media' },
+              { key: 'language',  label: 'Language' },
             ] as { key: DesignTab; label: string }[]).map(({ key, label }) => (
               <button
                 key={key}
@@ -483,6 +486,14 @@ export default function SpaceClient({
           firstName={firstName}
           plan={plan}
           onUpgrade={() => setTab('plan')}
+        />
+      )}
+
+      {/* ── Design: Language ── */}
+      {tab === 'design' && designTab === 'language' && (
+        <LanguageTab
+          providerId={providerId}
+          currentLanguage={pageLanguage}
         />
       )}
 
