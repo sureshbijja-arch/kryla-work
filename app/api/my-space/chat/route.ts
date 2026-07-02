@@ -179,7 +179,7 @@ export async function POST(req: Request) {
   }
   const pageLang = (provider.page_language as string) ?? 'en'
   const langInstruction = pageLang !== 'en'
-    ? `\nMember's preferred language: ${LANG_NAMES[pageLang] ?? pageLang}. Always respond in ${LANG_NAMES[pageLang] ?? pageLang} regardless of what language the member writes in.`
+    ? `\nLanguage: respond in whichever language the member writes in. Their preferred language is ${LANG_NAMES[pageLang] ?? pageLang} but if they write in English, reply in English.`
     : ''
 
   const systemWithContext = `${SYSTEM_PROMPT}${langInstruction}

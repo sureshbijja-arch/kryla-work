@@ -57,6 +57,83 @@ interface Props {
   onRefresh: () => void
 }
 
+type UIStrings = {
+  tabs:       { chat: string; design: string; messages: string; bookings: string; plan: string }
+  sub:        { services: string; sections: string; layouts: string; ads: string; media: string; language: string }
+  placeholder: string
+  hint:        string
+  publish:     string
+  publishing:  string
+  published:   string
+}
+
+const UI: Record<string, UIStrings> = {
+  hi: {
+    tabs: { chat: 'चैट', design: 'डिज़ाइन', messages: 'संदेश', bookings: 'बुकिंग', plan: 'मेरी योजना' },
+    sub:  { services: 'सेवाएं', sections: 'पेज लेआउट', layouts: 'लेआउट', ads: 'विज्ञापन', media: 'मीडिया', language: 'भाषा' },
+    placeholder: 'आप क्या बदलना चाहते हैं?',
+    hint:        'भेजने के लिए Enter · नई पंक्ति Shift+Enter',
+    publish: 'प्रकाशित करें →', publishing: 'प्रकाशित हो रहा है…', published: '✓ प्रकाशित',
+  },
+  ta: {
+    tabs: { chat: 'அரட்டை', design: 'வடிவமைப்பு', messages: 'செய்திகள்', bookings: 'பதிவுகள்', plan: 'என் திட்டம்' },
+    sub:  { services: 'சேவைகள்', sections: 'பக்க தளவமைப்பு', layouts: 'தளவமைப்புகள்', ads: 'விளம்பரங்கள்', media: 'ஊடகம்', language: 'மொழி' },
+    placeholder: 'என்ன மாற்ற விரும்புகிறீர்கள்?',
+    hint:        'அனுப்ப Enter · புதிய வரிக்கு Shift+Enter',
+    publish: 'வெளியிடு →', publishing: 'வெளியிடுகிறது…', published: '✓ வெளியிடப்பட்டது',
+  },
+  te: {
+    tabs: { chat: 'చాట్', design: 'డిజైన్', messages: 'సందేశాలు', bookings: 'బుకింగ్‌లు', plan: 'నా ప్లాన్' },
+    sub:  { services: 'సేవలు', sections: 'పేజీ లేఅవుట్', layouts: 'లేఅవుట్‌లు', ads: 'ప్రకటనలు', media: 'మీడియా', language: 'భాష' },
+    placeholder: 'మీరు ఏమి మార్చాలనుకుంటున్నారు?',
+    hint:        'పంపడానికి Enter · కొత్త వరుసకు Shift+Enter',
+    publish: 'ప్రచురించు →', publishing: 'ప్రచురిస్తోంది…', published: '✓ ప్రచురితమైంది',
+  },
+  kn: {
+    tabs: { chat: 'ಚಾಟ್', design: 'ವಿನ್ಯಾಸ', messages: 'ಸಂದೇಶಗಳು', bookings: 'ಬುಕಿಂಗ್‌ಗಳು', plan: 'ನನ್ನ ಯೋಜನೆ' },
+    sub:  { services: 'ಸೇವೆಗಳು', sections: 'ಪೇಜ್ ಲೇಔಟ್', layouts: 'ಲೇಔಟ್‌ಗಳು', ads: 'ಜಾಹೀರಾತುಗಳು', media: 'ಮೀಡಿಯಾ', language: 'ಭಾಷೆ' },
+    placeholder: 'ನೀವು ಏನು ಬದಲಾಯಿಸಲು ಬಯಸುತ್ತೀರಿ?',
+    hint:        'ಕಳುಹಿಸಲು Enter · ಹೊಸ ಸಾಲಿಗೆ Shift+Enter',
+    publish: 'ಪ್ರಕಟಿಸಿ →', publishing: 'ಪ್ರಕಟಿಸಲಾಗುತ್ತಿದೆ…', published: '✓ ಪ್ರಕಟಿಸಲಾಗಿದೆ',
+  },
+  ml: {
+    tabs: { chat: 'ചാറ്റ്', design: 'ഡിസൈൻ', messages: 'സന്ദേശങ്ങൾ', bookings: 'ബുക്കിംഗുകൾ', plan: 'എന്റെ പ്ലാൻ' },
+    sub:  { services: 'സേവനങ്ങൾ', sections: 'പേജ് ലേഔട്ട്', layouts: 'ലേഔട്ടുകൾ', ads: 'പരസ്യങ്ങൾ', media: 'മീഡിയ', language: 'ഭാഷ' },
+    placeholder: 'നിങ്ങൾക്ക് എന്ത് മാറ്റണം?',
+    hint:        'അയക്കാൻ Enter · പുതിയ വരിക്ക് Shift+Enter',
+    publish: 'പ്രസിദ്ധീകരിക്കൂ →', publishing: 'പ്രസിദ്ധീകരിക്കുന്നു…', published: '✓ പ്രസിദ്ധീകരിച്ചു',
+  },
+  mr: {
+    tabs: { chat: 'चॅट', design: 'डिझाइन', messages: 'संदेश', bookings: 'बुकिंग', plan: 'माझी योजना' },
+    sub:  { services: 'सेवा', sections: 'पेज लेआउट', layouts: 'लेआउट', ads: 'जाहिराती', media: 'मीडिया', language: 'भाषा' },
+    placeholder: 'तुम्हाला काय बदलायचे आहे?',
+    hint:        'पाठवण्यासाठी Enter · नवीन ओळीसाठी Shift+Enter',
+    publish: 'प्रकाशित करा →', publishing: 'प्रकाशित होत आहे…', published: '✓ प्रकाशित',
+  },
+  gu: {
+    tabs: { chat: 'ચેટ', design: 'ડિઝાઇન', messages: 'સંદેશ', bookings: 'બુકિંગ', plan: 'મારી યોજના' },
+    sub:  { services: 'સેવાઓ', sections: 'પેજ લેઆઉટ', layouts: 'લેઆઉટ', ads: 'જાહેરાત', media: 'મીડિયા', language: 'ભાષા' },
+    placeholder: 'તમે શું બદલવા માંગો છો?',
+    hint:        'મોકલવા Enter · નવી લાઇન Shift+Enter',
+    publish: 'પ્રકાશિત કરો →', publishing: 'પ્રકાશિત થઈ રહ્યું છે…', published: '✓ પ્રકાશિત',
+  },
+  es: {
+    tabs: { chat: 'Chat', design: 'Diseño', messages: 'Mensajes', bookings: 'Reservas', plan: 'Mi plan' },
+    sub:  { services: 'Servicios', sections: 'Diseño de página', layouts: 'Plantillas', ads: 'Anuncios', media: 'Medios', language: 'Idioma' },
+    placeholder: '¿Qué te gustaría cambiar?',
+    hint:        'Enter para enviar · Shift+Enter nueva línea',
+    publish: 'Publicar →', publishing: 'Publicando…', published: '✓ Publicado',
+  },
+}
+
+const EN_UI: UIStrings = {
+  tabs: { chat: 'Chat', design: 'Design', messages: 'Messages', bookings: '', plan: 'My plan' },
+  sub:  { services: 'Services', sections: 'Page layout', layouts: 'Layouts', ads: 'Ads', media: 'Media', language: 'Language' },
+  placeholder: 'What would you like to change?',
+  hint:        'Enter to send · Shift+Enter for new line',
+  publish: 'Publish →', publishing: 'Publishing…', published: '✓ Published',
+}
+
 const GREETINGS: Record<string, string> = {
   hi: 'नमस्ते {{name}}! अपने पेज के बारे में कुछ भी पूछें — हेडलाइन, बायो, सेवाएं, रंग, या लेआउट।',
   ta: 'வணக்கம் {{name}}! உங்கள் பக்கம், சேவைகள், வண்ணங்கள் எதையும் கேளுங்கள்.',
@@ -118,6 +195,9 @@ export default function SpaceClient({
 
   const isSeed        = !plan || plan === 'seed'
   const bookingsLabel = getPersonaConfig(currentProfile.persona).tabLabel
+  const t = UI[pageLanguage] ?? EN_UI
+  // Bookings tab: use translated generic label unless English (persona-specific)
+  const bookingsTabLabel = pageLanguage !== 'en' ? t.tabs.bookings : bookingsLabel
 
   useEffect(() => {
     if (tab === 'chat') bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -250,7 +330,7 @@ export default function SpaceClient({
               ? 'bg-[#22C55E] text-white'
               : 'bg-[#0D0D0D] text-white hover:opacity-80'
           }`}>
-          {publishing ? 'Publishing…' : published ? '✓ Published' : 'Publish →'}
+          {publishing ? t.publishing : published ? t.published : t.publish}
         </button>
       </header>
 
@@ -258,11 +338,11 @@ export default function SpaceClient({
       <div className="bg-white border-b border-[#E5E5E5] shrink-0">
         <div className="px-4 flex items-center gap-1 overflow-x-auto scrollbar-none">
           {([
-            { key: 'chat',     label: 'Chat' },
-            { key: 'design',   label: 'Design' },
-            { key: 'messages', label: 'Messages' },
-            { key: 'bookings', label: bookingsLabel },
-            { key: 'plan',     label: 'My plan' },
+            { key: 'chat',     label: t.tabs.chat },
+            { key: 'design',   label: t.tabs.design },
+            { key: 'messages', label: t.tabs.messages },
+            { key: 'bookings', label: bookingsTabLabel },
+            { key: 'plan',     label: t.tabs.plan },
           ] as { key: MainTab; label: string }[]).map(({ key, label }) => (
             <button
               key={key}
@@ -281,12 +361,12 @@ export default function SpaceClient({
         {tab === 'design' && (
           <div className="px-4 flex items-center gap-1 border-t border-[#F0F0F0] bg-[#FAFAFA] overflow-x-auto scrollbar-none">
             {([
-              { key: 'services',  label: 'Services' },
-              { key: 'sections',  label: 'Page layout' },
-              { key: 'layouts',   label: 'Layouts' },
-              { key: 'ads',       label: 'Ads' },
-              { key: 'media',     label: 'Media' },
-              { key: 'language',  label: 'Language' },
+              { key: 'services',  label: t.sub.services },
+              { key: 'sections',  label: t.sub.sections },
+              { key: 'layouts',   label: t.sub.layouts },
+              { key: 'ads',       label: t.sub.ads },
+              { key: 'media',     label: t.sub.media },
+              { key: 'language',  label: t.sub.language },
             ] as { key: DesignTab; label: string }[]).map(({ key, label }) => (
               <button
                 key={key}
@@ -398,7 +478,7 @@ export default function SpaceClient({
               <textarea
                 ref={inputRef}
                 rows={1}
-                placeholder={listening ? 'Listening…' : 'What would you like to change?'}
+                placeholder={listening ? '…' : t.placeholder}
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -418,9 +498,7 @@ export default function SpaceClient({
 
             {/* Bottom hint row */}
             <div className="flex items-center justify-between mt-2">
-              <p className="text-[10px] text-[#bbb]">
-                Enter to send · Shift+Enter for new line
-              </p>
+              <p className="text-[10px] text-[#bbb]">{t.hint}</p>
               {/* Voice reply toggle */}
               <button
                 onClick={() => { setVoiceOn(v => !v); if (voiceOn) stopSpeaking() }}
