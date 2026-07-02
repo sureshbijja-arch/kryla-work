@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { providerId, services } = await req.json()
+  const { providerId, services, menuFiles } = await req.json()
 
   if (!providerId || !Array.isArray(services)) {
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
@@ -33,8 +33,15 @@ export async function POST(req: NextRequest) {
 
   const existing = (currentPage?.draft_data ?? {}) as Partial<DraftShape>
 
+  const pagesUpdate: Record<string, unknown> = { ...(existing.pages ?? {}), services }
+  // Only write menu_files when the client explicitly sends it (Part B — keep-file checkbox)
+  if (Array.isArray(menuFiles) && menuFiles.length > 0) {
+    const existing_menu = Array.isArray(existing.pages?.menu_files) ? (existing.pages.menu_files as string[]) : []
+    pagesUpdate.menu_files = [...existing_menu, ...menuFiles]
+  }
+
   const newDraft: DraftShape = {
-    pages:     { ...(existing.pages ?? {}), services },
+    pages:     pagesUpdate,
     providers: existing.providers ?? {},
   }
 

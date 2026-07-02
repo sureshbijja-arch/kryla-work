@@ -57,7 +57,22 @@ function Features({ data }: { data: ProfileData }) {
     <section className="border-t border-[#E5E5E5]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-2xl mx-auto px-6">
-        <SectionLabel text={cfg.servicesLabel} />
+        <div className="flex items-center justify-between mb-8">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999]">{cfg.servicesLabel}</p>
+          {data.menuFiles && data.menuFiles.length > 0 && (
+            <a
+              href={data.menuFiles[0]}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-full border transition-all hover:opacity-80"
+              style={{ color: 'var(--color-accent)', borderColor: 'var(--color-accent-border)', background: 'var(--color-accent-surface)' }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2 3.5h8M2 6h8M2 8.5h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+              View menu
+            </a>
+          )}
+        </div>
         <div className="space-y-3">
           {services.map((s, i) => {
             const active = hovered === i

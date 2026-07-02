@@ -55,7 +55,7 @@ export default async function MemberProfilePage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, show_sections, sections, translations')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, show_sections, sections, translations, menu_files')
     .eq('provider_id', provider.id)
     .single()
 
@@ -109,6 +109,7 @@ export default async function MemberProfilePage({ params }: Props) {
     showSections,
     avatarUrl,
     gallery,
+    menuFiles: Array.isArray((page as Record<string, unknown>).menu_files) ? ((page as Record<string, unknown>).menu_files as string[]) : undefined,
   }
 
   const pageSections  = Array.isArray(page.sections) ? (page.sections as SectionEntry[]) : null

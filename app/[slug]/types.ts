@@ -80,6 +80,7 @@ export interface ProfileData {
   showSections: ShowSections
   avatarUrl?: string | null
   gallery?: string[]
+  menuFiles?: string[]
   ads?: Ad[]
 }
 

@@ -23,7 +23,7 @@ export default async function PreviewPage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, show_sections, sections, draft_data, translations')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, show_sections, sections, draft_data, translations, menu_files')
     .eq('provider_id', provider.id)
     .single()
 
@@ -83,6 +83,13 @@ export default async function PreviewPage({ params }: Props) {
     showSections,
     avatarUrl,
     gallery,
+    menuFiles: (() => {
+      // Draft overlay: draft menu_files replaces live (full list), else fall back to live column
+      const draft_mf = dp.menu_files
+      if (Array.isArray(draft_mf) && draft_mf.length > 0) return draft_mf as string[]
+      const live_mf = (page as Record<string, unknown>).menu_files
+      return Array.isArray(live_mf) ? (live_mf as string[]) : undefined
+    })(),
   }
 
   const isTutor       = provider.persona === 'tutor'
