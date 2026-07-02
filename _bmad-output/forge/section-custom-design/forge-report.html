@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Forge Report — Section Custom Design</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Georgia', serif; background: #FAFAF7; color: #1a1a1a; min-height: 100vh; padding: 48px 24px; }
+  .page { max-width: 720px; margin: 0 auto; }
+
+  /* Seal */
+  .seal-wrap { text-align: center; margin-bottom: 40px; }
+  .seal-wrap svg { filter: drop-shadow(0 4px 24px rgba(245,166,35,0.25)); }
+
+  /* Header */
+  h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; color: #0D0D0D; margin-bottom: 4px; }
+  .subtitle { font-size: 0.95rem; color: #777; font-style: italic; margin-bottom: 40px; }
+
+  /* Sections */
+  section { margin-bottom: 36px; }
+  h2 { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #F5A623; margin-bottom: 14px; border-bottom: 1px solid #F0EDE6; padding-bottom: 6px; }
+
+  /* Locks */
+  .lock-grid { display: grid; gap: 10px; }
+  .lock { background: white; border: 1.5px solid #E8E4DC; border-radius: 10px; padding: 14px 16px; }
+  .lock-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #22C55E; margin-bottom: 4px; }
+  .lock p { font-size: 0.88rem; line-height: 1.6; color: #333; }
+
+  /* Kills */
+  .kill-list { list-style: none; display: grid; gap: 8px; }
+  .kill-list li { font-size: 0.88rem; line-height: 1.5; color: #555; padding-left: 20px; position: relative; }
+  .kill-list li::before { content: '✕'; position: absolute; left: 0; color: #e74c3c; font-size: 0.75rem; top: 2px; }
+  .kill-list strong { color: #1a1a1a; }
+
+  /* Feature table */
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th { text-align: left; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #999; padding: 8px 12px; border-bottom: 2px solid #E8E4DC; }
+  td { padding: 10px 12px; border-bottom: 1px solid #F0EDE6; color: #333; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .tier { font-weight: 700; color: #0D0D0D; }
+  .seed-tier { color: #999; }
+
+  /* Room */
+  .room { display: flex; flex-wrap: wrap; gap: 10px; }
+  .persona { display: flex; align-items: center; gap: 8px; background: white; border: 1.5px solid #E8E4DC; border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; }
+  .persona .icon { font-size: 1.1rem; }
+  .persona .name { font-weight: 700; color: #0D0D0D; }
+  .persona .title { color: #999; font-size: 0.75rem; }
+
+  /* Footer */
+  .footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid #E8E4DC; font-size: 0.78rem; color: #aaa; text-align: center; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Seal -->
+  <div class="seal-wrap">
+    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Outer ring -->
+      <circle cx="60" cy="60" r="56" fill="#FFF8ED" stroke="#F5A623" stroke-width="2.5"/>
+      <!-- Inner ring -->
+      <circle cx="60" cy="60" r="46" fill="none" stroke="#F5A623" stroke-width="1" stroke-dasharray="4 3"/>
+      <!-- Hammer/forge icon -->
+      <rect x="44" y="52" width="32" height="10" rx="3" fill="#F5A623"/>
+      <rect x="55" y="38" width="10" height="22" rx="3" fill="#0D0D0D"/>
+      <!-- Spark dots -->
+      <circle cx="82" cy="42" r="2.5" fill="#F5A623" opacity="0.7"/>
+      <circle cx="88" cy="50" r="1.8" fill="#F5A623" opacity="0.5"/>
+      <circle cx="78" cy="36" r="1.5" fill="#F5A623" opacity="0.6"/>
+      <!-- HARDENED text arc (approximated) -->
+      <text x="60" y="100" text-anchor="middle" font-family="Georgia, serif" font-size="8" font-weight="700" letter-spacing="3" fill="#F5A623">HARDENED</text>
+      <text x="60" y="22" text-anchor="middle" font-family="Georgia, serif" font-size="7" letter-spacing="2" fill="#999">KRYLA · FORGE</text>
+    </svg>
+  </div>
+
+  <h1>Section Custom Design</h1>
+  <p class="subtitle">Forged — June 2026 &nbsp;·&nbsp; Pressure-tested to hardened</p>
+
+  <!-- What survived -->
+  <section>
+    <h2>What Survived</h2>
+    <div class="lock-grid">
+      <div class="lock">
+        <div class="lock-label">Core Principle</div>
+        <p>Design freedom constrained so bad output is <em>structurally impossible</em>. Member pride and business quality are both required — they stop conflicting when the constraints are right.</p>
+      </div>
+      <div class="lock">
+        <div class="lock-label">UI Home</div>
+        <p>Section styling lives inline in the Page Layout tab, expanding on each section card alongside the existing variant picker. No new tab.</p>
+      </div>
+      <div class="lock">
+        <div class="lock-label">Background Colour</div>
+        <p>16 curated presets (Warm Cream, Cool Linen, Slate Blue, Forest Mist, Rose Blush, Amber Glow, Charcoal, Midnight, Ocean, Sage, Terracotta, Lavender, Sand, Steel, Ivory, Graphite). System auto-detects luminance → sets text dark or white. Member never touches contrast.</p>
+      </div>
+      <div class="lock">
+        <div class="lock-label">Background Photo</div>
+        <p>Member uploads any photo on hero · services · highlights · bio. Auto-scrim overlay guarantees text readability. Not available on faq or contact.</p>
+      </div>
+      <div class="lock">
+        <div class="lock-label">Moving Frames (Hero only)</div>
+        <p>Toggle on/off, pick 1 / 2 / 3 frames. Populated from gallery images (Grow+ dependency — frames are Grow+ only).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Plan ladder -->
+  <section>
+    <h2>Plan Ladder</h2>
+    <table>
+      <thead>
+        <tr><th>Tier</th><th>Section styling access</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="tier seed-tier">Seed</td><td>Controls visible, greyed out + upgrade prompt</td></tr>
+        <tr><td class="tier">Sprout+</td><td>16 background colour presets + photo upload (hero / services / highlights / bio)</td></tr>
+        <tr><td class="tier">Grow+</td><td>Everything above + moving frames on hero (1–3, from gallery)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Killed -->
+  <section>
+    <h2>Killed and Why</h2>
+    <ul class="kill-list">
+      <li><strong>Video backgrounds</strong> — LCP killer, CDN cost, bad-output risk too high for any tier</li>
+      <li><strong>Per-section text editing</strong> — already covered by the AI chat editor</li>
+      <li><strong>Custom hex / colour picker</strong> — unconstrained input is a bad-output factory</li>
+      <li><strong>Per-section font override</strong> — breaks design system coherence across sections</li>
+      <li><strong>Per-section accent colour override</strong> — produces incoherent pages</li>
+      <li><strong>Background photo on FAQ / contact</strong> — kills text readability and form usability</li>
+      <li><strong>Moving frames on non-hero sections</strong> — no clear value, bad-output risk</li>
+    </ul>
+  </section>
+
+  <!-- Implementation shape -->
+  <section>
+    <h2>Implementation Shape</h2>
+    <div class="lock-grid">
+      <div class="lock">
+        <div class="lock-label">Data model</div>
+        <p>Extend <code>pages.sections</code> jsonb: <code>{ sectionKey, variant, order, style?: { bg?: { type: 'color'|'photo', value: string }, frames?: { enabled: boolean, count: 1|2|3 } } }</code></p>
+      </div>
+      <div class="lock">
+        <div class="lock-label">Save flow</div>
+        <p>Style changes write to <code>draft_data</code> → preview → publish. Same flow as AI chat edits. Not direct-save.</p>
+      </div>
+      <div class="lock">
+        <div class="lock-label">New upload type</div>
+        <p><code>type=section-bg</code> added to <code>/api/my-space/upload</code></p>
+      </div>
+      <div class="lock">
+        <div class="lock-label">Seed gate</div>
+        <p><code>opacity-50 pointer-events-none</code> + upgrade nudge — same pattern as the existing Layouts tab gate</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- The room -->
+  <section>
+    <h2>The Room</h2>
+    <div class="room">
+      <div class="persona"><span class="icon">📋</span><div><div class="name">John</div><div class="title">Product Manager</div></div></div>
+      <div class="persona"><span class="icon">🎨</span><div><div class="name">Sally</div><div class="title">UX Designer</div></div></div>
+      <div class="persona"><span class="icon">🏗️</span><div><div class="name">Winston</div><div class="title">System Architect</div></div></div>
+      <div class="persona"><span class="icon">💻</span><div><div class="name">Amelia</div><div class="title">Senior Engineer</div></div></div>
+      <div class="persona"><span class="icon">🚢</span><div><div class="name">Dana</div><div class="title">The Pragmatist</div></div></div>
+      <div class="persona"><span class="icon">⚡</span><div><div class="name">Mira</div><div class="title">ex-Squarespace PM</div></div></div>
+      <div class="persona"><span class="icon">🎯</span><div><div class="name">Felix</div><div class="title">Notion Design Systems</div></div></div>
+      <div class="persona"><span class="icon">🖌️</span><div><div class="name">Ana</div><div class="title">Canva Colour Systems</div></div></div>
+      <div class="persona"><span class="icon">🛒</span><div><div class="name">Desh</div><div class="title">Shopify Theme Editor PM</div></div></div>
+      <div class="persona"><span class="icon">🎯</span><div><div class="name">Yui</div><div class="title">The Craftsman</div></div></div>
+      <div class="persona"><span class="icon">👨‍💻</span><div><div class="name">Kai</div><div class="title">Wix Design Systems</div></div></div>
+    </div>
+  </section>
+
+  <div class="footer">
+    Forged in Kryla · bmad-forge-idea · June 2026<br/>
+    Ready to feed into bmad-spec or bmad-prd
+  </div>
+
+</div>
+</body>
+</html>

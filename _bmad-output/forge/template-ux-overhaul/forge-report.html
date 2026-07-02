@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forge Report — Kryla Design System Overhaul</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0D0D0D; color: #E8E8E8; min-height: 100vh; padding: 60px 24px; }
+  .page { max-width: 720px; margin: 0 auto; }
+
+  /* Seal */
+  .seal-wrap { display: flex; justify-content: center; margin-bottom: 64px; }
+  .seal { position: relative; width: 180px; height: 180px; }
+  .seal svg { width: 100%; height: 100%; }
+
+  /* Header */
+  .verdict { font-size: 11px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; color: #F5A623; margin-bottom: 16px; }
+  h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; line-height: 1.05; letter-spacing: -0.02em; color: #fff; margin-bottom: 12px; }
+  .sub { font-size: 1.1rem; color: rgba(255,255,255,0.4); line-height: 1.6; margin-bottom: 64px; }
+
+  /* Sections */
+  .section { margin-bottom: 56px; }
+  .section-label { font-size: 10px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; color: #F5A623; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid rgba(245,166,35,0.2); }
+
+  /* Locks */
+  .lock { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px 24px; margin-bottom: 12px; }
+  .lock-tag { font-size: 9px; font-weight: 900; letter-spacing: 0.15em; text-transform: uppercase; color: #F5A623; margin-bottom: 8px; }
+  .lock p { font-size: 0.9rem; color: rgba(255,255,255,0.7); line-height: 1.6; }
+  .lock strong { color: #fff; font-weight: 700; }
+
+  /* Killed */
+  .kill { display: flex; gap: 12px; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .kill:last-child { border-bottom: none; }
+  .kill-x { font-size: 12px; color: #FF4444; flex-shrink: 0; margin-top: 2px; font-weight: 900; }
+  .kill p { font-size: 0.85rem; color: rgba(255,255,255,0.4); line-height: 1.5; }
+  .kill p strong { color: rgba(255,255,255,0.6); }
+
+  /* Sequence */
+  .seq { display: flex; gap: 16px; margin-bottom: 12px; align-items: flex-start; }
+  .seq-week { flex-shrink: 0; width: 36px; height: 36px; border-radius: 10px; background: #F5A623; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #0D0D0D; }
+  .seq-body p { font-size: 0.88rem; color: rgba(255,255,255,0.65); line-height: 1.5; }
+  .seq-body strong { color: #fff; display: block; margin-bottom: 2px; font-size: 0.9rem; }
+
+  /* Room */
+  .persona { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 100px; padding: 6px 14px 6px 10px; margin: 4px; font-size: 0.8rem; color: rgba(255,255,255,0.6); }
+  .persona span:first-child { font-size: 16px; }
+
+  /* Footer */
+  footer { margin-top: 80px; padding-top: 32px; border-top: 1px solid rgba(255,255,255,0.07); display: flex; justify-content: space-between; align-items: center; }
+  footer p { font-size: 11px; color: rgba(255,255,255,0.2); }
+  .k-logo { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.25); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Seal -->
+  <div class="seal-wrap">
+    <div class="seal">
+      <svg viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Outer ring -->
+        <circle cx="90" cy="90" r="84" stroke="#F5A623" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5"/>
+        <circle cx="90" cy="90" r="76" stroke="#F5A623" stroke-width="0.5" opacity="0.3"/>
+        <!-- Inner fill -->
+        <circle cx="90" cy="90" r="70" fill="#1A1400"/>
+        <!-- K mark -->
+        <line x1="72" y1="58" x2="72" y2="122" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+        <line x1="72" y1="90" x2="108" y2="58" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+        <line x1="72" y1="90" x2="108" y2="122" stroke="#F5A623" stroke-width="6" stroke-linecap="round"/>
+        <!-- Text arc - HARDENED -->
+        <path id="arc-top" d="M 20,90 A 70,70 0 0,1 160,90" fill="none"/>
+        <text font-size="11" font-weight="900" letter-spacing="6" fill="#F5A623" opacity="0.9" text-anchor="middle" font-family="system-ui,sans-serif">
+          <textPath href="#arc-top" startOffset="50%">HARDENED</textPath>
+        </text>
+        <path id="arc-bot" d="M 160,90 A 70,70 0 0,1 20,90" fill="none"/>
+        <text font-size="9" font-weight="700" letter-spacing="3" fill="rgba(255,255,255,0.3)" text-anchor="middle" font-family="system-ui,sans-serif">
+          <textPath href="#arc-bot" startOffset="50%">KRYLA FORGE · 2026</textPath>
+        </text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <p class="verdict">Hardened</p>
+  <h1>Kryla Design System & Template UX Overhaul</h1>
+  <p class="sub">The system elevates average content. A member with three photos looks like they hired an agency. Restraint is the richness — not decoration.</p>
+
+  <!-- Locks -->
+  <div class="section">
+    <p class="section-label">What survived</p>
+
+    <div class="lock">
+      <p class="lock-tag">Direction</p>
+      <p>Build a system so well designed that <strong>average content looks intentional.</strong> Confident negative space and typography do the work — not gradients, glows, or animated orbs.</p>
+    </div>
+
+    <div class="lock">
+      <p class="lock-tag">Design Modes — new <code style="font-size:0.8em;color:#F5A623">design_mode</code> column</p>
+      <p><strong>craft</strong> (baker, salon, chef, trainer) — warm spacing, 1.333× type ratio, approachable.<br>
+      <strong>editorial</strong> (photographer, doctor, musician) — generous whitespace, 1.414× ratio, photography-forward.<br>
+      Set at onboarding from persona. Palette stays color-only. These are separate concerns.</p>
+    </div>
+
+    <div class="lock">
+      <p class="lock-tag">Token Implementation</p>
+      <p>CSS custom properties as source of truth — <code style="color:#F5A623;font-size:0.85em">[data-mode='craft'] &#123; --type-display: 3.5rem; --space-section: 5rem; &#125;</code>. Tailwind config extends the same scale. <code style="color:#F5A623;font-size:0.85em">data-mode</code> on the LayoutRenderer wrapper. Both layers — not either.</p>
+    </div>
+
+    <div class="lock">
+      <p class="lock-tag">auto Variant — render time, not DB</p>
+      <p>LayoutRenderer reads member content and picks the hero variant:<br>
+      <strong>gallery photo exists</strong> → <code style="color:#F5A623;font-size:0.85em">photo</code> (full-bleed)<br>
+      <strong>avatar only</strong> → <code style="color:#F5A623;font-size:0.85em">split</code> or <code style="color:#F5A623;font-size:0.85em">centered</code><br>
+      <strong>no photos</strong> → <code style="color:#F5A623;font-size:0.85em">dark</code> (typographic)<br>
+      Admin can override. auto is the default for all new section entries.</p>
+    </div>
+
+    <div class="lock">
+      <p class="lock-tag">Retrofit before production data</p>
+      <p>All section components rewritten on the token system before any member has <code style="color:#F5A623;font-size:0.85em">sections</code> JSON in the DB. No migration debt, no live pages depending on current ad-hoc values.</p>
+    </div>
+  </div>
+
+  <!-- Sequence -->
+  <div class="section">
+    <p class="section-label">Build sequence</p>
+
+    <div class="seq">
+      <div class="seq-week">W1</div>
+      <div class="seq-body">
+        <strong>Foundation — invisible but non-negotiable</strong>
+        <p>CSS custom properties, <code style="color:#F5A623;font-size:0.9em">design_mode</code> column, persona→mode mapping at onboarding, <code style="color:#F5A623;font-size:0.9em">data-mode</code> on LayoutRenderer wrapper. Nothing looks different yet.</p>
+      </div>
+    </div>
+    <div class="seq">
+      <div class="seq-week">W2</div>
+      <div class="seq-body">
+        <strong>Hero rewrite + auto variant — first visible win</strong>
+        <p>HeroSection on tokens. auto variant logic in LayoutRenderer. Bakers with gallery photos get full-bleed photo hero automatically. Most members look noticeably better without any admin action.</p>
+      </div>
+    </div>
+    <div class="seq">
+      <div class="seq-week">W3</div>
+      <div class="seq-body">
+        <strong>All remaining sections on tokens</strong>
+        <p>Services, Highlights, Bio, Gallery, FAQ, Contact. Consistent spatial rhythm. Pages feel composed, not assembled.</p>
+      </div>
+    </div>
+    <div class="seq">
+      <div class="seq-week">W4</div>
+      <div class="seq-body">
+        <strong>Persona default section arrays — product promise lands</strong>
+        <p>Default <code style="color:#F5A623;font-size:0.9em">sections</code> JSON for each persona. New member's page looks custom-made on day one, auto variant throughout, no admin panel needed.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Killed -->
+  <div class="section">
+    <p class="section-label">What was killed</p>
+    <div class="kill"><span class="kill-x">✕</span><p><strong>Decoration as richness</strong> — animated orbs, gradient borders, glow pulses. 2019 agency portfolio moves. Killed.</p></div>
+    <div class="kill"><span class="kill-x">✕</span><p><strong>Encoding design_mode in palette</strong> — palette is color only. Spatial grammar is a separate concern. Killed.</p></div>
+    <div class="kill"><span class="kill-x">✕</span><p><strong>Extending template to carry design mode</strong> — too coupled. New column. Killed.</p></div>
+    <div class="kill"><span class="kill-x">✕</span><p><strong>Temporary bridge</strong> — deriving design_mode from template at render time. Killed. Proper column from day one.</p></div>
+    <div class="kill"><span class="kill-x">✕</span><p><strong>Writing auto variant back to DB</strong> — render time resolution only. DB stays clean. Killed.</p></div>
+  </div>
+
+  <!-- The room -->
+  <div class="section">
+    <p class="section-label">The room that pressure-tested it</p>
+    <div>
+      <span class="persona"><span>🎨</span> Sally — UX Designer</span>
+      <span class="persona"><span>💻</span> Amelia — Senior Engineer</span>
+      <span class="persona"><span>📊</span> Mary — Business Analyst</span>
+      <span class="persona"><span>📋</span> John — Product Manager</span>
+      <span class="persona">✦ Kenji — Lead Designer, Figma (generated)</span>
+      <span class="persona">✦ Marco — Creative Director (generated)</span>
+      <span class="persona">✦ Riya — First-time customer (generated)</span>
+    </div>
+  </div>
+
+  <footer>
+    <p>Forged 2026-06-30 · kryla.work</p>
+    <div class="k-logo">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <line x1="7" y1="4" x2="7" y2="20" stroke="rgba(255,255,255,0.3)" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="7" y1="12" x2="17" y2="4" stroke="rgba(255,255,255,0.3)" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="7" y1="12" x2="17" y2="20" stroke="#F5A623" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      kryla.work
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

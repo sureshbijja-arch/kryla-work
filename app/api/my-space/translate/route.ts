@@ -73,7 +73,7 @@ export async function POST(req: Request) {
 
   const completion = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 2048,
+    max_tokens: 4096,
     messages: [{
       role: 'user',
       content: `Translate the following JSON to ${langName}. Return ONLY valid JSON in exactly the same shape. Rules:

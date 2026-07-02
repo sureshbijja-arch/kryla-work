@@ -22,7 +22,7 @@ export default async function MyChatPage({ params }: Props) {
 
   const { data: provider } = await supabaseAdmin
     .from('providers')
-    .select('id, slug, first_name, last_name, persona, location, whatsapp_number, email, plan, plan_status, region, page_live, page_language')
+    .select('id, slug, first_name, last_name, persona, location, whatsapp_number, email, plan, plan_status, region, page_live, page_language, custom_domain')
     .eq('email', user.email)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -60,6 +60,7 @@ export default async function MyChatPage({ params }: Props) {
         planStatus:   provider.plan_status ?? 'active',
         region:       (provider.region as 'india' | 'usa') ?? 'india',
         pageLanguage: (provider.page_language as string) ?? 'en',
+        customDomain: (provider.custom_domain as string | null) ?? null,
         currentProfile: {
           firstName:    provider.first_name,
           lastName:     provider.last_name,

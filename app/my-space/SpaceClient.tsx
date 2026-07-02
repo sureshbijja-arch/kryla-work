@@ -56,6 +56,7 @@ interface Props {
   planStatus: string
   region: 'india' | 'usa'
   pageLanguage: string
+  customDomain: string | null
   currentProfile: CurrentProfile
   onRefresh: () => void
 }
@@ -170,7 +171,7 @@ const FONT_LABELS: Record<string, string> = {
 
 export default function SpaceClient({
   providerId, slug, firstName,
-  plan, region, pageLanguage, currentProfile, onRefresh,
+  plan, region, pageLanguage, customDomain, currentProfile, onRefresh,
 }: Props) {
   const defaultSections: SectionEntry[] = currentProfile.sections ?? [
     { sectionKey: 'hero',       variant: 'auto',      order: 1 },
@@ -647,6 +648,7 @@ export default function SpaceClient({
       {tab === 'plan' && (
         <div className="flex-1 overflow-y-auto">
           <PlanSection currentPlan={plan} region={region} onGoToMessages={() => setTab('messages')} />
+          <CustomDomainCard providerId={providerId} plan={plan} initialDomain={customDomain} />
         </div>
       )}
 
@@ -664,5 +666,139 @@ function Tag({ label }: { label: string }) {
     <span className="text-[10px] font-semibold text-[#666] bg-[#F5F5F5] rounded px-2 py-0.5 uppercase tracking-wide">
       {label}
     </span>
+  )
+}
+
+function CustomDomainCard({ providerId, plan, initialDomain }: { providerId: string; plan: string; initialDomain: string | null }) {
+  const [domain, setDomain]       = useState(initialDomain ?? '')
+  const [savedDomain, setSavedDomain] = useState(initialDomain)
+  const [saving, setSaving]       = useState(false)
+  const [error, setError]         = useState('')
+  const [showDns, setShowDns]     = useState(false)
+  const [removing, setRemoving]   = useState(false)
+
+  const isGrowPlus = ['grow', 'thrive', 'elevate'].includes(plan)
+
+  async function save() {
+    const raw = domain.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '')
+    if (!raw) return
+    setSaving(true)
+    setError('')
+    try {
+      const res = await fetch('/api/my-space/custom-domain', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ providerId, domain: raw }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error ?? 'Failed to save'); return }
+      setDomain(data.domain)
+      setSavedDomain(data.domain)
+      setShowDns(true)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function remove() {
+    setRemoving(true)
+    try {
+      await fetch('/api/my-space/custom-domain', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ providerId }),
+      })
+      setDomain('')
+      setSavedDomain(null)
+      setShowDns(false)
+    } finally {
+      setRemoving(false)
+    }
+  }
+
+  return (
+    <div className="px-4 pb-6">
+      <p className="text-xs font-semibold text-[#999] uppercase tracking-widest mb-3">Your domain</p>
+      <div className="rounded-2xl border border-[#E5E5E5] p-5 bg-white">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="flex-1">
+            <p className="font-bold text-[#0D0D0D] text-sm mb-0.5">Custom domain</p>
+            <p className="text-xs text-[#999]">
+              {isGrowPlus
+                ? 'Use priya.com instead of kryla.work/priya — your brand, your address.'
+                : 'Upgrade to Grow to connect your own domain.'}
+            </p>
+          </div>
+          {!isGrowPlus && (
+            <span className="shrink-0 text-[10px] font-semibold bg-[#F5F5F5] text-[#999] px-2 py-0.5 rounded-full uppercase tracking-wide">Grow+</span>
+          )}
+        </div>
+
+        {isGrowPlus ? (
+          <>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                placeholder="priya.com"
+                value={domain}
+                onChange={e => { setDomain(e.target.value); setError('') }}
+                onKeyDown={e => { if (e.key === 'Enter') save() }}
+                className="flex-1 border border-[#E5E5E5] rounded-xl px-3.5 py-2.5 text-sm text-[#0D0D0D] placeholder:text-[#bbb] focus:outline-none focus:border-[#0D0D0D] transition-colors"
+              />
+              <button
+                onClick={save}
+                disabled={saving || !domain.trim()}
+                className="shrink-0 text-sm font-semibold text-white bg-[#0D0D0D] rounded-xl px-4 py-2.5 disabled:opacity-40 hover:opacity-80 transition-opacity">
+                {saving ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+
+            {error && <p className="text-red-500 text-xs mb-3">{error}</p>}
+
+            {savedDomain && (
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs text-[#22C55E] font-semibold">✓ {savedDomain}</p>
+                <button
+                  onClick={remove}
+                  disabled={removing}
+                  className="text-xs text-[#999] hover:text-red-500 transition-colors">
+                  {removing ? 'Removing…' : 'Remove'}
+                </button>
+              </div>
+            )}
+
+            {savedDomain && (
+              <div>
+                <button
+                  onClick={() => setShowDns(v => !v)}
+                  className="text-xs text-[#999] hover:text-[#0D0D0D] transition-colors mb-2 flex items-center gap-1">
+                  {showDns ? '▾' : '▸'} DNS setup instructions
+                </button>
+                {showDns && (
+                  <div className="bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl px-4 py-3 space-y-2">
+                    <p className="text-[10px] font-semibold text-[#666] uppercase tracking-wide mb-2">Point your DNS to Kryla</p>
+                    <div className="font-mono text-[11px] space-y-1.5">
+                      <div className="flex gap-3">
+                        <span className="text-[#999] w-12 shrink-0">CNAME</span>
+                        <span className="text-[#0D0D0D]">www → cname.vercel-dns.com</span>
+                      </div>
+                      <div className="flex gap-3">
+                        <span className="text-[#999] w-12 shrink-0">A</span>
+                        <span className="text-[#0D0D0D]">@ → 76.76.21.21</span>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-[#bbb] mt-2 leading-relaxed">
+                      After saving DNS changes it can take up to 48 h to go live. Set these in your domain registrar (GoDaddy, Namecheap, Google Domains, etc.).
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="text-xs text-[#bbb]">Available on Grow plan (₹799/mo · $12/mo).</p>
+        )}
+      </div>
+    </div>
   )
 }
