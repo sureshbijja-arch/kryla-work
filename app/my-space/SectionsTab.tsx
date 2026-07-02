@@ -122,9 +122,10 @@ interface Props {
   slug: string
   initialSections: SectionEntry[]
   plan: string
+  onPreview?: () => void
 }
 
-export default function SectionsTab({ providerId, slug, initialSections, plan }: Props) {
+export default function SectionsTab({ providerId, slug, initialSections, plan, onPreview }: Props) {
   const [sections, setSections] = useState<SectionEntry[]>(
     [...initialSections].sort((a, b) => a.order - b.order)
   )
@@ -224,6 +225,7 @@ export default function SectionsTab({ providerId, slug, initialSections, plan }:
       })
       if (!res.ok) throw new Error('Save failed')
       setSaved(true)
+      onPreview?.()
     } catch {
       setError('Could not save — please try again')
     } finally {
@@ -247,13 +249,9 @@ export default function SectionsTab({ providerId, slug, initialSections, plan }:
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                   <path d="M2 6l3 3 5-5" stroke="#22C55E" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                Saved
+                Draft saved
               </span>
             )}
-            <a href={`/${slug}/preview`} target="_blank" rel="noopener noreferrer"
-              className="text-xs font-semibold text-[#F5A623] hover:underline">
-              Preview ↗
-            </a>
             <button
               onClick={save}
               disabled={saving}

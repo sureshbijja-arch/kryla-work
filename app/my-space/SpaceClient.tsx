@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import PlanSection from './PlanSection'
 import BookingsTab from './BookingsTab'
 import MessagesTab from './MessagesTab'
@@ -52,6 +51,7 @@ interface Props {
   planStatus: string
   region: 'india' | 'usa'
   currentProfile: CurrentProfile
+  onRefresh: () => void
 }
 
 type MainTab   = 'chat' | 'design' | 'messages' | 'bookings' | 'plan'
@@ -70,10 +70,8 @@ const FONT_LABELS: Record<string, string> = {
 
 export default function SpaceClient({
   providerId, slug, firstName,
-  plan, region, currentProfile,
+  plan, region, currentProfile, onRefresh,
 }: Props) {
-  const router = useRouter()
-
   const defaultSections: SectionEntry[] = currentProfile.sections ?? [
     { sectionKey: 'hero',       variant: 'auto',      order: 1 },
     { sectionKey: 'services',   variant: 'features',  order: 2 },
@@ -85,6 +83,8 @@ export default function SpaceClient({
 
   const [tab, setTab]             = useState<MainTab>('chat')
   const [designTab, setDesignTab] = useState<DesignTab>('services')
+  const [publishing, setPublishing] = useState(false)
+  const [published, setPublished]   = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -127,7 +127,7 @@ export default function SpaceClient({
         ...prev,
         { role: 'assistant', content: data.message, changed: data.changed },
       ])
-      if (data.changed) router.refresh()
+      if (data.changed) onRefresh()
     } catch {
       setMessages(prev => [
         ...prev,
@@ -146,6 +146,27 @@ export default function SpaceClient({
     }
   }
 
+  async function handlePublish() {
+    if (publishing) return
+    setPublishing(true)
+    try {
+      const res = await fetch('/api/my-space/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug }),
+      })
+      if (res.ok) {
+        setPublished(true)
+        onRefresh()
+        setTimeout(() => setPublished(false), 3000)
+      }
+    } catch {
+      // silent
+    } finally {
+      setPublishing(false)
+    }
+  }
+
   return (
     <div className="h-full flex flex-col bg-[#FAFAFA]">
 
@@ -159,7 +180,16 @@ export default function SpaceClient({
           </svg>
           {slug}.kryla.work
         </a>
-        <span className="text-[11px] font-bold text-[#0D0D0D] tracking-widest uppercase">My Chat</span>
+        <button
+          onClick={handlePublish}
+          disabled={publishing}
+          className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 ${
+            published
+              ? 'bg-[#22C55E] text-white'
+              : 'bg-[#0D0D0D] text-white hover:opacity-80'
+          }`}>
+          {publishing ? 'Publishing…' : published ? '✓ Published' : 'Publish →'}
+        </button>
       </header>
 
       {/* Tab bar */}
@@ -257,7 +287,7 @@ export default function SpaceClient({
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                           <path d="M2 6l3 3 5-5" stroke="#22C55E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
-                        <span className="text-[10px] text-[#22C55E] font-semibold">Saved · page updated</span>
+                        <span className="text-[10px] text-[#22C55E] font-semibold">Draft saved · publish when ready</span>
                       </div>
                     )}
                   </div>
@@ -320,7 +350,7 @@ export default function SpaceClient({
           slug={slug}
           initialServices={currentProfile.services}
           plan={plan}
-          onPreview={() => router.refresh()}
+          onPreview={onRefresh}
         />
       )}
 
@@ -331,6 +361,7 @@ export default function SpaceClient({
           slug={slug}
           initialSections={defaultSections}
           plan={plan}
+          onPreview={onRefresh}
         />
       )}
 
@@ -343,7 +374,7 @@ export default function SpaceClient({
           currentTemplate={currentProfile.template}
           currentPalette={currentProfile.palette}
           currentFont={currentProfile.font}
-          onPreview={() => router.refresh()}
+          onPreview={onRefresh}
           onUpgrade={() => setTab('plan')}
         />
       )}
