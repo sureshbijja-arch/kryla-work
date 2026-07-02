@@ -98,7 +98,7 @@ export default function SpaceClient({
   const [voiceOn, setVoiceOn]   = useState(false)
   const bottomRef               = useRef<HTMLDivElement>(null)
   const inputRef                = useRef<HTMLTextAreaElement>(null)
-  const recognitionRef          = useRef<SpeechRecognition | null>(null)
+  const recognitionRef          = useRef<unknown>(null)
 
   const isSeed        = !plan || plan === 'seed'
   const bookingsLabel = getPersonaConfig(currentProfile.persona).tabLabel
@@ -113,38 +113,35 @@ export default function SpaceClient({
   }, [tab])
 
   const startListening = useCallback(() => {
-    const SpeechRecognition =
-      (window as Window & { SpeechRecognition?: typeof window.SpeechRecognition; webkitSpeechRecognition?: typeof window.SpeechRecognition })
-        .SpeechRecognition ??
-      (window as Window & { webkitSpeechRecognition?: typeof window.SpeechRecognition }).webkitSpeechRecognition
-
-    if (!SpeechRecognition) {
-      alert('Voice input isn\'t supported in this browser. Try Chrome or Safari.')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition
+    if (!SR) {
+      alert("Voice input isn't supported in this browser. Try Chrome or Safari.")
       return
     }
 
     if (listening) {
-      recognitionRef.current?.stop()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(recognitionRef.current as any)?.stop()
       return
     }
 
-    const rec = new SpeechRecognition()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rec: any = new SR()
     rec.lang = 'en-US'
     rec.interimResults = true
     rec.maxAlternatives = 1
 
-    rec.onstart  = () => setListening(true)
-    rec.onend    = () => setListening(false)
-    rec.onerror  = () => setListening(false)
+    rec.onstart = () => setListening(true)
+    rec.onend   = () => setListening(false)
+    rec.onerror = () => setListening(false)
 
-    rec.onresult = (e: SpeechRecognitionEvent) => {
-      const transcript = Array.from(e.results)
-        .map(r => r[0].transcript)
-        .join('')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onresult = (e: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const transcript = Array.from(e.results as any[]).map((r: any) => r[0].transcript).join('')
       setInput(transcript)
-      if (e.results[e.results.length - 1].isFinal) {
-        rec.stop()
-      }
+      if (e.results[e.results.length - 1].isFinal) rec.stop()
     }
 
     recognitionRef.current = rec
