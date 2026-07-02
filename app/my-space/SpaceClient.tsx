@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { speak, stopSpeaking } from '@/lib/voice'
 import PlanSection from './PlanSection'
 import BookingsTab from './BookingsTab'
 import MessagesTab from './MessagesTab'
@@ -91,10 +92,13 @@ export default function SpaceClient({
       content: `Hi ${firstName}! Ask me anything about your page — change your headline, bio, services, colours, layout, or anything else.`,
     },
   ])
-  const [input, setInput]     = useState('')
-  const [loading, setLoading] = useState(false)
-  const bottomRef             = useRef<HTMLDivElement>(null)
-  const inputRef              = useRef<HTMLTextAreaElement>(null)
+  const [input, setInput]       = useState('')
+  const [loading, setLoading]   = useState(false)
+  const [listening, setListening] = useState(false)
+  const [voiceOn, setVoiceOn]   = useState(false)
+  const bottomRef               = useRef<HTMLDivElement>(null)
+  const inputRef                = useRef<HTMLTextAreaElement>(null)
+  const recognitionRef          = useRef<SpeechRecognition | null>(null)
 
   const isSeed        = !plan || plan === 'seed'
   const bookingsLabel = getPersonaConfig(currentProfile.persona).tabLabel
@@ -102,6 +106,50 @@ export default function SpaceClient({
   useEffect(() => {
     if (tab === 'chat') bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, tab])
+
+  // Stop speaking when user switches away from chat tab
+  useEffect(() => {
+    if (tab !== 'chat') stopSpeaking()
+  }, [tab])
+
+  const startListening = useCallback(() => {
+    const SpeechRecognition =
+      (window as Window & { SpeechRecognition?: typeof window.SpeechRecognition; webkitSpeechRecognition?: typeof window.SpeechRecognition })
+        .SpeechRecognition ??
+      (window as Window & { webkitSpeechRecognition?: typeof window.SpeechRecognition }).webkitSpeechRecognition
+
+    if (!SpeechRecognition) {
+      alert('Voice input isn\'t supported in this browser. Try Chrome or Safari.')
+      return
+    }
+
+    if (listening) {
+      recognitionRef.current?.stop()
+      return
+    }
+
+    const rec = new SpeechRecognition()
+    rec.lang = 'en-US'
+    rec.interimResults = true
+    rec.maxAlternatives = 1
+
+    rec.onstart  = () => setListening(true)
+    rec.onend    = () => setListening(false)
+    rec.onerror  = () => setListening(false)
+
+    rec.onresult = (e: SpeechRecognitionEvent) => {
+      const transcript = Array.from(e.results)
+        .map(r => r[0].transcript)
+        .join('')
+      setInput(transcript)
+      if (e.results[e.results.length - 1].isFinal) {
+        rec.stop()
+      }
+    }
+
+    recognitionRef.current = rec
+    rec.start()
+  }, [listening])
 
   async function send() {
     const text = input.trim()
@@ -128,6 +176,7 @@ export default function SpaceClient({
         { role: 'assistant', content: data.message, changed: data.changed },
       ])
       if (data.changed) onRefresh()
+      if (voiceOn && data.message) speak(data.message)
     } catch {
       setMessages(prev => [
         ...prev,
@@ -315,11 +364,27 @@ export default function SpaceClient({
           </main>
 
           <div className="bg-white border-t border-[#E5E5E5] px-4 py-4 shrink-0">
-            <div className="flex gap-3 items-end">
+            <div className="flex gap-2 items-end">
+              {/* Mic button */}
+              <button
+                onClick={startListening}
+                title={listening ? 'Stop listening' : 'Speak your message'}
+                className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                  listening
+                    ? 'bg-red-500 text-white animate-pulse'
+                    : 'bg-[#F5F5F5] text-[#666] hover:bg-[#E5E5E5]'
+                }`}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <rect x="5" y="1" width="6" height="9" rx="3" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M2 8c0 3.314 2.686 6 6 6s6-2.686 6-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <line x1="8" y1="14" x2="8" y2="16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              </button>
+
               <textarea
                 ref={inputRef}
                 rows={1}
-                placeholder="What would you like to change?"
+                placeholder={listening ? 'Listening…' : 'What would you like to change?'}
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -336,9 +401,33 @@ export default function SpaceClient({
                 </svg>
               </button>
             </div>
-            <p className="text-center text-[10px] text-[#bbb] mt-2">
-              Enter to send · Shift+Enter for new line
-            </p>
+
+            {/* Bottom hint row */}
+            <div className="flex items-center justify-between mt-2">
+              <p className="text-[10px] text-[#bbb]">
+                Enter to send · Shift+Enter for new line
+              </p>
+              {/* Voice reply toggle */}
+              <button
+                onClick={() => { setVoiceOn(v => !v); if (voiceOn) stopSpeaking() }}
+                title={voiceOn ? 'Turn off voice replies' : 'Turn on voice replies'}
+                className={`flex items-center gap-1 text-[10px] font-semibold transition-colors ${
+                  voiceOn ? 'text-[#F5A623]' : 'text-[#bbb] hover:text-[#999]'
+                }`}>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M1 4h2l2-3v10L3 8H1V4z" fill={voiceOn ? '#F5A623' : 'none'} stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+                  {voiceOn ? (
+                    <>
+                      <path d="M8 2.5c1.5 1 1.5 6 0 7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                      <path d="M9.5 1c2.5 1.8 2.5 8.2 0 10" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                    </>
+                  ) : (
+                    <path d="M8 4l3 4M11 4L8 8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                  )}
+                </svg>
+                {voiceOn ? 'Voice on' : 'Voice off'}
+              </button>
+            </div>
           </div>
         </>
       )}
