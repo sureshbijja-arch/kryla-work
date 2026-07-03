@@ -6,7 +6,7 @@ import type { PlanDef } from '@/lib/plans';
 type Loc = 'india' | 'usa';
 
 const R1 = [
-  { icon: '📚', name: 'Priya Sharma',    role: 'Maths Tutor',         loc: 'Celina, TX',         url: 'kryla.work/priyasharma' },
+  { icon: '📚', name: 'Priya Sharma',    role: 'Tutor',         loc: 'Celina, TX',         url: 'kryla.work/priyasharma' },
   { icon: '🎂', name: 'Meena Krishnan',  role: 'Home Baker',          loc: 'Pune, India',        url: 'kryla.work/meenabakes' },
   { icon: '💪', name: 'Raj Patel',       role: 'Fitness Trainer',     loc: 'Prosper, TX',        url: 'kryla.work/rajfitness' },
   { icon: '📷', name: 'Alex Chen',       role: 'Photographer',        loc: 'Frisco, TX',         url: 'kryla.work/alexchenphoto' },
@@ -857,7 +857,7 @@ export default function HomeClient({ plans }: { plans: PlanDef[] }) {
             <a href="/join" className="btn-primary">I have an invite code →</a>
             <a href="#s1" className="btn-secondary">See how it works ↓</a>
           </div>
-          <p className="hero-proof">Invite-only · Live in 15 minutes · Works on WhatsApp · From {loc === 'india' ? (startPlan?.indiaPrice ?? '₹299') : (startPlan?.usaPrice ?? '$9')}/mo</p>
+          <p className="hero-proof">Invite-only · Live in 15 minutes</p>
         </div>
 
         {/* K mark watermark */}
@@ -967,7 +967,7 @@ export default function HomeClient({ plans }: { plans: PlanDef[] }) {
                 <p className="testi-quote">&ldquo;I used to spend 30 minutes explaining myself to every new enquiry. Now I send one link. Three new students booked last week alone.&rdquo;</p>
                 <div className="testi-author">
                   <span className="testi-name">Priya Sharma</span>
-                  <span className="testi-role">Maths Tutor · Celina, TX</span>
+                  <span className="testi-role">Tutor · Celina, TX</span>
                 </div>
               </div>
             </>
@@ -978,7 +978,7 @@ export default function HomeClient({ plans }: { plans: PlanDef[] }) {
                 <p className="testi-quote">&ldquo;I used to spend 30 minutes explaining myself to every new enquiry. Now I send one link. Three new students booked last week alone.&rdquo;</p>
                 <div className="testi-author">
                   <span className="testi-name">Priya Sharma</span>
-                  <span className="testi-role">Maths Tutor · Celina, TX</span>
+                  <span className="testi-role">Tutor · Celina, TX</span>
                 </div>
               </div>
               <div className="testi-card">
