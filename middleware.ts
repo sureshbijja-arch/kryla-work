@@ -72,38 +72,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.rewrite(url)
   }
 
-  // Custom domain (e.g. priya.com) — look up provider by custom_domain
-  if (url.pathname.startsWith('/api') || url.pathname.startsWith('/_next')) {
-    return NextResponse.next()
-  }
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (supabaseUrl && serviceKey) {
-    try {
-      const lookupRes = await fetch(
-        `${supabaseUrl}/rest/v1/providers?custom_domain=eq.${encodeURIComponent(hostname)}&select=slug&limit=1`,
-        {
-          headers: {
-            apikey: serviceKey,
-            Authorization: `Bearer ${serviceKey}`,
-          },
-          cache: 'no-store',
-        }
-      )
-      if (lookupRes.ok) {
-        const rows = await lookupRes.json() as Array<{ slug: string }>
-        if (rows[0]?.slug) {
-          const targetSlug = rows[0].slug
-          url.pathname = `/${targetSlug}${url.pathname === '/' ? '' : url.pathname}`
-          return NextResponse.rewrite(url)
-        }
-      }
-    } catch {
-      // fail open — serve normally
-    }
-  }
-
+  // Unknown hostname — serve normally (no external custom-domain routing)
   return NextResponse.next()
 }
 

@@ -336,9 +336,6 @@ STRIPE_WEBHOOK_SECRET=           # Week 5
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=  # Week 5
 RESEND_API_KEY=                  # Week 5
 REVALIDATE_SECRET=               # Random string — used by /api/revalidate to authorize ISR revalidation from Inngest jobs
-VERCEL_API_TOKEN=                # Vercel account token (Account Settings → Tokens) — used by /api/my-space/custom-domain to attach member custom domains to the Vercel project
-VERCEL_PROJECT_ID=               # Project → Settings → General → Project ID
-VERCEL_TEAM_ID=                  # Team → Settings → General → Team ID (omit for personal accounts)
 ```
 
 ---
@@ -391,7 +388,7 @@ VERCEL_TEAM_ID=                  # Team → Settings → General → Team ID (om
 - ✅ Bookings — form on public page → DB → viewable in My Space
 - ✅ Draft data — AI edits saved to draft_data, applied on preview
 - ✅ Plans + features — DB-backed (`plans` + `plan_features`); managed at `/admin/plans`; gating data-driven via `feature_key`; coupons/discounts deferred to payments module
-- ✅ Custom domains — members on Thrive+ can connect their own domain; gated via `plan_features.feature_key = 'custom_domain'`; middleware routes hostname → slug; API attaches to Vercel (requires VERCEL_API_TOKEN env vars in Vercel project settings)
+- ✅ Custom links — Thrive+ members pick a vanity name (e.g. `krityabijja`) which serves their page at `{name}.kryla.work` and `kryla.work/{name}`; gated via `plan_features.feature_key = 'custom_domain'`; stored in `providers.custom_domain`; `app/[slug]/page.tsx` resolves by slug OR custom_domain; live availability check via GET `/api/my-space/custom-domain?label=`; no external DNS/Vercel/registrar involved — Kryla owns kryla.work
 
 ## What's NOT Built Yet
 

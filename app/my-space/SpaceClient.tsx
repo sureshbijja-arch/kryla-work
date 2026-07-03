@@ -650,31 +650,55 @@ function Tag({ label }: { label: string }) {
 }
 
 function CustomDomainCard({ providerId, slug, canUse, initialDomain }: { providerId: string; slug: string; canUse: boolean; initialDomain: string | null }) {
-  const [domain, setDomain]       = useState(initialDomain ?? '')
-  const [savedDomain, setSavedDomain] = useState(initialDomain)
-  const [saving, setSaving]       = useState(false)
-  const [error, setError]         = useState('')
-  const [showDns, setShowDns]     = useState(false)
-  const [removing, setRemoving]   = useState(false)
+  const [label, setLabel]             = useState(initialDomain ?? '')
+  const [savedLabel, setSavedLabel]   = useState(initialDomain)
+  const [saving, setSaving]           = useState(false)
+  const [removing, setRemoving]       = useState(false)
+  const [error, setError]             = useState('')
+  const [avail, setAvail]             = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
+  const [copied, setCopied]           = useState(false)
+  const debounceRef                   = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const forwardTarget = `https://${slug}.kryla.work`
+  const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'kryla.work'
+  const vanityUrl  = savedLabel ? `https://${savedLabel}.${APP_DOMAIN}` : null
+
+  function handleChange(val: string) {
+    setLabel(val)
+    setError('')
+    setAvail('idle')
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    const trimmed = val.trim()
+    if (!trimmed) return
+    debounceRef.current = setTimeout(async () => {
+      setAvail('checking')
+      try {
+        const res = await fetch(`/api/my-space/custom-domain?label=${encodeURIComponent(trimmed)}&providerId=${providerId}`)
+        const data = await res.json()
+        if (data.error) { setAvail('invalid'); setError(data.error); return }
+        setAvail(data.available ? 'available' : 'taken')
+        if (!data.available) setError('That name is already taken — try another')
+      } catch {
+        setAvail('idle')
+      }
+    }, 500)
+  }
 
   async function save() {
-    const raw = domain.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '')
-    if (!raw) return
+    const trimmed = label.trim()
+    if (!trimmed) return
     setSaving(true)
     setError('')
     try {
       const res = await fetch('/api/my-space/custom-domain', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ providerId, domain: raw }),
+        body: JSON.stringify({ providerId, domain: trimmed }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Failed to save'); return }
-      setDomain(data.domain)
-      setSavedDomain(data.domain)
-      setShowDns(true)
+      setLabel(data.domain)
+      setSavedLabel(data.domain)
+      setAvail('idle')
     } finally {
       setSaving(false)
     }
@@ -688,25 +712,36 @@ function CustomDomainCard({ providerId, slug, canUse, initialDomain }: { provide
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId }),
       })
-      setDomain('')
-      setSavedDomain(null)
-      setShowDns(false)
+      setLabel('')
+      setSavedLabel(null)
+      setAvail('idle')
+      setError('')
     } finally {
       setRemoving(false)
     }
   }
 
+  function copyUrl() {
+    if (!vanityUrl) return
+    navigator.clipboard.writeText(vanityUrl).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  const canSave = avail === 'available' || (label.trim() === savedLabel && !!savedLabel)
+
   return (
     <div className="px-4 pb-6">
-      <p className="text-xs font-semibold text-[#999] uppercase tracking-widest mb-3">Your domain</p>
+      <p className="text-xs font-semibold text-[#999] uppercase tracking-widest mb-3">Your custom link</p>
       <div className="rounded-2xl border border-[#E5E5E5] p-5 bg-white">
         <div className="flex items-start gap-3 mb-4">
           <div className="flex-1">
-            <p className="font-bold text-[#0D0D0D] text-sm mb-0.5">Custom domain</p>
+            <p className="font-bold text-[#0D0D0D] text-sm mb-0.5">Custom link</p>
             <p className="text-xs text-[#999]">
               {canUse
-                ? 'Point your own domain (e.g. priya.com) to your Kryla page — your brand, your address.'
-                : 'Upgrade to Thrive to connect your own domain.'}
+                ? `Pick a custom name for your page — it'll live at yourname.${APP_DOMAIN}`
+                : 'Upgrade to Thrive to get a custom link for your page.'}
             </p>
           </div>
           {!canUse && (
@@ -716,64 +751,64 @@ function CustomDomainCard({ providerId, slug, canUse, initialDomain }: { provide
 
         {canUse ? (
           <>
-            <div className="flex gap-2 mb-2">
+            {/* Input row */}
+            <div className="flex items-center gap-0 mb-1 border border-[#E5E5E5] rounded-xl overflow-hidden focus-within:border-[#0D0D0D] transition-colors">
+              <span className="pl-3.5 text-sm text-[#bbb] shrink-0 select-none">{APP_DOMAIN}/</span>
               <input
                 type="text"
-                placeholder="priya.com"
-                value={domain}
-                onChange={e => { setDomain(e.target.value); setError('') }}
-                onKeyDown={e => { if (e.key === 'Enter') save() }}
-                className="flex-1 border border-[#E5E5E5] rounded-xl px-3.5 py-2.5 text-sm text-[#0D0D0D] placeholder:text-[#bbb] focus:outline-none focus:border-[#0D0D0D] transition-colors"
+                placeholder={slug}
+                value={label}
+                onChange={e => handleChange(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && canSave) save() }}
+                className="flex-1 py-2.5 pr-2 text-sm text-[#0D0D0D] placeholder:text-[#bbb] focus:outline-none bg-transparent"
               />
               <button
                 onClick={save}
-                disabled={saving || !domain.trim()}
-                className="shrink-0 text-sm font-semibold text-white bg-[#0D0D0D] rounded-xl px-4 py-2.5 disabled:opacity-40 hover:opacity-80 transition-opacity">
+                disabled={saving || !label.trim() || !canSave}
+                className="shrink-0 text-sm font-semibold text-white bg-[#0D0D0D] px-4 py-2.5 disabled:opacity-40 hover:opacity-80 transition-opacity">
                 {saving ? 'Saving…' : 'Save'}
               </button>
             </div>
 
-            {error && <p className="text-red-500 text-xs mb-3">{error}</p>}
+            {/* Availability indicator */}
+            {label.trim() && label.trim() !== savedLabel && (
+              <p className={`text-[11px] mb-2 ${avail === 'available' ? 'text-[#22C55E]' : avail === 'checking' ? 'text-[#999]' : 'text-red-500'}`}>
+                {avail === 'checking' ? 'Checking…'
+                  : avail === 'available' ? `✓ ${label.trim()}.${APP_DOMAIN} is available`
+                  : avail === 'taken' || avail === 'invalid' ? error
+                  : ''}
+              </p>
+            )}
 
-            {savedDomain && (
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs text-[#22C55E] font-semibold">✓ {savedDomain}</p>
+            {error && avail === 'idle' && <p className="text-red-500 text-xs mb-2">{error}</p>}
+
+            {/* Live vanity URL display */}
+            {vanityUrl && (
+              <div className="mt-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl px-4 py-3">
+                <p className="text-[10px] font-semibold text-[#666] uppercase tracking-wide mb-2">Your custom link is live</p>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={vanityUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 font-mono text-[12px] text-[#0D0D0D] hover:underline break-all">
+                    {vanityUrl}
+                  </a>
+                  <button
+                    onClick={copyUrl}
+                    className="shrink-0 text-[11px] font-semibold text-[#0D0D0D] bg-white border border-[#E5E5E5] rounded-lg px-2.5 py-1 hover:bg-[#F5F5F5] transition-colors">
+                    {copied ? 'Copied!' : 'Copy'}
+                  </button>
+                </div>
+                <p className="text-[10px] text-[#bbb] mt-2">
+                  Also works as <span className="font-mono">{savedLabel}.{APP_DOMAIN}</span>
+                </p>
                 <button
                   onClick={remove}
                   disabled={removing}
-                  className="text-xs text-[#999] hover:text-red-500 transition-colors">
-                  {removing ? 'Removing…' : 'Remove'}
+                  className="mt-2 text-[11px] text-[#bbb] hover:text-red-500 transition-colors">
+                  {removing ? 'Removing…' : 'Remove custom link'}
                 </button>
-              </div>
-            )}
-
-            {savedDomain && (
-              <div>
-                <button
-                  onClick={() => setShowDns(v => !v)}
-                  className="text-xs text-[#999] hover:text-[#0D0D0D] transition-colors mb-2 flex items-center gap-1">
-                  {showDns ? '▾' : '▸'} How to set up forwarding
-                </button>
-                {showDns && (
-                  <div className="bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl px-4 py-3 space-y-2">
-                    <p className="text-[10px] font-semibold text-[#666] uppercase tracking-wide mb-2">Point your domain to your Kryla page</p>
-                    <div className="mb-2">
-                      <p className="text-[10px] text-[#999] mb-1">Forward to this address:</p>
-                      <div className="font-mono text-[11px] bg-white border border-[#E5E5E5] rounded-lg px-3 py-2 text-[#0D0D0D] select-all break-all">
-                        {forwardTarget}
-                      </div>
-                    </div>
-                    <ol className="text-[10px] text-[#666] space-y-1 list-decimal list-inside leading-relaxed">
-                      <li>Log in to your domain registrar (GoDaddy, Namecheap, Google Domains, etc.)</li>
-                      <li>Find <strong>Forwarding</strong> or <strong>Redirect</strong> for your domain</li>
-                      <li>Forward <strong>{savedDomain}</strong> and <strong>www.{savedDomain}</strong> to the address above</li>
-                      <li>Choose <strong>Permanent (301)</strong> redirect and save</li>
-                    </ol>
-                    <p className="text-[10px] text-[#bbb] mt-2 leading-relaxed">
-                      Changes usually go live within minutes to a few hours.
-                    </p>
-                  </div>
-                )}
               </div>
             )}
           </>

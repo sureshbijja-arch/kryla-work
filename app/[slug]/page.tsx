@@ -14,13 +14,31 @@ interface Props {
   params: { slug: string }
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { data: provider } = await supabaseAdmin
+async function findProvider<T>(
+  select: string,
+  slug: string
+): Promise<T | null> {
+  const { data: bySlug } = await supabaseAdmin
     .from('providers')
-    .select('id, first_name, last_name, persona, location')
-    .eq('slug', params.slug)
+    .select(select)
+    .eq('slug', slug)
     .eq('page_live', true)
     .single()
+  if (bySlug) return bySlug as T
+  const { data: byVanity } = await supabaseAdmin
+    .from('providers')
+    .select(select)
+    .eq('custom_domain', slug)
+    .eq('page_live', true)
+    .single()
+  return (byVanity as T) ?? null
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const provider = await findProvider<{ id: string; first_name: string; last_name: string; persona: string; location: string }>(
+    'id, first_name, last_name, persona, location',
+    params.slug
+  )
 
   if (!provider) return { title: 'Not Found' }
 
@@ -44,12 +62,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function MemberProfilePage({ params }: Props) {
-  const { data: provider } = await supabaseAdmin
-    .from('providers')
-    .select('id, first_name, last_name, persona, location, whatsapp_number, whatsapp_public, email, plan, page_language')
-    .eq('slug', params.slug)
-    .eq('page_live', true)
-    .single()
+  const provider = await findProvider<{
+    id: string; first_name: string; last_name: string; persona: string
+    location: string; whatsapp_number: string | null; whatsapp_public: boolean | null
+    email: string | null; plan: string; page_language: string | null
+  }>(
+    'id, first_name, last_name, persona, location, whatsapp_number, whatsapp_public, email, plan, page_language',
+    params.slug
+  )
 
   if (!provider) return notFound()
 
