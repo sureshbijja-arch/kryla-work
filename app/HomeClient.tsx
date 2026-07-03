@@ -823,8 +823,8 @@ export default function HomeClient({ plans }: { plans: PlanDef[] }) {
             <span className="hf-label">📚 Tutor</span>
           </div>
           <div className="hf-wrap" style={{ top:'3%', right:'0%', '--rotation':'5deg', animationDelay:'0.8s' } as React.CSSProperties}>
-            <img className="hf-photo" src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&q=80" alt="Home Baker" />
-            <span className="hf-label">🎂 Home Baker</span>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&q=80" alt="Baker" />
+            <span className="hf-label">🎂 Baker</span>
           </div>
           <div className="hf-wrap" style={{ top:'42%', left:'20px', '--rotation':'3deg', animationDelay:'1.6s' } as React.CSSProperties}>
             <img className="hf-photo" src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=300&q=80" alt="Retailer" />
