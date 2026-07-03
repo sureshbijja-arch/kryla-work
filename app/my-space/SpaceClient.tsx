@@ -623,7 +623,7 @@ export default function SpaceClient({
       {tab === 'plan' && (
         <div className="flex-1 overflow-y-auto">
           <PlanSection currentPlan={plan} region={region} plans={plans} planOrder={planOrder} onGoToMessages={() => setTab('messages')} />
-          <CustomDomainCard providerId={providerId} canUse={canCustomDomain} initialDomain={customDomain} />
+          <CustomDomainCard providerId={providerId} slug={slug} canUse={canCustomDomain} initialDomain={customDomain} />
         </div>
       )}
 
@@ -649,13 +649,15 @@ function Tag({ label }: { label: string }) {
   )
 }
 
-function CustomDomainCard({ providerId, canUse, initialDomain }: { providerId: string; canUse: boolean; initialDomain: string | null }) {
+function CustomDomainCard({ providerId, slug, canUse, initialDomain }: { providerId: string; slug: string; canUse: boolean; initialDomain: string | null }) {
   const [domain, setDomain]       = useState(initialDomain ?? '')
   const [savedDomain, setSavedDomain] = useState(initialDomain)
   const [saving, setSaving]       = useState(false)
   const [error, setError]         = useState('')
   const [showDns, setShowDns]     = useState(false)
   const [removing, setRemoving]   = useState(false)
+
+  const forwardTarget = `https://${slug}.kryla.work`
 
   async function save() {
     const raw = domain.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '')
@@ -703,7 +705,7 @@ function CustomDomainCard({ providerId, canUse, initialDomain }: { providerId: s
             <p className="font-bold text-[#0D0D0D] text-sm mb-0.5">Custom domain</p>
             <p className="text-xs text-[#999]">
               {canUse
-                ? 'Use priya.com instead of kryla.work/priya — your brand, your address.'
+                ? 'Point your own domain (e.g. priya.com) to your Kryla page — your brand, your address.'
                 : 'Upgrade to Thrive to connect your own domain.'}
             </p>
           </div>
@@ -750,23 +752,25 @@ function CustomDomainCard({ providerId, canUse, initialDomain }: { providerId: s
                 <button
                   onClick={() => setShowDns(v => !v)}
                   className="text-xs text-[#999] hover:text-[#0D0D0D] transition-colors mb-2 flex items-center gap-1">
-                  {showDns ? '▾' : '▸'} DNS setup instructions
+                  {showDns ? '▾' : '▸'} How to set up forwarding
                 </button>
                 {showDns && (
                   <div className="bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl px-4 py-3 space-y-2">
-                    <p className="text-[10px] font-semibold text-[#666] uppercase tracking-wide mb-2">Point your DNS to Kryla</p>
-                    <div className="font-mono text-[11px] space-y-1.5">
-                      <div className="flex gap-3">
-                        <span className="text-[#999] w-12 shrink-0">CNAME</span>
-                        <span className="text-[#0D0D0D]">www → cname.vercel-dns.com</span>
-                      </div>
-                      <div className="flex gap-3">
-                        <span className="text-[#999] w-12 shrink-0">A</span>
-                        <span className="text-[#0D0D0D]">@ → 76.76.21.21</span>
+                    <p className="text-[10px] font-semibold text-[#666] uppercase tracking-wide mb-2">Point your domain to your Kryla page</p>
+                    <div className="mb-2">
+                      <p className="text-[10px] text-[#999] mb-1">Forward to this address:</p>
+                      <div className="font-mono text-[11px] bg-white border border-[#E5E5E5] rounded-lg px-3 py-2 text-[#0D0D0D] select-all break-all">
+                        {forwardTarget}
                       </div>
                     </div>
+                    <ol className="text-[10px] text-[#666] space-y-1 list-decimal list-inside leading-relaxed">
+                      <li>Log in to your domain registrar (GoDaddy, Namecheap, Google Domains, etc.)</li>
+                      <li>Find <strong>Forwarding</strong> or <strong>Redirect</strong> for your domain</li>
+                      <li>Forward <strong>{savedDomain}</strong> and <strong>www.{savedDomain}</strong> to the address above</li>
+                      <li>Choose <strong>Permanent (301)</strong> redirect and save</li>
+                    </ol>
                     <p className="text-[10px] text-[#bbb] mt-2 leading-relaxed">
-                      After saving DNS changes it can take up to 48 h to go live. Set these in your domain registrar (GoDaddy, Namecheap, Google Domains, etc.).
+                      Changes usually go live within minutes to a few hours.
                     </p>
                   </div>
                 )}

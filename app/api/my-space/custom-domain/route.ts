@@ -55,23 +55,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to save' }, { status: 500 })
   }
 
-  // Optionally register with Vercel API (non-fatal if env vars not set)
-  const vercelToken   = process.env.VERCEL_API_TOKEN
-  const vercelProject = process.env.VERCEL_PROJECT_ID
-  const vercelTeam    = process.env.VERCEL_TEAM_ID
-  if (vercelToken && vercelProject) {
-    try {
-      const teamParam = vercelTeam ? `&teamId=${vercelTeam}` : ''
-      await fetch(`https://api.vercel.com/v9/projects/${vercelProject}/domains${teamParam ? `?${teamParam.slice(1)}` : ''}`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${vercelToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: domain }),
-      })
-    } catch {
-      // non-fatal — DNS instructions are shown regardless
-    }
-  }
-
   return NextResponse.json({ ok: true, domain })
 }
 
@@ -88,32 +71,10 @@ export async function DELETE(req: NextRequest) {
   const ok = await assertOwner(providerId, user.email)
   if (!ok) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { data: existing } = await supabaseAdmin
-    .from('providers')
-    .select('custom_domain')
-    .eq('id', providerId)
-    .single()
-
   await supabaseAdmin
     .from('providers')
     .update({ custom_domain: null })
     .eq('id', providerId)
-
-  // Optionally remove from Vercel (non-fatal)
-  const vercelToken   = process.env.VERCEL_API_TOKEN
-  const vercelProject = process.env.VERCEL_PROJECT_ID
-  const vercelTeam    = process.env.VERCEL_TEAM_ID
-  if (vercelToken && vercelProject && existing?.custom_domain) {
-    try {
-      const teamParam = vercelTeam ? `?teamId=${vercelTeam}` : ''
-      await fetch(
-        `https://api.vercel.com/v9/projects/${vercelProject}/domains/${existing.custom_domain}${teamParam}`,
-        { method: 'DELETE', headers: { Authorization: `Bearer ${vercelToken}` } }
-      )
-    } catch {
-      // non-fatal
-    }
-  }
 
   return NextResponse.json({ ok: true })
 }
