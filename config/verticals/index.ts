@@ -131,7 +131,7 @@ const salon: VerticalConfig = {
 
 const chef: VerticalConfig = {
   id: 'chef',
-  label: 'Home chef',
+  label: 'Chef',
   emoji: '🍱',
   phase: 1,
   defaultTemplate: 'storefront',

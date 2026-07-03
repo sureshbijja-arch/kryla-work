@@ -842,6 +842,14 @@ export default function HomeClient({ plans }: { plans: PlanDef[] }) {
             <img className="hf-photo" src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&q=80" alt="Doctor" />
             <span className="hf-label">🩺 Doctor</span>
           </div>
+          <div className="hf-wrap" style={{ top:'22%', left:'20px', '--rotation':'4deg', animationDelay:'4.8s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=300&q=80" alt="Chef" />
+            <span className="hf-label">🍱 Chef</span>
+          </div>
+          <div className="hf-wrap" style={{ top:'20%', right:'-1%', '--rotation':'-5deg', animationDelay:'5.6s' } as React.CSSProperties}>
+            <img className="hf-photo" src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=300&q=80" alt="Salon / Stylist" />
+            <span className="hf-label">✂️ Salon / Stylist</span>
+          </div>
         </div>
 
         {/* Foreground text content */}

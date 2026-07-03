@@ -19,7 +19,7 @@ export interface OnboardingAnswers {
 
 export const PERSONA_LABELS: Record<Persona, string> = {
   tutor: 'Tutor', trainer: 'Fitness trainer', baker: 'Baker',
-  photographer: 'Photographer', salon: 'Salon / stylist', chef: 'Home chef',
+  photographer: 'Photographer', salon: 'Salon / stylist', chef: 'Chef',
   doctor: 'Doctor', musician: 'Music teacher',
   advocate: 'Advocate', retailer: 'Retailer',
   other: 'Professional',
