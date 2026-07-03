@@ -165,3 +165,34 @@ create or replace trigger trg_bookings_updated_at
 create or replace trigger trg_support_updated_at
   before update on support_tickets
   for each row execute function update_updated_at();
+
+-- ─── PLANS (migration 20260702000006) ───────────────────────────────────────
+
+create table if not exists plans (
+  id           text primary key,
+  name         text not null,
+  emoji        text not null default '',
+  tagline      text not null default '',
+  usa_price    text,
+  india_price  text,
+  is_quote     boolean not null default false,
+  popular      boolean not null default false,
+  sort_order   int not null default 0,
+  active       boolean not null default true,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+
+create table if not exists plan_features (
+  id           uuid primary key default gen_random_uuid(),
+  plan_id      text not null references plans(id) on delete cascade,
+  label        text not null,
+  description  text,
+  feature_key  text,
+  sort_order   int not null default 0,
+  created_at   timestamptz not null default now()
+);
+
+create or replace trigger trg_plans_updated_at
+  before update on plans
+  for each row execute function update_updated_at();

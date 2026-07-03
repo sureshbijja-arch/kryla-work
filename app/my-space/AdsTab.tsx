@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { can } from '@/lib/plan'
 
 interface AdItem {
   id: string
@@ -17,10 +16,11 @@ interface Props {
   providerId: string
   slug: string
   plan: string
+  canAds: boolean
   onUpgrade: () => void
 }
 
-export default function AdsTab({ providerId, slug, plan, onUpgrade }: Props) {
+export default function AdsTab({ providerId, slug, canAds, onUpgrade }: Props) {
   const [ads, setAds]               = useState<AdItem[]>([])
   const [loading, setLoading]       = useState(true)
   const [adTitle, setAdTitle]       = useState('')
@@ -33,7 +33,7 @@ export default function AdsTab({ providerId, slug, plan, onUpgrade }: Props) {
   const [adSuccess, setAdSuccess]   = useState(false)
 
   const supabase = createClient()
-  const canAds   = can.postAds(plan)
+  // canAds is computed server-side and passed as a prop
 
   useEffect(() => {
     supabase

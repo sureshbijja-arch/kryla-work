@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { getPlans, getPlanGate } from '@/lib/plans'
 import MyChatLayout from '../components/MyChatLayout'
 import type { SectionEntry } from '@/app/my-space/SectionsTab'
 import type { ServiceItem } from '@/app/my-space/ServicesTab'
@@ -38,11 +39,19 @@ export default async function MyChatPage({ params }: Props) {
 
   if (provider.slug !== params.slug) redirect(`/${provider.slug}/mychat`)
 
-  const { data: page } = await supabaseAdmin
-    .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, palette, font, template, show_sections, sections, design_mode')
-    .eq('provider_id', provider.id)
-    .single()
+  const [{ data: page }, plans, gate] = await Promise.all([
+    supabaseAdmin
+      .from('pages')
+      .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, palette, font, template, show_sections, sections, design_mode')
+      .eq('provider_id', provider.id)
+      .single(),
+    getPlans(),
+    getPlanGate(),
+  ])
+
+  const memberPlan  = provider.plan ?? 'grow'
+  const planOrder   = plans.map(p => p.id)
+  const canAds      = gate.allows('ads', memberPlan)
 
   const defaultShowSections: ShowSections = {
     hero: true, services: true, highlights: true,
@@ -56,12 +65,15 @@ export default async function MyChatPage({ params }: Props) {
         slug:        provider.slug,
         firstName:   provider.first_name,
         pageLive:    provider.page_live ?? false,
-        plan:        provider.plan      ?? 'seed',
+        plan:        memberPlan,
         planStatus:   provider.plan_status ?? 'active',
         region:       (provider.region as 'india' | 'usa') ?? 'india',
         pageLanguage: (provider.page_language as string) ?? 'en',
         customDomain: (provider.custom_domain as string | null) ?? null,
         referralCode: (provider.referral_code as string | null) ?? null,
+        plans,
+        planOrder,
+        canAds,
         currentProfile: {
           firstName:    provider.first_name,
           lastName:     provider.last_name,

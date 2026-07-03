@@ -59,6 +59,9 @@ interface Props {
   pageLanguage: string
   customDomain: string | null
   referralCode: string | null
+  plans: import('@/lib/plans').PlanDef[]
+  planOrder: string[]
+  canAds: boolean
   currentProfile: CurrentProfile
   onRefresh: () => void
 }
@@ -576,6 +579,7 @@ export default function SpaceClient({
           providerId={providerId}
           slug={slug}
           plan={plan}
+          canAds={canAds}
           onUpgrade={() => setTab('plan')}
         />
       )}
@@ -616,7 +620,7 @@ export default function SpaceClient({
       {/* ── My plan ── */}
       {tab === 'plan' && (
         <div className="flex-1 overflow-y-auto">
-          <PlanSection currentPlan={plan} region={region} onGoToMessages={() => setTab('messages')} />
+          <PlanSection currentPlan={plan} region={region} plans={plans} planOrder={planOrder} onGoToMessages={() => setTab('messages')} />
           <CustomDomainCard providerId={providerId} plan={plan} initialDomain={customDomain} />
         </div>
       )}

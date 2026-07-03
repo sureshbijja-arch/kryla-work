@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toSlug, suggestSlug, validateSlug } from '@/lib/slug'
 import { getAllVerticals } from '@/config/verticals'
-import { PLANS } from '@/config/plans'
+import type { PlanDef } from '@/lib/plans'
 import type { OnboardingAnswers, Persona, Plan, Region } from '@/types/onboarding'
 
 type Step = 1 | 2 | 3 | 4 | 5
@@ -16,10 +16,9 @@ interface SlugStatus {
 }
 
 const PERSONAS = getAllVerticals().map((v) => ({ id: v.id as Persona, emoji: v.emoji, label: v.label }))
-// Only the two priced tiers are selectable at onboarding (Elevate is contact-based)
-const SELECTABLE_PLANS = PLANS.filter(p => p.usaPrice)
 
-export default function OnboardingClient() {
+export default function OnboardingClient({ plans }: { plans: PlanDef[] }) {
+  const SELECTABLE_PLANS = plans.filter(p => !p.isQuote)
   const router       = useRouter()
   const searchParams = useSearchParams()
   const referredBy   = searchParams.get('ref') ?? ''
@@ -327,9 +326,9 @@ export default function OnboardingClient() {
                       <div className="text-xs font-semibold text-[#0D0D0D] mb-0.5">{plan.emoji} {plan.name}</div>
                       <div className="text-lg font-bold text-[#0D0D0D] mb-2">{answers.region === 'india' ? plan.indiaPrice : plan.usaPrice}</div>
                       <ul className="space-y-1">
-                        {plan.features.map((f) => (
-                          <li key={f} className="text-[11px] text-[#444] flex items-start gap-1.5">
-                            <span className="text-[#22C55E] font-bold flex-shrink-0">✓</span>{f}
+                        {plan.features.map((f, i) => (
+                          <li key={i} className="text-[11px] text-[#444] flex items-start gap-1.5">
+                            <span className="text-[#22C55E] font-bold flex-shrink-0">✓</span>{f.label}
                           </li>
                         ))}
                       </ul>

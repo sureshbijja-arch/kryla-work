@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { can } from '@/lib/plan'
+import { getPlanGate } from '@/lib/plans'
 
 export async function POST(req: NextRequest) {
   const supabase = createClient()
@@ -31,8 +31,9 @@ export async function POST(req: NextRequest) {
 
   if (!provider) return NextResponse.json({ error: 'Not your page' }, { status: 403 })
 
-  if (!can.postAds(provider.plan)) {
-    return NextResponse.json({ error: 'Upgrade to Thrive to post ads' }, { status: 403 })
+  const gate = await getPlanGate()
+  if (!gate.allows('ads', provider.plan)) {
+    return NextResponse.json({ error: 'Upgrade to post ads' }, { status: 403 })
   }
 
   const { data: ad, error } = await supabaseAdmin

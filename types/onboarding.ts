@@ -25,4 +25,3 @@ export const PERSONA_LABELS: Record<Persona, string> = {
   other: 'Professional',
 }
 
-// Prices are defined in config/plans.ts — the single source of truth.

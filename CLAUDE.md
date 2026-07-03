@@ -248,7 +248,39 @@ Section builder (`app/my-space/SectionsTab.tsx`):
 | status | text | pending / approved / rejected |
 | created_at | timestamptz | |
 
-**Plan gating:** upload (avatar + gallery) requires Grow+; posting ads requires Thrive+.
+**Plan gating:** gating is data-driven via `plan_features.feature_key`. Server routes call `await getPlanGate()` then `gate.allows(featureKey, provider.plan)`. No hardcoded tier comparisons in source.
+
+### plans
+
+| Column | Type | Notes |
+|---|---|---|
+| id | text | PK — matches `providers.plan` value (grow/thrive/elevate) |
+| name | text | Display name |
+| emoji | text | |
+| tagline | text | One-line description |
+| usa_price | text | Nullable — e.g. `$9` |
+| india_price | text | Nullable — e.g. `₹299` |
+| is_quote | boolean | true = "Contact for quote", no price shown |
+| popular | boolean | Shows "MOST POPULAR" badge |
+| sort_order | int | Determines tier ordering for gating |
+| active | boolean | false = hidden from all surfaces |
+| created_at / updated_at | timestamptz | |
+
+### plan_features
+
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid | PK |
+| plan_id | text | FK → plans.id (cascades on delete) |
+| label | text | Feature copy shown in UI |
+| description | text | Nullable tooltip/detail text |
+| feature_key | text | Nullable — machine key for gating (e.g. `ads`, `custom_domain`). NULL rows are display-only |
+| sort_order | int | |
+| created_at | timestamptz | |
+
+**Gating logic:** `getPlanGate()` in `lib/plans.ts` builds a `Map<featureKey → minSortOrder>` from `plan_features`. `gate.allows(key, plan)` returns true when the member's plan sort_order ≥ the minimum sort_order that carries the feature. Reassigning a feature in `/admin/plans` changes gating without a deploy.
+
+**Admin UI:** `/admin/plans` — full CRUD for plans and their features. Requires `ADMIN_EMAIL` env var (see below).
 
 ### build_failures
 Columns: id (uuid PK), provider_id (uuid), slug (text), failed_at (timestamptz)
@@ -296,6 +328,7 @@ INNGEST_EVENT_KEY=
 INNGEST_SIGNING_KEY=
 NEXT_PUBLIC_APP_URL=https://kryla.work
 NEXT_PUBLIC_APP_DOMAIN=kryla.work
+ADMIN_EMAIL=                     # Comma-separated list of admin emails. Controls access to /admin/* routes. assertAdmin() in API routes checks the authenticated session email against this list.
 WHATSAPP_PHONE_NUMBER_ID=        # Week 4
 WHATSAPP_ACCESS_TOKEN=           # Week 4
 STRIPE_SECRET_KEY=               # Week 5
@@ -309,7 +342,9 @@ REVALIDATE_SECRET=               # Random string — used by /api/revalidate to 
 
 ## Landing Page
 
-`app/page.tsx` — full v2 landing, 'use client', ~1020 lines
+`app/page.tsx` — thin async server component; calls `getPlans()` and renders `<HomeClient plans={plans} />`
+
+`app/HomeClient.tsx` — full v2 landing, 'use client', ~1020 lines; accepts `plans: PlanDef[]` prop; pricing section is data-driven from DB
 
 **Sections:** hero (floating photos, geo-detected loc toggle) → HorizontalSlider (4 slides) → community ticker → pricing (region toggle, 4 plans) → testimonials → CTA → footer
 
@@ -353,6 +388,7 @@ REVALIDATE_SECRET=               # Random string — used by /api/revalidate to 
 - ✅ My Space dashboard — AI chat editor, section builder tab, bookings tab, plan tab
 - ✅ Bookings — form on public page → DB → viewable in My Space
 - ✅ Draft data — AI edits saved to draft_data, applied on preview
+- ✅ Plans + features — DB-backed (`plans` + `plan_features`); managed at `/admin/plans`; gating data-driven via `feature_key`; coupons/discounts deferred to payments module
 
 ## What's NOT Built Yet
 

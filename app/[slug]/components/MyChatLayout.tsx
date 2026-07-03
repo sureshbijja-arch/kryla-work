@@ -4,6 +4,7 @@ import { useState } from 'react'
 import SpaceClient from '@/app/my-space/SpaceClient'
 import type { SectionEntry } from '@/app/my-space/SectionsTab'
 import type { ServiceItem } from '@/app/my-space/ServicesTab'
+import type { PlanDef } from '@/lib/plans'
 
 interface SpaceProps {
   providerId: string
@@ -16,6 +17,9 @@ interface SpaceProps {
   pageLanguage: string
   customDomain: string | null
   referralCode: string | null
+  plans: PlanDef[]
+  planOrder: string[]
+  canAds: boolean
   currentProfile: {
     firstName: string
     lastName: string

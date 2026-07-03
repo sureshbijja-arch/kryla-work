@@ -1,25 +1,27 @@
-import { PLANS, PLAN_ORDER } from '@/config/plans'
+import type { PlanDef } from '@/lib/plans'
 
 interface Props {
   currentPlan: string
   region: 'india' | 'usa'
+  plans: PlanDef[]
+  planOrder: string[]
   onGoToMessages?: () => void
 }
 
-export default function PlanSection({ currentPlan, region, onGoToMessages }: Props) {
-  const currentIdx = PLAN_ORDER.indexOf(currentPlan as 'grow' | 'thrive' | 'elevate')
+export default function PlanSection({ currentPlan, region, plans, planOrder, onGoToMessages }: Props) {
+  const currentIdx = planOrder.indexOf(currentPlan)
 
   return (
     <div className="px-4 py-6 max-w-2xl mx-auto w-full">
       <p className="text-xs font-semibold text-[#999] uppercase tracking-widest mb-5">My Plan</p>
 
       <div className="space-y-3">
-        {PLANS.map((plan) => {
-          const planIdx    = PLAN_ORDER.indexOf(plan.id)
+        {plans.map((plan) => {
+          const planIdx    = planOrder.indexOf(plan.id)
           const isCurrent  = plan.id === currentPlan
           const isUpgrade  = planIdx > currentIdx
           const isDowngrade = planIdx < currentIdx
-          const isElevate  = plan.id === 'elevate'
+          const isQuote    = plan.isQuote
 
           return (
             <div
@@ -39,7 +41,7 @@ export default function PlanSection({ currentPlan, region, onGoToMessages }: Pro
                         Current
                       </span>
                     )}
-                    {!isElevate && (
+                    {!isQuote && (
                       <span className="text-sm font-semibold text-[#666]">
                         {region === 'india' ? plan.indiaPrice : plan.usaPrice}
                       </span>
@@ -52,7 +54,7 @@ export default function PlanSection({ currentPlan, region, onGoToMessages }: Pro
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0">
                           <path d="M2 6l3 3 5-5" stroke="#22C55E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
-                        {f}
+                        {f.label}
                       </li>
                     ))}
                   </ul>
@@ -65,7 +67,7 @@ export default function PlanSection({ currentPlan, region, onGoToMessages }: Pro
                       className="text-xs font-semibold px-4 py-2 rounded-lg border border-[#E5E5E5] text-[#bbb] cursor-default">
                       Your plan
                     </button>
-                  ) : isElevate ? (
+                  ) : isQuote ? (
                     <a
                       href="mailto:hello@kryla.work"
                       className="text-xs font-semibold px-4 py-2 rounded-lg border border-[#0D0D0D] text-[#0D0D0D] hover:bg-[#0D0D0D] hover:text-white transition-colors">
