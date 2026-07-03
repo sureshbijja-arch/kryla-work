@@ -336,6 +336,9 @@ STRIPE_WEBHOOK_SECRET=           # Week 5
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=  # Week 5
 RESEND_API_KEY=                  # Week 5
 REVALIDATE_SECRET=               # Random string — used by /api/revalidate to authorize ISR revalidation from Inngest jobs
+VERCEL_API_TOKEN=                # Vercel account token (Account Settings → Tokens) — used by /api/my-space/custom-domain to attach member custom domains to the Vercel project
+VERCEL_PROJECT_ID=               # Project → Settings → General → Project ID
+VERCEL_TEAM_ID=                  # Team → Settings → General → Team ID (omit for personal accounts)
 ```
 
 ---
@@ -376,7 +379,6 @@ REVALIDATE_SECRET=               # Random string — used by /api/revalidate to 
 1. **WhatsApp notifications** — build-complete message, booking alerts (Week 4)
 2. **Payments** — Stripe (USA) / Razorpay (India) for Sprout+ plans (Week 5)
 3. **Avatar/gallery upload UI** — drag-drop uploader in My Space for Grow+ members
-4. **Custom domains** — Phase 2
 
 ## What's Built
 
@@ -389,12 +391,12 @@ REVALIDATE_SECRET=               # Random string — used by /api/revalidate to 
 - ✅ Bookings — form on public page → DB → viewable in My Space
 - ✅ Draft data — AI edits saved to draft_data, applied on preview
 - ✅ Plans + features — DB-backed (`plans` + `plan_features`); managed at `/admin/plans`; gating data-driven via `feature_key`; coupons/discounts deferred to payments module
+- ✅ Custom domains — members on Thrive+ can connect their own domain; gated via `plan_features.feature_key = 'custom_domain'`; middleware routes hostname → slug; API attaches to Vercel (requires VERCEL_API_TOKEN env vars in Vercel project settings)
 
 ## What's NOT Built Yet
 
 - WhatsApp sending (Week 4)
 - Stripe / Razorpay (Week 5)
 - Avatar/gallery upload UI in My Space (media upload endpoint exists, UI not built)
-- Custom domains (Phase 2)
 - All 6 AI agents (Phase 3)
 - SEO tooling beyond basic meta tags
