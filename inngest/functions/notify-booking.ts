@@ -6,8 +6,6 @@
 import { inngest } from "@/inngest/client"
 import { sendWhatsAppMessage, buildNewBookingMessage } from "@/lib/whatsapp"
 import { supabaseAdmin } from "@/lib/supabase/admin"
-import { can } from "@/lib/plan"
-import type { Plan } from "@/types"
 
 export const notifyBooking = inngest.createFunction(
   { id: "notify-booking", name: "Notify Member of New Booking" },
@@ -28,9 +26,8 @@ export const notifyBooking = inngest.createFunction(
     })
 
     const provider = (booking as any).providers
-    if (!can.receiveWhatsApp(provider.plan as Plan)) {
-      // Seed members get email only — handled elsewhere
-      return { skipped: "seed-plan-no-whatsapp" }
+    if (!provider.plan) {
+      return { skipped: "no-plan" }
     }
 
     // Send WhatsApp to Member
