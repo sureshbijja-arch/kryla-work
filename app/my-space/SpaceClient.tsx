@@ -57,12 +57,12 @@ interface Props {
   planStatus: string
   region: 'india' | 'usa'
   pageLanguage: string
-  customDomain: string | null
+  customName: string | null
   referralCode: string | null
   plans: import('@/lib/plans').PlanDef[]
   planOrder: string[]
   canAds: boolean
-  canCustomDomain: boolean
+  canCustomName: boolean
   currentProfile: CurrentProfile
   onRefresh: () => void
 }
@@ -177,8 +177,8 @@ const FONT_LABELS: Record<string, string> = {
 
 export default function SpaceClient({
   providerId, slug, firstName,
-  plan, region, pageLanguage, customDomain, referralCode, currentProfile, onRefresh,
-  plans, planOrder, canAds, canCustomDomain,
+  plan, region, pageLanguage, customName, referralCode, currentProfile, onRefresh,
+  plans, planOrder, canAds, canCustomName,
 }: Props) {
   const defaultSections: SectionEntry[] = currentProfile.sections ?? [
     { sectionKey: 'hero',       variant: 'auto',      order: 1 },
@@ -623,7 +623,7 @@ export default function SpaceClient({
       {tab === 'plan' && (
         <div className="flex-1 overflow-y-auto">
           <PlanSection currentPlan={plan} region={region} plans={plans} planOrder={planOrder} onGoToMessages={() => setTab('messages')} />
-          <CustomDomainCard providerId={providerId} slug={slug} canUse={canCustomDomain} initialDomain={customDomain} />
+          <CustomNameCard providerId={providerId} slug={slug} canUse={canCustomName} initialDomain={customName} />
         </div>
       )}
 
@@ -649,7 +649,7 @@ function Tag({ label }: { label: string }) {
   )
 }
 
-function CustomDomainCard({ providerId, slug, canUse, initialDomain }: { providerId: string; slug: string; canUse: boolean; initialDomain: string | null }) {
+function CustomNameCard({ providerId, slug, canUse, initialDomain }: { providerId: string; slug: string; canUse: boolean; initialDomain: string | null }) {
   const [label, setLabel]             = useState(initialDomain ?? '')
   const [savedLabel, setSavedLabel]   = useState(initialDomain)
   const [saving, setSaving]           = useState(false)

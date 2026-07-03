@@ -15,12 +15,12 @@ interface SpaceProps {
   planStatus: string
   region: 'india' | 'usa'
   pageLanguage: string
-  customDomain: string | null
+  customName: string | null
   referralCode: string | null
   plans: PlanDef[]
   planOrder: string[]
   canAds: boolean
-  canCustomDomain: boolean
+  canCustomName: boolean
   currentProfile: {
     firstName: string
     lastName: string

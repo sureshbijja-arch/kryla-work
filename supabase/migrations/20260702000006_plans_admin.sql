@@ -65,7 +65,7 @@ ON CONFLICT (plan_id, label) DO NOTHING;
 -- Thrive features
 INSERT INTO plan_features (plan_id, label, description, feature_key, sort_order) VALUES
   ('thrive', 'Everything in Grow',              'All features from the Grow plan', NULL,                                              0),
-  ('thrive', 'Your own custom domain (priya.com)', 'Connect your own domain to your Kryla page', 'custom_domain',                    1),
+  ('thrive', 'Custom name (e.g. krityabijja.kryla.work)', 'Pick a custom name — your page lives at yourname.kryla.work', 'custom_domain', 1),
   ('thrive', 'Update your page via WhatsApp',   'Edit your page content directly from a WhatsApp conversation', 'whatsapp_edit',      2),
   ('thrive', 'Scrolling ads on your page',      'Add promotional banners that scroll across the top of your page', 'ads',             3),
   ('thrive', 'Review collection',               'Collect and display customer reviews on your page', 'reviews',                       4),

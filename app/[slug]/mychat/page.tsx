@@ -52,7 +52,7 @@ export default async function MyChatPage({ params }: Props) {
   const memberPlan  = provider.plan ?? 'grow'
   const planOrder   = plans.map(p => p.id)
   const canAds          = gate.allows('ads',           memberPlan)
-  const canCustomDomain = gate.allows('custom_domain', memberPlan)
+  const canCustomName = gate.allows('custom_domain', memberPlan)
 
   const defaultShowSections: ShowSections = {
     hero: true, services: true, highlights: true,
@@ -70,12 +70,12 @@ export default async function MyChatPage({ params }: Props) {
         planStatus:   provider.plan_status ?? 'active',
         region:       (provider.region as 'india' | 'usa') ?? 'india',
         pageLanguage: (provider.page_language as string) ?? 'en',
-        customDomain: (provider.custom_domain as string | null) ?? null,
+        customName: (provider.custom_domain as string | null) ?? null,
         referralCode: (provider.referral_code as string | null) ?? null,
         plans,
         planOrder,
         canAds,
-        canCustomDomain,
+        canCustomName,
         currentProfile: {
           firstName:    provider.first_name,
           lastName:     provider.last_name,

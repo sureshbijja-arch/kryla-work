@@ -483,7 +483,7 @@ function FeatureFormUI({ form, onChange }: { form: FeatureForm; onChange: (f: Fe
         <div className="col-span-2">
           <label className="field-label">Label</label>
           <input value={form.label} onChange={e => field('label')(e.target.value)}
-            placeholder="Custom domain" className="field-input" />
+            placeholder="Custom name" className="field-input" />
         </div>
         <div>
           <label className="field-label">Feature key (gating)</label>
