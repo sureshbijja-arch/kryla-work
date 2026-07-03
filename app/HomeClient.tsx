@@ -448,11 +448,10 @@ const CSS = `
     display: flex; flex-direction: column; align-items: center;
     width: 100%;
   }
-  /* Orbit origin — centered in hero, squashed vertically to form ellipse */
+  /* Orbit origin — centered in hero, true circle */
   .orbit {
     position: absolute; top: 50%; left: 50%;
     width: 0; height: 0;
-    transform: scaleY(0.68);
     pointer-events: none; z-index: 0;
   }
   .hf-wrap {
@@ -463,8 +462,6 @@ const CSS = `
   }
   .hf-inner {
     display: flex; flex-direction: column; align-items: center; gap: 8px;
-    /* counter the parent scaleY so cards stay at normal proportions */
-    transform: scaleY(1.47);
   }
   .hf-photo {
     width: 240px; height: 170px;
