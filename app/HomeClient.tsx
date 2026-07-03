@@ -86,7 +86,7 @@ const CSS = `
     background: #FFFFFF;
     border-bottom: 1px solid rgba(0,0,0,0.08);
     padding: 128px 24px 100px;
-    min-height: 860px;
+    min-height: 960px;
     display: flex; flex-direction: column; align-items: center;
     text-align: center;
     position: relative; overflow: hidden;
@@ -454,7 +454,7 @@ const CSS = `
     animation: float 5s ease-in-out infinite;
   }
   .hf-photo {
-    width: 110px; height: 140px;
+    width: 140px; height: 175px;
     object-fit: cover;
     border-radius: 16px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.12);
@@ -819,36 +819,36 @@ export default function HomeClient({ plans }: { plans: PlanDef[] }) {
         {/* Floating background cards */}
         <div className="hero-bg">
           {/* Left column — 4 cards, evenly spaced */}
-          <div className="hf-wrap" style={{ top:'7%', left:'20px', '--rotation':'-6deg', animationDelay:'0s' } as React.CSSProperties}>
+          <div className="hf-wrap" style={{ top:'6%', left:'20px', '--rotation':'-6deg', animationDelay:'0s' } as React.CSSProperties}>
             <img className="hf-photo" src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=300&q=80" alt="Tutor" />
             <span className="hf-label">📚 Tutor</span>
           </div>
-          <div className="hf-wrap" style={{ top:'31%', left:'20px', '--rotation':'3deg', animationDelay:'1.6s' } as React.CSSProperties}>
+          <div className="hf-wrap" style={{ top:'29%', left:'20px', '--rotation':'3deg', animationDelay:'1.6s' } as React.CSSProperties}>
             <img className="hf-photo" src="https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=300&q=80" alt="Chef" />
             <span className="hf-label">🍱 Chef</span>
           </div>
-          <div className="hf-wrap" style={{ top:'56%', left:'20px', '--rotation':'-4deg', animationDelay:'3.2s' } as React.CSSProperties}>
+          <div className="hf-wrap" style={{ top:'52%', left:'20px', '--rotation':'-4deg', animationDelay:'3.2s' } as React.CSSProperties}>
             <img className="hf-photo" src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=300&q=80" alt="Retailer" />
             <span className="hf-label">🛍️ Retailer</span>
           </div>
-          <div className="hf-wrap" style={{ top:'80%', left:'20px', '--rotation':'4deg', animationDelay:'4.8s' } as React.CSSProperties}>
+          <div className="hf-wrap" style={{ top:'76%', left:'20px', '--rotation':'4deg', animationDelay:'4.8s' } as React.CSSProperties}>
             <img className="hf-photo" src="https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=300&q=80" alt="Music Teacher" />
             <span className="hf-label">🎵 Music Teacher</span>
           </div>
           {/* Right column — 4 cards, evenly spaced */}
-          <div className="hf-wrap" style={{ top:'7%', right:'0%', '--rotation':'5deg', animationDelay:'0.8s' } as React.CSSProperties}>
+          <div className="hf-wrap" style={{ top:'6%', right:'0%', '--rotation':'5deg', animationDelay:'0.8s' } as React.CSSProperties}>
             <img className="hf-photo" src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&q=80" alt="Baker" />
             <span className="hf-label">🎂 Baker</span>
           </div>
-          <div className="hf-wrap" style={{ top:'31%', right:'0%', '--rotation':'-5deg', animationDelay:'2.4s' } as React.CSSProperties}>
+          <div className="hf-wrap" style={{ top:'29%', right:'0%', '--rotation':'-5deg', animationDelay:'2.4s' } as React.CSSProperties}>
             <img className="hf-photo" src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=300&q=80" alt="Salon / Stylist" />
             <span className="hf-label">✂️ Salon / Stylist</span>
           </div>
-          <div className="hf-wrap" style={{ top:'56%', right:'0%', '--rotation':'6deg', animationDelay:'4s' } as React.CSSProperties}>
+          <div className="hf-wrap" style={{ top:'52%', right:'0%', '--rotation':'6deg', animationDelay:'4s' } as React.CSSProperties}>
             <img className="hf-photo" src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=300&q=80" alt="Advocate" />
             <span className="hf-label">⚖️ Advocate</span>
           </div>
-          <div className="hf-wrap" style={{ top:'80%', right:'0%', '--rotation':'-3deg', animationDelay:'5.6s' } as React.CSSProperties}>
+          <div className="hf-wrap" style={{ top:'76%', right:'0%', '--rotation':'-3deg', animationDelay:'5.6s' } as React.CSSProperties}>
             <img className="hf-photo" src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&q=80" alt="Doctor" />
             <span className="hf-label">🩺 Doctor</span>
           </div>
