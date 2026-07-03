@@ -498,6 +498,20 @@ const CSS = `
     .pc-btns { grid-template-columns: 1fr; }
   }
 
+  /* ─── STEP PLAN CARDS (slider step 3) ─── */
+  .step-plans { display: flex; flex-direction: column; gap: 10px; max-width: 280px; }
+  .step-plan {
+    display: grid; grid-template-columns: 28px 1fr auto;
+    align-items: center; gap: 4px 10px;
+    background: #FAFAFA; border: 1.5px solid #E5E5E5;
+    border-radius: 12px; padding: 10px 14px;
+  }
+  .step-plan-pop { border-color: #F5A623; background: #FFFBF5; }
+  .step-plan-emoji { font-size: 20px; grid-row: span 2; }
+  .step-plan-name  { font-size: 13px; font-weight: 700; color: #0D0D0D; }
+  .step-plan-price { font-size: 13px; font-weight: 700; color: #F5A623; }
+  .step-plan-tag   { font-size: 11px; color: #777; grid-column: 2 / 4; }
+
   /* ─── HORIZONTAL SLIDER ─── */
   .slider-outer {
     background: var(--light);
@@ -661,7 +675,7 @@ function AlexCard({ loc }: { loc: Loc }) {
   );
 }
 
-function HorizontalSlider({ loc }: { loc: Loc }) {
+function HorizontalSlider({ loc, plans }: { loc: Loc; plans: PlanDef[] }) {
   const [current, setCurrent] = useState(0);
   const [width, setWidth] = useState(0);
   const outerRef = useRef<HTMLDivElement>(null);
@@ -713,10 +727,10 @@ function HorizontalSlider({ loc }: { loc: Loc }) {
           <div className="slider-slide">
             <div className="sec-inner card-right">
               <div className="text-col">
-                <p className="sec-eyebrow">YOUR IDENTITY ONLINE</p>
-                <h2 className="sec-h2 dark">Your name.<br />Your work.<br />One link that says it all.</h2>
-                <p className="sec-body on-light">Every skilled professional deserves a presence that matches their craft. Kryla gives you your own spot — with your services, your prices, and a way for people to reach you directly.</p>
-                <p className="sec-warm">Like a visiting card — but one that works while you sleep.</p>
+                <p className="sec-eyebrow">STEP 1 · GET INVITED</p>
+                <h2 className="sec-h2 dark">Kryla is invite-only.<br />Apply for your<br />spot today.</h2>
+                <p className="sec-body on-light">We&apos;re a curated community of skilled professionals. Your application takes under a minute — we review every request and get back to you quickly.</p>
+                <p className="sec-warm">Because quality matters more than quantity.</p>
               </div>
               <div className="card-col"><PriyaCard loc={loc} /></div>
             </div>
@@ -725,25 +739,10 @@ function HorizontalSlider({ loc }: { loc: Loc }) {
           <div className="slider-slide">
             <div className="sec-inner card-right">
               <div className="text-col">
-                <p className="sec-eyebrow">ONE LINK FOR EVERYTHING</p>
-                <h2 className="sec-h2 dark">Send one link.<br />They know everything<br />they need to know.</h2>
-                <p className="sec-body on-light">Your name. What you do. What you charge. When you&apos;re free. What your clients say. All in one place they can open on any phone.</p>
-                <div className="wa-chat">
-                  <div className="wa-msg wa-in"><div className="wa-bubble"><span className="wa-txt">Hi! Are you available this week?</span><span className="wa-meta">10:42 AM <span className="wa-ticks">✓✓</span></span></div></div>
-                  <div className="wa-msg wa-out"><div className="wa-bubble"><span className="wa-txt">Here&apos;s my Kryla link — <strong>kryla.work/meenabakes</strong> — order directly there! 😊</span><span className="wa-meta">10:43 AM <span className="wa-ticks">✓✓</span></span></div></div>
-                </div>
-              </div>
-              <div className="card-col"><MeenaCard loc={loc} /></div>
-            </div>
-          </div>
-
-          <div className="slider-slide">
-            <div className="sec-inner card-right">
-              <div className="text-col">
-                <p className="sec-eyebrow">LIVE IN 15 MINUTES</p>
-                <h2 className="sec-h2 dark">Answer 5 questions.<br />We handle<br />everything else.</h2>
-                <p className="sec-body on-light">No design skills needed. No complicated setup. Tell us what you do, who you help, and what you charge — your professional spot is live before your next session starts.</p>
-                <p className="sec-warm">Most members are live in under 15 minutes. No coding. No stress.</p>
+                <p className="sec-eyebrow">STEP 2 · BUILD YOUR PAGE</p>
+                <h2 className="sec-h2 dark">Answer 5 questions.<br />Your page is live<br />in 15 minutes.</h2>
+                <p className="sec-body on-light">Tell us your name, what you do, where you&apos;re based, and what you charge. Kryla builds your professional page automatically — no design skills needed.</p>
+                <p className="sec-warm">Most members are live before their next session starts.</p>
               </div>
               <div className="card-col"><RajCard loc={loc} /></div>
             </div>
@@ -752,9 +751,31 @@ function HorizontalSlider({ loc }: { loc: Loc }) {
           <div className="slider-slide">
             <div className="sec-inner card-right">
               <div className="text-col">
-                <p className="sec-eyebrow">WORKS WHERE YOUR CLIENTS ARE</p>
-                <h2 className="sec-h2 dark">New booking?<br />You get a WhatsApp.<br />Done.</h2>
-                <p className="sec-body on-light">When someone&apos;s ready to hire you, Kryla sends you a WhatsApp. Accept with one tap. Your client gets their confirmation right away. Business handled — without switching between apps.</p>
+                <p className="sec-eyebrow">STEP 3 · PICK YOUR PLAN</p>
+                <h2 className="sec-h2 dark">Start simple.<br />Grow when<br />you&apos;re ready.</h2>
+                <p className="sec-body on-light">Choose the plan that fits you today — upgrade anytime from your dashboard. No lock-ins, no surprises.</p>
+              </div>
+              <div className="card-col">
+                <div className="step-plans">
+                  {plans.filter(p => !p.isQuote).map(p => (
+                    <div key={p.id} className={`step-plan${p.popular ? ' step-plan-pop' : ''}`}>
+                      <span className="step-plan-emoji">{p.emoji}</span>
+                      <span className="step-plan-name">{p.name}{p.popular ? ' ★' : ''}</span>
+                      <span className="step-plan-price">{loc === 'india' ? p.indiaPrice : p.usaPrice}/mo</span>
+                      <span className="step-plan-tag">{p.tagline}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="slider-slide">
+            <div className="sec-inner card-right">
+              <div className="text-col">
+                <p className="sec-eyebrow">STEP 4 · SHARE &amp; GET BOOKINGS</p>
+                <h2 className="sec-h2 dark">Drop your link anywhere.<br />New booking?<br />You get a WhatsApp.</h2>
+                <p className="sec-body on-light">Share your Kryla link on WhatsApp, Instagram, or a business card. When someone&apos;s ready to hire you, you get a WhatsApp notification. Accept with one tap — your client gets their confirmation instantly.</p>
                 <div className="wa-chat">
                   <div className="wa-msg wa-in"><div className="wa-bubble"><span className="wa-txt">📅 New request from Sarah — Family Portraits, Saturday 10am. Tap to confirm.</span><span className="wa-meta">9:14 AM <span className="wa-ticks">✓✓</span></span></div></div>
                   <div className="wa-msg wa-out"><div className="wa-bubble"><span className="wa-txt">Confirmed! 📸 Sarah gets your details straight away.</span><span className="wa-meta">9:15 AM <span className="wa-ticks">✓✓</span></span></div></div>
@@ -877,7 +898,7 @@ export default function HomeClient({ plans }: { plans: PlanDef[] }) {
           <p className="hero-sub">Join by invitation. Your name, your work, your spot online — live in 15 minutes.</p>
           <div className="hero-btns">
             <a href="/join" className="btn-primary">I have an invite code →</a>
-            <a href="#s1" className="btn-secondary">See how it works ↓</a>
+            <a href="#slider" className="btn-secondary">See how it works ↓</a>
           </div>
           <p className="hero-proof">Invite-only · Live in 15 minutes</p>
         </div>
@@ -894,7 +915,7 @@ export default function HomeClient({ plans }: { plans: PlanDef[] }) {
       </section>
 
       <div id="slider">
-        <HorizontalSlider loc={loc} />
+        <HorizontalSlider loc={loc} plans={plans} />
       </div>
 
       {/* ── COMMUNITY — dark #0D0D0D ── */}
