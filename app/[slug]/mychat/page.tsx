@@ -51,7 +51,8 @@ export default async function MyChatPage({ params }: Props) {
 
   const memberPlan  = provider.plan ?? 'grow'
   const planOrder   = plans.map(p => p.id)
-  const canAds      = gate.allows('ads', memberPlan)
+  const canAds          = gate.allows('ads',           memberPlan)
+  const canCustomDomain = gate.allows('custom_domain', memberPlan)
 
   const defaultShowSections: ShowSections = {
     hero: true, services: true, highlights: true,
@@ -74,6 +75,7 @@ export default async function MyChatPage({ params }: Props) {
         plans,
         planOrder,
         canAds,
+        canCustomDomain,
         currentProfile: {
           firstName:    provider.first_name,
           lastName:     provider.last_name,

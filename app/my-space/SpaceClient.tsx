@@ -62,6 +62,7 @@ interface Props {
   plans: import('@/lib/plans').PlanDef[]
   planOrder: string[]
   canAds: boolean
+  canCustomDomain: boolean
   currentProfile: CurrentProfile
   onRefresh: () => void
 }
@@ -177,7 +178,7 @@ const FONT_LABELS: Record<string, string> = {
 export default function SpaceClient({
   providerId, slug, firstName,
   plan, region, pageLanguage, customDomain, referralCode, currentProfile, onRefresh,
-  plans, planOrder, canAds,
+  plans, planOrder, canAds, canCustomDomain,
 }: Props) {
   const defaultSections: SectionEntry[] = currentProfile.sections ?? [
     { sectionKey: 'hero',       variant: 'auto',      order: 1 },
@@ -622,7 +623,7 @@ export default function SpaceClient({
       {tab === 'plan' && (
         <div className="flex-1 overflow-y-auto">
           <PlanSection currentPlan={plan} region={region} plans={plans} planOrder={planOrder} onGoToMessages={() => setTab('messages')} />
-          <CustomDomainCard providerId={providerId} plan={plan} initialDomain={customDomain} />
+          <CustomDomainCard providerId={providerId} canUse={canCustomDomain} initialDomain={customDomain} />
         </div>
       )}
 
@@ -648,15 +649,13 @@ function Tag({ label }: { label: string }) {
   )
 }
 
-function CustomDomainCard({ providerId, plan, initialDomain }: { providerId: string; plan: string; initialDomain: string | null }) {
+function CustomDomainCard({ providerId, canUse, initialDomain }: { providerId: string; canUse: boolean; initialDomain: string | null }) {
   const [domain, setDomain]       = useState(initialDomain ?? '')
   const [savedDomain, setSavedDomain] = useState(initialDomain)
   const [saving, setSaving]       = useState(false)
   const [error, setError]         = useState('')
   const [showDns, setShowDns]     = useState(false)
   const [removing, setRemoving]   = useState(false)
-
-  const isGrowPlus = ['grow', 'thrive', 'elevate'].includes(plan)
 
   async function save() {
     const raw = domain.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '')
@@ -703,17 +702,17 @@ function CustomDomainCard({ providerId, plan, initialDomain }: { providerId: str
           <div className="flex-1">
             <p className="font-bold text-[#0D0D0D] text-sm mb-0.5">Custom domain</p>
             <p className="text-xs text-[#999]">
-              {isGrowPlus
+              {canUse
                 ? 'Use priya.com instead of kryla.work/priya — your brand, your address.'
-                : 'Upgrade to Grow to connect your own domain.'}
+                : 'Upgrade to Thrive to connect your own domain.'}
             </p>
           </div>
-          {!isGrowPlus && (
-            <span className="shrink-0 text-[10px] font-semibold bg-[#F5F5F5] text-[#999] px-2 py-0.5 rounded-full uppercase tracking-wide">Grow+</span>
+          {!canUse && (
+            <span className="shrink-0 text-[10px] font-semibold bg-[#F5F5F5] text-[#999] px-2 py-0.5 rounded-full uppercase tracking-wide">Thrive+</span>
           )}
         </div>
 
-        {isGrowPlus ? (
+        {canUse ? (
           <>
             <div className="flex gap-2 mb-2">
               <input
@@ -775,7 +774,7 @@ function CustomDomainCard({ providerId, plan, initialDomain }: { providerId: str
             )}
           </>
         ) : (
-          <p className="text-xs text-[#bbb]">Available on Grow plan (₹799/mo · $12/mo).</p>
+          <p className="text-xs text-[#bbb]">Available on the Thrive plan and above.</p>
         )}
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
+import { getPlanGate } from '@/lib/plans'
 
 async function assertOwner(providerId: string, userEmail: string) {
   const { data } = await supabaseAdmin
@@ -33,6 +34,12 @@ export async function POST(req: NextRequest) {
 
   const ok = await assertOwner(providerId, user.email)
   if (!ok) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  // Enforce plan gate — custom_domain feature_key must be allowed by the member's plan
+  const { data: prov } = await supabaseAdmin.from('providers').select('plan').eq('id', providerId).single()
+  const gate = await getPlanGate()
+  if (!gate.allows('custom_domain', prov?.plan ?? 'grow'))
+    return NextResponse.json({ error: 'Custom domains are available on the Thrive plan and above' }, { status: 403 })
 
   const domain = normalizeDomain(rawDomain)
   if (!domain) return NextResponse.json({ error: 'Invalid domain — enter something like priya.com' }, { status: 400 })

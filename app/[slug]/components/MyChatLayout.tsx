@@ -20,6 +20,7 @@ interface SpaceProps {
   plans: PlanDef[]
   planOrder: string[]
   canAds: boolean
+  canCustomDomain: boolean
   currentProfile: {
     firstName: string
     lastName: string
