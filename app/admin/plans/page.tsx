@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -57,68 +56,41 @@ const BLANK_FEATURE: FeatureForm = {
   label: '', description: '', feature_key: '', sort_order: '0',
 }
 
-type AuthState = 'loading' | 'login_email' | 'login_code' | 'not_admin' | 'ready'
-
 // ── Main page ──────────────────────────────────────────────────────────────
 
 export default function AdminPlansPage() {
-  const [authState, setAuthState]     = useState<AuthState>('loading')
-  const [email, setEmail]             = useState('')
-  const [code, setCode]               = useState('')
-  const [authError, setAuthError]     = useState('')
-  const [authLoading, setAuthLoading] = useState(false)
-
-  const [plans, setPlans]             = useState<Plan[]>([])
-  const [saving, setSaving]           = useState(false)
-  const [error, setError]             = useState('')
+  const [plans, setPlans]   = useState<Plan[]>([])
+  const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError]   = useState('')
 
   // Plan editing
-  const [showCreate, setShowCreate]   = useState(false)
-  const [createForm, setCreateForm]   = useState<PlanForm>(BLANK_PLAN)
-  const [editingPlan, setEditingPlan] = useState<string | null>(null)
+  const [showCreate, setShowCreate]     = useState(false)
+  const [createForm, setCreateForm]     = useState<PlanForm>(BLANK_PLAN)
+  const [editingPlan, setEditingPlan]   = useState<string | null>(null)
   const [editPlanForm, setEditPlanForm] = useState<PlanForm>(BLANK_PLAN)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   // Feature editing
-  const [addingFeatureTo, setAddingFeatureTo] = useState<string | null>(null)
-  const [featureForm, setFeatureForm] = useState<FeatureForm>(BLANK_FEATURE)
-  const [editingFeature, setEditingFeature] = useState<string | null>(null)
-  const [editFeatureForm, setEditFeatureForm] = useState<FeatureForm>(BLANK_FEATURE)
+  const [addingFeatureTo, setAddingFeatureTo]   = useState<string | null>(null)
+  const [featureForm, setFeatureForm]           = useState<FeatureForm>(BLANK_FEATURE)
+  const [editingFeature, setEditingFeature]     = useState<string | null>(null)
+  const [editFeatureForm, setEditFeatureForm]   = useState<FeatureForm>(BLANK_FEATURE)
   const [deleteFeatureConfirm, setDeleteFeatureConfirm] = useState<string | null>(null)
 
-  const supabase = createClient()
-
-  async function load() {
-    const res = await fetch('/api/admin/plans')
-    if (res.status === 401) { setAuthState('login_email'); return }
-    if (res.status === 403) { setAuthState('not_admin');   return }
-    const data = await res.json()
-    setPlans(data.plans ?? [])
-    setAuthState('ready')
-  }
-
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) load()
-      else setAuthState('login_email')
-    })
+    load()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function sendOtp() {
-    setAuthLoading(true); setAuthError('')
-    const { error } = await supabase.auth.signInWithOtp({ email })
-    setAuthLoading(false)
-    if (error) { setAuthError(error.message); return }
-    setAuthState('login_code')
-  }
-
-  async function verifyOtp() {
-    setAuthLoading(true); setAuthError('')
-    const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' })
-    setAuthLoading(false)
-    if (error) { setAuthError(error.message); return }
-    await load()
+  async function load() {
+    setError('')
+    const res = await fetch('/api/admin/plans')
+    if (res.status === 401) { window.location.href = '/admin'; return }
+    if (res.status === 403) { setError('Not authorized'); setLoading(false); return }
+    const data = await res.json()
+    setPlans(data.plans ?? [])
+    setLoading(false)
   }
 
   // ── Plan actions ──────────────────────────────────────────────────────────
@@ -130,7 +102,7 @@ export default function AdminPlansPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...createForm,
-        sort_order: Number(createForm.sort_order),
+        sort_order:  Number(createForm.sort_order),
         usa_price:   createForm.is_quote ? null : (createForm.usa_price   || null),
         india_price: createForm.is_quote ? null : (createForm.india_price || null),
       }),
@@ -238,69 +210,16 @@ export default function AdminPlansPage() {
     }
   }
 
-  // ── Auth screens ──────────────────────────────────────────────────────────
-
-  if (authState === 'loading') {
-    return <Shell><div className="flex items-center justify-center h-40 text-[#999] text-sm">Loading…</div></Shell>
+  if (loading) {
+    return <div className="max-w-4xl mx-auto py-20 text-center text-sm text-[#999]">Loading…</div>
   }
 
-  if (authState === 'login_email') {
-    return (
-      <Shell>
-        <div className="max-w-sm mx-auto py-16 px-4">
-          <p className="text-lg font-bold mb-1">Admin sign-in</p>
-          <p className="text-sm text-[#666] mb-6">Enter your admin email to receive a code.</p>
-          <input type="email" value={email} placeholder="you@example.com"
-            onChange={e => setEmail(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && sendOtp()}
-            className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm mb-3 focus:outline-none focus:border-[#0D0D0D]" />
-          {authError && <p className="text-red-500 text-xs mb-3">{authError}</p>}
-          <button onClick={sendOtp} disabled={authLoading || !email}
-            className="w-full bg-[#0D0D0D] text-white rounded-xl py-3 text-sm font-semibold disabled:opacity-40">
-            {authLoading ? 'Sending…' : 'Send code →'}
-          </button>
-        </div>
-      </Shell>
-    )
+  if (error && plans.length === 0) {
+    return <div className="max-w-4xl mx-auto py-20 text-center text-sm text-red-500">{error}</div>
   }
-
-  if (authState === 'login_code') {
-    return (
-      <Shell>
-        <div className="max-w-sm mx-auto py-16 px-4">
-          <p className="text-lg font-bold mb-1">Check your email</p>
-          <p className="text-sm text-[#666] mb-6">Enter the 6-digit code sent to <strong>{email}</strong>.</p>
-          <input type="text" inputMode="numeric" maxLength={6} value={code} placeholder="000000"
-            onChange={e => setCode(e.target.value.replace(/\D/g, ''))}
-            onKeyDown={e => e.key === 'Enter' && verifyOtp()}
-            className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm tracking-widest text-center mb-3 focus:outline-none focus:border-[#0D0D0D]" />
-          {authError && <p className="text-red-500 text-xs mb-3">{authError}</p>}
-          <button onClick={verifyOtp} disabled={authLoading || code.length < 6}
-            className="w-full bg-[#0D0D0D] text-white rounded-xl py-3 text-sm font-semibold disabled:opacity-40">
-            {authLoading ? 'Verifying…' : 'Verify →'}
-          </button>
-          <button onClick={() => { setAuthState('login_email'); setCode(''); setAuthError('') }}
-            className="mt-3 text-xs text-[#999] hover:text-[#0D0D0D] w-full text-center">← Back</button>
-        </div>
-      </Shell>
-    )
-  }
-
-  if (authState === 'not_admin') {
-    return (
-      <Shell>
-        <div className="max-w-sm mx-auto py-16 px-4 text-center">
-          <p className="font-semibold mb-2">Not authorized</p>
-          <p className="text-sm text-[#666]">Your email isn&apos;t in the admin list.</p>
-        </div>
-      </Shell>
-    )
-  }
-
-  // ── Ready ─────────────────────────────────────────────────────────────────
 
   return (
-    <Shell>
+    <div className="max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-[#0D0D0D]">Plans</h1>
@@ -406,7 +325,6 @@ export default function AdminPlansPage() {
                 </button>
               </div>
 
-              {/* Add feature form */}
               {addingFeatureTo === plan.id && (
                 <div className="px-4 pb-3 bg-[#FAFAFA] border-b border-[#F0F0F0]">
                   <FeatureFormUI form={featureForm} onChange={setFeatureForm} />
@@ -420,7 +338,6 @@ export default function AdminPlansPage() {
                 </div>
               )}
 
-              {/* Feature list */}
               {plan.features.length === 0 && addingFeatureTo !== plan.id && (
                 <p className="text-xs text-[#999] px-4 py-3 italic">No features yet.</p>
               )}
@@ -486,7 +403,7 @@ export default function AdminPlansPage() {
           </div>
         ))}
       </div>
-    </Shell>
+    </div>
   )
 }
 
@@ -584,38 +501,6 @@ function FeatureFormUI({ form, onChange }: { form: FeatureForm; onChange: (f: Fe
         <input value={form.description} onChange={e => field('description')(e.target.value)}
           placeholder="Connect your own domain to your Kryla page" className="field-input" />
       </div>
-    </div>
-  )
-}
-
-// ── Shell ──────────────────────────────────────────────────────────────────
-
-function Shell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-[#F9F9F9]">
-      <div className="max-w-4xl mx-auto px-4 py-10">
-        <div className="flex items-center gap-2 mb-8">
-          <a href="/" className="text-xs text-[#999] hover:text-[#0D0D0D]">kryla.work</a>
-          <span className="text-[#999]">/</span>
-          <a href="/admin" className="text-xs text-[#999] hover:text-[#0D0D0D]">admin</a>
-          <span className="text-[#999]">/</span>
-          <span className="text-xs font-semibold text-[#0D0D0D]">plans</span>
-        </div>
-        {children}
-      </div>
-      <style jsx global>{`
-        .field-label {
-          display: block; font-size: 10px; font-weight: 600;
-          text-transform: uppercase; letter-spacing: 0.05em;
-          color: #6B7280; margin-bottom: 4px;
-        }
-        .field-input {
-          width: 100%; border: 1px solid #E5E5E5; border-radius: 10px;
-          padding: 8px 12px; font-size: 13px; background: white;
-          outline: none; transition: border-color 0.15s;
-        }
-        .field-input:focus { border-color: #0D0D0D; }
-      `}</style>
     </div>
   )
 }

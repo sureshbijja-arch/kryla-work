@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import {
   ACCENT, PAGE_BG, TEMPLATE_LABEL, FONT_LABEL, PERSONAS,
   type TemplateKey, type PaletteKey, type FontKey,
@@ -62,17 +61,9 @@ const PERSONA_COLOUR: Record<string, string> = {
   other: '#6B7280', all: '#64748B',
 }
 
-type AuthState = 'loading' | 'login_email' | 'login_code' | 'not_admin' | 'ready'
-
 // ── Main page ──────────────────────────────────────────────────────────────
 
 export default function AdminLayoutsPage() {
-  const [authState, setAuthState]     = useState<AuthState>('loading')
-  const [email, setEmail]             = useState('')
-  const [code, setCode]               = useState('')
-  const [authError, setAuthError]     = useState('')
-  const [authLoading, setAuthLoading] = useState(false)
-
   const [presets, setPresets]             = useState<Preset[]>([])
   const [sectionTypes, setSectionTypes]   = useState<SectionType[]>([])
   const [filterPersona, setFilterPersona] = useState('all')
@@ -82,17 +73,22 @@ export default function AdminLayoutsPage() {
   const [createForm, setCreateForm]       = useState<FormState>(BLANK_FORM)
   const [saving, setSaving]               = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [loading, setLoading]             = useState(true)
   const [error, setError]                 = useState('')
 
-  const supabase = createClient()
+  useEffect(() => {
+    load(); loadSectionTypes()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function load() {
+    setError('')
     const res = await fetch('/api/admin/layouts')
-    if (res.status === 401) { setAuthState('login_email'); return }
-    if (res.status === 403) { setAuthState('not_admin'); return }
+    if (res.status === 401) { window.location.href = '/admin'; return }
+    if (res.status === 403) { setError('Not authorized'); setLoading(false); return }
     const data = await res.json()
     setPresets(data.presets ?? [])
-    setAuthState('ready')
+    setLoading(false)
   }
 
   async function loadSectionTypes() {
@@ -103,30 +99,6 @@ export default function AdminLayoutsPage() {
         setSectionTypes(data.sections ?? [])
       }
     } catch { /* non-fatal */ }
-  }
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) { load(); loadSectionTypes() }
-      else setAuthState('login_email')
-    })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  async function sendOtp() {
-    setAuthLoading(true); setAuthError('')
-    const { error } = await supabase.auth.signInWithOtp({ email })
-    setAuthLoading(false)
-    if (error) { setAuthError(error.message); return }
-    setAuthState('login_code')
-  }
-
-  async function verifyOtp() {
-    setAuthLoading(true); setAuthError('')
-    const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' })
-    setAuthLoading(false)
-    if (error) { setAuthError(error.message); return }
-    await load(); await loadSectionTypes()
   }
 
   function formPayload(form: FormState) {
@@ -193,69 +165,16 @@ export default function AdminLayoutsPage() {
     ? presets
     : presets.filter(p => p.persona === filterPersona)
 
-  // ── Auth ──────────────────────────────────────────────────────────────────
-
-  if (authState === 'loading') {
-    return <Shell><div className="flex items-center justify-center h-40 text-[#999] text-sm">Loading…</div></Shell>
+  if (loading) {
+    return <div className="max-w-4xl mx-auto py-20 text-center text-sm text-[#999]">Loading…</div>
   }
 
-  if (authState === 'login_email') {
-    return (
-      <Shell>
-        <div className="max-w-sm mx-auto py-16 px-4">
-          <p className="text-lg font-bold mb-1">Admin sign-in</p>
-          <p className="text-sm text-[#666] mb-6">Enter your admin email to receive a code.</p>
-          <input type="email" value={email} placeholder="you@example.com"
-            onChange={e => setEmail(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && sendOtp()}
-            className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm mb-3 focus:outline-none focus:border-[#0D0D0D]" />
-          {authError && <p className="text-red-500 text-xs mb-3">{authError}</p>}
-          <button onClick={sendOtp} disabled={authLoading || !email}
-            className="w-full bg-[#0D0D0D] text-white rounded-xl py-3 text-sm font-semibold disabled:opacity-40">
-            {authLoading ? 'Sending…' : 'Send code →'}
-          </button>
-        </div>
-      </Shell>
-    )
+  if (error && presets.length === 0) {
+    return <div className="max-w-4xl mx-auto py-20 text-center text-sm text-red-500">{error}</div>
   }
-
-  if (authState === 'login_code') {
-    return (
-      <Shell>
-        <div className="max-w-sm mx-auto py-16 px-4">
-          <p className="text-lg font-bold mb-1">Check your email</p>
-          <p className="text-sm text-[#666] mb-6">Enter the 6-digit code sent to <strong>{email}</strong>.</p>
-          <input type="text" inputMode="numeric" maxLength={6} value={code} placeholder="000000"
-            onChange={e => setCode(e.target.value.replace(/\D/g, ''))}
-            onKeyDown={e => e.key === 'Enter' && verifyOtp()}
-            className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm tracking-widest text-center mb-3 focus:outline-none focus:border-[#0D0D0D]" />
-          {authError && <p className="text-red-500 text-xs mb-3">{authError}</p>}
-          <button onClick={verifyOtp} disabled={authLoading || code.length < 6}
-            className="w-full bg-[#0D0D0D] text-white rounded-xl py-3 text-sm font-semibold disabled:opacity-40">
-            {authLoading ? 'Verifying…' : 'Verify →'}
-          </button>
-          <button onClick={() => { setAuthState('login_email'); setCode(''); setAuthError('') }}
-            className="mt-3 text-xs text-[#999] hover:text-[#0D0D0D] w-full text-center">← Back</button>
-        </div>
-      </Shell>
-    )
-  }
-
-  if (authState === 'not_admin') {
-    return (
-      <Shell>
-        <div className="max-w-sm mx-auto py-16 px-4 text-center">
-          <p className="font-semibold mb-2">Not authorized</p>
-          <p className="text-sm text-[#666]">Your email isn&apos;t in the admin list.</p>
-        </div>
-      </Shell>
-    )
-  }
-
-  // ── Ready ─────────────────────────────────────────────────────────────────
 
   return (
-    <Shell>
+    <div className="max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -417,7 +336,7 @@ export default function AdminLayoutsPage() {
           </div>
         ))}
       </div>
-    </Shell>
+    </div>
   )
 }
 
@@ -429,8 +348,8 @@ function PresetForm({ form, onChange, onUpload, sectionTypes }: {
   onUpload:     (url: string) => void
   sectionTypes: SectionType[]
 }) {
-  const [uploading, setUploading]       = useState(false)
-  const [uploadError, setUploadError]   = useState('')
+  const [uploading, setUploading]     = useState(false)
+  const [uploadError, setUploadError] = useState('')
 
   const field = (key: keyof FormState) => (value: string) => onChange({ ...form, [key]: value })
 
@@ -564,7 +483,6 @@ function PresetForm({ form, onChange, onUpload, sectionTypes }: {
       {/* Section builder */}
       {form.useSections && (
         <div className="border border-[#E5E5E5] rounded-2xl overflow-hidden">
-          {/* Available sections to add */}
           <div className="p-4 bg-[#F9F9F9] border-b border-[#E5E5E5]">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#666] mb-3">Add sections</p>
             <div className="flex flex-wrap gap-2">
@@ -585,28 +503,20 @@ function PresetForm({ form, onChange, onUpload, sectionTypes }: {
             </div>
           </div>
 
-          {/* Composition list */}
           {sortedSections.length > 0 ? (
             <div className="divide-y divide-[#E5E5E5]">
               {sortedSections.map((s, i) => {
                 const st = sectionTypes.find(x => x.key === s.sectionKey)
                 return (
                   <div key={s.sectionKey} className="flex items-center gap-3 px-4 py-3 bg-white">
-                    {/* Order controls */}
                     <div className="flex flex-col gap-0.5 shrink-0">
                       <button type="button" onClick={() => moveSection(s.sectionKey, -1)} disabled={i === 0}
                         className="text-[#999] hover:text-[#0D0D0D] disabled:opacity-20 text-xs leading-none">▲</button>
                       <button type="button" onClick={() => moveSection(s.sectionKey, 1)} disabled={i === sortedSections.length - 1}
                         className="text-[#999] hover:text-[#0D0D0D] disabled:opacity-20 text-xs leading-none">▼</button>
                     </div>
-
-                    {/* Order number */}
                     <span className="text-xs font-bold text-[#999] w-4 shrink-0">{i + 1}</span>
-
-                    {/* Section label */}
                     <span className="text-sm font-semibold text-[#0D0D0D] w-28 shrink-0">{st?.label ?? s.sectionKey}</span>
-
-                    {/* Variant picker */}
                     <select value={s.variant}
                       onChange={e => setVariant(s.sectionKey, e.target.value)}
                       className="flex-1 text-xs border border-[#E5E5E5] rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:border-[#0D0D0D]">
@@ -614,8 +524,6 @@ function PresetForm({ form, onChange, onUpload, sectionTypes }: {
                         <option key={v.key} value={v.key}>{v.label}</option>
                       ))}
                     </select>
-
-                    {/* Remove */}
                     <button type="button" onClick={() => removeSection(s.sectionKey)}
                       className="text-xs text-[#999] hover:text-red-500 transition-colors shrink-0 ml-1">✕</button>
                   </div>
@@ -627,36 +535,6 @@ function PresetForm({ form, onChange, onUpload, sectionTypes }: {
           )}
         </div>
       )}
-    </div>
-  )
-}
-
-// ── Shell ──────────────────────────────────────────────────────────────────
-
-function Shell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-[#F9F9F9]">
-      <div className="max-w-4xl mx-auto px-4 py-10">
-        <div className="flex items-center gap-2 mb-8">
-          <a href="/" className="text-xs text-[#999] hover:text-[#0D0D0D]">kryla.work</a>
-          <span className="text-[#999]">/</span>
-          <span className="text-xs font-semibold text-[#0D0D0D]">admin / layouts</span>
-        </div>
-        {children}
-      </div>
-      <style jsx global>{`
-        .field-label {
-          display: block; font-size: 10px; font-weight: 600;
-          text-transform: uppercase; letter-spacing: 0.05em;
-          color: #6B7280; margin-bottom: 4px;
-        }
-        .field-input {
-          width: 100%; border: 1px solid #E5E5E5; border-radius: 10px;
-          padding: 8px 12px; font-size: 13px; background: white;
-          outline: none; transition: border-color 0.15s;
-        }
-        .field-input:focus { border-color: #0D0D0D; }
-      `}</style>
     </div>
   )
 }
