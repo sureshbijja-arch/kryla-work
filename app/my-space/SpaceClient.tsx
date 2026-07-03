@@ -177,6 +177,7 @@ const FONT_LABELS: Record<string, string> = {
 export default function SpaceClient({
   providerId, slug, firstName,
   plan, region, pageLanguage, customDomain, referralCode, currentProfile, onRefresh,
+  plans, planOrder, canAds,
 }: Props) {
   const defaultSections: SectionEntry[] = currentProfile.sections ?? [
     { sectionKey: 'hero',       variant: 'auto',      order: 1 },
