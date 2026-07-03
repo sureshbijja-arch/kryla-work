@@ -202,81 +202,66 @@ const CSS = `
   .sec-body.on-dark  { color: rgba(255,255,255,0.58); }
   .sec-warm { font-size: 15px; font-weight: 600; color: var(--amber); line-height: 1.6; }
 
-  /* ─── PROFILE CARD ─── */
-  .profile-card {
-    background: #1a1a1a;
-    border-radius: 20px;
-    border: 1px solid rgba(255,255,255,0.07);
-    box-shadow: 0 0 60px rgba(245,166,35,0.13), 0 28px 56px rgba(0,0,0,0.22);
-    padding: 28px;
-    position: relative;
+  /* ─── MINI PAGE PREVIEW CARDS ─── */
+  .mp-card {
+    max-width: 320px; width: 100%;
+    border-radius: 14px; overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.08);
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.07);
   }
-  .pc-live {
-    position: absolute; top: 20px; right: 20px;
-    display: flex; align-items: center; gap: 5px;
-    font-size: 11px; font-weight: 600; color: #4ade80;
+  .mp-chrome {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    background: #F0F0F0; border-bottom: 1px solid #E0E0E0;
   }
-  .pc-live::before {
-    content: '';
-    width: 7px; height: 7px; border-radius: 50%;
-    background: #4ade80;
-    animation: livepulse 2.2s ease-in-out infinite;
+  .mp-dots { display: flex; gap: 5px; }
+  .mp-dots span { width: 7px; height: 7px; border-radius: 50%; display: block; }
+  .mp-url { font-size: 10px; color: #999; flex: 1; text-align: center; font-family: monospace; }
+  .mp-hero { padding: 22px 18px 18px; text-align: center; }
+  .mp-hero-avatar { font-size: 34px; margin-bottom: 8px; line-height: 1; }
+  .mp-hero-name { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 3px; letter-spacing: -0.01em; }
+  .mp-hero-role { font-size: 10px; color: rgba(255,255,255,0.55); margin-bottom: 3px; }
+  .mp-hero-loc  { font-size: 10px; color: rgba(255,255,255,0.35); margin-bottom: 13px; }
+  .mp-cta {
+    display: inline-block;
+    font-size: 10px; font-weight: 800;
+    padding: 7px 16px; border-radius: 100px; border: none;
+    cursor: pointer; letter-spacing: 0.02em; font-family: var(--ff);
   }
-  @keyframes livepulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
-  .pc-avatar {
-    width: 58px; height: 58px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--amber), #c97b0a);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 25px; margin-bottom: 14px;
+  .mp-svcs { padding: 12px 16px; }
+  .mp-svcs-label {
+    font-size: 8.5px; font-weight: 900; letter-spacing: 0.18em;
+    color: #bbb; text-transform: uppercase; margin-bottom: 9px;
   }
-  .pc-name  { font-size: 19px; font-weight: 800; color: #fff; margin-bottom: 3px; }
-  .pc-role  { font-size: 13px; color: rgba(255,255,255,0.48); margin-bottom: 6px; }
-  .pc-url   { font-size: 12.5px; color: var(--amber); font-family: monospace; font-weight: 600; }
-  .pc-hr    { border: none; border-top: 1px solid rgba(255,255,255,0.07); margin: 18px 0; }
-  .pc-svcs  { display: flex; flex-direction: column; gap: 10px; }
-  .pc-svc   { display: flex; justify-content: space-between; align-items: center; }
-  .pc-svc-n { font-size: 13px; color: rgba(255,255,255,0.62); }
-  .pc-svc-p { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; margin-left: 12px; }
-  .pc-btns  { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .pc-btn-a {
-    background: var(--amber); color: #0D0D0D;
-    font-size: 13px; font-weight: 700;
-    padding: 10px; border-radius: 10px;
-    text-align: center; border: none; cursor: pointer; font-family: var(--ff);
+  .mp-svc {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 5px 0; border-bottom: 1px solid #F5F5F5;
+    font-size: 11.5px; color: #444;
   }
-  .pc-btn-w {
-    background: none; color: rgba(255,255,255,0.65);
-    font-size: 13px; font-weight: 600;
-    padding: 10px; border-radius: 10px; text-align: center;
-    border: 1.5px solid rgba(255,255,255,0.14);
-    cursor: pointer; font-family: var(--ff);
+  .mp-svc:last-child { border-bottom: none; }
+  .mp-svc-p { font-weight: 700; font-size: 11.5px; white-space: nowrap; margin-left: 8px; }
+  .mp-footer {
+    padding: 8px 16px;
+    background: #FAFAFA; border-top: 1px solid #F0F0F0;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 10px; color: #999;
   }
-  .pc-rating { font-size: 13px; color: rgba(255,255,255,0.42); text-align: center; }
-  .pc-rating span { color: var(--amber); font-weight: 700; }
+  .mp-footer-brand { font-size: 9px; font-weight: 700; color: #ccc; }
+  @media (max-width: 768px) { .mp-card { max-width: 100%; box-sizing: border-box; } }
 
-  /* ─── WHATSAPP CHAT ─── */
-  .wa-chat {
-    margin-top: 28px;
-    background: #FFFFFF;
-    border-radius: 16px; padding: 20px 18px;
+  /* ─── FEATURE LIST (slider step 4) ─── */
+  .feature-list {
+    margin-top: 24px;
     display: flex; flex-direction: column; gap: 10px;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.08);
   }
-  .wa-msg { display: flex; flex-direction: column; }
-  .wa-in  { align-items: flex-start; }
-  .wa-out { align-items: flex-end; }
-  .wa-bubble {
-    max-width: 84%; padding: 10px 14px;
-    display: flex; flex-direction: column; gap: 5px;
+  .feature-item {
+    font-size: 14px; line-height: 1.45; color: #444;
+    display: flex; align-items: flex-start; gap: 10px;
   }
-  .wa-in  .wa-bubble { background: #E5E5EA; border-radius: 3px 14px 14px 14px; }
-  .wa-out .wa-bubble { background: var(--amber); border-radius: 14px 3px 14px 14px; }
-  .wa-txt { font-size: 14px; line-height: 1.5; }
-  .wa-in  .wa-txt { color: #0D0D0D; }
-  .wa-out .wa-txt { color: #0D0D0D; }
-  .wa-out .wa-txt strong { color: #0D0D0D; }
-  .wa-meta { font-size: 10px; align-self: flex-end; color: #8c8c8c; }
-  .wa-ticks { margin-left: 2px; }
+  .feature-check {
+    color: #F5A623; font-weight: 800; font-size: 15px; flex-shrink: 0; margin-top: 1px;
+  }
 
   /* ─── COMMUNITY TICKER ─── */
   .community {
@@ -495,7 +480,6 @@ const CSS = `
     .hero    { padding: 108px 20px 72px; }
     .hero-h1 span { font-size: 36px !important; }
     .sec     { padding: 64px 20px; }
-    .pc-btns { grid-template-columns: 1fr; }
   }
 
   /* ─── STEP PLAN CARDS (slider step 3) ─── */
@@ -562,115 +546,132 @@ const CSS = `
     .slider-slide .sec-inner { display: block; }
     .slider-slide .card-col { margin-bottom: 28px; }
     .slider-slide .card-right .card-col { margin-bottom: 28px; }
-    .profile-card { max-width: 100%; box-sizing: border-box; }
-    .pc-btns { grid-template-columns: 1fr 1fr; }
   }
 `;
 
 function PriyaCard({ loc }: { loc: Loc }) {
-  const p1 = loc === 'india' ? '₹800/hr'   : '$30/hr';
-  const p2 = loc === 'india' ? '₹400/hr'   : '$15/hr';
-  const p3 = loc === 'india' ? '₹4,999/mo' : '$199/mo';
+  const accent = '#F5A623';
+  const p1 = loc === 'india' ? 'Rs 800/hr'   : '$30/hr';
+  const p2 = loc === 'india' ? 'Rs 400/hr'   : '$15/hr';
+  const p3 = loc === 'india' ? 'Rs 4,999/mo' : '$199/mo';
   return (
-    <div className="profile-card">
-      <div className="pc-live">Live</div>
-      <div className="pc-avatar">📚</div>
-      <div className="pc-name">Priya Sharma</div>
-      <div className="pc-role">Maths &amp; Science Tutor · Celina, TX</div>
-      <div className="pc-url">kryla.work/priyasharma</div>
-      <hr className="pc-hr" />
-      <div className="pc-svcs">
-        <div className="pc-svc"><span className="pc-svc-n">One-on-one session</span><span className="pc-svc-p">{p1}</span></div>
-        <div className="pc-svc"><span className="pc-svc-n">Small group (3–4)</span><span className="pc-svc-p">{p2}</span></div>
-        <div className="pc-svc"><span className="pc-svc-n">Monthly plan</span><span className="pc-svc-p">{p3}</span></div>
+    <div className="mp-card">
+      <div className="mp-chrome">
+        <div className="mp-dots"><span style={{background:'#FF5F57'}}/><span style={{background:'#FEBC2E'}}/><span style={{background:'#28C840'}}/></div>
+        <div className="mp-url">kryla.work/priyasharma</div>
       </div>
-      <hr className="pc-hr" />
-      <div className="pc-btns" style={{ marginBottom: '18px' }}>
-        <button className="pc-btn-a">Book a Session</button>
-        <button className="pc-btn-w">WhatsApp</button>
+      <div className="mp-hero" style={{ background: '#0D0D0D' }}>
+        <div className="mp-hero-avatar">📚</div>
+        <div className="mp-hero-name">Priya Sharma</div>
+        <div className="mp-hero-role">Maths &amp; Science Tutor</div>
+        <div className="mp-hero-loc">📍 Celina, TX</div>
+        <button className="mp-cta" style={{ background: accent, color: '#0D0D0D' }}>Book a Session →</button>
       </div>
-      <div className="pc-rating"><span>4.9 ★★★★★</span> · 47 students</div>
+      <div className="mp-svcs">
+        <div className="mp-svcs-label">Services</div>
+        <div className="mp-svc"><span>One-on-one session</span><span className="mp-svc-p" style={{color:accent}}>{p1}</span></div>
+        <div className="mp-svc"><span>Small group (3–4)</span><span className="mp-svc-p" style={{color:accent}}>{p2}</span></div>
+        <div className="mp-svc"><span>Monthly plan</span><span className="mp-svc-p" style={{color:accent}}>{p3}</span></div>
+      </div>
+      <div className="mp-footer">
+        <span><span style={{color:accent}}>★★★★★</span> 4.9 · 47 students</span>
+        <span className="mp-footer-brand">kryla.work</span>
+      </div>
     </div>
   );
 }
 
 function MeenaCard({ loc }: { loc: Loc }) {
-  const p1 = loc === 'india' ? '₹600'      : '$25';
-  const p2 = loc === 'india' ? '₹1,200'    : '$50';
-  const p3 = loc === 'india' ? '₹3,499/mo' : '$149/mo';
+  const accent = '#EA8C00';
+  const p1 = loc === 'india' ? 'Rs 600'      : '$25';
+  const p2 = loc === 'india' ? 'Rs 1,200'    : '$50';
+  const p3 = loc === 'india' ? 'Rs 3,499/mo' : '$149/mo';
   return (
-    <div className="profile-card">
-      <div className="pc-live">Live</div>
-      <div className="pc-avatar">🎂</div>
-      <div className="pc-name">Meena Krishnan</div>
-      <div className="pc-role">Home Baker · Pune, India</div>
-      <div className="pc-url">kryla.work/meenabakes</div>
-      <hr className="pc-hr" />
-      <div className="pc-svcs">
-        <div className="pc-svc"><span className="pc-svc-n">Custom Birthday Cake</span><span className="pc-svc-p">{p1}</span></div>
-        <div className="pc-svc"><span className="pc-svc-n">Themed Box (12 pieces)</span><span className="pc-svc-p">{p2}</span></div>
-        <div className="pc-svc"><span className="pc-svc-n">Monthly Dessert Plan</span><span className="pc-svc-p">{p3}</span></div>
+    <div className="mp-card">
+      <div className="mp-chrome">
+        <div className="mp-dots"><span style={{background:'#FF5F57'}}/><span style={{background:'#FEBC2E'}}/><span style={{background:'#28C840'}}/></div>
+        <div className="mp-url">kryla.work/meenabakes</div>
       </div>
-      <hr className="pc-hr" />
-      <div className="pc-btns" style={{ marginBottom: '18px' }}>
-        <button className="pc-btn-a">Order Now</button>
-        <button className="pc-btn-w">WhatsApp</button>
+      <div className="mp-hero" style={{ background: '#1C0A00' }}>
+        <div className="mp-hero-avatar">🎂</div>
+        <div className="mp-hero-name">Meena Krishnan</div>
+        <div className="mp-hero-role">Home Baker</div>
+        <div className="mp-hero-loc">📍 Pune, India</div>
+        <button className="mp-cta" style={{ background: accent, color: '#fff' }}>Order Now →</button>
       </div>
-      <div className="pc-rating"><span>4.8 ★★★★★</span> · 124 orders</div>
+      <div className="mp-svcs">
+        <div className="mp-svcs-label">Menu</div>
+        <div className="mp-svc"><span>Custom Birthday Cake</span><span className="mp-svc-p" style={{color:accent}}>{p1}</span></div>
+        <div className="mp-svc"><span>Themed Box (12 pcs)</span><span className="mp-svc-p" style={{color:accent}}>{p2}</span></div>
+        <div className="mp-svc"><span>Monthly Dessert Plan</span><span className="mp-svc-p" style={{color:accent}}>{p3}</span></div>
+      </div>
+      <div className="mp-footer">
+        <span><span style={{color:accent}}>★★★★★</span> 4.8 · 124 orders</span>
+        <span className="mp-footer-brand">kryla.work</span>
+      </div>
     </div>
   );
 }
 
 function RajCard({ loc }: { loc: Loc }) {
-  const p1 = loc === 'india' ? '₹1,200/hr'  : '$40/hr';
-  const p2 = loc === 'india' ? '₹400/class' : '$15/class';
-  const p3 = loc === 'india' ? '₹6,999/mo'  : '$249/mo';
+  const accent = '#22C55E';
+  const p1 = loc === 'india' ? 'Rs 1,200/hr'  : '$40/hr';
+  const p2 = loc === 'india' ? 'Rs 400/class' : '$15/class';
+  const p3 = loc === 'india' ? 'Rs 6,999/mo'  : '$249/mo';
   return (
-    <div className="profile-card">
-      <div className="pc-live">Live</div>
-      <div className="pc-avatar">💪</div>
-      <div className="pc-name">Raj Patel</div>
-      <div className="pc-role">Fitness Trainer · Prosper, TX</div>
-      <div className="pc-url">kryla.work/rajfitness</div>
-      <hr className="pc-hr" />
-      <div className="pc-svcs">
-        <div className="pc-svc"><span className="pc-svc-n">Personal training session</span><span className="pc-svc-p">{p1}</span></div>
-        <div className="pc-svc"><span className="pc-svc-n">Group class</span><span className="pc-svc-p">{p2}</span></div>
-        <div className="pc-svc"><span className="pc-svc-n">Monthly coaching</span><span className="pc-svc-p">{p3}</span></div>
+    <div className="mp-card">
+      <div className="mp-chrome">
+        <div className="mp-dots"><span style={{background:'#FF5F57'}}/><span style={{background:'#FEBC2E'}}/><span style={{background:'#28C840'}}/></div>
+        <div className="mp-url">kryla.work/rajfitness</div>
       </div>
-      <hr className="pc-hr" />
-      <div className="pc-btns" style={{ marginBottom: '18px' }}>
-        <button className="pc-btn-a">Book a Session</button>
-        <button className="pc-btn-w">WhatsApp</button>
+      <div className="mp-hero" style={{ background: '#0A1A0D' }}>
+        <div className="mp-hero-avatar">💪</div>
+        <div className="mp-hero-name">Raj Patel</div>
+        <div className="mp-hero-role">Fitness Trainer</div>
+        <div className="mp-hero-loc">📍 Prosper, TX</div>
+        <button className="mp-cta" style={{ background: accent, color: '#fff' }}>Book a Session →</button>
       </div>
-      <div className="pc-rating"><span>4.9 ★★★★★</span> · 89 clients</div>
+      <div className="mp-svcs">
+        <div className="mp-svcs-label">Services</div>
+        <div className="mp-svc"><span>Personal training</span><span className="mp-svc-p" style={{color:accent}}>{p1}</span></div>
+        <div className="mp-svc"><span>Group class</span><span className="mp-svc-p" style={{color:accent}}>{p2}</span></div>
+        <div className="mp-svc"><span>Monthly coaching</span><span className="mp-svc-p" style={{color:accent}}>{p3}</span></div>
+      </div>
+      <div className="mp-footer">
+        <span><span style={{color:accent}}>★★★★★</span> 4.9 · 89 clients</span>
+        <span className="mp-footer-brand">kryla.work</span>
+      </div>
     </div>
   );
 }
 
 function AlexCard({ loc }: { loc: Loc }) {
-  const p1 = loc === 'india' ? '₹3,500'     : '$120';
-  const p2 = loc === 'india' ? '₹6,000'     : '$220';
-  const p3 = loc === 'india' ? '₹15,000/mo' : '$499/mo';
+  const p1 = loc === 'india' ? 'Rs 3,500'     : '$120';
+  const p2 = loc === 'india' ? 'Rs 6,000'     : '$220';
+  const p3 = loc === 'india' ? 'Rs 15,000/mo' : '$499/mo';
   return (
-    <div className="profile-card">
-      <div className="pc-live">Live</div>
-      <div className="pc-avatar">📷</div>
-      <div className="pc-name">Alex Chen</div>
-      <div className="pc-role">Photographer · Frisco, TX</div>
-      <div className="pc-url">kryla.work/alexchenphoto</div>
-      <hr className="pc-hr" />
-      <div className="pc-svcs">
-        <div className="pc-svc"><span className="pc-svc-n">Portrait session</span><span className="pc-svc-p">{p1}</span></div>
-        <div className="pc-svc"><span className="pc-svc-n">Half-day shoot</span><span className="pc-svc-p">{p2}</span></div>
-        <div className="pc-svc"><span className="pc-svc-n">Monthly retainer</span><span className="pc-svc-p">{p3}</span></div>
+    <div className="mp-card">
+      <div className="mp-chrome">
+        <div className="mp-dots"><span style={{background:'#FF5F57'}}/><span style={{background:'#FEBC2E'}}/><span style={{background:'#28C840'}}/></div>
+        <div className="mp-url">kryla.work/alexchenphoto</div>
       </div>
-      <hr className="pc-hr" />
-      <div className="pc-btns" style={{ marginBottom: '18px' }}>
-        <button className="pc-btn-a">Book Now</button>
-        <button className="pc-btn-w">WhatsApp</button>
+      <div className="mp-hero" style={{ background: '#111' }}>
+        <div className="mp-hero-avatar">📷</div>
+        <div className="mp-hero-name">Alex Chen</div>
+        <div className="mp-hero-role">Photographer</div>
+        <div className="mp-hero-loc">📍 Frisco, TX</div>
+        <button className="mp-cta" style={{ background: '#fff', color: '#0D0D0D' }}>Book Now →</button>
       </div>
-      <div className="pc-rating"><span>5.0 ★★★★★</span> · 32 clients</div>
+      <div className="mp-svcs">
+        <div className="mp-svcs-label">Sessions</div>
+        <div className="mp-svc"><span>Portrait session</span><span className="mp-svc-p">{p1}</span></div>
+        <div className="mp-svc"><span>Half-day shoot</span><span className="mp-svc-p">{p2}</span></div>
+        <div className="mp-svc"><span>Monthly retainer</span><span className="mp-svc-p">{p3}</span></div>
+      </div>
+      <div className="mp-footer">
+        <span><span style={{color:'#0D0D0D'}}>★★★★★</span> 5.0 · 32 clients</span>
+        <span className="mp-footer-brand">kryla.work</span>
+      </div>
     </div>
   );
 }
@@ -761,7 +762,7 @@ function HorizontalSlider({ loc, plans }: { loc: Loc; plans: PlanDef[] }) {
                     <div key={p.id} className={`step-plan${p.popular ? ' step-plan-pop' : ''}`}>
                       <span className="step-plan-emoji">{p.emoji}</span>
                       <span className="step-plan-name">{p.name}{p.popular ? ' ★' : ''}</span>
-                      <span className="step-plan-price">{loc === 'india' ? p.indiaPrice : p.usaPrice}/mo</span>
+                      <span className="step-plan-price">{loc === 'india' ? (p.indiaPrice || '').replace('₹', 'Rs ') : p.usaPrice} per month</span>
                       <span className="step-plan-tag">{p.tagline}</span>
                     </div>
                   ))}
@@ -774,14 +775,18 @@ function HorizontalSlider({ loc, plans }: { loc: Loc; plans: PlanDef[] }) {
             <div className="sec-inner card-right">
               <div className="text-col">
                 <p className="sec-eyebrow">STEP 4 · SHARE &amp; GET BOOKINGS</p>
-                <h2 className="sec-h2 dark">Drop your link anywhere.<br />New booking?<br />You get a WhatsApp.</h2>
-                <p className="sec-body on-light">Share your Kryla link on WhatsApp, Instagram, or a business card. When someone&apos;s ready to hire you, you get a WhatsApp notification. Accept with one tap — your client gets their confirmation instantly.</p>
-                <div className="wa-chat">
-                  <div className="wa-msg wa-in"><div className="wa-bubble"><span className="wa-txt">📅 New request from Sarah — Family Portraits, Saturday 10am. Tap to confirm.</span><span className="wa-meta">9:14 AM <span className="wa-ticks">✓✓</span></span></div></div>
-                  <div className="wa-msg wa-out"><div className="wa-bubble"><span className="wa-txt">Confirmed! 📸 Sarah gets your details straight away.</span><span className="wa-meta">9:15 AM <span className="wa-ticks">✓✓</span></span></div></div>
+                <h2 className="sec-h2 dark">Share your link.<br />Everything your<br />business needs.</h2>
+                <p className="sec-body on-light">Your Kryla page comes with everything built in — just share it and grow.</p>
+                <div className="feature-list">
+                  <div className="feature-item"><span className="feature-check">✓</span><strong>MyChat</strong> — powerful chat window to manage all your page updates</div>
+                  <div className="feature-item"><span className="feature-check">✓</span><strong>Design tabs</strong> — page layouts, animations, gallery &amp; profile photo</div>
+                  <div className="feature-item"><span className="feature-check">✓</span><strong>Multilanguage</strong> — English, Hindi, Telugu, Tamil &amp; more</div>
+                  <div className="feature-item"><span className="feature-check">✓</span><strong>Booking &amp; order management</strong> — accept, track, follow up</div>
+                  <div className="feature-item"><span className="feature-check">✓</span><strong>Service &amp; menu layouts</strong> — update pricing &amp; offerings by chat</div>
+                  <div className="feature-item"><span className="feature-check">✓</span><strong>Share</strong> to Instagram, Nextdoor &amp; WhatsApp — fully integrated</div>
                 </div>
               </div>
-              <div className="card-col"><AlexCard loc={loc} /></div>
+              <div className="card-col"><PriyaCard loc={loc} /></div>
             </div>
           </div>
 
