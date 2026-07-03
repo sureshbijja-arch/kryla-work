@@ -252,15 +252,15 @@ const CSS = `
 
   /* ─── FEATURE LIST (slider step 4) ─── */
   .feature-list {
-    margin-top: 24px;
-    display: flex; flex-direction: column; gap: 10px;
+    margin-top: 20px;
+    display: flex; flex-direction: column; gap: 7px;
   }
   .feature-item {
-    font-size: 14px; line-height: 1.45; color: #444;
-    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 13.5px; line-height: 1.4; color: #444;
+    display: flex; align-items: flex-start; gap: 9px;
   }
   .feature-check {
-    color: #F5A623; font-weight: 800; font-size: 15px; flex-shrink: 0; margin-top: 1px;
+    color: #F5A623; font-weight: 800; font-size: 14px; flex-shrink: 0; margin-top: 1px;
   }
 
   /* ─── COMMUNITY TICKER ─── */
@@ -694,7 +694,7 @@ function HorizontalSlider({ loc, plans }: { loc: Loc; plans: PlanDef[] }) {
 
   const startTimer = () => {
     if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => setCurrent(c => (c + 1) % total), 4000);
+    timerRef.current = setInterval(() => setCurrent(c => (c + 1) % total), 8000);
   };
 
   useEffect(() => {
@@ -754,7 +754,7 @@ function HorizontalSlider({ loc, plans }: { loc: Loc; plans: PlanDef[] }) {
               <div className="text-col">
                 <p className="sec-eyebrow">STEP 3 · PICK YOUR PLAN</p>
                 <h2 className="sec-h2 dark">Start simple.<br />Grow when<br />you&apos;re ready.</h2>
-                <p className="sec-body on-light">Choose the plan that fits you today — upgrade anytime from your dashboard. No lock-ins, no surprises.</p>
+                <p className="sec-body on-light">Choose the plan that fits you today — upgrade anytime from MyChat. No lock-ins, no surprises.</p>
               </div>
               <div className="card-col">
                 <div className="step-plans">
@@ -778,12 +778,13 @@ function HorizontalSlider({ loc, plans }: { loc: Loc; plans: PlanDef[] }) {
                 <h2 className="sec-h2 dark">Share your link.<br />Everything your<br />business needs.</h2>
                 <p className="sec-body on-light">Your Kryla page comes with everything built in — just share it and grow.</p>
                 <div className="feature-list">
-                  <div className="feature-item"><span className="feature-check">✓</span><strong>MyChat</strong> — powerful chat window to manage all your page updates</div>
-                  <div className="feature-item"><span className="feature-check">✓</span><strong>Design tabs</strong> — page layouts, animations, gallery &amp; profile photo</div>
-                  <div className="feature-item"><span className="feature-check">✓</span><strong>Multilanguage</strong> — English, Hindi, Telugu, Tamil &amp; more</div>
-                  <div className="feature-item"><span className="feature-check">✓</span><strong>Booking &amp; order management</strong> — accept, track, follow up</div>
-                  <div className="feature-item"><span className="feature-check">✓</span><strong>Service &amp; menu layouts</strong> — update pricing &amp; offerings by chat</div>
-                  <div className="feature-item"><span className="feature-check">✓</span><strong>Share</strong> to Instagram, Nextdoor &amp; WhatsApp — fully integrated</div>
+                  <div className="feature-item"><span className="feature-check">✓</span><strong>MyChat</strong> — type or speak to update your page, instantly</div>
+                  <div className="feature-item"><span className="feature-check">✓</span><strong>Design tabs</strong> — layouts, section styles, gallery, moving frames &amp; profile photo</div>
+                  <div className="feature-item"><span className="feature-check">✓</span><strong>WhatsApp inbox</strong> — receive &amp; reply to client messages in one place</div>
+                  <div className="feature-item"><span className="feature-check">✓</span><strong>Booking management</strong> — accept, track and follow up on every booking</div>
+                  <div className="feature-item"><span className="feature-check">✓</span><strong>Service &amp; menu editor</strong> — update offerings, pricing &amp; photos via chat</div>
+                  <div className="feature-item"><span className="feature-check">✓</span><strong>Share</strong> — Instagram, Nextdoor &amp; WhatsApp — fully integrated</div>
+                  <div className="feature-item"><span className="feature-check">✓</span><strong>9 languages</strong> — English, Hindi, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati &amp; Spanish</div>
                 </div>
               </div>
               <div className="card-col"><PriyaCard loc={loc} /></div>
