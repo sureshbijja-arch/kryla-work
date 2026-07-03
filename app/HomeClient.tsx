@@ -448,20 +448,21 @@ const CSS = `
     display: flex; flex-direction: column; align-items: center;
     width: 100%;
   }
-  /* Orbit origin — centered in hero, true circle */
+  /* Orbit origin — centered in hero, wide ellipse, in front of text */
   .orbit {
     position: absolute; top: 50%; left: 50%;
     width: 0; height: 0;
-    pointer-events: none; z-index: 0;
+    transform: scaleY(0.68);
+    pointer-events: none; z-index: 2;
   }
   .hf-wrap {
     position: absolute; top: 0; left: 0;
-    /* shift so card centre sits on the orbit origin */
     margin: -85px 0 0 -120px;
     animation: orbit 60s linear infinite;
   }
   .hf-inner {
     display: flex; flex-direction: column; align-items: center; gap: 8px;
+    transform: scaleY(1.47);
   }
   .hf-photo {
     width: 240px; height: 170px;
