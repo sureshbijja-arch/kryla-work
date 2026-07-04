@@ -31,7 +31,7 @@ const PERSONA_DEFAULT_GALLERY: Record<string, string[]> = {
   musician:     ['/images/MusicTeacher1.jpg'],
   advocate:     ['/images/Advocate1.jpg'],
   retailer:     ['/images/Retailer1.jpg'],
-  salon:        ['/images/Retailer1.jpg'],
+  salon:        ['/images/Salon1.jpg'],
 }
 
 type Section = { sectionKey: string; variant: string; order: number }
