@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { mapsUrl, waUrl } from '../../types'
-import type { ProfileData } from '../../types'
+import type { ProfileData, BusinessHours, DayKey } from '../../types'
 import { getPersonaConfig } from '../../personaConfig'
 
 interface Props {
@@ -36,6 +36,133 @@ const STYLES = `
 .h-up-3 { animation-delay:.26s; }
 .h-up-4 { animation-delay:.38s; }
 `
+
+// ── Business Hours badge ──────────────────────────────────────────────────────
+
+const DAY_ORDER: DayKey[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+const DAY_LABELS: Record<DayKey, string> = {
+  mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun',
+}
+const DAY_FULL: Record<DayKey, string> = {
+  mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday',
+  fri: 'Friday', sat: 'Saturday', sun: 'Sunday',
+}
+
+function toMins(hhmm: string): number {
+  const [h, m] = hhmm.split(':').map(Number)
+  return (h % 24) * 60 + m
+}
+
+function fmt12(hhmm: string): string {
+  const [h, m] = hhmm.split(':').map(Number)
+  const period = h >= 12 ? 'PM' : 'AM'
+  const hour = h > 12 ? h - 12 : h === 0 ? 12 : h
+  return m === 0 ? `${hour} ${period}` : `${hour}:${m.toString().padStart(2, '0')} ${period}`
+}
+
+function getTodayKey(timezone: string): DayKey {
+  return new Intl.DateTimeFormat('en-US', { timeZone: timezone, weekday: 'short' })
+    .format(new Date()).toLowerCase() as DayKey
+}
+
+function getStatus(hours: BusinessHours): { isOpen: boolean; label: string } {
+  const tz = hours.timezone || 'UTC'
+  const now = new Date()
+  const todayKey = getTodayKey(tz)
+  const timeStr = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false }).format(now)
+  const [hStr, mStr] = timeStr.split(':')
+  const currentMins = (parseInt(hStr) % 24) * 60 + parseInt(mStr)
+  const today = hours[todayKey]
+
+  if (today) {
+    const openM = toMins(today.open)
+    const closeM = toMins(today.close)
+    if (currentMins >= openM && currentMins < closeM) {
+      return { isOpen: true, label: `Open · closes ${fmt12(today.close)}` }
+    }
+    if (currentMins < openM) {
+      return { isOpen: false, label: `Closed · opens ${fmt12(today.open)}` }
+    }
+  }
+
+  const todayIdx = DAY_ORDER.indexOf(todayKey)
+  for (let i = 1; i <= 7; i++) {
+    const nextKey = DAY_ORDER[(todayIdx + i) % 7]
+    const next = hours[nextKey]
+    if (next) {
+      const dayLabel = i === 1 ? 'tomorrow' : DAY_FULL[nextKey].toLowerCase()
+      return { isOpen: false, label: `Closed · opens ${dayLabel} ${fmt12(next.open)}` }
+    }
+  }
+
+  return { isOpen: false, label: 'Closed' }
+}
+
+function BusinessStatusBadge({ hours }: { hours: BusinessHours }) {
+  const [status, setStatus] = useState(() => getStatus(hours))
+  const [expanded, setExpanded] = useState(false)
+
+  useEffect(() => {
+    const id = setInterval(() => setStatus(getStatus(hours)), 60_000)
+    return () => clearInterval(id)
+  }, [hours])
+
+  const todayKey = getTodayKey(hours.timezone || 'UTC')
+
+  return (
+    <div className="mb-5">
+      <button
+        onClick={() => setExpanded(v => !v)}
+        className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all"
+        style={{
+          background: 'var(--color-accent-surface)',
+          border: '1px solid var(--color-accent-border)',
+          color: 'var(--color-accent)',
+        }}>
+        <span
+          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+          style={{ background: status.isOpen ? '#22C55E' : 'var(--color-accent)', opacity: status.isOpen ? 1 : 0.5 }}
+        />
+        {status.label}
+        <svg
+          width="10" height="10" viewBox="0 0 10 10" fill="none"
+          style={{ transition: 'transform .2s', transform: expanded ? 'rotate(180deg)' : 'none' }}>
+          <path d="M1.5 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+
+      {expanded && (
+        <div
+          className="mt-1.5 rounded-xl overflow-hidden"
+          style={{ background: 'var(--color-accent-surface)', border: '1px solid var(--color-accent-border)' }}>
+          {DAY_ORDER.map((day, i) => {
+            const dh = hours[day]
+            return (
+              <div
+                key={day}
+                className="flex items-center justify-between px-4 py-2"
+                style={{
+                  borderTop: i > 0 ? '1px solid var(--color-accent-border)' : undefined,
+                  opacity: day === todayKey ? 1 : 0.6,
+                }}>
+                <span
+                  className="text-xs w-8"
+                  style={{ color: 'var(--color-accent)', fontWeight: day === todayKey ? 800 : 600 }}>
+                  {DAY_LABELS[day]}
+                </span>
+                <span className="text-xs" style={{ color: 'var(--color-accent)' }}>
+                  {dh ? `${fmt12(dh.open)} – ${fmt12(dh.close)}` : 'Closed'}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 interface FrameConfig { top: string; left?: string; right?: string; rot: string; dur: string; delay: string }
 const FRAME_CONFIGS: FrameConfig[] = [
@@ -204,6 +331,7 @@ function HeroPhoto({ data }: { data: ProfileData }) {
           {subheadline}
         </p>
         <div className="h-up h-up-4">
+          {data.businessHours?.enabled && <BusinessStatusBadge hours={data.businessHours} />}
           {pcfg.leadTimeNotice && <LeadTimeStrip notice={pcfg.leadTimeNotice} />}
           <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
             ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} dark />
@@ -381,6 +509,7 @@ function HeroDark({ data, framesConfig, accent = '#F5A623' }: { data: ProfileDat
           {subheadline}
         </p>
         <div className="h-up h-up-4">
+          {data.businessHours?.enabled && <BusinessStatusBadge hours={data.businessHours} />}
           {pcfg.leadTimeNotice && <LeadTimeStrip notice={pcfg.leadTimeNotice} />}
           <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
             ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} dark />
@@ -449,6 +578,7 @@ function HeroGradient({ data }: { data: ProfileData }) {
           </a>
         )}
         <div className="h-up h-up-4">
+          {data.businessHours?.enabled && <BusinessStatusBadge hours={data.businessHours} />}
           {pcfg.leadTimeNotice && <LeadTimeStrip notice={pcfg.leadTimeNotice} />}
           <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
             ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} />
@@ -495,7 +625,8 @@ function HeroSplit({ data }: { data: ProfileData }) {
             {subheadline}
           </p>
           <div className="h-up h-up-4">
-            {pcfg.leadTimeNotice && <LeadTimeStrip notice={pcfg.leadTimeNotice} />}
+            {data.businessHours?.enabled && <BusinessStatusBadge hours={data.businessHours} />}
+          {pcfg.leadTimeNotice && <LeadTimeStrip notice={pcfg.leadTimeNotice} />}
             <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
               ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} />
           </div>
@@ -569,6 +700,7 @@ function HeroBanner({ data }: { data: ProfileData }) {
           {subheadline}
         </p>
         <div className="h-up h-up-2">
+          {data.businessHours?.enabled && <BusinessStatusBadge hours={data.businessHours} />}
           {pcfg.leadTimeNotice && <LeadTimeStrip notice={pcfg.leadTimeNotice} />}
           <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
             ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} />
@@ -659,6 +791,7 @@ function HeroCentered({ data, framesConfig }: { data: ProfileData; framesConfig?
           </a>
         )}
         <div className="h-up h-up-4">
+          {data.businessHours?.enabled && <BusinessStatusBadge hours={data.businessHours} />}
           {pcfg.leadTimeNotice && <LeadTimeStrip notice={pcfg.leadTimeNotice} />}
           <div className="flex flex-wrap gap-3 justify-center">
             <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
@@ -715,6 +848,7 @@ function HeroMinimal({ data }: { data: ProfileData }) {
           {subheadline}
         </p>
         <div className="h-up h-up-4">
+          {data.businessHours?.enabled && <BusinessStatusBadge hours={data.businessHours} />}
           {pcfg.leadTimeNotice && <LeadTimeStrip notice={pcfg.leadTimeNotice} />}
           <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
             ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} />

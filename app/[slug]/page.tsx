@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import type { ProfileData, PaletteKey, FontKey, DesignMode, ShowSections } from './types'
+import type { ProfileData, PaletteKey, FontKey, DesignMode, ShowSections, BusinessHours } from './types'
 import { ACCENT } from './types'
 import AdsScroller from './components/AdsScroller'
 import LanguagePage from './components/LanguagePage'
@@ -86,10 +86,11 @@ export default async function MemberProfilePage({ params }: Props) {
 
   // These queries depend on columns added in migrations — they fail gracefully
   // if the migrations haven't been run yet.
-  const [avatarRes, galleryRes, menuFilesRes] = await Promise.allSettled([
+  const [avatarRes, galleryRes, menuFilesRes, hoursRes] = await Promise.allSettled([
     supabaseAdmin.from('providers').select('avatar_url, instagram_handle, nextdoor_url').eq('id', provider.id).single(),
     supabaseAdmin.from('pages').select('gallery').eq('provider_id', provider.id).single(),
     supabaseAdmin.from('pages').select('menu_files').eq('provider_id', provider.id).single(),
+    supabaseAdmin.from('providers').select('business_hours').eq('id', provider.id).single(),
   ])
 
   const providerExtra   = avatarRes.status === 'fulfilled' ? (avatarRes.value.data as Record<string, unknown> | null) : null
@@ -100,6 +101,9 @@ export default async function MemberProfilePage({ params }: Props) {
   const gallery         = Array.isArray(galleryRaw) ? (galleryRaw as string[]) : []
   const menuFilesRaw    = menuFilesRes.status  === 'fulfilled' ? (menuFilesRes.value.data as Record<string, unknown> | null)?.menu_files : undefined
   const menuFiles       = Array.isArray(menuFilesRaw) ? (menuFilesRaw as string[]) : undefined
+  const businessHours   = hoursRes.status      === 'fulfilled'
+    ? ((hoursRes.value.data as Record<string, unknown> | null)?.business_hours as BusinessHours | null) ?? null
+    : null
 
   const defaultShowSections: ShowSections = {
     hero: true, services: true, highlights: true,
@@ -137,6 +141,7 @@ export default async function MemberProfilePage({ params }: Props) {
     menuFiles,
     instagramHandle,
     nextdoorUrl,
+    businessHours,
   }
 
   const pageSections  = Array.isArray(page.sections) ? (page.sections as SectionEntry[]) : null

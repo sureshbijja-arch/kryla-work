@@ -40,6 +40,25 @@ export interface FaqItem {
   answer: string
 }
 
+export type DayKey = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
+
+export interface DayHours {
+  open: string   // "09:00" 24h
+  close: string  // "18:00" 24h
+}
+
+export interface BusinessHours {
+  timezone: string
+  enabled: boolean
+  mon: DayHours | null
+  tue: DayHours | null
+  wed: DayHours | null
+  thu: DayHours | null
+  fri: DayHours | null
+  sat: DayHours | null
+  sun: DayHours | null
+}
+
 export interface ShowSections {
   hero: boolean
   services: boolean
@@ -84,6 +103,7 @@ export interface ProfileData {
   gallery?: string[]
   menuFiles?: string[]
   ads?: Ad[]
+  businessHours?: BusinessHours | null
 }
 
 export const ACCENT: Record<PaletteKey, string> = {
