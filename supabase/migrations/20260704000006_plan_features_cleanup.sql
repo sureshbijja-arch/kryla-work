@@ -4,10 +4,9 @@
 delete from plan_features where label = 'Availability calendar';
 delete from plan_features where label = 'Client roster';
 
--- Remove krityabijja example from custom_domain feature label
--- Delete duplicates first, then rename remaining rows
-delete from plan_features where feature_key = 'custom_domain' and label = 'Custom link';
-update plan_features
-  set label       = 'Custom link',
-      description = 'Your page gets a personalized link — yourname.kryla.work'
-  where feature_key = 'custom_domain';
+-- Replace all custom_domain rows (conflicting duplicates from prior migrations)
+-- with a single clean set using the generic label
+delete from plan_features where feature_key = 'custom_domain';
+insert into plan_features (plan_id, label, description, feature_key, sort_order) values
+  ('thrive',  'Custom link', 'Your page gets a personalized link — yourname.kryla.work', 'custom_domain', 60),
+  ('elevate', 'Custom link', 'Your page gets a personalized link — yourname.kryla.work', 'custom_domain', 60);
