@@ -276,13 +276,15 @@ export default function BookingForm({
       )}
 
       {/* Date / slot picker */}
-      {hasAvail ? (
+      {avail === null ? (
+        <div className="h-8 bg-[#F5F5F5] rounded-lg animate-pulse" />
+      ) : hasAvail ? (
         <div>
           <label className="block text-xs font-semibold text-[#0D0D0D] uppercase tracking-wide mb-2">
             Choose a date & time <span className="normal-case font-normal text-[#bbb]">(required)</span>
           </label>
           <div className="border border-[#E5E5E5] rounded-xl p-3 bg-white">
-            <CalendarPicker avail={avail!} onSelect={handleSlotSelect} selected={slotSel} />
+            <CalendarPicker avail={avail} onSelect={handleSlotSelect} selected={slotSel} />
           </div>
           {slotSel?.day && slotSel?.slot && (
             <p className="text-xs text-[#16A34A] mt-1.5 font-medium">
@@ -290,36 +292,14 @@ export default function BookingForm({
             </p>
           )}
         </div>
-      ) : avail !== null ? (
-        /* Provider has no availability set — free-form date */
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-[#0D0D0D] uppercase tracking-wide mb-1.5">
-              Preferred date <span className="normal-case font-normal text-[#bbb]">(optional)</span>
-            </label>
-            <input type="date"
-              min={new Date().toISOString().split('T')[0]}
-              value={form.preferredDate}
-              onChange={e => setForm(f => ({ ...f, preferredDate: e.target.value }))}
-              className={inputCls} />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-[#0D0D0D] uppercase tracking-wide mb-1.5">
-              Message <span className="normal-case font-normal text-[#bbb]">(optional)</span>
-            </label>
-            <input type="text" placeholder="Anything to share…"
-              value={form.message}
-              onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
-              className={inputCls} />
-          </div>
-        </div>
       ) : (
-        /* Still loading availability */
-        <div className="h-8 bg-[#F5F5F5] rounded-lg animate-pulse" />
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          No timeslots are currently available — you can still send a request and {firstName} will get back to you.
+        </div>
       )}
 
-      {/* Message field when using slot picker */}
-      {hasAvail && (
+      {/* Message — always visible once availability is loaded */}
+      {avail !== null && (
         <div>
           <label className="block text-xs font-semibold text-[#0D0D0D] uppercase tracking-wide mb-1.5">
             Message <span className="normal-case font-normal text-[#bbb]">(optional)</span>
