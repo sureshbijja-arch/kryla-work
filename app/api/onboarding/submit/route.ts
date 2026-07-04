@@ -82,7 +82,10 @@ export async function POST(req: NextRequest) {
       whatsapp_public: whatsappPublic !== false,
       email: email?.trim() || null,
       plan,
-      plan_status: 'pending_payment',
+      plan_status: 'trialing',
+      // First charge deferred to end of 3-month trial. Card can be added anytime
+      // during the trial; the first charge will still land at trial_ends_at.
+      trial_ends_at: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
       referred_by: referredBy || null,
       region,
       page_live: false,

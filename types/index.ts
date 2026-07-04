@@ -22,15 +22,25 @@ export interface Provider {
   email: string
   phone: string | null
   plan: Plan
-  plan_status: "active" | "pending_payment" | "past_due" | "cancelled"
+  plan_status: "trialing" | "active" | "pending_payment" | "past_due" | "cancelled"
   stripe_customer_id: string | null
   razorpay_customer_id: string | null
+  /** Stripe acct_xxx for Express connected account (member-facing payments, Phase 4) */
+  stripe_connect_id: string | null
+  /** Stripe coupon ID applied to this member's next checkout (overrides plan-level coupon) */
+  stripe_discount_coupon: string | null
   custom_domain: string | null
   verified: boolean
   page_live: boolean
   persona: string
   city: string | null
   country: string | null
+  // ── Billing columns (added migration 20260703000002) ──────────────────────
+  trial_ends_at:            string | null   // ISO timestamp; first charge deferred to this date
+  billing_gateway:          "stripe" | "razorpay" | null
+  platform_subscription_id: string | null
+  plan_period_end:          string | null
+  plan_pending:             string | null   // target plan for a scheduled upgrade/downgrade
   created_at: string
   updated_at: string
 }

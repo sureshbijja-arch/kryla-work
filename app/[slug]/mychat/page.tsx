@@ -12,10 +12,11 @@ export const dynamic = 'force-dynamic'
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://kryla.work'
 
 interface Props {
-  params: { slug: string }
+  params:      { slug: string }
+  searchParams: { billing?: string }
 }
 
-export default async function MyChatPage({ params }: Props) {
+export default async function MyChatPage({ params, searchParams }: Props) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -23,7 +24,7 @@ export default async function MyChatPage({ params }: Props) {
 
   const { data: provider } = await supabaseAdmin
     .from('providers')
-    .select('id, slug, first_name, last_name, persona, location, whatsapp_number, email, plan, plan_status, region, page_live, page_language, custom_domain, referral_code')
+    .select('id, slug, first_name, last_name, persona, location, whatsapp_number, email, plan, plan_status, trial_ends_at, region, page_live, page_language, custom_domain, referral_code')
     .eq('email', user.email)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -59,16 +60,22 @@ export default async function MyChatPage({ params }: Props) {
     booking: true, faq: true, contact: true,
   }
 
+  const billingStatus = searchParams.billing === 'success' || searchParams.billing === 'cancelled'
+    ? (searchParams.billing as 'success' | 'cancelled')
+    : undefined
+
   return (
     <MyChatLayout
       spaceProps={{
-        providerId:  provider.id,
-        slug:        provider.slug,
-        firstName:   provider.first_name,
-        pageLive:    provider.page_live ?? false,
-        plan:        memberPlan,
-        planStatus:   provider.plan_status ?? 'active',
-        region:       (provider.region as 'india' | 'usa') ?? 'india',
+        providerId:    provider.id,
+        slug:          provider.slug,
+        firstName:     provider.first_name,
+        pageLive:      provider.page_live ?? false,
+        plan:          memberPlan,
+        planStatus:    provider.plan_status ?? 'active',
+        trialEndsAt:   (provider.trial_ends_at as string | null) ?? null,
+        billingStatus,
+        region:        (provider.region as 'india' | 'usa') ?? 'india',
         pageLanguage: (provider.page_language as string) ?? 'en',
         customName: (provider.custom_domain as string | null) ?? null,
         referralCode: (provider.referral_code as string | null) ?? null,

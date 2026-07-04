@@ -13,6 +13,8 @@ interface SpaceProps {
   pageLive: boolean
   plan: string
   planStatus: string
+  trialEndsAt: string | null
+  billingStatus?: 'success' | 'cancelled'
   region: 'india' | 'usa'
   pageLanguage: string
   customName: string | null

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { speak, stopSpeaking } from '@/lib/voice'
 import PlanSection from './PlanSection'
 import BookingsTab from './BookingsTab'
@@ -55,6 +56,8 @@ interface Props {
   pageLive: boolean
   plan: string
   planStatus: string
+  trialEndsAt: string | null
+  billingStatus?: 'success' | 'cancelled'
   region: 'india' | 'usa'
   pageLanguage: string
   customName: string | null
@@ -177,7 +180,8 @@ const FONT_LABELS: Record<string, string> = {
 
 export default function SpaceClient({
   providerId, slug, firstName,
-  plan, region, pageLanguage, customName, referralCode, currentProfile, onRefresh,
+  plan, planStatus, trialEndsAt, billingStatus,
+  region, pageLanguage, customName, referralCode, currentProfile, onRefresh,
   plans, planOrder, canAds, canCustomName,
 }: Props) {
   const defaultSections: SectionEntry[] = currentProfile.sections ?? [
@@ -203,6 +207,19 @@ export default function SpaceClient({
   const bottomRef               = useRef<HTMLDivElement>(null)
   const inputRef                = useRef<HTMLTextAreaElement>(null)
   const recognitionRef          = useRef<unknown>(null)
+
+  // ── Billing return toast ─────────────────────────────────────────────────────
+  const router = useRouter()
+  const [billingToast, setBillingToast] = useState<'success' | 'cancelled' | null>(billingStatus ?? null)
+
+  useEffect(() => {
+    if (!billingStatus) return
+    // Clean the ?billing= query param from the URL without triggering a re-render
+    router.replace(`/${slug}/mychat`, { scroll: false })
+    const t = setTimeout(() => setBillingToast(null), 5000)
+    return () => clearTimeout(t)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const bookingsLabel = getPersonaConfig(currentProfile.persona).tabLabel
   const t = UI[pageLanguage] ?? EN_UI
@@ -327,6 +344,19 @@ export default function SpaceClient({
 
   return (
     <div className="h-full flex flex-col bg-[#FAFAFA]">
+
+      {/* ── Billing return toast ── */}
+      {billingToast && (
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl text-sm font-medium shadow-xl transition-all ${
+          billingToast === 'success'
+            ? 'bg-[#166534] text-white'
+            : 'bg-[#6B7280] text-white'
+        }`}>
+          {billingToast === 'success'
+            ? 'Payment method added — your first charge is deferred to trial end.'
+            : 'Checkout cancelled — no charge was made.'}
+        </div>
+      )}
 
       {/* Panel header */}
       <header className="bg-white border-b border-[#E5E5E5] px-4 py-3 flex items-center justify-between shrink-0">
@@ -622,7 +652,17 @@ export default function SpaceClient({
       {/* ── My plan ── */}
       {tab === 'plan' && (
         <div className="flex-1 overflow-y-auto">
-          <PlanSection currentPlan={plan} region={region} plans={plans} planOrder={planOrder} onGoToMessages={() => setTab('messages')} />
+          <PlanSection
+            currentPlan={plan}
+            region={region}
+            plans={plans}
+            planOrder={planOrder}
+            planStatus={planStatus}
+            trialEndsAt={trialEndsAt}
+            providerId={providerId}
+            slug={slug}
+            onGoToMessages={() => setTab('messages')}
+          />
           <CustomNameCard providerId={providerId} slug={slug} canUse={canCustomName} initialDomain={customName} />
         </div>
       )}

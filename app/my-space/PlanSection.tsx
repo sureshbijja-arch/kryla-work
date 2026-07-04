@@ -1,27 +1,193 @@
+'use client'
+
+import { useState } from 'react'
 import type { PlanDef } from '@/lib/plans'
 
 interface Props {
-  currentPlan: string
-  region: 'india' | 'usa'
-  plans: PlanDef[]
-  planOrder: string[]
+  currentPlan:  string
+  region:       'india' | 'usa'
+  plans:        PlanDef[]
+  planOrder:    string[]
+  planStatus:   string
+  trialEndsAt?: string | null
+  providerId:   string
+  slug:         string
   onGoToMessages?: () => void
 }
 
-export default function PlanSection({ currentPlan, region, plans, planOrder, onGoToMessages }: Props) {
+// ── Trial / billing status banner ─────────────────────────────────────────────
+
+function TrialBanner({ planStatus, trialDaysLeft }: { planStatus: string; trialDaysLeft: number | null }) {
+  if (planStatus === 'active') return null
+
+  if (planStatus === 'trialing') {
+    if (trialDaysLeft === null) return null
+
+    if (trialDaysLeft > 60) {
+      // Month 1 — calm nudge
+      return (
+        <div className="mb-5 px-4 py-3 bg-[#F0FDF4] border border-[#BBF7D0] rounded-xl text-sm text-[#166534]">
+          🎁 <strong>Free trial active</strong> — {trialDaysLeft} days left. Add a card anytime before your trial ends and your first charge will be deferred to trial end.
+        </div>
+      )
+    }
+
+    if (trialDaysLeft > 30) {
+      // Month 2 — reminder
+      return (
+        <div className="mb-5 px-4 py-3 bg-[#FFFBEB] border border-[#FDE68A] rounded-xl text-sm text-[#92400E]">
+          ⏳ <strong>Trial ending soon</strong> — {trialDaysLeft} days left. Add a card to keep uninterrupted access after your trial.
+        </div>
+      )
+    }
+
+    // Month 3 — urgent
+    return (
+      <div className="mb-5 px-4 py-3 bg-[#FFF7ED] border border-[#FED7AA] rounded-xl text-sm text-[#9A3412]">
+        ⚠️ <strong>Trial ending in {trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''}</strong> — access will be restricted if no payment method is added before your trial ends.
+      </div>
+    )
+  }
+
+  if (planStatus === 'pending_payment') {
+    return (
+      <div className="mb-5 px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-sm text-[#991B1B]">
+        🔒 <strong>Access restricted</strong> — your trial has ended. Choose a plan and add a payment method to restore full access.
+      </div>
+    )
+  }
+
+  if (planStatus === 'past_due') {
+    return (
+      <div className="mb-5 px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-sm text-[#991B1B]">
+        ⚠️ <strong>Payment failed</strong> — please update your payment method to keep your plan active.
+      </div>
+    )
+  }
+
+  return null
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+export default function PlanSection({
+  currentPlan,
+  region,
+  plans,
+  planOrder,
+  planStatus,
+  trialEndsAt,
+  providerId,
+  slug,
+  onGoToMessages,
+}: Props) {
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
+  const [errorMsg,    setErrorMsg]    = useState<string | null>(null)
+
   const currentIdx = planOrder.indexOf(currentPlan)
+
+  const trialDaysLeft: number | null = trialEndsAt
+    ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : null
+
+  async function handleCheckout(targetPlan: string) {
+    setErrorMsg(null)
+    setLoadingPlan(targetPlan)
+    try {
+      const res = await fetch('/api/billing/checkout', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ providerId, targetPlan }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setErrorMsg(data.error ?? 'Something went wrong. Please try again.')
+        return
+      }
+      // Redirect to Stripe hosted checkout
+      window.location.href = data.url
+    } catch {
+      setErrorMsg('Network error. Please try again.')
+    } finally {
+      setLoadingPlan(null)
+    }
+  }
+
+  const isTrialing = planStatus === 'trialing'
+  const needsPayment = planStatus === 'pending_payment' || planStatus === 'past_due'
 
   return (
     <div className="px-4 py-6 max-w-2xl mx-auto w-full">
       <p className="text-xs font-semibold text-[#999] uppercase tracking-widest mb-5">My Plan</p>
 
+      {/* Status banner */}
+      <TrialBanner planStatus={planStatus} trialDaysLeft={trialDaysLeft} />
+
+      {/* Inline error */}
+      {errorMsg && (
+        <div className="mb-4 px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-sm text-[#991B1B]">
+          {errorMsg}
+        </div>
+      )}
+
       <div className="space-y-3">
         {plans.map((plan) => {
-          const planIdx    = planOrder.indexOf(plan.id)
-          const isCurrent  = plan.id === currentPlan
-          const isUpgrade  = planIdx > currentIdx
+          const planIdx     = planOrder.indexOf(plan.id)
+          const isCurrent   = plan.id === currentPlan
+          const isUpgrade   = planIdx > currentIdx
           const isDowngrade = planIdx < currentIdx
-          const isQuote    = plan.isQuote
+          const isQuote     = plan.isQuote
+          const isLoading   = loadingPlan === plan.id
+
+          // Determine the CTA for this plan card
+          const renderCta = () => {
+            if (isQuote) {
+              return (
+                <a
+                  href="mailto:hello@kryla.work"
+                  className="text-xs font-semibold px-4 py-2 rounded-lg border border-[#0D0D0D] text-[#0D0D0D] hover:bg-[#0D0D0D] hover:text-white transition-colors whitespace-nowrap">
+                  Get a quote →
+                </a>
+              )
+            }
+
+            if (isCurrent) {
+              // During trial or payment required: show "Add card" CTA on current plan
+              if (isTrialing || needsPayment) {
+                return (
+                  <button
+                    onClick={() => handleCheckout(plan.id)}
+                    disabled={isLoading}
+                    className="text-xs font-semibold px-4 py-2 rounded-lg bg-[#0D0D0D] text-white hover:bg-[#333] transition-colors disabled:opacity-60 disabled:cursor-wait whitespace-nowrap">
+                    {isLoading ? 'Loading…' : 'Add card →'}
+                  </button>
+                )
+              }
+              // Active — no action needed
+              return (
+                <button
+                  disabled
+                  className="text-xs font-semibold px-4 py-2 rounded-lg border border-[#E5E5E5] text-[#bbb] cursor-default whitespace-nowrap">
+                  Your plan
+                </button>
+              )
+            }
+
+            // Upgrade / Downgrade to a different plan
+            const label = isUpgrade ? 'Upgrade' : isDowngrade ? 'Downgrade' : ''
+            return (
+              <button
+                onClick={() => handleCheckout(plan.id)}
+                disabled={isLoading}
+                className={`text-xs font-semibold px-4 py-2 rounded-lg border transition-colors disabled:opacity-60 disabled:cursor-wait whitespace-nowrap
+                  ${isUpgrade
+                    ? 'border-[#0D0D0D] text-[#0D0D0D] hover:bg-[#0D0D0D] hover:text-white'
+                    : 'border-[#E5E5E5] text-[#999] hover:border-[#0D0D0D] hover:text-[#0D0D0D]'
+                  }`}>
+                {isLoading ? 'Loading…' : label}
+              </button>
+            )
+          }
 
           return (
             <div
@@ -39,6 +205,11 @@ export default function PlanSection({ currentPlan, region, plans, planOrder, onG
                     {isCurrent && (
                       <span className="text-[10px] font-semibold bg-[#0D0D0D] text-white px-2 py-0.5 rounded-full uppercase tracking-wide">
                         Current
+                      </span>
+                    )}
+                    {plan.popular && !isCurrent && (
+                      <span className="text-[10px] font-semibold bg-[#F5A623] text-white px-2 py-0.5 rounded-full uppercase tracking-wide">
+                        Popular
                       </span>
                     )}
                     {!isQuote && (
@@ -61,39 +232,13 @@ export default function PlanSection({ currentPlan, region, plans, planOrder, onG
                 </div>
 
                 <div className="shrink-0 pt-0.5">
-                  {isCurrent ? (
-                    <button
-                      disabled
-                      className="text-xs font-semibold px-4 py-2 rounded-lg border border-[#E5E5E5] text-[#bbb] cursor-default">
-                      Your plan
-                    </button>
-                  ) : isQuote ? (
-                    <a
-                      href="mailto:hello@kryla.work"
-                      className="text-xs font-semibold px-4 py-2 rounded-lg border border-[#0D0D0D] text-[#0D0D0D] hover:bg-[#0D0D0D] hover:text-white transition-colors">
-                      Get a quote →
-                    </a>
-                  ) : (
-                    <div className="text-right">
-                      <button
-                        disabled
-                        title="Payments coming soon"
-                        className="text-xs font-semibold px-4 py-2 rounded-lg border border-[#E5E5E5] text-[#999] cursor-not-allowed hover:border-[#0D0D0D] hover:text-[#0D0D0D] transition-colors">
-                        {isUpgrade ? 'Upgrade' : isDowngrade ? 'Downgrade' : ''}
-                      </button>
-                      <p className="text-[10px] text-[#bbb] mt-1">Coming soon</p>
-                    </div>
-                  )}
+                  {renderCta()}
                 </div>
               </div>
             </div>
           )
         })}
       </div>
-
-      <p className="text-center text-xs text-[#bbb] mt-6">
-        Plan changes will be available once payments are set up.
-      </p>
 
       {/* WhatsApp Business add-on card — available on all plans */}
       <div className="mt-6">
