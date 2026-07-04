@@ -151,7 +151,7 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
         </p>
         {showBooking ? (
           <div className="contact-in" style={{ animationDelay: '0.1s' }}>
-            <BookingForm providerId={providerId} services={services} accentColor="var(--color-accent)" firstName={firstName} />
+            <BookingForm providerId={providerId} services={services} accentColor="var(--color-accent)" firstName={firstName} persona={persona} />
             {wa && showContact && (
               <a href={wa} target="_blank" rel="noopener noreferrer"
                 className="mt-6 flex items-center gap-2 justify-center text-sm text-white/25 hover:text-white/60 transition-colors">
@@ -312,7 +312,7 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">{contactLabel}</p>
         {showBooking ? (
           <>
-            <BookingForm providerId={providerId} services={services} accentColor="var(--color-accent)" firstName={firstName} />
+            <BookingForm providerId={providerId} services={services} accentColor="var(--color-accent)" firstName={firstName} persona={persona} />
             {variant === 'both' && wa && showContact && (
               <a href={wa} target="_blank" rel="noopener noreferrer"
                 className="mt-6 flex items-center gap-2 justify-center text-sm text-[#888] hover:text-[#0D0D0D] transition-colors">

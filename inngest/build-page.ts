@@ -89,8 +89,9 @@ const PERSONA_SECTIONS: Record<string, Section[]> = {
     { sectionKey: 'highlights', variant: 'numbered',  order: 2 },
     { sectionKey: 'services',   variant: 'features',  order: 3 },
     { sectionKey: 'bio',        variant: 'callout',   order: 4 },
-    { sectionKey: 'faq',        variant: 'accordion', order: 5 },
-    { sectionKey: 'contact',    variant: 'both',      order: 6 },
+    { sectionKey: 'reviews',    variant: 'cards',     order: 5 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 6 },
+    { sectionKey: 'contact',    variant: 'both',      order: 7 },
   ],
   other: [
     { sectionKey: 'hero',       variant: 'auto',      order: 1 },

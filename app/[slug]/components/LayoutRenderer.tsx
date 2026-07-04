@@ -8,6 +8,7 @@ import BioSection from './sections/BioSection'
 import GallerySection from './sections/GallerySection'
 import FaqSection from './sections/FaqSection'
 import ContactSection from './sections/ContactSection'
+import ReviewsSection from './sections/ReviewsSection'
 import { ACCENT, PAGE_BG, FONT_CLASS } from '../types'
 import type { ProfileData, PaletteKey, FontKey, DesignMode, SectionStyle } from '../types'
 
@@ -97,6 +98,9 @@ export default function LayoutRenderer({ sections, data }: Props) {
             break
           case 'contact':
             node = <ContactSection key={i} data={data} accent={accent} variant={variant} />
+            break
+          case 'reviews':
+            node = <ReviewsSection key={i} providerId={data.providerId} accentColor={accent} />
             break
           default:
             return null

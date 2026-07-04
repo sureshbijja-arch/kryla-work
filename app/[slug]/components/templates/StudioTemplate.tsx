@@ -8,7 +8,7 @@ export default function StudioTemplate({ data }: { data: ProfileData }) {
     providerId, firstName, lastName, location, whatsappNumber,
     headline, subheadline, bio, ctaPrimary, ctaSecondary,
     services, highlights, faq, palette, font, showSections,
-    avatarUrl = null, gallery = [],
+    persona, avatarUrl = null, gallery = [],
   } = data
 
   const accent    = ACCENT[palette]
@@ -119,6 +119,7 @@ export default function StudioTemplate({ data }: { data: ProfileData }) {
                 accentColor={accent}
                 firstName={firstName}
                 ctaLabel="Request a session"
+                persona={persona}
               />
               {wa && showSections.contact && (
                 <a href={wa} target="_blank" rel="noopener noreferrer"

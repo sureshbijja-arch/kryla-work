@@ -16,6 +16,10 @@ import LayoutsTab from './LayoutsTab'
 import LanguageTab from './LanguageTab'
 import SuggestionsTab from './SuggestionsTab'
 import ReferTab from './ReferTab'
+import AvailabilityTab from './AvailabilityTab'
+import StudentsTab from './StudentsTab'
+import ReviewsTab from './ReviewsTab'
+import StatsTab from './StatsTab'
 import { getPersonaConfig } from '@/app/[slug]/personaConfig'
 
 interface Message {
@@ -71,8 +75,8 @@ interface Props {
 }
 
 type UIStrings = {
-  tabs:       { chat: string; design: string; messages: string; bookings: string; plan: string; suggestions: string; refer: string }
-  sub:        { services: string; sections: string; layouts: string; ads: string; media: string; language: string }
+  tabs:       { chat: string; design: string; messages: string; bookings: string; plan: string; suggestions: string; refer: string; students: string; reviews: string }
+  sub:        { services: string; sections: string; layouts: string; ads: string; media: string; language: string; schedule: string; stats: string }
   placeholder: string
   hint:        string
   publish:     string
@@ -82,57 +86,57 @@ type UIStrings = {
 
 const UI: Record<string, UIStrings> = {
   hi: {
-    tabs: { chat: 'चैट', design: 'डिज़ाइन', messages: 'संदेश', bookings: 'बुकिंग', plan: 'मेरी योजना', suggestions: 'सुझाव', refer: 'रेफर' },
-    sub:  { services: 'सेवाएं', sections: 'पेज लेआउट', layouts: 'लेआउट', ads: 'विज्ञापन', media: 'मीडिया', language: 'भाषा' },
+    tabs: { chat: 'चैट', design: 'डिज़ाइन', messages: 'संदेश', bookings: 'बुकिंग', plan: 'मेरी योजना', suggestions: 'सुझाव', refer: 'रेफर', students: 'छात्र', reviews: 'समीक्षाएं' },
+    sub:  { services: 'सेवाएं', sections: 'पेज लेआउट', layouts: 'लेआउट', ads: 'विज्ञापन', media: 'मीडिया', language: 'भाषा', schedule: 'शेड्यूल', stats: 'आंकड़े' },
     placeholder: 'आप क्या बदलना चाहते हैं?',
     hint:        'भेजने के लिए Enter · नई पंक्ति Shift+Enter',
     publish: 'प्रकाशित करें →', publishing: 'प्रकाशित हो रहा है…', published: '✓ प्रकाशित',
   },
   ta: {
-    tabs: { chat: 'அரட்டை', design: 'வடிவமைப்பு', messages: 'செய்திகள்', bookings: 'பதிவுகள்', plan: 'என் திட்டம்', suggestions: 'யோசனைகள்', refer: 'பரிந்துரை' },
-    sub:  { services: 'சேவைகள்', sections: 'பக்க தளவமைப்பு', layouts: 'தளவமைப்புகள்', ads: 'விளம்பரங்கள்', media: 'ஊடகம்', language: 'மொழி' },
+    tabs: { chat: 'அரட்டை', design: 'வடிவமைப்பு', messages: 'செய்திகள்', bookings: 'பதிவுகள்', plan: 'என் திட்டம்', suggestions: 'யோசனைகள்', refer: 'பரிந்துரை', students: 'மாணவர்கள்', reviews: 'மதிப்புரைகள்' },
+    sub:  { services: 'சேவைகள்', sections: 'பக்க தளவமைப்பு', layouts: 'தளவமைப்புகள்', ads: 'விளம்பரங்கள்', media: 'ஊடகம்', language: 'மொழி', schedule: 'அட்டவணை', stats: 'புள்ளிவிவரங்கள்' },
     placeholder: 'என்ன மாற்ற விரும்புகிறீர்கள்?',
     hint:        'அனுப்ப Enter · புதிய வரிக்கு Shift+Enter',
     publish: 'வெளியிடு →', publishing: 'வெளியிடுகிறது…', published: '✓ வெளியிடப்பட்டது',
   },
   te: {
-    tabs: { chat: 'చాట్', design: 'డిజైన్', messages: 'సందేశాలు', bookings: 'బుకింగ్‌లు', plan: 'నా ప్లాన్', suggestions: 'సూచనలు', refer: 'రెఫర్' },
-    sub:  { services: 'సేవలు', sections: 'పేజీ లేఅవుట్', layouts: 'లేఅవుట్‌లు', ads: 'ప్రకటనలు', media: 'మీడియా', language: 'భాష' },
+    tabs: { chat: 'చాట్', design: 'డిజైన్', messages: 'సందేశాలు', bookings: 'బుకింగ్‌లు', plan: 'నా ప్లాన్', suggestions: 'సూచనలు', refer: 'రెఫర్', students: 'విద్యార్థులు', reviews: 'సమీక్షలు' },
+    sub:  { services: 'సేవలు', sections: 'పేజీ లేఅవుట్', layouts: 'లేఅవుట్‌లు', ads: 'ప్రకటనలు', media: 'మీడియా', language: 'భాష', schedule: 'షెడ్యూల్', stats: 'గణాంకాలు' },
     placeholder: 'మీరు ఏమి మార్చాలనుకుంటున్నారు?',
     hint:        'పంపడానికి Enter · కొత్త వరుసకు Shift+Enter',
     publish: 'ప్రచురించు →', publishing: 'ప్రచురిస్తోంది…', published: '✓ ప్రచురితమైంది',
   },
   kn: {
-    tabs: { chat: 'ಚಾಟ್', design: 'ವಿನ್ಯಾಸ', messages: 'ಸಂದೇಶಗಳು', bookings: 'ಬುಕಿಂಗ್‌ಗಳು', plan: 'ನನ್ನ ಯೋಜನೆ', suggestions: 'ಸಲಹೆಗಳು', refer: 'ರೆಫರ್' },
-    sub:  { services: 'ಸೇವೆಗಳು', sections: 'ಪೇಜ್ ಲೇಔಟ್', layouts: 'ಲೇಔಟ್‌ಗಳು', ads: 'ಜಾಹೀರಾತುಗಳು', media: 'ಮೀಡಿಯಾ', language: 'ಭಾಷೆ' },
+    tabs: { chat: 'ಚಾಟ್', design: 'ವಿನ್ಯಾಸ', messages: 'ಸಂದೇಶಗಳು', bookings: 'ಬುಕಿಂಗ್‌ಗಳು', plan: 'ನನ್ನ ಯೋಜನೆ', suggestions: 'ಸಲಹೆಗಳು', refer: 'ರೆಫರ್', students: 'ವಿದ್ಯಾರ್ಥಿಗಳು', reviews: 'ವಿಮರ್ಶೆಗಳು' },
+    sub:  { services: 'ಸೇವೆಗಳು', sections: 'ಪೇಜ್ ಲೇಔಟ್', layouts: 'ಲೇಔಟ್‌ಗಳು', ads: 'ಜಾಹೀರಾತುಗಳು', media: 'ಮೀಡಿಯಾ', language: 'ಭಾಷೆ', schedule: 'ವೇಳಾಪಟ್ಟಿ', stats: 'ಅಂಕಿಅಂಶಗಳು' },
     placeholder: 'ನೀವು ಏನು ಬದಲಾಯಿಸಲು ಬಯಸುತ್ತೀರಿ?',
     hint:        'ಕಳುಹಿಸಲು Enter · ಹೊಸ ಸಾಲಿಗೆ Shift+Enter',
     publish: 'ಪ್ರಕಟಿಸಿ →', publishing: 'ಪ್ರಕಟಿಸಲಾಗುತ್ತಿದೆ…', published: '✓ ಪ್ರಕಟಿಸಲಾಗಿದೆ',
   },
   ml: {
-    tabs: { chat: 'ചാറ്റ്', design: 'ഡിസൈൻ', messages: 'സന്ദേശങ്ങൾ', bookings: 'ബുക്കിംഗുകൾ', plan: 'എന്റെ പ്ലാൻ', suggestions: 'നിർദ്ദേശങ്ങൾ', refer: 'റഫർ' },
-    sub:  { services: 'സേവനങ്ങൾ', sections: 'പേജ് ലേഔട്ട്', layouts: 'ലേഔട്ടുകൾ', ads: 'പരസ്യങ്ങൾ', media: 'മീഡിയ', language: 'ഭാഷ' },
+    tabs: { chat: 'ചാറ്റ്', design: 'ഡിസൈൻ', messages: 'സന്ദേശങ്ങൾ', bookings: 'ബുക്കിംഗുകൾ', plan: 'എന്റെ പ്ലാൻ', suggestions: 'നിർദ്ദേശങ്ങൾ', refer: 'റഫർ', students: 'വിദ്യാർത്ഥികൾ', reviews: 'അവലോകനങ്ങൾ' },
+    sub:  { services: 'സേവനങ്ങൾ', sections: 'പേജ് ലേഔട്ട്', layouts: 'ലേഔട്ടുകൾ', ads: 'പരസ്യങ്ങൾ', media: 'മീഡിയ', language: 'ഭാഷ', schedule: 'ഷെഡ്യൂൾ', stats: 'സ്ഥിതിവിവരക്കണക്കുകൾ' },
     placeholder: 'നിങ്ങൾക്ക് എന്ത് മാറ്റണം?',
     hint:        'അയക്കാൻ Enter · പുതിയ വരിക്ക് Shift+Enter',
     publish: 'പ്രസിദ്ധീകരിക്കൂ →', publishing: 'പ്രസിദ്ധീകരിക്കുന്നു…', published: '✓ പ്രസിദ്ധീകരിച്ചു',
   },
   mr: {
-    tabs: { chat: 'चॅट', design: 'डिझाइन', messages: 'संदेश', bookings: 'बुकिंग', plan: 'माझी योजना', suggestions: 'सूचना', refer: 'रेफर' },
-    sub:  { services: 'सेवा', sections: 'पेज लेआउट', layouts: 'लेआउट', ads: 'जाहिराती', media: 'मीडिया', language: 'भाषा' },
+    tabs: { chat: 'चॅट', design: 'डिझाइन', messages: 'संदेश', bookings: 'बुकिंग', plan: 'माझी योजना', suggestions: 'सूचना', refer: 'रेफर', students: 'विद्यार्थी', reviews: 'पुनरावलोकने' },
+    sub:  { services: 'सेवा', sections: 'पेज लेआउट', layouts: 'लेआउट', ads: 'जाहिराती', media: 'मीडिया', language: 'भाषा', schedule: 'वेळापत्रक', stats: 'आकडेवारी' },
     placeholder: 'तुम्हाला काय बदलायचे आहे?',
     hint:        'पाठवण्यासाठी Enter · नवीन ओळीसाठी Shift+Enter',
     publish: 'प्रकाशित करा →', publishing: 'प्रकाशित होत आहे…', published: '✓ प्रकाशित',
   },
   gu: {
-    tabs: { chat: 'ચેટ', design: 'ડિઝાઇન', messages: 'સંદેશ', bookings: 'બુકિંગ', plan: 'મારી યોજના', suggestions: 'સૂચનો', refer: 'રેફર' },
-    sub:  { services: 'સેવાઓ', sections: 'પેજ લેઆઉટ', layouts: 'લેઆઉટ', ads: 'જાહેરાત', media: 'મીડિયા', language: 'ભાષા' },
+    tabs: { chat: 'ચેટ', design: 'ડિઝાઇન', messages: 'સંદેશ', bookings: 'બુકિંગ', plan: 'મારી યોજના', suggestions: 'સૂચનો', refer: 'રેફર', students: 'વિદ્યાર્થીઓ', reviews: 'સમીક્ષાઓ' },
+    sub:  { services: 'સેવાઓ', sections: 'પેજ લેઆઉટ', layouts: 'લેઆઉટ', ads: 'જાહેરાત', media: 'મીડિયા', language: 'ભાષા', schedule: 'શેડ્યૂલ', stats: 'આંકડા' },
     placeholder: 'તમે શું બદલવા માંગો છો?',
     hint:        'મોકલવા Enter · નવી લાઇન Shift+Enter',
     publish: 'પ્રકાશિત કરો →', publishing: 'પ્રકાશિત થઈ રહ્યું છે…', published: '✓ પ્રકાશિત',
   },
   es: {
-    tabs: { chat: 'Chat', design: 'Diseño', messages: 'Mensajes', bookings: 'Reservas', plan: 'Mi plan', suggestions: 'Sugerencias', refer: 'Referir' },
-    sub:  { services: 'Servicios', sections: 'Diseño de página', layouts: 'Plantillas', ads: 'Anuncios', media: 'Medios', language: 'Idioma' },
+    tabs: { chat: 'Chat', design: 'Diseño', messages: 'Mensajes', bookings: 'Reservas', plan: 'Mi plan', suggestions: 'Sugerencias', refer: 'Referir', students: 'Alumnos', reviews: 'Reseñas' },
+    sub:  { services: 'Servicios', sections: 'Diseño de página', layouts: 'Plantillas', ads: 'Anuncios', media: 'Medios', language: 'Idioma', schedule: 'Horario', stats: 'Estadísticas' },
     placeholder: '¿Qué te gustaría cambiar?',
     hint:        'Enter para enviar · Shift+Enter nueva línea',
     publish: 'Publicar →', publishing: 'Publicando…', published: '✓ Publicado',
@@ -140,8 +144,8 @@ const UI: Record<string, UIStrings> = {
 }
 
 const EN_UI: UIStrings = {
-  tabs: { chat: 'Chat', design: 'Design', messages: 'Messages', bookings: '', plan: 'My plan', suggestions: 'Suggest', refer: 'Refer' },
-  sub:  { services: 'Services', sections: 'Page layout', layouts: 'Layouts', ads: 'Ads', media: 'Media', language: 'Language' },
+  tabs: { chat: 'Chat', design: 'Design', messages: 'Messages', bookings: '', plan: 'My plan', suggestions: 'Suggest', refer: 'Refer', students: 'Students', reviews: 'Reviews' },
+  sub:  { services: 'Services', sections: 'Page layout', layouts: 'Layouts', ads: 'Ads', media: 'Media', language: 'Language', schedule: 'Schedule', stats: 'Stats' },
   placeholder: 'What would you like to change?',
   hint:        'Enter to send · Shift+Enter for new line',
   publish: 'Publish →', publishing: 'Publishing…', published: '✓ Published',
@@ -164,8 +168,8 @@ function getGreeting(lang: string, name: string): string {
   return `Hi ${name}! Ask me anything about your page — change your headline, bio, services, colours, layout, or anything else.`
 }
 
-type MainTab   = 'chat' | 'design' | 'messages' | 'bookings' | 'plan' | 'suggestions' | 'refer'
-type DesignTab = 'services' | 'sections' | 'layouts' | 'ads' | 'media' | 'language'
+type MainTab   = 'chat' | 'design' | 'messages' | 'bookings' | 'students' | 'reviews' | 'plan' | 'suggestions' | 'refer'
+type DesignTab = 'services' | 'sections' | 'layouts' | 'schedule' | 'stats' | 'ads' | 'media' | 'language'
 
 const PALETTE_LABELS: Record<string, string> = {
   professional: 'Professional', fresh: 'Fresh', warm: 'Warm',
@@ -388,6 +392,8 @@ export default function SpaceClient({
             { key: 'design',      label: t.tabs.design },
             { key: 'messages',    label: t.tabs.messages },
             { key: 'bookings',    label: bookingsTabLabel },
+            { key: 'students',    label: t.tabs.students },
+            { key: 'reviews',     label: t.tabs.reviews },
             { key: 'plan',        label: t.tabs.plan },
             { key: 'suggestions', label: t.tabs.suggestions },
             { key: 'refer',       label: t.tabs.refer },
@@ -412,6 +418,8 @@ export default function SpaceClient({
               { key: 'services',  label: t.sub.services },
               { key: 'sections',  label: t.sub.sections },
               { key: 'layouts',   label: t.sub.layouts },
+              { key: 'schedule',  label: t.sub.schedule },
+              { key: 'stats',     label: t.sub.stats },
               { key: 'ads',       label: t.sub.ads },
               { key: 'media',     label: t.sub.media },
               { key: 'language',  label: t.sub.language },
@@ -633,6 +641,34 @@ export default function SpaceClient({
           providerId={providerId}
           currentLanguage={pageLanguage}
         />
+      )}
+
+      {/* ── Design: Schedule (availability) ── */}
+      {tab === 'design' && designTab === 'schedule' && (
+        <AvailabilityTab providerId={providerId} />
+      )}
+
+      {/* ── Design: Stats ── */}
+      {tab === 'design' && designTab === 'stats' && (
+        <StatsTab providerId={providerId} />
+      )}
+
+      {/* ── Students ── */}
+      {tab === 'students' && (
+        <div className="flex-1 overflow-y-auto">
+          <StudentsTab
+            providerId={providerId}
+            label1Label={currentProfile.persona === 'tutor' ? 'Grade' : currentProfile.persona === 'trainer' ? 'Level' : 'Category'}
+            label2Label={currentProfile.persona === 'tutor' ? 'Subject' : currentProfile.persona === 'trainer' ? 'Goal' : 'Notes label'}
+          />
+        </div>
+      )}
+
+      {/* ── Reviews ── */}
+      {tab === 'reviews' && (
+        <div className="flex-1 overflow-y-auto">
+          <ReviewsTab providerId={providerId} />
+        </div>
       )}
 
       {/* ── Messages ── */}

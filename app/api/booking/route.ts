@@ -11,6 +11,9 @@ const schema = z.object({
   customerPhone: z.string().min(7).max(20),
   service:       z.string().min(1),
   preferredDate: z.string().optional(),
+  preferredSlot: z.string().optional(),  // time slot from availability
+  grade:         z.string().optional(),  // tutor-specific
+  subject:       z.string().optional(),  // tutor-specific
   message:       z.string().max(500).optional(),
 })
 
@@ -19,14 +22,47 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const data = schema.parse(body)
 
+    // Slot conflict check — if a slot was chosen, verify it's still available
+    if (data.preferredDate && data.preferredSlot) {
+      const { data: avail } = await supabaseAdmin
+        .from('availability')
+        .select('slots, active')
+        .eq('provider_id', data.providerId)
+        .eq('day_key', data.preferredDate)
+        .single()
+
+      if (!avail?.active) {
+        return NextResponse.json(
+          { error: 'That date is no longer available — please choose another' },
+          { status: 409 }
+        )
+      }
+
+      const availSlots: string[] = avail.slots ?? []
+      if (!availSlots.includes(data.preferredSlot)) {
+        return NextResponse.json(
+          { error: 'That time slot is no longer available — please choose another' },
+          { status: 409 }
+        )
+      }
+    }
+
+    // Build service string: include grade/subject for tutors
+    let serviceLabel = data.service
+    if (data.grade || data.subject) {
+      const extras = [data.grade, data.subject].filter(Boolean).join(', ')
+      serviceLabel = `${data.service} (${extras})`
+    }
+
     const { data: booking, error } = await supabaseAdmin
       .from("bookings")
       .insert({
         provider_id:       data.providerId,
         customer_name:     data.customerName,
         customer_phone:    data.customerPhone,
-        service:           data.service,
+        service:           serviceLabel,
         preferred_date:    data.preferredDate ?? null,
+        preferred_slot:    data.preferredSlot ?? null,
         message:           data.message ?? null,
         status:            "pending",
         notification_sent: false,
@@ -35,8 +71,8 @@ export async function POST(req: NextRequest) {
         client_name:       data.customerName,
         client_phone:      data.customerPhone,
         client_email:      data.customerEmail ?? '',
-        service_requested: data.service,
-        requested_slot:    data.preferredDate ?? '',
+        service_requested: serviceLabel,
+        requested_slot:    data.preferredSlot ?? data.preferredDate ?? '',
       })
       .select()
       .single()
@@ -47,6 +83,33 @@ export async function POST(req: NextRequest) {
         { error: "Something went wrong — please try again" },
         { status: 500 }
       )
+    }
+
+    // Remove the booked slot from availability (non-fatal)
+    if (data.preferredDate && data.preferredSlot) {
+      try {
+        const { data: avail } = await supabaseAdmin
+          .from('availability')
+          .select('slots')
+          .eq('provider_id', data.providerId)
+          .eq('day_key', data.preferredDate)
+          .single()
+
+        if (avail) {
+          const remaining: string[] = (avail.slots ?? []).filter((s: string) => s !== data.preferredSlot)
+          await supabaseAdmin
+            .from('availability')
+            .update({
+              slots:  remaining,
+              active: remaining.length > 0,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('provider_id', data.providerId)
+            .eq('day_key', data.preferredDate)
+        }
+      } catch (err) {
+        console.error('[booking] Slot removal failed (non-fatal):', err)
+      }
     }
 
     // Notify the member — non-fatal
@@ -61,7 +124,7 @@ export async function POST(req: NextRequest) {
         const msg = buildNewBookingMessage({
           memberName:   provider.first_name ?? 'there',
           customerName: data.customerName,
-          service:      data.service,
+          service:      serviceLabel,
           preferredDate: data.preferredDate,
           bookingId:    booking.id,
         })
@@ -70,8 +133,10 @@ export async function POST(req: NextRequest) {
       }
 
       if (provider?.email) {
-        const dateLine = data.preferredDate ? `<p style="margin:6px 0"><strong>Preferred date:</strong> ${data.preferredDate}</p>` : ''
-        const msgLine  = data.message       ? `<p style="margin:6px 0"><strong>Message:</strong> ${data.message}</p>` : ''
+        const dateLine = data.preferredDate
+          ? `<p style="margin:6px 0"><strong>Preferred date:</strong> ${data.preferredDate}${data.preferredSlot ? ` at ${data.preferredSlot}` : ''}</p>` : ''
+        const msgLine  = data.message
+          ? `<p style="margin:6px 0"><strong>Message:</strong> ${data.message}</p>` : ''
 
         await sendEmail({
           to: provider.email,
@@ -82,9 +147,9 @@ export async function POST(req: NextRequest) {
               <p style="color:#666;margin-top:0">Hi ${provider.first_name}, someone wants to book with you on Kryla.</p>
               <hr style="border:none;border-top:1px solid #E5E5E5;margin:16px 0"/>
               <p style="margin:6px 0"><strong>Name:</strong> ${data.customerName}</p>
-              <p style="margin:6px 0"><strong>Email:</strong> ${data.customerEmail}</p>
+              <p style="margin:6px 0"><strong>Email:</strong> ${data.customerEmail ?? '—'}</p>
               <p style="margin:6px 0"><strong>WhatsApp:</strong> ${data.customerPhone}</p>
-              <p style="margin:6px 0"><strong>Service:</strong> ${data.service}</p>
+              <p style="margin:6px 0"><strong>Service:</strong> ${serviceLabel}</p>
               ${dateLine}
               ${msgLine}
               <hr style="border:none;border-top:1px solid #E5E5E5;margin:16px 0"/>

@@ -8,7 +8,7 @@ export default function FocusTemplate({ data }: { data: ProfileData }) {
     providerId, firstName, lastName, location, whatsappNumber,
     headline, subheadline, bio, ctaPrimary, ctaSecondary,
     services, highlights, faq, palette, font, showSections,
-    avatarUrl = null, gallery = [],
+    persona, avatarUrl = null, gallery = [],
   } = data
 
   const accent = ACCENT[palette]
@@ -111,7 +111,7 @@ export default function FocusTemplate({ data }: { data: ProfileData }) {
           <SectionHeading>Get in touch</SectionHeading>
           {showSections.booking ? (
             <>
-              <BookingForm providerId={providerId} services={services} accentColor={accent} firstName={firstName} />
+              <BookingForm providerId={providerId} services={services} accentColor={accent} firstName={firstName} persona={persona} />
               {wa && showSections.contact && (
                 <a href={wa} target="_blank" rel="noopener noreferrer"
                   className="mt-4 flex items-center gap-2 justify-center text-sm text-[#666666] hover:text-[#0D0D0D] transition-colors">

@@ -2,8 +2,11 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { ProfileData, PaletteKey, FontKey, DesignMode, ShowSections } from './types'
+import { ACCENT } from './types'
 import AdsScroller from './components/AdsScroller'
 import LanguagePage from './components/LanguagePage'
+import PageTracker from './components/PageTracker'
+import LikeButton from './components/LikeButton'
 import type { SectionEntry } from './components/LayoutRenderer'
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'kryla.work'
@@ -140,6 +143,7 @@ export default async function MemberProfilePage({ params }: Props) {
   const isTutor       = provider.persona === 'tutor'
   const defaultLang   = (provider.page_language as string) ?? 'en'
   const translations  = (page.translations ?? {}) as Record<string, Record<string, unknown>>
+  const accentColor   = ACCENT[(page.palette as PaletteKey)] ?? '#F5A623'
 
   const jsonLd = page.schema_type
     ? {
@@ -165,6 +169,7 @@ export default async function MemberProfilePage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
+      <PageTracker providerId={provider.id} slug={params.slug} />
       <LanguagePage
         profileData={profileData}
         translations={translations}
@@ -174,6 +179,9 @@ export default async function MemberProfilePage({ params }: Props) {
         isTutor={isTutor}
       />
       <AdsScroller slug={params.slug} />
+      <div className="fixed bottom-6 right-6 z-50">
+        <LikeButton providerId={provider.id} slug={params.slug} accentColor={accentColor} />
+      </div>
     </>
   )
 }

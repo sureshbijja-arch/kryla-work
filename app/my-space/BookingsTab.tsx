@@ -10,8 +10,9 @@ interface Booking {
   client_email: string | null
   service: string
   preferred_date: string | null
+  preferred_slot: string | null
   message: string | null
-  status: 'pending' | 'accepted' | 'rejected' | 'cancelled'
+  status: 'pending' | 'accepted' | 'rejected' | 'cancelled' | 'onhold'
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -19,6 +20,15 @@ const STATUS_STYLES: Record<string, string> = {
   accepted:  'bg-[#F0FDF4] text-[#16A34A]',
   rejected:  'bg-[#FEF2F2] text-[#DC2626]',
   cancelled: 'bg-[#F5F5F5] text-[#999]',
+  onhold:    'bg-[#FFF7ED] text-[#9A5F00]',
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  pending:   'Pending',
+  accepted:  'Accepted',
+  rejected:  'Declined',
+  cancelled: 'Cancelled',
+  onhold:    'On hold',
 }
 
 type Filter = 'all' | 'pending' | 'accepted' | 'declined'
@@ -175,7 +185,7 @@ export default function BookingsTab({
                 </div>
               </div>
               <span className={`shrink-0 text-[10px] font-semibold uppercase tracking-wide rounded-full px-2.5 py-1 ${STATUS_STYLES[b.status] ?? STATUS_STYLES.pending}`}>
-                {b.status}
+                {STATUS_LABELS[b.status] ?? b.status}
               </span>
             </div>
 
@@ -183,7 +193,10 @@ export default function BookingsTab({
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#444] mb-3">
               <span><span className="text-[#999]">Service:</span> {b.service}</span>
               {b.preferred_date && (
-                <span><span className="text-[#999]">Date:</span> {b.preferred_date}</span>
+                <span>
+                  <span className="text-[#999]">Date:</span> {b.preferred_date}
+                  {b.preferred_slot && <span className="ml-1 text-[#666]">@ {b.preferred_slot}</span>}
+                </span>
               )}
               <span className="text-[#bbb]">
                 {new Date(b.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -195,7 +208,7 @@ export default function BookingsTab({
             )}
 
             {/* Actions */}
-            {b.status === 'pending' ? (
+            {(b.status === 'pending' || b.status === 'onhold') ? (
               <div className="flex gap-2">
                 <button
                   disabled={updating === b.id}
@@ -205,8 +218,18 @@ export default function BookingsTab({
                 </button>
                 <button
                   disabled={updating === b.id}
+                  onClick={() => updateStatus(b.id, 'onhold')}
+                  className={`flex-1 py-2 rounded-lg text-xs font-semibold border disabled:opacity-40 transition-colors ${
+                    b.status === 'onhold'
+                      ? 'border-[#F59E0B] text-[#9A5F00] bg-[#FFF7ED]'
+                      : 'border-[#E5E5E5] text-[#666] hover:border-[#F59E0B] hover:text-[#9A5F00]'
+                  }`}>
+                  Hold
+                </button>
+                <button
+                  disabled={updating === b.id}
                   onClick={() => updateStatus(b.id, 'rejected')}
-                  className="flex-1 py-2 rounded-lg text-xs font-semibold border border-[#E5E5E5] text-[#666] hover:border-[#0D0D0D] hover:text-[#0D0D0D] disabled:opacity-40 transition-colors">
+                  className="flex-1 py-2 rounded-lg text-xs font-semibold border border-[#E5E5E5] text-[#666] hover:border-[#DC2626] hover:text-[#DC2626] disabled:opacity-40 transition-colors">
                   Decline
                 </button>
               </div>
