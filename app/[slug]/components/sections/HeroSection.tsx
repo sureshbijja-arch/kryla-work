@@ -725,7 +725,7 @@ function HeroMinimal({ data }: { data: ProfileData }) {
 }
 
 /* ── Entry point ─────────────────────────────────────────────────────────── */
-export default function HeroSection({ data, variant, framesConfig }: Props) {
+export default function HeroSection({ data, accent, variant, framesConfig }: Props) {
   if (variant === 'photo')    return <HeroPhoto data={data} />
   if (variant === 'dark')     return <HeroDark data={data} framesConfig={framesConfig} accent={accent} />
   if (variant === 'gradient') return <HeroGradient data={data} />
