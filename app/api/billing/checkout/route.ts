@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Trial end: defer first charge to provider's trial_ends_at
-  let trialEnd: number | 'now' = 'now'
+  let trialEnd: number | undefined
   if (provider.trial_ends_at) {
     const trialEndMs = new Date(provider.trial_ends_at as string).getTime()
     if (trialEndMs > Date.now()) {

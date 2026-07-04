@@ -21,7 +21,7 @@ export const stripe: Stripe = new Proxy({} as Stripe, {
       _stripe = new Stripe(key, {
         // Pinned to a stable API version compatible with stripe ^15.
         // Update this string when upgrading the SDK.
-        apiVersion: '2024-06-20',
+        apiVersion: '2024-04-10',
         typescript: true,
       })
     }

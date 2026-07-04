@@ -43,7 +43,7 @@ export interface PlatformCheckoutParams {
   priceId:     string   // gateway recurring price / plan ID
   planId:      string   // Kryla plan ID (grow/thrive) — stored in metadata for webhook use
   providerId:  string   // Kryla provider UUID — stored in metadata for webhook resolution
-  trialEnd:    number | 'now'  // Unix timestamp (seconds) or 'now' for immediate billing
+  trialEnd:    number | undefined  // Unix timestamp (seconds); undefined = bill immediately
   successUrl:  string
   cancelUrl:   string
   /** Stripe coupon ID to apply programmatically. When set, allow_promotion_codes is disabled. */

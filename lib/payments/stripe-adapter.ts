@@ -66,7 +66,7 @@ export class StripeAdapter implements PaymentGateway {
         quantity: 1,
       }],
       subscription_data: {
-        trial_end: params.trialEnd,
+        ...(params.trialEnd !== undefined && { trial_end: params.trialEnd }),
         metadata: {
           kryla_plan_id:     params.planId,
           kryla_provider_id: params.providerId,
