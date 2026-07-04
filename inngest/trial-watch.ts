@@ -1,10 +1,13 @@
 /**
  * inngest/trial-watch.ts — Daily cron that monitors trial expiry.
  *
- * Trial model (3-month trial, no card at signup):
- *   Month 1–2 : free access, reminder emails sent
- *   Month 3   : alert emails — access will be restricted at trial_ends_at
+ * Trial model (1-month trial, no card at signup):
+ *   Days 1–23 : free access, no action
+ *   Days 24–27: reminder emails (7 days left)
+ *   Days 28–30: alert emails (3 days left)
  *   After trial_ends_at + no subscription → plan_status = 'pending_payment' (restricted)
+ *
+ * Post-trial payment failures are handled event-driven in inngest/payment-alerts.ts.
  *
  * Registered in app/api/inngest/route.ts
  */
@@ -12,9 +15,9 @@
 import { inngest } from '@/lib/inngest'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 
-// Days-remaining thresholds
-const REMINDER_THRESHOLD_DAYS  = 60  // end of month 1 → start reminder emails
-const ALERT_THRESHOLD_DAYS     = 30  // end of month 2 → urgent alert (month 3)
+// Days-remaining thresholds for trial reminders
+const REMINDER_THRESHOLD_DAYS = 7   // 7 days left → reminder email
+const ALERT_THRESHOLD_DAYS    = 3   // 3 days left → urgent alert
 
 function daysFromNow(days: number): string {
   return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
@@ -54,9 +57,9 @@ export const trialWatchFunction = inngest.createFunction(
       return ids.length
     })
 
-    // ── Step 2: Send month-3 alert (trial ends in ≤ 30 days) ───────────────
-    const alertedCount = await step.run('send-month3-alerts', async () => {
-      const { data: soonExpiring } = await supabaseAdmin
+    // ── Step 2: Send urgent alert (trial ends in ≤ 3 days) ─────────────────
+    const alertedCount = await step.run('send-trial-alert-emails', async () => {
+      const { data: critical } = await supabaseAdmin
         .from('providers')
         .select('id, email, first_name, slug, trial_ends_at')
         .eq('plan_status', 'trialing')
@@ -64,21 +67,20 @@ export const trialWatchFunction = inngest.createFunction(
         .gt('trial_ends_at', new Date().toISOString())
         .lt('trial_ends_at', daysFromNow(ALERT_THRESHOLD_DAYS))
 
-      if (!soonExpiring?.length) return 0
+      if (!critical?.length) return 0
 
-      // TODO: send alert email via lib/email.ts when RESEND_API_KEY is configured
-      // For now, log providers that need alerts
-      console.log(`[trial-watch] month-3 alert needed for ${soonExpiring.length} provider(s):`,
-        soonExpiring.map((p: { slug: string; trial_ends_at: string }) => ({
-          slug: p.slug,
-          trial_ends_at: p.trial_ends_at,
+      // TODO: send urgent alert email via lib/email.ts when RESEND_API_KEY is configured
+      // Subject: "3 days left — add your card to keep access"
+      console.log(`[trial-watch] urgent alert needed for ${critical.length} provider(s):`,
+        critical.map((p: { slug: string; trial_ends_at: string }) => ({
+          slug: p.slug, trial_ends_at: p.trial_ends_at,
         }))
       )
-      return soonExpiring.length
+      return critical.length
     })
 
-    // ── Step 3: Send month-1/2 reminders (trial ends in 31–60 days) ─────────
-    const remindedCount = await step.run('send-reminder-emails', async () => {
+    // ── Step 3: Send reminder (trial ends in 4–7 days) ───────────────────────
+    const remindedCount = await step.run('send-trial-reminder-emails', async () => {
       const { data: reminders } = await supabaseAdmin
         .from('providers')
         .select('id, email, first_name, slug, trial_ends_at')
@@ -90,10 +92,10 @@ export const trialWatchFunction = inngest.createFunction(
       if (!reminders?.length) return 0
 
       // TODO: send reminder email via lib/email.ts when RESEND_API_KEY is configured
+      // Subject: "Your free trial ends in X days — add a card to continue"
       console.log(`[trial-watch] reminder needed for ${reminders.length} provider(s):`,
         reminders.map((p: { slug: string; trial_ends_at: string }) => ({
-          slug: p.slug,
-          trial_ends_at: p.trial_ends_at,
+          slug: p.slug, trial_ends_at: p.trial_ends_at,
         }))
       )
       return reminders.length

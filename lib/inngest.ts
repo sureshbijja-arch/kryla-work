@@ -22,3 +22,14 @@ export interface GeneratePersonaPayload {
 }
 
 export const GENERATE_PERSONA_EVENT = 'kryla/persona.template.generate'
+
+export const BILLING_PAYMENT_FAILED_EVENT = 'kryla/billing.payment.failed'
+
+export interface BillingPaymentFailedPayload {
+  providerId:   string
+  failureCount: number       // 1 = first missed month, 2 = second consecutive
+  periodEnd:    string | null // ISO timestamp — billing period end date
+  email:        string | null
+  firstName:    string | null
+  slug:         string
+}

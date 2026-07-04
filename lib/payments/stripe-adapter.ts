@@ -168,7 +168,7 @@ export class StripeAdapter implements PaymentGateway {
       // ── Invoice payment succeeded ────────────────────────────────────────
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice
-        const customerId = typeof invoice.customer === 'string' ? invoice.customer : undefined
+        const customerId     = typeof invoice.customer     === 'string' ? invoice.customer     : undefined
         const subscriptionId = typeof invoice.subscription === 'string' ? invoice.subscription : undefined
 
         return {
@@ -176,6 +176,7 @@ export class StripeAdapter implements PaymentGateway {
           eventType:      'platform.subscription.active',
           customerId,
           subscriptionId,
+          invoiceId:      invoice.id,
           amountMinor:    invoice.amount_paid,
           currency:       invoice.currency,
         }
@@ -184,7 +185,7 @@ export class StripeAdapter implements PaymentGateway {
       // ── Invoice payment failed ───────────────────────────────────────────
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice
-        const customerId = typeof invoice.customer === 'string' ? invoice.customer : undefined
+        const customerId     = typeof invoice.customer     === 'string' ? invoice.customer     : undefined
         const subscriptionId = typeof invoice.subscription === 'string' ? invoice.subscription : undefined
 
         return {
@@ -192,6 +193,9 @@ export class StripeAdapter implements PaymentGateway {
           eventType:      'platform.subscription.past_due',
           customerId,
           subscriptionId,
+          invoiceId:      invoice.id,
+          // period_end = when this billing period closes (the "pay by" deadline)
+          periodEnd:      invoice.period_end ?? undefined,
         }
       }
 

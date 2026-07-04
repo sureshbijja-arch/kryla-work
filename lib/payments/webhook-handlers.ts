@@ -10,6 +10,8 @@
  */
 
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { inngest, BILLING_PAYMENT_FAILED_EVENT } from '@/lib/inngest'
+import type { BillingPaymentFailedPayload } from '@/lib/inngest'
 import type { ParsedWebhookEvent } from './types'
 
 type Gateway = 'stripe' | 'razorpay'
@@ -222,7 +224,7 @@ export async function handleSubscriptionDeleted(
 
 /**
  * invoice.payment_succeeded.
- * Explicitly confirms active status (belt-and-suspenders alongside subscription.updated).
+ * Resets the consecutive failure counter and confirms active status.
  */
 export async function handleInvoicePaymentSucceeded(
   gateway: Gateway,
@@ -245,9 +247,12 @@ export async function handleInvoicePaymentSucceeded(
 
   if (!provider) return
 
+  // Reset failure tracking on any successful payment
   const { error } = await supabaseAdmin.from('providers').update({
-    plan_status: 'active',
-  }).eq('id', provider.id).eq('plan_status', 'past_due')  // only update if currently past_due
+    plan_status:                  'active',
+    consecutive_payment_failures: 0,
+    last_payment_failed_invoice:  null,
+  }).eq('id', provider.id)
 
   if (error) console.error('[webhook-handlers] invoice succeeded update failed:', error.message)
 
@@ -263,33 +268,63 @@ export async function handleInvoicePaymentSucceeded(
 
 /**
  * invoice.payment_failed.
- * Sets plan to past_due.
+ *
+ * Deduplicates by invoiceId so Stripe's retry attempts within the same billing
+ * period count as one failure, not many. Each distinct invoice failure = one
+ * missed billing month.
+ *
+ *   failureCount 1 → past_due + reminder emails (via Inngest)
+ *   failureCount 2 → urgent alert + Stripe will cancel → subscription.deleted
+ *                    restricts access (handled by handleSubscriptionDeleted)
  */
 export async function handleInvoicePaymentFailed(
   gateway: Gateway,
   event:   ParsedWebhookEvent
 ): Promise<void> {
-  const { customerId, providerId } = event
+  const { customerId, providerId, invoiceId, periodEnd } = event
 
-  let provider: { id: string } | null = null
+  const col = gateway === 'stripe' ? 'stripe_customer_id' : 'razorpay_customer_id'
+
+  let provider: {
+    id: string
+    email: string | null
+    first_name: string | null
+    slug: string
+    consecutive_payment_failures: number
+    last_payment_failed_invoice: string | null
+  } | null = null
 
   if (providerId) {
     const { data } = await supabaseAdmin
-      .from('providers').select('id').eq('id', providerId).maybeSingle()
+      .from('providers')
+      .select('id, email, first_name, slug, consecutive_payment_failures, last_payment_failed_invoice')
+      .eq('id', providerId)
+      .maybeSingle()
     provider = data
   } else if (customerId) {
-    const col = gateway === 'stripe' ? 'stripe_customer_id' : 'razorpay_customer_id'
     const { data } = await supabaseAdmin
-      .from('providers').select('id').eq(col, customerId).maybeSingle()
+      .from('providers')
+      .select('id, email, first_name, slug, consecutive_payment_failures, last_payment_failed_invoice')
+      .eq(col, customerId)
+      .maybeSingle()
     provider = data
   }
 
   if (!provider) return
 
-  const { error } = await supabaseAdmin.from('providers').update({
-    plan_status: 'past_due',
-  }).eq('id', provider.id)
+  // Dedup: Stripe retries the same invoice multiple times — only count a new invoice
+  const isNewInvoice = !invoiceId || invoiceId !== provider.last_payment_failed_invoice
+  const newFailureCount = isNewInvoice
+    ? (provider.consecutive_payment_failures ?? 0) + 1
+    : provider.consecutive_payment_failures
 
+  const updates: Record<string, unknown> = { plan_status: 'past_due' }
+  if (isNewInvoice) {
+    updates.consecutive_payment_failures = newFailureCount
+    updates.last_payment_failed_invoice  = invoiceId ?? null
+  }
+
+  const { error } = await supabaseAdmin.from('providers').update(updates).eq('id', provider.id)
   if (error) console.error('[webhook-handlers] invoice failed update failed:', error.message)
 
   await insertPaymentEvent({
@@ -298,4 +333,20 @@ export async function handleInvoicePaymentFailed(
     providerId: provider.id,
     raw:        event.raw,
   })
+
+  // Fire Inngest event once per distinct invoice failure so emails go out promptly
+  if (isNewInvoice) {
+    const periodEndIso = periodEnd ? new Date(periodEnd * 1000).toISOString() : null
+    await inngest.send({
+      name: BILLING_PAYMENT_FAILED_EVENT,
+      data: {
+        providerId:   provider.id,
+        failureCount: newFailureCount,
+        periodEnd:    periodEndIso,
+        email:        provider.email,
+        firstName:    provider.first_name,
+        slug:         provider.slug,
+      } satisfies BillingPaymentFailedPayload,
+    })
+  }
 }

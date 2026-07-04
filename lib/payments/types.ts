@@ -69,6 +69,7 @@ export interface ParsedWebhookEvent {
   periodEnd?:       number         // Unix timestamp of current_period_end
   planId?:          string         // Kryla plan ID from metadata
   providerId?:      string         // Kryla provider UUID from metadata
+  invoiceId?:       string         // gateway invoice ID (for retry deduplication)
   amountMinor?:     number
   currency?:        string
 }

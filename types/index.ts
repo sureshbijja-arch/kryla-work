@@ -29,6 +29,10 @@ export interface Provider {
   stripe_connect_id: string | null
   /** Stripe coupon ID applied to this member's next checkout (overrides plan-level coupon) */
   stripe_discount_coupon: string | null
+  /** Number of consecutive billing-period payment failures; reset to 0 on any success */
+  consecutive_payment_failures: number
+  /** Stripe invoice ID of the last counted failure (deduplicates retry events) */
+  last_payment_failed_invoice: string | null
   custom_domain: string | null
   verified: boolean
   page_live: boolean
