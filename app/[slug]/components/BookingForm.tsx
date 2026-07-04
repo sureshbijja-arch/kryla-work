@@ -209,6 +209,16 @@ export default function BookingForm({
         </div>
         <p className="font-semibold text-[#0D0D0D] text-lg">Request sent!</p>
         <p className="text-[#666666] text-sm mt-1">{firstName} will be in touch soon.</p>
+        <button
+          type="button"
+          onClick={() => {
+            setStatus('idle')
+            setSlotSel(null)
+            setForm(f => ({ ...f, preferredDate: '', preferredSlot: '', message: '' }))
+          }}
+          className="mt-6 text-sm text-[#666666] underline underline-offset-2 hover:text-[#0D0D0D] transition-colors">
+          Book another session
+        </button>
       </div>
     )
   }
