@@ -213,10 +213,85 @@ function HeroPhoto({ data }: { data: ProfileData }) {
   )
 }
 
+/* ── TUTOR ILLUSTRATION ──────────────────────────────────────────────────── */
+function TutorIllustration({ accent }: { accent: string }) {
+  return (
+    <svg viewBox="0 0 200 240" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
+      {/* Glow behind board */}
+      <ellipse cx="100" cy="110" rx="82" ry="72" fill={accent} fillOpacity="0.07"/>
+
+      {/* Chalkboard */}
+      <rect x="20" y="30" width="160" height="120" rx="8" fill="white" fillOpacity="0.05" stroke="white" strokeOpacity="0.12" strokeWidth="1.5"/>
+
+      {/* Equation lines — row 1 */}
+      <line x1="40" y1="62" x2="78" y2="62" stroke="white" strokeOpacity="0.42" strokeWidth="2" strokeLinecap="round"/>
+      <line x1="85" y1="62" x2="95" y2="62" stroke="white" strokeOpacity="0.28" strokeWidth="2" strokeLinecap="round"/>
+      <line x1="102" y1="56" x2="122" y2="68" stroke="white" strokeOpacity="0.36" strokeWidth="2" strokeLinecap="round"/>
+      <circle cx="128" cy="55" r="2" fill="white" fillOpacity="0.36"/>
+
+      {/* Row 2 — accent integral curve */}
+      <path d="M40 82 C48 72 56 92 64 82" stroke={accent} strokeOpacity="0.8" strokeWidth="2" fill="none" strokeLinecap="round"/>
+      <line x1="72" y1="82" x2="90" y2="82" stroke="white" strokeOpacity="0.22" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="96" y1="82" x2="130" y2="82" stroke={accent} strokeOpacity="0.42" strokeWidth="1.5" strokeLinecap="round"/>
+
+      {/* Row 3 — faint rule */}
+      <line x1="40" y1="102" x2="152" y2="102" stroke="white" strokeOpacity="0.1" strokeWidth="1.5" strokeLinecap="round"/>
+
+      {/* Row 4 — y = mx + b */}
+      <line x1="40" y1="120" x2="58" y2="120" stroke="white" strokeOpacity="0.24" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="64" y1="120" x2="80" y2="120" stroke="white" strokeOpacity="0.18" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="86" y1="114" x2="102" y2="126" stroke="white" strokeOpacity="0.22" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="108" y1="120" x2="136" y2="120" stroke="white" strokeOpacity="0.18" strokeWidth="1.5" strokeLinecap="round"/>
+
+      {/* Chalk tray */}
+      <rect x="20" y="150" width="160" height="6" rx="3" fill="white" fillOpacity="0.07"/>
+      <rect x="36" y="151" width="18" height="4" rx="2" fill="white" fillOpacity="0.24"/>
+      <rect x="60" y="152" width="10" height="3" rx="1.5" fill={accent} fillOpacity="0.58"/>
+
+      {/* Books stack (right) */}
+      <rect x="128" y="196" width="58" height="11" rx="3" fill={accent} fillOpacity="0.38"/>
+      <rect x="128" y="196" width="4" height="11" rx="0" fill={accent} fillOpacity="0.62"/>
+      <rect x="132" y="185" width="50" height="11" rx="3" fill="white" fillOpacity="0.1"/>
+      <rect x="132" y="185" width="4" height="11" rx="0" fill="white" fillOpacity="0.26"/>
+      <rect x="136" y="175" width="42" height="10" rx="3" fill={accent} fillOpacity="0.22"/>
+      <rect x="136" y="175" width="4" height="10" rx="0" fill={accent} fillOpacity="0.46"/>
+
+      {/* Graduation cap (top left) */}
+      <polygon points="20,24 38,16 56,24 38,32" fill="white" fillOpacity="0.13" stroke="white" strokeOpacity="0.22" strokeWidth="1"/>
+      <rect x="14" y="20" width="48" height="5" rx="1" fill="white" fillOpacity="0.16"/>
+      <line x1="56" y1="24" x2="62" y2="38" stroke="white" strokeOpacity="0.18" strokeWidth="1.5"/>
+      <circle cx="63" cy="41" r="2.5" fill={accent} fillOpacity="0.62"/>
+
+      {/* Light bulb (top right) */}
+      <circle cx="174" cy="22" r="14" fill="white" fillOpacity="0.04" stroke={accent} strokeOpacity="0.38" strokeWidth="1.5"/>
+      <path d="M168 22 Q174 11 180 22 Q180 28 177 30 H171 Q168 28 168 22Z" fill={accent} fillOpacity="0.2"/>
+      <rect x="170" y="31" width="7" height="2.5" rx="1.25" fill="white" fillOpacity="0.2"/>
+      <rect x="171" y="34" width="6" height="2" rx="1" fill="white" fillOpacity="0.13"/>
+      <line x1="174" y1="5" x2="174" y2="2" stroke={accent} strokeOpacity="0.42" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="185" y1="9" x2="187" y2="7" stroke={accent} strokeOpacity="0.38" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="163" y1="9" x2="161" y2="7" stroke={accent} strokeOpacity="0.38" strokeWidth="1.5" strokeLinecap="round"/>
+
+      {/* Pencil (bottom left) */}
+      <g transform="rotate(-22 34 210)">
+        <rect x="30" y="185" width="7" height="38" rx="2" fill="white" fillOpacity="0.1"/>
+        <polygon points="30,223 37,223 33.5,232" fill={accent} fillOpacity="0.44"/>
+        <rect x="30" y="185" width="7" height="7" rx="2" fill="white" fillOpacity="0.2"/>
+      </g>
+
+      {/* Sparkles */}
+      <circle cx="118" cy="188" r="2.5" fill={accent} fillOpacity="0.48"/>
+      <circle cx="98" cy="213" r="1.5" fill="white" fillOpacity="0.14"/>
+      <circle cx="70" cy="207" r="1" fill={accent} fillOpacity="0.32"/>
+      <circle cx="16" cy="130" r="1.5" fill="white" fillOpacity="0.1"/>
+      <circle cx="192" cy="140" r="2" fill={accent} fillOpacity="0.2"/>
+    </svg>
+  )
+}
+
 /* ── DARK ────────────────────────────────────────────────────────────────────
    Deep black, single accent orb, large white headline, minimal decoration.
 ──────────────────────────────────────────────────────────────────────────── */
-function HeroDark({ data, framesConfig }: { data: ProfileData; framesConfig?: Props['framesConfig'] }) {
+function HeroDark({ data, framesConfig, accent = '#F5A623' }: { data: ProfileData; framesConfig?: Props['framesConfig']; accent?: string }) {
   const { firstName, lastName, location, whatsappNumber, headline, subheadline,
     ctaPrimary, ctaSecondary, showSections, avatarUrl, gallery, persona } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
@@ -266,6 +341,13 @@ function HeroDark({ data, framesConfig }: { data: ProfileData; framesConfig?: Pr
           </div>
         )
       })}
+
+      {/* Tutor illustration — default visual when no gallery/avatar uploaded */}
+      {persona === 'tutor' && (
+        <div className="absolute right-4 sm:right-10 top-1/2 -translate-y-1/2 w-40 sm:w-52 pointer-events-none hidden sm:block" style={{ zIndex: 0, opacity: 0.75 }}>
+          <TutorIllustration accent={accent} />
+        </div>
+      )}
 
       <nav className="relative z-10 flex justify-between items-center px-6 pt-6 max-w-2xl mx-auto w-full">
         {location ? <LocationLink location={location} dark /> : <span />}
@@ -645,7 +727,7 @@ function HeroMinimal({ data }: { data: ProfileData }) {
 /* ── Entry point ─────────────────────────────────────────────────────────── */
 export default function HeroSection({ data, variant, framesConfig }: Props) {
   if (variant === 'photo')    return <HeroPhoto data={data} />
-  if (variant === 'dark')     return <HeroDark data={data} framesConfig={framesConfig} />
+  if (variant === 'dark')     return <HeroDark data={data} framesConfig={framesConfig} accent={accent} />
   if (variant === 'gradient') return <HeroGradient data={data} />
   if (variant === 'split')    return <HeroSplit data={data} />
   if (variant === 'banner')   return <HeroBanner data={data} />
