@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { sendWhatsAppMessage } from '@/lib/whatsapp'
+import { getPlanGate } from '@/lib/plans'
 import Anthropic from '@anthropic-ai/sdk'
 
 const anthropic = new Anthropic()
@@ -26,14 +27,14 @@ export async function POST(req: NextRequest) {
   }
 
   const msg = body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]
+  // Only handle text messages for now (voice = Phase 2)
   if (!msg || msg.type !== 'text') return NextResponse.json({ ok: true })
 
-  const senderPhone = msg.from as string           // "14698456789" — matches providers.whatsapp_number
+  const senderPhone = msg.from as string   // bare digits from Meta, e.g. "14695550112"
   const messageText = (msg.text?.body as string)?.trim()
 
   if (!senderPhone || !messageText) return NextResponse.json({ ok: true })
 
-  // Process synchronously — Meta expects 200 within 5s; AI replies usually <3s
   await handleInbound(senderPhone, messageText)
 
   return NextResponse.json({ ok: true })
@@ -41,43 +42,57 @@ export async function POST(req: NextRequest) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-const WA_SYSTEM_PROMPT = `You are Kryla, a helpful assistant for small business owners managing their public profile page via WhatsApp.
+const WA_SYSTEM_PROMPT = `You are Kryla, a helpful assistant for small business owners updating their public profile page via WhatsApp.
 
 Respond with ONLY valid JSON — no extra text before or after. Shape:
 {
-  "message": "string — short, friendly reply (2-3 sentences max, plain text, no markdown symbols)",
+  "message": "string — short friendly plain-text reply (2-3 sentences, no markdown, no asterisks)",
   "patch_pages": {},
   "patch_providers": {}
 }
 
-patch_pages fields you can set:
+Fields you can update in patch_pages:
 - headline, subheadline, bio, cta_primary, cta_secondary
-- services (FULL array: [{name, description, duration_or_unit, price}])
-- highlights (FULL array: [{icon, title, body}])
-- faq (FULL array: [{question, answer}])
+- services: FULL array [{name, description, duration_or_unit, price}]
+- highlights: FULL array [{icon, title, body}]
+- faq: FULL array [{question, answer}]
 
-patch_providers fields you can set:
-- location (city or address — becomes a Google Maps link on their page)
+Fields you can update in patch_providers:
+- location (city or address)
+- business_hours: full weekly schedule object:
+  {
+    timezone: "America/New_York" (or any IANA tz),
+    enabled: true,
+    mon: {open:"09:00", close:"17:00"} or null if closed,
+    tue: ..., wed: ..., thu: ..., fri: ..., sat: ..., sun: ...
+  }
+  Time format is 24-hour "HH:MM". null means closed that day.
+  Examples the member might say:
+  - "open Mon-Fri 9am to 6pm, closed weekends" → mon..fri with open/close, sat/sun null
+  - "closed Mondays" → set mon to null, keep rest as-is
+  - "change my timezone to India" → set timezone to "Asia/Kolkata"
 
 Rules:
-- Always return the COMPLETE array for services / highlights / faq — never partial
-- WhatsApp edits go live immediately — say "Done! Your page is updated and live." when changes are made
-- For things you cannot do (upload photo, change colour, change layout), say so briefly and mention they can do it in mychat
-- Keep message short — this is WhatsApp, not a chat window
+- Always return the COMPLETE array for services / highlights / faq (never partial)
+- For business_hours: always return the COMPLETE object with all 7 days
+- WhatsApp edits go live immediately
+- When changes are made, your message should clearly state what was updated (e.g. "Got it! Haircut is now $30 and eyebrow threading is $15.")
+- For things you cannot do (upload photo, change colour/layout), say so briefly and mention they can do it in mychat at kryla.work
+- Keep message short — this is WhatsApp
 - If the request is unclear, ask one short clarifying question
+- Leave patch_pages and patch_providers as empty objects {} when no change is needed
 
 Current page content:
 {{PROFILE}}`
 
 async function handleInbound(senderPhone: string, messageText: string) {
-  // Find provider by whatsapp_number — stored as digits+country code, same format Meta sends
-  const { data: provider } = await supabaseAdmin
+  // Look up provider by whatsapp_number — stored as bare digits matching Meta's format
+  const { data: matches } = await supabaseAdmin
     .from('providers')
-    .select('id, slug, first_name, whatsapp_number')
+    .select('id, slug, first_name, plan, wa_undo')
     .eq('whatsapp_number', senderPhone)
-    .maybeSingle()
 
-  if (!provider) {
+  if (!matches || matches.length === 0) {
     await sendWhatsAppMessage({
       to: senderPhone,
       text: "This number isn't linked to a Kryla account. Visit kryla.work to get started.",
@@ -85,7 +100,27 @@ async function handleInbound(senderPhone: string, messageText: string) {
     return
   }
 
-  // PUBLISH command — applies any pending mychat draft to the live page
+  if (matches.length > 1) {
+    await sendWhatsAppMessage({
+      to: senderPhone,
+      text: "This number is linked to more than one Kryla page. Please make changes from your dashboard at kryla.work.",
+    })
+    return
+  }
+
+  const provider = matches[0]
+
+  // ── Plan gate — Thrive+ only ─────────────────────────────────────────────
+  const gate = await getPlanGate()
+  if (!gate.allows('whatsapp_edit', provider.plan ?? 'grow')) {
+    await sendWhatsAppMessage({
+      to: senderPhone,
+      text: `Hi ${provider.first_name}! WhatsApp editing is available on the Thrive plan and above. Upgrade at kryla.work/${provider.slug} to unlock it.`,
+    })
+    return
+  }
+
+  // ── PUBLISH command — flush pending mychat draft to live ─────────────────
   if (/^publish$/i.test(messageText)) {
     await applyDraftAndPublish(provider.id, provider.slug)
     await sendWhatsAppMessage({
@@ -95,7 +130,40 @@ async function handleInbound(senderPhone: string, messageText: string) {
     return
   }
 
-  // Fetch current live content for AI context
+  // ── UNDO command — revert the last WhatsApp edit ─────────────────────────
+  if (/^undo$/i.test(messageText)) {
+    type UndoShape = { pages?: Record<string, unknown>; providers?: Record<string, unknown>; at?: string }
+    const undo = provider.wa_undo as UndoShape | null
+
+    if (!undo?.at) {
+      await sendWhatsAppMessage({ to: senderPhone, text: "Nothing to undo — no recent WhatsApp edit found." })
+      return
+    }
+
+    const ageMs = Date.now() - new Date(undo.at).getTime()
+    if (ageMs > 10 * 60 * 1000) {
+      await sendWhatsAppMessage({ to: senderPhone, text: "The 10-minute undo window has passed. Changes are locked in." })
+      return
+    }
+
+    if (undo.pages && Object.keys(undo.pages).length > 0) {
+      await supabaseAdmin.from('pages').update(undo.pages).eq('provider_id', provider.id)
+    }
+    if (undo.providers && Object.keys(undo.providers).length > 0) {
+      const allowed = ['location', 'business_hours']
+      const safe = Object.fromEntries(Object.entries(undo.providers).filter(([k]) => allowed.includes(k)))
+      if (Object.keys(safe).length > 0) {
+        await supabaseAdmin.from('providers').update(safe).eq('id', provider.id)
+      }
+    }
+
+    await supabaseAdmin.from('providers').update({ wa_undo: null }).eq('id', provider.id)
+    revalidatePath(`/${provider.slug}`)
+    await sendWhatsAppMessage({ to: senderPhone, text: "Done! Your last change has been reverted." })
+    return
+  }
+
+  // ── Fetch current live content for AI context ────────────────────────────
   const [{ data: page }, { data: prov }] = await Promise.all([
     supabaseAdmin
       .from('pages')
@@ -104,7 +172,7 @@ async function handleInbound(senderPhone: string, messageText: string) {
       .single(),
     supabaseAdmin
       .from('providers')
-      .select('location')
+      .select('location, business_hours')
       .eq('id', provider.id)
       .single(),
   ])
@@ -112,6 +180,7 @@ async function handleInbound(senderPhone: string, messageText: string) {
   const profile = {
     firstName: provider.first_name,
     location: prov?.location ?? null,
+    business_hours: prov?.business_hours ?? null,
     ...(page ?? {}),
   }
 
@@ -119,7 +188,7 @@ async function handleInbound(senderPhone: string, messageText: string) {
 
   const completion = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 512,
+    max_tokens: 768,
     system: systemPrompt,
     messages: [{ role: 'user', content: messageText }],
   })
@@ -144,27 +213,71 @@ async function handleInbound(senderPhone: string, messageText: string) {
 
   const { message, patch_pages = {}, patch_providers = {} } = parsed
 
-  // Write directly to live tables — WhatsApp = authenticated by phone, so auto-publish
-  if (Object.keys(patch_pages).length > 0) {
-    await supabaseAdmin.from('pages').update(patch_pages).eq('provider_id', provider.id)
-  }
+  const allowedPages     = ['headline', 'subheadline', 'bio', 'cta_primary', 'cta_secondary', 'services', 'highlights', 'faq']
+  const allowedProviders = ['location', 'business_hours']
 
-  const allowed = ['location', 'whatsapp_number']
-  const safeProviders = Object.fromEntries(
-    Object.entries(patch_providers).filter(([k]) => allowed.includes(k))
+  const safePatchPages = Object.fromEntries(
+    Object.entries(patch_pages).filter(([k]) => allowedPages.includes(k))
   )
-  if (Object.keys(safeProviders).length > 0) {
-    await supabaseAdmin.from('providers').update(safeProviders).eq('id', provider.id)
+
+  const safePatchProviders = Object.fromEntries(
+    Object.entries(patch_providers)
+      .filter(([k]) => allowedProviders.includes(k))
+      .map(([k, v]) =>
+        // Normalize whatsapp_number if AI ever tries to patch it (not allowed above, but belt+suspenders)
+        k === 'whatsapp_number' && typeof v === 'string' ? [k, v.replace(/\D/g, '')] : [k, v]
+      )
+  )
+
+  const hasPageChanges     = Object.keys(safePatchPages).length > 0
+  const hasProviderChanges = Object.keys(safePatchProviders).length > 0
+
+  if (!hasPageChanges && !hasProviderChanges) {
+    // No changes — just send the AI reply (e.g. clarifying question or "can't do that")
+    await sendWhatsAppMessage({ to: senderPhone, text: message })
+    return
   }
 
-  if (Object.keys(patch_pages).length > 0 || Object.keys(safeProviders).length > 0) {
-    revalidatePath(`/${provider.slug}`)
+  // ── Capture undo snapshot of current values ──────────────────────────────
+  const undoPages: Record<string, unknown>     = {}
+  const undoProviders: Record<string, unknown> = {}
+
+  if (hasPageChanges) {
+    for (const k of Object.keys(safePatchPages)) {
+      undoPages[k] = (page as Record<string, unknown> | null)?.[k] ?? null
+    }
+  }
+  if (hasProviderChanges) {
+    for (const k of Object.keys(safePatchProviders)) {
+      undoProviders[k] = (prov as Record<string, unknown> | null)?.[k] ?? null
+    }
   }
 
-  await sendWhatsAppMessage({ to: senderPhone, text: message })
+  // ── Write changes ────────────────────────────────────────────────────────
+  if (hasPageChanges) {
+    await supabaseAdmin.from('pages').update(safePatchPages).eq('provider_id', provider.id)
+  }
+  if (hasProviderChanges) {
+    await supabaseAdmin.from('providers').update(safePatchProviders).eq('id', provider.id)
+  }
+
+  // Save undo snapshot on provider row
+  await supabaseAdmin.from('providers').update({
+    wa_undo: {
+      pages:     undoPages,
+      providers: undoProviders,
+      at:        new Date().toISOString(),
+    },
+  }).eq('id', provider.id)
+
+  revalidatePath(`/${provider.slug}`)
+
+  // Append undo hint to reply
+  const replyText = message.trimEnd() + '\n\nReply UNDO within 10 min to revert.'
+  await sendWhatsAppMessage({ to: senderPhone, text: replyText })
 }
 
-// Mirrors the publish route — applies draft_data to live tables and clears it
+// ── Publish: apply any pending mychat draft_data to live tables ───────────────
 async function applyDraftAndPublish(providerId: string, slug: string) {
   const { data: pageRow } = await supabaseAdmin
     .from('pages')

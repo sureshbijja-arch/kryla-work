@@ -65,8 +65,9 @@ export async function POST(req: NextRequest) {
 
   console.log('[submit] 2. no existing provider, inserting...')
 
+  // Store as bare digits (no + or spaces) to match Meta webhook msg.from format
   const whatsapp = whatsappNumber
-    ? `${whatsappCountryCode || '+1'}${whatsappNumber.replace(/\D/g, '')}`
+    ? `${whatsappCountryCode || '+1'}${whatsappNumber}`.replace(/\D/g, '')
     : null
 
   const { data: provider, error: providerError } = await supabase

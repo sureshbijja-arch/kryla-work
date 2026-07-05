@@ -278,7 +278,14 @@ ${JSON.stringify(businessContext, null, 2)}`
 
   const allowed = ['whatsapp_number', 'location']
   const safePatchProviders = Object.fromEntries(
-    Object.entries(patch_providers).filter(([k]) => allowed.includes(k))
+    Object.entries(patch_providers)
+      .filter(([k]) => allowed.includes(k))
+      .map(([k, v]) =>
+        // Store whatsapp_number as bare digits to match Meta webhook msg.from format
+        k === 'whatsapp_number' && typeof v === 'string'
+          ? [k, v.replace(/\D/g, '')]
+          : [k, v]
+      )
   )
 
   let changed = false
