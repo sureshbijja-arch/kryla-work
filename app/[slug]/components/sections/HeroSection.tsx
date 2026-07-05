@@ -98,7 +98,7 @@ function getStatus(hours: BusinessHours): { isOpen: boolean; label: string } {
   return { isOpen: false, label: 'Closed' }
 }
 
-function BusinessStatusBadge({ hours }: { hours: BusinessHours }) {
+function BusinessStatusBadge({ hours, dark }: { hours: BusinessHours; dark?: boolean }) {
   const [status, setStatus] = useState(() => getStatus(hours))
   const [expanded, setExpanded] = useState(false)
 
@@ -109,20 +109,21 @@ function BusinessStatusBadge({ hours }: { hours: BusinessHours }) {
 
   const todayKey = getTodayKey(hours.timezone || 'UTC')
 
+  const pillBg     = dark ? 'rgba(255,255,255,0.14)' : 'var(--color-accent-surface)'
+  const pillBorder = dark ? '1px solid rgba(255,255,255,0.28)' : '1px solid var(--color-accent-border)'
+  const pillColor  = dark ? 'rgba(255,255,255,0.92)' : 'var(--color-accent)'
+  const dotColor   = status.isOpen ? '#22C55E' : (dark ? 'rgba(255,255,255,0.45)' : 'var(--color-accent)')
+  const panelBg    = dark ? 'rgba(0,0,0,0.5)' : 'var(--color-accent-surface)'
+  const panelBdr   = dark ? 'rgba(255,255,255,0.14)' : 'var(--color-accent-border)'
+  const rowColor   = dark ? 'rgba(255,255,255,0.85)' : 'var(--color-accent)'
+
   return (
     <div className="mb-5">
       <button
         onClick={() => setExpanded(v => !v)}
         className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all"
-        style={{
-          background: 'var(--color-accent-surface)',
-          border: '1px solid var(--color-accent-border)',
-          color: 'var(--color-accent)',
-        }}>
-        <span
-          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-          style={{ background: status.isOpen ? '#22C55E' : 'var(--color-accent)', opacity: status.isOpen ? 1 : 0.5 }}
-        />
+        style={{ background: pillBg, border: pillBorder, color: pillColor, backdropFilter: dark ? 'blur(10px)' : undefined }}>
+        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: dotColor }} />
         {status.label}
         <svg
           width="10" height="10" viewBox="0 0 10 10" fill="none"
@@ -134,7 +135,7 @@ function BusinessStatusBadge({ hours }: { hours: BusinessHours }) {
       {expanded && (
         <div
           className="mt-1.5 rounded-xl overflow-hidden"
-          style={{ background: 'var(--color-accent-surface)', border: '1px solid var(--color-accent-border)' }}>
+          style={{ background: panelBg, border: `1px solid ${panelBdr}`, backdropFilter: dark ? 'blur(10px)' : undefined }}>
           {DAY_ORDER.map((day, i) => {
             const dh = hours[day]
             return (
@@ -142,15 +143,13 @@ function BusinessStatusBadge({ hours }: { hours: BusinessHours }) {
                 key={day}
                 className="flex items-center justify-between px-4 py-2"
                 style={{
-                  borderTop: i > 0 ? '1px solid var(--color-accent-border)' : undefined,
-                  opacity: day === todayKey ? 1 : 0.6,
+                  borderTop: i > 0 ? `1px solid ${panelBdr}` : undefined,
+                  opacity: day === todayKey ? 1 : 0.55,
                 }}>
-                <span
-                  className="text-xs w-8"
-                  style={{ color: 'var(--color-accent)', fontWeight: day === todayKey ? 800 : 600 }}>
+                <span className="text-xs w-8" style={{ color: rowColor, fontWeight: day === todayKey ? 800 : 600 }}>
                   {DAY_LABELS[day]}
                 </span>
-                <span className="text-xs" style={{ color: 'var(--color-accent)' }}>
+                <span className="text-xs" style={{ color: rowColor }}>
                   {dh ? `${fmt12(dh.open)} – ${fmt12(dh.close)}` : 'Closed'}
                 </span>
               </div>
@@ -196,7 +195,10 @@ function LocationLink({ location, dark }: { location: string; dark?: boolean }) 
   return (
     <a href={mapsUrl(location)} target="_blank" rel="noopener noreferrer"
       className="text-xs font-semibold transition-colors"
-      style={{ color: dark ? 'rgba(255,255,255,.3)' : '#999' }}>
+      style={{
+        color: dark ? 'rgba(255,255,255,.82)' : '#999',
+        textShadow: dark ? '0 1px 4px rgba(0,0,0,.6)' : undefined,
+      }}>
       📍 {location}
     </a>
   )
@@ -326,12 +328,12 @@ function HeroPhoto({ data }: { data: ProfileData }) {
           style={{ fontSize: 'var(--type-display)' }}>
           {headline}
         </h1>
-        <p className="h-up h-up-3 text-white/40 leading-relaxed mb-10 max-w-md"
+        <p className="h-up h-up-3 text-white/70 leading-relaxed mb-10 max-w-md"
           style={{ fontSize: 'var(--type-subheading)' }}>
           {subheadline}
         </p>
         <div className="h-up h-up-4">
-          {data.businessHours?.enabled && <BusinessStatusBadge hours={data.businessHours} />}
+          {data.businessHours?.enabled && <BusinessStatusBadge hours={data.businessHours} dark />}
           {pcfg.leadTimeNotice && <LeadTimeStrip notice={pcfg.leadTimeNotice} />}
           <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
             ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} dark />
@@ -509,7 +511,7 @@ function HeroDark({ data, framesConfig, accent = '#F5A623' }: { data: ProfileDat
           {subheadline}
         </p>
         <div className="h-up h-up-4">
-          {data.businessHours?.enabled && <BusinessStatusBadge hours={data.businessHours} />}
+          {data.businessHours?.enabled && <BusinessStatusBadge hours={data.businessHours} dark />}
           {pcfg.leadTimeNotice && <LeadTimeStrip notice={pcfg.leadTimeNotice} />}
           <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
             ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} dark />
