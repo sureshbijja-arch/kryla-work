@@ -122,11 +122,12 @@ export async function POST(req: NextRequest) {
 
       if (provider?.whatsapp_number) {
         const msg = buildNewBookingMessage({
-          memberName:   provider.first_name ?? 'there',
-          customerName: data.customerName,
-          service:      serviceLabel,
+          memberName:    provider.first_name ?? 'there',
+          customerName:  data.customerName,
+          service:       serviceLabel,
           preferredDate: data.preferredDate,
-          bookingId:    booking.id,
+          bookingId:     booking.id,
+          customerPhone: data.customerPhone,
         })
         await sendWhatsAppMessage({ to: provider.whatsapp_number, text: msg })
         await supabaseAdmin.from('bookings').update({ notification_sent: true }).eq('id', booking.id)

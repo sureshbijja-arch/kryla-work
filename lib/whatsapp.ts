@@ -50,6 +50,16 @@ export async function sendWhatsAppMessage(
   }
 }
 
+/**
+ * Build a tap-to-chat wa.me link from a free-text phone number.
+ * Strips all non-digits; returns '' if fewer than 7 digits remain.
+ * wa.me requires bare digits with no +, spaces, or dashes.
+ */
+export function waLink(phone?: string | null): string {
+  const digits = (phone ?? '').replace(/\D/g, '')
+  return digits.length >= 7 ? `https://wa.me/${digits}` : ''
+}
+
 /** Notify a member about a new booking */
 export function buildNewBookingMessage(opts: {
   memberName: string
@@ -57,12 +67,16 @@ export function buildNewBookingMessage(opts: {
   service: string
   preferredDate?: string
   bookingId: string
+  customerPhone?: string | null
 }) {
-  const date = opts.preferredDate ? ` for ${opts.preferredDate}` : ""
+  const date    = opts.preferredDate ? ` for ${opts.preferredDate}` : ""
+  const chatUrl = waLink(opts.customerPhone)
+  const chatLine = chatUrl ? `\n💬 Message ${opts.customerName}: ${chatUrl}\n` : "\n"
   return (
     `${opts.memberName}, someone wants to book you! 🎉\n\n` +
-    `*${opts.customerName}* wants ${opts.service}${date}.\n\n` +
-    `Reply *accept* or *decline* to respond here, or manage in My Chat: https://kryla.work/mychat`
+    `*${opts.customerName}* wants ${opts.service}${date}.` +
+    chatLine +
+    `\nReply *accept* or *decline* to respond here, or manage in My Chat: https://kryla.work/mychat`
   )
 }
 

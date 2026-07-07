@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { sendWhatsAppMessage } from '@/lib/whatsapp'
+import { sendWhatsAppMessage, waLink } from '@/lib/whatsapp'
 import { getPlanGate } from '@/lib/plans'
 import { normalizeHandle, normalizeNextdoorUrl } from '@/lib/social'
 import { sendEmail } from '@/lib/email'
@@ -71,6 +71,7 @@ patch_booking: { "id": "<booking-uuid>", "status": "accepted" | "rejected" | "ca
 - If the request matches more than one pending booking, ask a short clarifying question instead of guessing.
 - If exactly one booking is pending and the member says just "accept" or "decline", use that one.
 - If no matching booking is found, say so clearly and do not set patch_booking.
+- The bookings list includes each customer's phone number. If the member asks how to contact a customer, give them a tap-to-chat link: https://wa.me/<digits only, no + or spaces>.
 
 TODAY'S DATE: {{TODAY}}
 
@@ -232,7 +233,7 @@ async function handleInbound(senderPhone: string, messageText: string) {
       .order('day_key'),
     supabaseAdmin
       .from('bookings')
-      .select('id, created_at, customer_name, client_email, service, preferred_date, status')
+      .select('id, created_at, customer_name, client_email, customer_phone, service, preferred_date, status')
       .eq('provider_id', provider.id)
       .order('created_at', { ascending: false })
       .limit(15),
@@ -242,6 +243,7 @@ async function handleInbound(senderPhone: string, messageText: string) {
     id:       b.id,
     customer: b.customer_name,
     email:    b.client_email ?? null,
+    phone:    b.customer_phone ?? null,
     service:  b.service,
     date:     b.preferred_date ?? null,
     status:   b.status,
@@ -393,7 +395,7 @@ async function handleInbound(senderPhone: string, messageText: string) {
   if (patch_booking?.id && patch_booking?.status && validStatuses.includes(patch_booking.status)) {
     const { data: bk } = await supabaseAdmin
       .from('bookings')
-      .select('customer_name, client_email, service, preferred_date')
+      .select('customer_name, client_email, customer_phone, service, preferred_date')
       .eq('id', patch_booking.id)
       .eq('provider_id', provider.id)
       .single()
@@ -443,7 +445,15 @@ async function handleInbound(senderPhone: string, messageText: string) {
       }
     }
 
-    await sendWhatsAppMessage({ to: senderPhone, text: message })
+    // On accept: append a tap-to-chat link for the customer
+    let memberReply = message
+    if (patch_booking.status === 'accepted') {
+      const custLink = waLink(bk?.customer_phone)
+      if (custLink && bk?.customer_name) {
+        memberReply = memberReply.trimEnd() + `\n\n💬 Message ${bk.customer_name}: ${custLink}`
+      }
+    }
+    await sendWhatsAppMessage({ to: senderPhone, text: memberReply })
     return
   }
 
