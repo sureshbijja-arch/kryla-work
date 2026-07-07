@@ -238,6 +238,20 @@ export default function HoursTab({ providerId }: Props) {
           Override the weekly schedule for specific dates — holidays, leave, or special hours.
         </p>
 
+        {/* Warn when the feature is toggled off */}
+        {!hours.enabled && (
+          <div className="flex items-start gap-2 rounded-xl border border-[#FDE68A] bg-[#FFFBEB] px-3 py-2.5 mb-4">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="mt-0.5 flex-shrink-0">
+              <circle cx="7" cy="7" r="6" stroke="#D97706" strokeWidth="1.4"/>
+              <path d="M7 4.5v3" stroke="#D97706" strokeWidth="1.4" strokeLinecap="round"/>
+              <circle cx="7" cy="9.5" r=".7" fill="#D97706"/>
+            </svg>
+            <p className="text-xs text-[#92400E] leading-snug">
+              <strong>Business hours are hidden.</strong> Turn on &quot;Show on my page&quot; above and save so exceptions appear on your public page.
+            </p>
+          </div>
+        )}
+
         {/* Add exception form */}
         <div className="rounded-xl border border-[#E5E5E5] bg-white p-3 mb-4 space-y-3">
           <div className="flex gap-2">
