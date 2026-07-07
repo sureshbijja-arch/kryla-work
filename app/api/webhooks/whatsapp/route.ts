@@ -48,8 +48,13 @@ Respond with ONLY valid JSON — no extra text before or after. Shape:
 {
   "message": "string — short friendly plain-text reply (2-3 sentences, no markdown, no asterisks)",
   "patch_pages": {},
-  "patch_providers": {}
+  "patch_providers": {},
+  "set_language": null
 }
+
+set_language: ISO code string or null. Use this when the member wants to change the page language.
+Valid codes: "en" (English), "hi" (Hindi), "ta" (Tamil), "te" (Telugu), "kn" (Kannada), "ml" (Malayalam), "mr" (Marathi), "gu" (Gujarati), "es" (Spanish).
+Setting "en" resets to English. Any other code triggers a full translation of all page content.
 
 Fields you can update in patch_pages:
 - headline, subheadline, bio, cta_primary, cta_secondary
@@ -77,10 +82,11 @@ Rules:
 - For business_hours: always return the COMPLETE object with all 7 days
 - WhatsApp edits go live immediately
 - When changes are made, your message should clearly state what was updated (e.g. "Got it! Haircut is now $30 and eyebrow threading is $15.")
-- For things you cannot do (upload photo, change colour/layout), say so briefly and mention they can do it in mychat at kryla.work
+- For things you cannot do (upload photo, change colour/layout/template), say so briefly and tell them to open My Chat at kryla.work/mychat
 - Keep message short — this is WhatsApp
 - If the request is unclear, ask one short clarifying question
 - Leave patch_pages and patch_providers as empty objects {} when no change is needed
+- Leave set_language as null when no language change is needed
 
 Current page content:
 {{PROFILE}}`
@@ -89,7 +95,7 @@ async function handleInbound(senderPhone: string, messageText: string) {
   // Look up provider by whatsapp_number — stored as bare digits matching Meta's format
   const { data: matches } = await supabaseAdmin
     .from('providers')
-    .select('id, slug, first_name, plan, wa_undo')
+    .select('id, slug, first_name, plan, wa_undo, page_language')
     .eq('whatsapp_number', senderPhone)
 
   if (!matches || matches.length === 0) {
@@ -150,7 +156,7 @@ async function handleInbound(senderPhone: string, messageText: string) {
       await supabaseAdmin.from('pages').update(undo.pages).eq('provider_id', provider.id)
     }
     if (undo.providers && Object.keys(undo.providers).length > 0) {
-      const allowed = ['location', 'business_hours']
+      const allowed = ['location', 'business_hours', 'page_language', 'instagram_handle', 'nextdoor_url']
       const safe = Object.fromEntries(Object.entries(undo.providers).filter(([k]) => allowed.includes(k)))
       if (Object.keys(safe).length > 0) {
         await supabaseAdmin.from('providers').update(safe).eq('id', provider.id)
@@ -167,12 +173,12 @@ async function handleInbound(senderPhone: string, messageText: string) {
   const [{ data: page }, { data: prov }] = await Promise.all([
     supabaseAdmin
       .from('pages')
-      .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq')
+      .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, translations')
       .eq('provider_id', provider.id)
       .single(),
     supabaseAdmin
       .from('providers')
-      .select('location, business_hours')
+      .select('location, business_hours, page_language')
       .eq('id', provider.id)
       .single(),
   ])
@@ -181,6 +187,7 @@ async function handleInbound(senderPhone: string, messageText: string) {
     firstName: provider.first_name,
     location: prov?.location ?? null,
     business_hours: prov?.business_hours ?? null,
+    page_language: prov?.page_language ?? 'en',
     ...(page ?? {}),
   }
 
@@ -199,6 +206,7 @@ async function handleInbound(senderPhone: string, messageText: string) {
     message: string
     patch_pages?: Record<string, unknown>
     patch_providers?: Record<string, unknown>
+    set_language?: string | null
   }
   try {
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
@@ -211,7 +219,7 @@ async function handleInbound(senderPhone: string, messageText: string) {
     return
   }
 
-  const { message, patch_pages = {}, patch_providers = {} } = parsed
+  const { message, patch_pages = {}, patch_providers = {}, set_language = null } = parsed
 
   const allowedPages     = ['headline', 'subheadline', 'bio', 'cta_primary', 'cta_secondary', 'services', 'highlights', 'faq']
   const allowedProviders = ['location', 'business_hours']
@@ -231,6 +239,52 @@ async function handleInbound(senderPhone: string, messageText: string) {
 
   const hasPageChanges     = Object.keys(safePatchPages).length > 0
   const hasProviderChanges = Object.keys(safePatchProviders).length > 0
+
+  // ── Language change (live immediately) ──────────────────────────────────
+  const validLangs = ['en', 'hi', 'ta', 'te', 'kn', 'ml', 'mr', 'gu', 'es']
+  const LANG_NAMES: Record<string, string> = {
+    hi: 'Hindi', ta: 'Tamil', te: 'Telugu', kn: 'Kannada',
+    ml: 'Malayalam', mr: 'Marathi', gu: 'Gujarati', es: 'Spanish',
+  }
+  if (set_language && validLangs.includes(set_language)) {
+    if (set_language === 'en') {
+      await supabaseAdmin.from('providers').update({ page_language: 'en' }).eq('id', provider.id)
+    } else {
+      const langName = LANG_NAMES[set_language]
+      if (page && langName) {
+        const content = {
+          headline:      (page as Record<string,unknown>).headline      ?? '',
+          subheadline:   (page as Record<string,unknown>).subheadline   ?? '',
+          bio:           (page as Record<string,unknown>).bio           ?? '',
+          cta_primary:   (page as Record<string,unknown>).cta_primary   ?? '',
+          cta_secondary: (page as Record<string,unknown>).cta_secondary ?? '',
+          services:  (Array.isArray((page as Record<string,unknown>).services)   ? (page as Record<string,unknown>).services   as unknown[] : []).map((s) => ({ name: (s as Record<string,unknown>).name ?? '', description: (s as Record<string,unknown>).description ?? '' })),
+          highlights: (Array.isArray((page as Record<string,unknown>).highlights) ? (page as Record<string,unknown>).highlights as unknown[] : []).map((h) => ({ title: (h as Record<string,unknown>).title ?? '', body: (h as Record<string,unknown>).body ?? '' })),
+          faq:        (Array.isArray((page as Record<string,unknown>).faq)        ? (page as Record<string,unknown>).faq        as unknown[] : []).map((f) => ({ question: (f as Record<string,unknown>).question ?? '', answer: (f as Record<string,unknown>).answer ?? '' })),
+        }
+        try {
+          const tc = await anthropic.messages.create({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 4096,
+            messages: [{ role: 'user', content: `Translate the following JSON to ${langName}. Return ONLY valid JSON in exactly the same shape. Keep all JSON keys in English. Do not translate proper nouns, brand names, currency. Keep arrays same length.\n\n${JSON.stringify(content, null, 2)}` }],
+          })
+          const tRaw = tc.content[0].type === 'text' ? tc.content[0].text : ''
+          const tMatch = tRaw.match(/\{[\s\S]*\}/)
+          const translated = JSON.parse(tMatch ? tMatch[0] : tRaw)
+          const existing = (((page as Record<string,unknown>).translations ?? {}) as Record<string, unknown>)
+          await Promise.all([
+            supabaseAdmin.from('pages').update({ translations: { ...existing, [set_language]: translated } }).eq('provider_id', provider.id),
+            supabaseAdmin.from('providers').update({ page_language: set_language }).eq('id', provider.id),
+          ])
+        } catch (err) {
+          console.error('[wa-webhook] translation failed:', err)
+        }
+      }
+    }
+    revalidatePath(`/${provider.slug}`)
+    await sendWhatsAppMessage({ to: senderPhone, text: message })
+    return
+  }
 
   if (!hasPageChanges && !hasProviderChanges) {
     // No changes — just send the AI reply (e.g. clarifying question or "can't do that")
@@ -294,7 +348,7 @@ async function applyDraftAndPublish(providerId: string, slug: string) {
     await supabaseAdmin.from('pages').update(dp).eq('provider_id', providerId)
   }
 
-  const allowed = ['location', 'whatsapp_number']
+  const allowed = ['location', 'whatsapp_number', 'business_hours', 'instagram_handle', 'nextdoor_url']
   const safe = Object.fromEntries(Object.entries(dpr).filter(([k]) => allowed.includes(k)))
   if (Object.keys(safe).length > 0) {
     await supabaseAdmin.from('providers').update(safe).eq('id', providerId)
