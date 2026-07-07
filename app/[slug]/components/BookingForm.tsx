@@ -9,14 +9,15 @@ const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 const DAYS   = ['Su','Mo','Tu','We','Th','Fr','Sa']
 
 function CalendarPicker({
-  avail, onSelect, selected,
-}: { avail: AvailDay[]; onSelect: (day: string, slot: string) => void; selected: { day: string; slot: string } | null }) {
+  avail, onSelect, selected, closedDates = [],
+}: { avail: AvailDay[]; onSelect: (day: string, slot: string) => void; selected: { day: string; slot: string } | null; closedDates?: string[] }) {
   const now = new Date()
   const [year, setYear]   = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
   const [selDay, setSelDay] = useState<string | null>(selected?.day ?? null)
 
-  const availMap = Object.fromEntries(avail.map(d => [d.day_key, d.slots]))
+  const availMap  = Object.fromEntries(avail.map(d => [d.day_key, d.slots]))
+  const closedSet = new Set(closedDates)
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   const todayStr = now.toISOString().split('T')[0]
@@ -53,17 +54,19 @@ function CalendarPicker({
         {cells.map((d, i) => {
           if (!d) return <div key={i} />
           const key = dayKey(d)
-          const hasSlots = !!availMap[key]?.length
-          const isPast = key < todayStr
-          const isSel = selDay === key
+          const hasSlots  = !!availMap[key]?.length
+          const isPast    = key < todayStr
+          const isClosed  = closedSet.has(key)
+          const isSel     = selDay === key
+          const isDisabled = isPast || !hasSlots || isClosed
           return (
             <button
               type="button"
               key={key}
-              disabled={isPast || !hasSlots}
+              disabled={isDisabled}
               onClick={() => { setSelDay(key); onSelect(key, '') }}
               className={`aspect-square rounded-lg text-[11px] font-semibold transition-all ${
-                isPast || !hasSlots
+                isDisabled
                   ? 'text-[#D0D0D0] cursor-not-allowed'
                   : isSel
                     ? 'bg-[#0D0D0D] text-white'
@@ -107,13 +110,15 @@ export default function BookingForm({
   firstName,
   ctaLabel = 'Send request',
   persona,
+  closedDates = [],
 }: {
-  providerId:  string
-  services:    ServiceItem[]
-  accentColor: string
-  firstName:   string
-  ctaLabel?:   string
-  persona?:    string
+  providerId:   string
+  services:     ServiceItem[]
+  accentColor:  string
+  firstName:    string
+  ctaLabel?:    string
+  persona?:     string
+  closedDates?: string[]   // "YYYY-MM-DD" dates from businessHours exceptions that block booking
 }) {
   const [form, setForm] = useState({
     customerName:  '',
@@ -294,7 +299,7 @@ export default function BookingForm({
             Choose a date & time <span className="normal-case font-normal text-[#bbb]">(required)</span>
           </label>
           <div className="border border-[#E5E5E5] rounded-xl p-3 bg-white">
-            <CalendarPicker avail={avail} onSelect={handleSlotSelect} selected={slotSel} />
+            <CalendarPicker avail={avail} onSelect={handleSlotSelect} selected={slotSel} closedDates={closedDates} />
           </div>
           {slotSel?.day && slotSel?.slot && (
             <p className="text-xs text-[#16A34A] mt-1.5 font-medium">

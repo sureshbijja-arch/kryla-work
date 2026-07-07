@@ -66,9 +66,12 @@ patch_pages fields:
 patch_providers fields:
 - whatsapp_number (digits with country code — stored as bare digits)
 - location (city or full address — becomes a clickable Google Maps link)
-- business_hours: full object {timezone, enabled, mon..sun: {open:"HH:MM", close:"HH:MM"} | null}
-  Days with no hours → null. Use "HH:MM" 24h format. Return the COMPLETE object.
-  Example: {"timezone":"America/Chicago","enabled":true,"mon":{"open":"09:00","close":"17:00"},"tue":{"open":"09:00","close":"17:00"},"wed":null,"thu":{"open":"09:00","close":"17:00"},"fri":{"open":"09:00","close":"17:00"},"sat":null,"sun":null}
+- business_hours: full object {timezone, enabled, mon..sun: {open:"HH:MM", close:"HH:MM"} | null, exceptions:[...]}
+  Days with no hours → null. Use "HH:MM" 24h format. Return the COMPLETE object INCLUDING existing exceptions.
+  exceptions: optional array of per-date overrides (holidays, leave, special hours) that take priority over the weekly schedule.
+  Each exception: {date:"YYYY-MM-DD", closed:true, note:"Christmas"} for a closure, or {date:"YYYY-MM-DD", open:"10:00", close:"14:00", note:"Half day"} for special hours.
+  When adding/removing exceptions, preserve ALL other exception entries and ALL weekly day entries.
+  Example full object: {"timezone":"America/Chicago","enabled":true,"mon":{"open":"09:00","close":"17:00"},"tue":{"open":"09:00","close":"17:00"},"wed":null,"thu":{"open":"09:00","close":"17:00"},"fri":{"open":"09:00","close":"17:00"},"sat":null,"sun":null,"exceptions":[{"date":"2026-12-25","closed":true,"note":"Christmas"},{"date":"2026-12-31","open":"10:00","close":"14:00","note":"New Year's Eve"}]}
 - instagram_handle: bare username without @ (e.g. "celinabakes"). Shows Instagram icon on page.
 - nextdoor_url: full nextdoor.com business-page URL. Shows Nextdoor icon on page. Must be a valid nextdoor.com URL.
 

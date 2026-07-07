@@ -86,15 +86,22 @@ Fields you can update in patch_pages:
 
 Fields you can update in patch_providers:
 - location (city or address)
-- business_hours: full weekly schedule object:
+- business_hours: full schedule object (weekly template + optional per-date exceptions):
   {
     timezone: "America/New_York" (or any IANA tz),
     enabled: true,
     mon: {open:"09:00", close:"17:00"} or null if closed,
-    tue: ..., wed: ..., thu: ..., fri: ..., sat: ..., sun: ...
+    tue: ..., wed: ..., thu: ..., fri: ..., sat: ..., sun: ...,
+    exceptions: [
+      {date:"YYYY-MM-DD", closed:true, note:"Christmas"},
+      {date:"YYYY-MM-DD", open:"10:00", close:"14:00", note:"Half day"}
+    ]
   }
-  Time format is 24-hour "HH:MM". null means closed that day.
+  Time format is 24-hour "HH:MM". null means closed that weekday.
+  exceptions override the weekly schedule for specific calendar dates (holidays, leave, special hours).
+  When adding/removing exceptions, preserve ALL existing exceptions AND all weekly day entries.
   Examples: "open Mon-Fri 9am to 6pm, closed weekends" → mon..fri with open/close, sat/sun null
+           "close the shop on Dec 25 for Christmas" → add {date:"2026-12-25",closed:true,note:"Christmas"} to exceptions
 - instagram_handle: bare username without @ (e.g. "celinabakes"). Shows Instagram icon on page.
 - nextdoor_url: full nextdoor.com business-page URL (must be a valid nextdoor.com URL).
 
@@ -111,7 +118,7 @@ new_ad: { title: string, description?: string, linkUrl?: string } — Thrive+ pl
 
 Rules:
 - Always return the COMPLETE array for services / highlights / faq (never partial)
-- For business_hours: always return the COMPLETE object with all 7 days
+- For business_hours: always return the COMPLETE object with all 7 days AND preserve all existing exceptions
 - WhatsApp edits go live immediately
 - When changes are made, your message should clearly state what was updated (e.g. "Got it! Haircut is now $30 and eyebrow threading is $15.")
 - For things you cannot do (upload photo, change colour/layout/template), say so briefly and tell them to open My Chat at kryla.work/mychat

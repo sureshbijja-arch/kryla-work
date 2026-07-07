@@ -47,6 +47,15 @@ export interface DayHours {
   close: string  // "18:00" 24h
 }
 
+/** A per-date override that takes priority over the generic weekly schedule */
+export interface HoursException {
+  date:    string          // "YYYY-MM-DD"
+  closed?: boolean         // true = closed all day; omit or false for special hours
+  open?:   string          // "HH:MM" 24h — used when closed is falsy
+  close?:  string          // "HH:MM" 24h — used when closed is falsy
+  note?:   string          // optional label shown on the page, e.g. "Christmas"
+}
+
 export interface BusinessHours {
   timezone: string
   enabled: boolean
@@ -57,6 +66,8 @@ export interface BusinessHours {
   fri: DayHours | null
   sat: DayHours | null
   sun: DayHours | null
+  /** Per-date exceptions (holidays, leave, special hours). Absent means none. */
+  exceptions?: HoursException[]
 }
 
 export interface ShowSections {

@@ -5,7 +5,7 @@ import { WhatsAppIcon, InstagramIcon, NextdoorIcon } from '../shared'
 import { waUrl, mapsUrl, instagramUrl } from '../../types'
 import type { ProfileData, BusinessHours } from '../../types'
 import { getPersonaConfig } from '../../personaConfig'
-import { DAY_ORDER, DAY_LABELS, fmt12, getTodayKey, getStatus } from '../../hours'
+import { DAY_ORDER, DAY_LABELS, fmt12, getTodayKey, getStatus, getUpcomingExceptions, fmtExceptionDate, getDateStr } from '../../hours'
 
 interface Props {
   data: ProfileData
@@ -24,8 +24,11 @@ const STYLES = `
 // ── Hours card — shown in Contact section when businessHours.enabled ─────────
 
 function HoursCard({ hours, dark }: { hours: BusinessHours; dark?: boolean }) {
-  const todayKey = getTodayKey(hours.timezone || 'UTC')
-  const status   = getStatus(hours)
+  const tz          = hours.timezone || 'UTC'
+  const todayKey    = getTodayKey(tz)
+  const todayStr    = getDateStr(tz, 0)
+  const status      = getStatus(hours)
+  const upcomingExc = getUpcomingExceptions(hours, tz, 5)
 
   const cardBg     = dark ? 'rgba(255,255,255,0.06)' : '#fff'
   const cardBorder = dark ? '1.5px solid rgba(255,255,255,0.14)' : '1.5px solid var(--color-accent-border)'
@@ -36,6 +39,7 @@ function HoursCard({ hours, dark }: { hours: BusinessHours; dark?: boolean }) {
   const rowToday   = dark ? 'rgba(255,255,255,0.92)' : '#0D0D0D'
   const rowOther   = dark ? 'rgba(255,255,255,0.45)' : '#888'
   const divColor   = dark ? 'rgba(255,255,255,0.08)' : '#F0F0F0'
+  const excBg      = dark ? 'rgba(255,255,255,0.04)' : '#FAFAFA'
 
   return (
     <div className="contact-in mb-2 px-5 py-4"
@@ -54,10 +58,11 @@ function HoursCard({ hours, dark }: { hours: BusinessHours; dark?: boolean }) {
           </p>
         </div>
       </div>
+
       {/* Full weekly schedule */}
       <div style={{ borderTop: `1px solid ${divColor}` }}>
         {DAY_ORDER.map((day, i) => {
-          const dh     = hours[day]
+          const dh      = hours[day]
           const isToday = day === todayKey
           return (
             <div key={day}
@@ -73,6 +78,29 @@ function HoursCard({ hours, dark }: { hours: BusinessHours; dark?: boolean }) {
           )
         })}
       </div>
+
+      {/* Upcoming exceptions (holidays, leave, special hours) */}
+      {upcomingExc.length > 0 && (
+        <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${divColor}` }}>
+          <p className="text-[10px] font-black uppercase tracking-wider mb-1.5" style={{ color: subColor }}>
+            Upcoming closures &amp; special days
+          </p>
+          <div className="space-y-1" style={{ background: excBg, borderRadius: 8, padding: '6px 8px' }}>
+            {upcomingExc.map(exc => (
+              <div key={exc.date} className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold" style={{ color: headColor }}>
+                  {fmtExceptionDate(exc.date)}{exc.date === todayStr ? ' (today)' : ''}
+                </span>
+                <span className="text-xs" style={{ color: subColor }}>
+                  {exc.closed
+                    ? (exc.note ? `Closed · ${exc.note}` : 'Closed')
+                    : (exc.open && exc.close ? `${fmt12(exc.open)} – ${fmt12(exc.close)}${exc.note ? ` · ${exc.note}` : ''}` : exc.note ?? 'Special hours')}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -155,6 +183,13 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
   const pcfg = getPersonaConfig(persona)
   const contactLabel = pcfg.contactLabel
 
+  // Closed-date exceptions — passed to BookingForm so closed dates are greyed out
+  const tz          = data.businessHours?.timezone || 'UTC'
+  const todayStr    = getDateStr(tz, 0)
+  const closedDates = (data.businessHours?.exceptions ?? [])
+    .filter(e => e.closed && e.date >= todayStr)
+    .map(e => e.date)
+
   /* ── ENQUIRY (baker / chef — WhatsApp first, simple form) ───────────── */
   if (variant === 'enquiry') return (
     <section id="book" className="border-t border-[#E5E5E5]"
@@ -210,7 +245,7 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
         {data.businessHours?.enabled && <HoursCard hours={data.businessHours} dark />}
         {showBooking ? (
           <div className="contact-in" style={{ animationDelay: '0.1s' }}>
-            <BookingForm providerId={providerId} services={services} accentColor="var(--color-accent)" firstName={firstName} persona={persona} />
+            <BookingForm providerId={providerId} services={services} accentColor="var(--color-accent)" firstName={firstName} persona={persona} closedDates={closedDates} />
             {wa && showContact && (
               <a href={wa} target="_blank" rel="noopener noreferrer"
                 className="mt-6 flex items-center gap-2 justify-center text-sm text-white/25 hover:text-white/60 transition-colors">
@@ -374,7 +409,7 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
         {data.businessHours?.enabled && <HoursCard hours={data.businessHours} />}
         {showBooking ? (
           <>
-            <BookingForm providerId={providerId} services={services} accentColor="var(--color-accent)" firstName={firstName} persona={persona} />
+            <BookingForm providerId={providerId} services={services} accentColor="var(--color-accent)" firstName={firstName} persona={persona} closedDates={closedDates} />
             {variant === 'both' && wa && showContact && (
               <a href={wa} target="_blank" rel="noopener noreferrer"
                 className="mt-6 flex items-center gap-2 justify-center text-sm text-[#888] hover:text-[#0D0D0D] transition-colors">

@@ -1,7 +1,8 @@
 ﻿'use client'
 
 import { useState, useEffect } from 'react'
-import type { BusinessHours, DayHours, DayKey } from '@/app/[slug]/types'
+import type { BusinessHours, DayHours, DayKey, HoursException } from '@/app/[slug]/types'
+import { fmt12, fmtExceptionDate } from '@/app/[slug]/hours'
 
 const DAY_KEYS: DayKey[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 const DAY_FULL: Record<DayKey, string> = {
@@ -67,6 +68,14 @@ export default function HoursTab({ providerId }: Props) {
   const [saved, setSaved]     = useState(false)
   const [loading, setLoading] = useState(true)
 
+  // ── Exceptions (holidays / leave / special hours) ──
+  const [excDate,   setExcDate]   = useState('')
+  const [excMode,   setExcMode]   = useState<'closed' | 'special'>('closed')
+  const [excOpen,   setExcOpen]   = useState('09:00')
+  const [excClose,  setExcClose]  = useState('17:00')
+  const [excNote,   setExcNote]   = useState('')
+  const todayStr = new Date().toISOString().split('T')[0]
+
   useEffect(() => {
     fetch(`/api/mychat/hours?providerId=${providerId}`)
       .then(r => r.json())
@@ -108,6 +117,24 @@ export default function HoursTab({ providerId }: Props) {
     } finally {
       setSaving(false)
     }
+  }
+
+  function addException() {
+    if (!excDate) return
+    const exc: HoursException = excMode === 'closed'
+      ? { date: excDate, closed: true, ...(excNote.trim() ? { note: excNote.trim() } : {}) }
+      : { date: excDate, open: excOpen, close: excClose, ...(excNote.trim() ? { note: excNote.trim() } : {}) }
+    setHours(h => {
+      const existing = (h.exceptions ?? []).filter(e => e.date !== excDate)
+      const sorted   = [...existing, exc].sort((a, b) => a.date.localeCompare(b.date))
+      return { ...h, exceptions: sorted }
+    })
+    // Reset form
+    setExcDate(''); setExcNote(''); setExcMode('closed')
+  }
+
+  function removeException(date: string) {
+    setHours(h => ({ ...h, exceptions: (h.exceptions ?? []).filter(e => e.date !== date) }))
   }
 
   if (loading) {
@@ -195,6 +222,118 @@ export default function HoursTab({ providerId }: Props) {
       <p className="text-[10px] text-[#bbb] text-center mt-2">
         Visitors will see an open / closed badge on your page
       </p>
+
+      {/* ── Holidays & special dates ──────────────────────────────── */}
+      <div className="mt-6 pt-6 border-t border-[#F0F0F0]">
+        <p className="text-xs font-semibold text-[#999] uppercase tracking-widest mb-3">Holidays &amp; special dates</p>
+        <p className="text-xs text-[#bbb] mb-4">
+          Override the weekly schedule for specific dates — holidays, leave, or special hours.
+        </p>
+
+        {/* Add exception form */}
+        <div className="rounded-xl border border-[#E5E5E5] bg-white p-3 mb-4 space-y-3">
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-[#555] mb-1">Date</label>
+              <input
+                type="date"
+                min={todayStr}
+                value={excDate}
+                onChange={e => setExcDate(e.target.value)}
+                className="w-full border border-[#E5E5E5] rounded-lg px-2.5 py-1.5 text-sm text-[#0D0D0D] focus:outline-none focus:border-[#0D0D0D] bg-white" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#555] mb-1">Type</label>
+              <div className="flex rounded-lg border border-[#E5E5E5] overflow-hidden text-xs font-semibold">
+                {(['closed', 'special'] as const).map(m => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setExcMode(m)}
+                    className={`px-3 py-1.5 transition-colors ${excMode === m ? 'bg-[#0D0D0D] text-white' : 'bg-white text-[#555] hover:bg-[#F5F5F5]'}`}>
+                    {m === 'closed' ? 'Closed' : 'Special hrs'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {excMode === 'special' && (
+            <div className="flex items-center gap-2">
+              <select
+                value={excOpen}
+                onChange={e => setExcOpen(e.target.value)}
+                className="flex-1 border border-[#E5E5E5] rounded-lg px-2 py-1.5 text-sm text-[#0D0D0D] focus:outline-none focus:border-[#0D0D0D] bg-white">
+                {TIME_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+              <span className="text-xs text-[#999] font-medium">to</span>
+              <select
+                value={excClose}
+                onChange={e => setExcClose(e.target.value)}
+                className="flex-1 border border-[#E5E5E5] rounded-lg px-2 py-1.5 text-sm text-[#0D0D0D] focus:outline-none focus:border-[#0D0D0D] bg-white">
+                {TIME_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+          )}
+
+          <input
+            type="text"
+            placeholder="Label (optional) — e.g. Christmas, Staff leave"
+            maxLength={60}
+            value={excNote}
+            onChange={e => setExcNote(e.target.value)}
+            className="w-full border border-[#E5E5E5] rounded-lg px-2.5 py-1.5 text-sm text-[#0D0D0D] focus:outline-none focus:border-[#0D0D0D] placeholder:text-[#bbb] bg-white" />
+
+          <button
+            type="button"
+            disabled={!excDate}
+            onClick={addException}
+            className="w-full py-2 rounded-lg text-sm font-bold text-white bg-[#0D0D0D] hover:opacity-80 disabled:opacity-40 transition-opacity">
+            Add exception
+          </button>
+        </div>
+
+        {/* Current exceptions list */}
+        {(hours.exceptions ?? []).length > 0 ? (
+          <div className="space-y-1.5">
+            {(hours.exceptions ?? [])
+              .sort((a, b) => a.date.localeCompare(b.date))
+              .map(exc => (
+                <div key={exc.date}
+                  className="flex items-center justify-between gap-2 rounded-xl border border-[#E5E5E5] bg-white px-3 py-2.5">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-[#0D0D0D] leading-tight">
+                      {fmtExceptionDate(exc.date)}
+                      {exc.date < todayStr && <span className="ml-1.5 text-[10px] text-[#bbb] font-normal">(past)</span>}
+                    </p>
+                    <p className="text-xs text-[#888] mt-0.5">
+                      {exc.closed
+                        ? (exc.note ? `Closed · ${exc.note}` : 'Closed all day')
+                        : (exc.open && exc.close ? `${fmt12(exc.open)} – ${fmt12(exc.close)}${exc.note ? ` · ${exc.note}` : ''}` : exc.note ?? 'Special hours')}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeException(exc.date)}
+                    className="shrink-0 w-7 h-7 rounded-lg text-[#bbb] hover:text-[#0D0D0D] hover:bg-[#F5F5F5] flex items-center justify-center text-lg transition-colors">
+                    ×
+                  </button>
+                </div>
+              ))}
+          </div>
+        ) : (
+          <p className="text-xs text-[#bbb] text-center py-3">No exceptions yet.</p>
+        )}
+
+        <button
+          onClick={save}
+          disabled={saving}
+          className={`w-full py-3 mt-4 rounded-xl text-sm font-bold transition-all disabled:opacity-50 ${
+            saved ? 'bg-[#22C55E] text-white' : 'bg-[#0D0D0D] text-white hover:opacity-80'
+          }`}>
+          {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save changes'}
+        </button>
+      </div>
     </div>
   )
 }
