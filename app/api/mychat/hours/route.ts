@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { BusinessHours } from '@/app/[slug]/types'
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
 
   const { data: provider } = await supabaseAdmin
     .from('providers')
-    .select('id, email')
+    .select('id, email, slug, custom_domain')
     .eq('id', providerId)
     .single()
 
@@ -49,6 +50,11 @@ export async function POST(req: NextRequest) {
     .eq('id', providerId)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Revalidate the public member page so hours changes appear immediately
+  // (page is ISR-cached at 1h; on-demand revalidation bypasses the wait)
+  revalidatePath(`/${provider.slug}`)
+  if (provider.custom_domain) revalidatePath(`/${provider.custom_domain}`)
 
   return NextResponse.json({ ok: true })
 }
