@@ -3,8 +3,9 @@ import { useState } from 'react'
 import BookingForm from '../BookingForm'
 import { WhatsAppIcon, InstagramIcon, NextdoorIcon } from '../shared'
 import { waUrl, mapsUrl, instagramUrl } from '../../types'
-import type { ProfileData } from '../../types'
+import type { ProfileData, BusinessHours } from '../../types'
 import { getPersonaConfig } from '../../personaConfig'
+import { DAY_ORDER, DAY_LABELS, fmt12, getTodayKey, getStatus } from '../../hours'
 
 interface Props {
   data: ProfileData
@@ -19,6 +20,62 @@ const STYLES = `
 }
 .contact-in { animation: revealUp 0.6s cubic-bezier(.22,1,.36,1) both; }
 `
+
+// ── Hours card — shown in Contact section when businessHours.enabled ─────────
+
+function HoursCard({ hours, dark }: { hours: BusinessHours; dark?: boolean }) {
+  const todayKey = getTodayKey(hours.timezone || 'UTC')
+  const status   = getStatus(hours)
+
+  const cardBg     = dark ? 'rgba(255,255,255,0.06)' : '#fff'
+  const cardBorder = dark ? '1.5px solid rgba(255,255,255,0.14)' : '1.5px solid var(--color-accent-border)'
+  const iconBg     = dark ? 'rgba(255,255,255,0.1)'  : 'var(--color-accent-surface)'
+  const headColor  = dark ? 'rgba(255,255,255,0.92)' : '#0D0D0D'
+  const dotColor   = status.isOpen ? '#22C55E' : (dark ? 'rgba(255,255,255,0.45)' : 'var(--color-accent)')
+  const subColor   = dark ? 'rgba(255,255,255,0.55)' : '#888'
+  const rowToday   = dark ? 'rgba(255,255,255,0.92)' : '#0D0D0D'
+  const rowOther   = dark ? 'rgba(255,255,255,0.45)' : '#888'
+  const divColor   = dark ? 'rgba(255,255,255,0.08)' : '#F0F0F0'
+
+  return (
+    <div className="contact-in mb-2 px-5 py-4"
+      style={{ borderRadius: 'var(--radius-card)', border: cardBorder, background: cardBg }}>
+      {/* Header row: clock icon + today's open/close status */}
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-10 h-10 flex items-center justify-center shrink-0 text-lg"
+          style={{ borderRadius: 'var(--radius-card)', background: iconBg }}>
+          🕐
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-black text-sm leading-tight" style={{ color: headColor }}>Business Hours</p>
+          <p className="flex items-center gap-1.5 text-xs mt-0.5" style={{ color: subColor }}>
+            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: dotColor }} />
+            {status.label}
+          </p>
+        </div>
+      </div>
+      {/* Full weekly schedule */}
+      <div style={{ borderTop: `1px solid ${divColor}` }}>
+        {DAY_ORDER.map((day, i) => {
+          const dh     = hours[day]
+          const isToday = day === todayKey
+          return (
+            <div key={day}
+              className="flex items-center justify-between py-1.5"
+              style={{ borderTop: i > 0 ? `1px solid ${divColor}` : undefined }}>
+              <span className="text-xs w-8" style={{ color: isToday ? rowToday : rowOther, fontWeight: isToday ? 800 : 500 }}>
+                {DAY_LABELS[day]}
+              </span>
+              <span className="text-xs" style={{ color: isToday ? rowToday : rowOther, fontWeight: isToday ? 700 : 400 }}>
+                {dh ? `${fmt12(dh.open)} – ${fmt12(dh.close)}` : 'Closed'}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 function EnquiryForm({ providerId, accentColor }: { providerId: string; accentColor: string }) {
   const [name,       setName]       = useState('')
@@ -105,6 +162,7 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">{contactLabel}</p>
+        {data.businessHours?.enabled && <HoursCard hours={data.businessHours} />}
         <div className="space-y-4">
           {wa && showContact && (
             <a href={wa} target="_blank" rel="noopener noreferrer"
@@ -149,6 +207,7 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
         <p className="contact-in text-[10px] font-black uppercase tracking-[0.2em] mb-8" style={{ color: 'var(--color-accent)' }}>
           {contactLabel}
         </p>
+        {data.businessHours?.enabled && <HoursCard hours={data.businessHours} dark />}
         {showBooking ? (
           <div className="contact-in" style={{ animationDelay: '0.1s' }}>
             <BookingForm providerId={providerId} services={services} accentColor="var(--color-accent)" firstName={firstName} persona={persona} />
@@ -193,6 +252,7 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">{contactLabel}</p>
+        {data.businessHours?.enabled && <HoursCard hours={data.businessHours} />}
         {wa && showContact && (
           <a href={wa} target="_blank" rel="noopener noreferrer"
             className="contact-in flex items-center gap-3 px-6 py-5 font-black text-white w-full justify-center hover:opacity-90 hover:scale-[1.01] transition-all"
@@ -226,6 +286,7 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">{contactLabel}</p>
+        {data.businessHours?.enabled && <HoursCard hours={data.businessHours} />}
         <div className="space-y-2">
           {wa && showContact && (
             <a href={wa} target="_blank" rel="noopener noreferrer"
@@ -310,6 +371,7 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">{contactLabel}</p>
+        {data.businessHours?.enabled && <HoursCard hours={data.businessHours} />}
         {showBooking ? (
           <>
             <BookingForm providerId={providerId} services={services} accentColor="var(--color-accent)" firstName={firstName} persona={persona} />

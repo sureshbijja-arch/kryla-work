@@ -1,8 +1,9 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { mapsUrl, waUrl } from '../../types'
-import type { ProfileData, BusinessHours, DayKey } from '../../types'
+import type { ProfileData, BusinessHours } from '../../types'
 import { getPersonaConfig } from '../../personaConfig'
+import { DAY_ORDER, DAY_LABELS, DAY_FULL, toMins, fmt12, getTodayKey, getStatus } from '../../hours'
 
 interface Props {
   data: ProfileData
@@ -39,65 +40,6 @@ const STYLES = `
 
 // ── Business Hours badge ──────────────────────────────────────────────────────
 
-const DAY_ORDER: DayKey[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
-const DAY_LABELS: Record<DayKey, string> = {
-  mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun',
-}
-const DAY_FULL: Record<DayKey, string> = {
-  mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday',
-  fri: 'Friday', sat: 'Saturday', sun: 'Sunday',
-}
-
-function toMins(hhmm: string): number {
-  const [h, m] = hhmm.split(':').map(Number)
-  return (h % 24) * 60 + m
-}
-
-function fmt12(hhmm: string): string {
-  const [h, m] = hhmm.split(':').map(Number)
-  const period = h >= 12 ? 'PM' : 'AM'
-  const hour = h > 12 ? h - 12 : h === 0 ? 12 : h
-  return m === 0 ? `${hour} ${period}` : `${hour}:${m.toString().padStart(2, '0')} ${period}`
-}
-
-function getTodayKey(timezone: string): DayKey {
-  return new Intl.DateTimeFormat('en-US', { timeZone: timezone, weekday: 'short' })
-    .format(new Date()).toLowerCase() as DayKey
-}
-
-function getStatus(hours: BusinessHours): { isOpen: boolean; label: string } {
-  const tz = hours.timezone || 'UTC'
-  const now = new Date()
-  const todayKey = getTodayKey(tz)
-  const timeStr = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false }).format(now)
-  const [hStr, mStr] = timeStr.split(':')
-  const currentMins = (parseInt(hStr) % 24) * 60 + parseInt(mStr)
-  const today = hours[todayKey]
-
-  if (today) {
-    const openM = toMins(today.open)
-    const closeM = toMins(today.close)
-    if (currentMins >= openM && currentMins < closeM) {
-      return { isOpen: true, label: `Open · closes ${fmt12(today.close)}` }
-    }
-    if (currentMins < openM) {
-      return { isOpen: false, label: `Closed · opens ${fmt12(today.open)}` }
-    }
-  }
-
-  const todayIdx = DAY_ORDER.indexOf(todayKey)
-  for (let i = 1; i <= 7; i++) {
-    const nextKey = DAY_ORDER[(todayIdx + i) % 7]
-    const next = hours[nextKey]
-    if (next) {
-      const dayLabel = i === 1 ? 'tomorrow' : DAY_FULL[nextKey].toLowerCase()
-      return { isOpen: false, label: `Closed · opens ${dayLabel} ${fmt12(next.open)}` }
-    }
-  }
-
-  return { isOpen: false, label: 'Closed' }
-}
-
 function BusinessStatusBadge({ hours, dark }: { hours: BusinessHours; dark?: boolean }) {
   const [status, setStatus] = useState(() => getStatus(hours))
   const [expanded, setExpanded] = useState(false)
@@ -121,9 +63,9 @@ function BusinessStatusBadge({ hours, dark }: { hours: BusinessHours; dark?: boo
     <div className="mb-5">
       <button
         onClick={() => setExpanded(v => !v)}
-        className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all"
         style={{ background: pillBg, border: pillBorder, color: pillColor, backdropFilter: dark ? 'blur(10px)' : undefined }}>
-        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: dotColor }} />
+        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: dotColor }} />
         {status.label}
         <svg
           width="10" height="10" viewBox="0 0 10 10" fill="none"
@@ -194,9 +136,9 @@ function KLogo({ dark = false }: { dark?: boolean }) {
 function LocationLink({ location, dark }: { location: string; dark?: boolean }) {
   return (
     <a href={mapsUrl(location)} target="_blank" rel="noopener noreferrer"
-      className="text-xs font-semibold transition-colors"
+      className="text-sm font-semibold transition-colors"
       style={{
-        color: dark ? 'rgba(255,255,255,.82)' : '#999',
+        color: dark ? 'rgba(255,255,255,.92)' : '#333',
         textShadow: dark ? '0 1px 4px rgba(0,0,0,.6)' : undefined,
       }}>
       📍 {location}

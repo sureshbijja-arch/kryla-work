@@ -311,6 +311,10 @@ async function handleInbound(senderPhone: string, messageText: string) {
     } else if (k === 'nextdoor_url' && typeof v === 'string') {
       const u = normalizeNextdoorUrl(v)
       if (u) safePatchProviders[k] = u
+    } else if (k === 'business_hours' && v && typeof v === 'object' && !Array.isArray(v)) {
+      // Default enabled:true when AI omits the flag — ensures hours show on the page
+      const bh = v as Record<string, unknown>
+      safePatchProviders[k] = bh['enabled'] === undefined ? { ...bh, enabled: true } : bh
     } else {
       safePatchProviders[k] = v
     }
