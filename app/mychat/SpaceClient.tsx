@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
@@ -286,7 +286,7 @@ export default function SpaceClient({
     setLoading(true)
 
     try {
-      const res = await fetch('/api/my-space/chat', {
+      const res = await fetch('/api/mychat/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -330,7 +330,7 @@ export default function SpaceClient({
     if (publishing) return
     setPublishing(true)
     try {
-      const res = await fetch('/api/my-space/publish', {
+      const res = await fetch('/api/mychat/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug }),
@@ -755,7 +755,7 @@ function CustomNameCard({ providerId, slug, canUse, initialDomain }: { providerI
     debounceRef.current = setTimeout(async () => {
       setAvail('checking')
       try {
-        const res = await fetch(`/api/my-space/custom-domain?label=${encodeURIComponent(trimmed)}&providerId=${providerId}`)
+        const res = await fetch(`/api/mychat/custom-domain?label=${encodeURIComponent(trimmed)}&providerId=${providerId}`)
         const data = await res.json()
         if (data.error) { setAvail('invalid'); setError(data.error); return }
         setAvail(data.available ? 'available' : 'taken')
@@ -772,7 +772,7 @@ function CustomNameCard({ providerId, slug, canUse, initialDomain }: { providerI
     setSaving(true)
     setError('')
     try {
-      const res = await fetch('/api/my-space/custom-domain', {
+      const res = await fetch('/api/mychat/custom-domain', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId, domain: trimmed }),
@@ -790,7 +790,7 @@ function CustomNameCard({ providerId, slug, canUse, initialDomain }: { providerI
   async function remove() {
     setRemoving(true)
     try {
-      await fetch('/api/my-space/custom-domain', {
+      await fetch('/api/mychat/custom-domain', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId }),

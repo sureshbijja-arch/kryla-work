@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 
@@ -27,7 +27,7 @@ export default function ReviewsTab({ providerId }: { providerId: string }) {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const res  = await fetch(`/api/my-space/reviews?providerId=${providerId}`)
+      const res  = await fetch(`/api/mychat/reviews?providerId=${providerId}`)
       const data = await res.json()
       setReviews(data.reviews ?? [])
     } finally {
@@ -41,7 +41,7 @@ export default function ReviewsTab({ providerId }: { providerId: string }) {
     const next = current === 'published' ? 'hidden' : 'published'
     setUpdating(reviewId)
     try {
-      await fetch('/api/my-space/reviews', {
+      await fetch('/api/mychat/reviews', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId, reviewId, status: next }),
@@ -56,7 +56,7 @@ export default function ReviewsTab({ providerId }: { providerId: string }) {
     if (!confirm('Delete this review?')) return
     setUpdating(reviewId)
     try {
-      await fetch('/api/my-space/reviews', {
+      await fetch('/api/mychat/reviews', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId, reviewId }),

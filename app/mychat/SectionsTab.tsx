@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState, useRef } from 'react'
 import type { SectionStyle } from '../[slug]/types'
 
@@ -184,7 +184,7 @@ export default function SectionsTab({ providerId, slug, initialSections, plan, o
       fd.append('file', file)
       fd.append('type', 'section-bg')
       fd.append('slug', slug)
-      const res = await fetch('/api/my-space/upload', { method: 'POST', body: fd })
+      const res = await fetch('/api/mychat/upload', { method: 'POST', body: fd })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Upload failed'); return }
       updateStyle(sectionKey, s => ({ ...s, bg: { type: 'photo' as const, value: data.url } }))
@@ -218,7 +218,7 @@ export default function SectionsTab({ providerId, slug, initialSections, plan, o
     setSaving(true)
     setError('')
     try {
-      const res = await fetch('/api/my-space/sections', {
+      const res = await fetch('/api/mychat/sections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId, sections }),

@@ -1,6 +1,6 @@
-// Flip to true to route TTS through OpenAI instead of browser speechSynthesis.
+﻿// Flip to true to route TTS through OpenAI instead of browser speechSynthesis.
 // When false: zero cost, works everywhere, no API calls.
-// When true: calls /api/my-space/tts — requires OPENAI_API_KEY in env.
+// When true: calls /api/mychat/tts — requires OPENAI_API_KEY in env.
 const USE_OPENAI_TTS = false
 
 let currentAudio: HTMLAudioElement | null = null
@@ -23,7 +23,7 @@ export async function speak(text: string): Promise<void> {
 
   if (USE_OPENAI_TTS) {
     try {
-      const res = await fetch('/api/my-space/tts', {
+      const res = await fetch('/api/mychat/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),

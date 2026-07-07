@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -66,7 +66,7 @@ export default function AdsTab({ providerId, slug, canAds, onUpgrade }: Props) {
     form.append('type', 'ad')
     form.append('slug', slug)
     try {
-      const res  = await fetch('/api/my-space/upload', { method: 'POST', body: form })
+      const res  = await fetch('/api/mychat/upload', { method: 'POST', body: form })
       const data = await res.json()
       if (!res.ok) { setAdError(data.error ?? 'Image upload failed'); return }
       setAdImageUrl(data.url)

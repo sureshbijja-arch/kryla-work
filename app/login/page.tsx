@@ -47,7 +47,7 @@ export default function LoginPage() {
       setErrorMsg('Incorrect code — check your email and try again')
       return
     }
-    router.push('/my-space')
+    router.push('/mychat')
   }
 
   return (

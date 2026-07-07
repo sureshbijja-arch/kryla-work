@@ -56,10 +56,10 @@
 | `/api/inngest` | GET/POST/PUT | Inngest serve endpoint |
 | `/api/notify/build-failed` | POST | Logs build failures (WhatsApp send is Week 4 placeholder) |
 | `/api/booking` | POST | Customer booking submission |
-| `/api/my-space/chat` | POST | AI chat editor — updates pages via draft_data |
-| `/api/my-space/sections` | POST | Updates pages.sections (auth-gated by email ownership) |
-| `/api/my-space/services` | POST | Updates pages.services array (auth-gated by email ownership) |
-| `/api/my-space/upload` | POST | Uploads image to profile-media bucket; types: avatar, gallery, service (Grow+) |
+| `/api/mychat/chat` | POST | AI chat editor — updates pages via draft_data |
+| `/api/mychat/sections` | POST | Updates pages.sections (auth-gated by email ownership) |
+| `/api/mychat/services` | POST | Updates pages.services array (auth-gated by email ownership) |
+| `/api/mychat/upload` | POST | Uploads image to profile-media bucket; types: avatar, gallery, service (Grow+) |
 | `/api/revalidate` | POST | ISR revalidation trigger from Inngest (requires REVALIDATE_SECRET) |
 
 ### /api/onboarding/submit — key behaviour
@@ -147,27 +147,27 @@ Dynamic accent tokens set as **inline styles** on the LayoutRenderer wrapper (no
 
 ### My Chat (Member Dashboard)
 
-Accessed at `/{slug}/mychat` (e.g. `priya.kryla.work/mychat`). Auth-gated — middleware protects `/{slug}/mychat`. Old `/my-space` route redirects here.
+Accessed at `/{slug}/mychat` (e.g. `priya.kryla.work/mychat`). Auth-gated — middleware protects `/mychat` and `/{slug}/mychat`. `/mychat` is a slug-resolver: looks up the signed-in member's slug and redirects to `/{slug}/mychat`.
 
 **Layout:** Split view — live public page on the left (desktop only, read-only), My Chat panel on the right (400px). Mobile shows panel full-width. `router.refresh()` in SpaceClient re-renders the server page so changes appear live on the left without a separate preview step.
 
-**Single implementation:** `app/my-space/SpaceClient.tsx` (panel component). `app/[slug]/mychat/page.tsx` is the server route that auth-checks, fetches all data, and renders the split layout. No dual-implementation — MySpacePanel and MySpaceBadge were deleted.
+**Single implementation:** `app/mychat/SpaceClient.tsx` (panel component). `app/[slug]/mychat/page.tsx` is the server route that auth-checks, fetches all data, and renders the split layout. No dual-implementation — MySpacePanel and MySpaceBadge were deleted.
 
 Top tabs: **Chat** | **Design** | **Messages** | **Bookings** | **My plan**
 Design sub-tabs: **Services** | **Page layout** | **Layouts** | **Ads** | **Media**
 
-Services tab (`app/my-space/ServicesTab.tsx`):
+Services tab (`app/mychat/ServicesTab.tsx`):
 - Add, edit, delete, reorder services
 - Fields: name, description, price, duration_or_unit, badge (Popular/New/Best Value), image_url
-- Image upload per service (Grow+ — enforced by `/api/my-space/upload`)
-- Save → POST `/api/my-space/services`
+- Image upload per service (Grow+ — enforced by `/api/mychat/upload`)
+- Save → POST `/api/mychat/services`
 - `ServiceItem` type defined here (name, description, price, duration_or_unit, image_url?, badge?)
 
-Section builder (`app/my-space/SectionsTab.tsx`):
+Section builder (`app/mychat/SectionsTab.tsx`):
 - Reorder with up/down buttons
 - Swap variant via pill picker (expands on card click)
 - Add/remove sections
-- Save → POST `/api/my-space/sections` (verifies email ownership)
+- Save → POST `/api/mychat/sections` (verifies email ownership)
 - Preview link opens `/[slug]/preview`
 
 ---
@@ -388,7 +388,7 @@ REVALIDATE_SECRET=               # Random string — used by /api/revalidate to 
 - ✅ Bookings — form on public page → DB → viewable in My Space
 - ✅ Draft data — AI edits saved to draft_data, applied on preview
 - ✅ Plans + features — DB-backed (`plans` + `plan_features`); managed at `/admin/plans`; gating data-driven via `feature_key`; coupons/discounts deferred to payments module
-- ✅ Custom links — Thrive+ members pick a vanity name (e.g. `krityabijja`) which serves their page at `{name}.kryla.work` and `kryla.work/{name}`; gated via `plan_features.feature_key = 'custom_domain'`; stored in `providers.custom_domain`; `app/[slug]/page.tsx` resolves by slug OR custom_domain; live availability check via GET `/api/my-space/custom-domain?label=`; no external DNS/Vercel/registrar involved — Kryla owns kryla.work
+- ✅ Custom links — Thrive+ members pick a vanity name (e.g. `krityabijja`) which serves their page at `{name}.kryla.work` and `kryla.work/{name}`; gated via `plan_features.feature_key = 'custom_domain'`; stored in `providers.custom_domain`; `app/[slug]/page.tsx` resolves by slug OR custom_domain; live availability check via GET `/api/mychat/custom-domain?label=`; no external DNS/Vercel/registrar involved — Kryla owns kryla.work
 
 ## What's NOT Built Yet
 

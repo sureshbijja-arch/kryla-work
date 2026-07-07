@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -48,7 +48,7 @@ export default function MediaTab({ providerId, slug, firstName, plan: _plan, onU
     setSocialError('')
     setSocialSaved(false)
     try {
-      const res  = await fetch('/api/my-space/profile', {
+      const res  = await fetch('/api/mychat/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId, instagramHandle: igHandle, nextdoorUrl: ndUrl }),
@@ -75,7 +75,7 @@ export default function MediaTab({ providerId, slug, firstName, plan: _plan, onU
     form.append('type', 'avatar')
     form.append('slug', slug)
     try {
-      const res  = await fetch('/api/my-space/upload', { method: 'POST', body: form })
+      const res  = await fetch('/api/mychat/upload', { method: 'POST', body: form })
       const data = await res.json()
       if (!res.ok) { setAvatarError(data.error ?? 'Upload failed'); return }
       setAvatarUrl(data.url)
@@ -97,7 +97,7 @@ export default function MediaTab({ providerId, slug, firstName, plan: _plan, onU
     form.append('type', 'gallery')
     form.append('slug', slug)
     try {
-      const res  = await fetch('/api/my-space/upload', { method: 'POST', body: form })
+      const res  = await fetch('/api/mychat/upload', { method: 'POST', body: form })
       const data = await res.json()
       if (!res.ok) { setGalleryError(data.error ?? 'Upload failed'); return }
       setGallery(prev => [...prev, data.url])

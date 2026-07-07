@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 
@@ -52,7 +52,7 @@ export default function StudentsTab({
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const res  = await fetch(`/api/my-space/students?providerId=${providerId}`)
+      const res  = await fetch(`/api/mychat/students?providerId=${providerId}`)
       const data = await res.json()
       setStudents(data.students ?? [])
     } finally {
@@ -83,7 +83,7 @@ export default function StudentsTab({
     setSaving(true)
     try {
       if (modal === 'add') {
-        await fetch('/api/my-space/students', {
+        await fetch('/api/mychat/students', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -97,7 +97,7 @@ export default function StudentsTab({
           }),
         })
       } else if (modal && 'edit' in modal) {
-        await fetch('/api/my-space/students', {
+        await fetch('/api/mychat/students', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -122,7 +122,7 @@ export default function StudentsTab({
   async function logSession(id: string) {
     setLogging(id)
     try {
-      await fetch('/api/my-space/students', {
+      await fetch('/api/mychat/students', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId, studentId: id, action: 'log_session' }),
@@ -139,7 +139,7 @@ export default function StudentsTab({
     if (!confirm('Remove this student?')) return
     setDeleting(id)
     try {
-      await fetch('/api/my-space/students', {
+      await fetch('/api/mychat/students', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId, studentId: id }),

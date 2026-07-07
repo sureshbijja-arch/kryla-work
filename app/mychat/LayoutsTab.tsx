@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { TEMPLATE_LABEL, FONT_LABEL, type LayoutOption } from '@/lib/layouts'
@@ -29,7 +29,7 @@ export default function LayoutsTab({
   const canLayouts = (PLAN_RANK[plan] ?? 0) >= 1
 
   useEffect(() => {
-    fetch(`/api/my-space/layouts?persona=${encodeURIComponent(persona)}`)
+    fetch(`/api/mychat/layouts?persona=${encodeURIComponent(persona)}`)
       .then(r => r.json())
       .then(data => { setLayouts(data.layouts ?? []); setLoaded(true) })
       .catch(() => setLoaded(true))
@@ -40,7 +40,7 @@ export default function LayoutsTab({
     if (applyingLayout || !canLayouts) return
     setApplyingLayout(lo.id)
     try {
-      const res = await fetch('/api/my-space/layout', {
+      const res = await fetch('/api/mychat/layout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

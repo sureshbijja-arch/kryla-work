@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 
@@ -33,7 +33,7 @@ export default function StatsTab({ providerId }: { providerId: string }) {
 
   useEffect(() => {
     setLoading(true)
-    fetch(`/api/my-space/stats?providerId=${providerId}`)
+    fetch(`/api/mychat/stats?providerId=${providerId}`)
       .then(r => r.json())
       .then(data => {
         if (data.error) setError(data.error)

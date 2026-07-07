@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Apply draft provider fields (only safe fields)
-  const allowedProviderFields = ['location', 'whatsapp_number']
+  const allowedProviderFields = ['location', 'whatsapp_number', 'business_hours', 'instagram_handle', 'nextdoor_url']
   const safeProviderUpdate = Object.fromEntries(
     Object.entries(dpr).filter(([k]) => allowedProviderFields.includes(k))
   )

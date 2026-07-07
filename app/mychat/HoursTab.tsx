@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import type { BusinessHours, DayHours, DayKey } from '@/app/[slug]/types'
@@ -68,7 +68,7 @@ export default function HoursTab({ providerId }: Props) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch(`/api/my-space/hours?providerId=${providerId}`)
+    fetch(`/api/mychat/hours?providerId=${providerId}`)
       .then(r => r.json())
       .then(d => { if (d.businessHours) setHours(d.businessHours) })
       .catch(() => {})
@@ -96,7 +96,7 @@ export default function HoursTab({ providerId }: Props) {
   async function save() {
     setSaving(true)
     try {
-      const res = await fetch('/api/my-space/hours', {
+      const res = await fetch('/api/mychat/hours', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId, businessHours: hours }),

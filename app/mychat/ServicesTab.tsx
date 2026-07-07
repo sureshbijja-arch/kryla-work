@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState, useRef } from 'react'
 import type { ServiceItem } from '../[slug]/types'
 
@@ -94,7 +94,7 @@ export default function ServicesTab({ providerId, slug, initialServices, plan, o
       form.append('file', file)
       form.append('type', 'service')
       form.append('slug', slug)
-      const res  = await fetch('/api/my-space/upload', { method: 'POST', body: form })
+      const res  = await fetch('/api/mychat/upload', { method: 'POST', body: form })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Upload failed')
       setServices(prev => prev.map((s, i) => i === index ? { ...s, image_url: data.url } : s))
@@ -126,7 +126,7 @@ export default function ServicesTab({ providerId, slug, initialServices, plan, o
       const totalB64 = images.reduce((n, i) => n + i.data.length, 0)
       if (totalB64 > 4_000_000) throw new Error('Those photos are too large — try fewer or smaller images')
 
-      const res  = await fetch('/api/my-space/scan-menu', {
+      const res  = await fetch('/api/mychat/scan-menu', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId, images }),
@@ -159,7 +159,7 @@ export default function ServicesTab({ providerId, slug, initialServices, plan, o
         form.append('file', file)
         form.append('type', 'menu')
         form.append('slug', slug)
-        const res  = await fetch('/api/my-space/upload', { method: 'POST', body: form })
+        const res  = await fetch('/api/mychat/upload', { method: 'POST', body: form })
         const data = await res.json()
         if (res.ok && data.url) uploaded.push(data.url)
       } catch { /* non-fatal */ }
@@ -184,7 +184,7 @@ export default function ServicesTab({ providerId, slug, initialServices, plan, o
     setSaving(true)
     setError('')
     try {
-      const res = await fetch('/api/my-space/services', {
+      const res = await fetch('/api/mychat/services', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

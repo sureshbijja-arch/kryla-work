@@ -62,7 +62,7 @@ export function buildNewBookingMessage(opts: {
   return (
     `${opts.memberName}, someone wants to book you! 🎉\n\n` +
     `*${opts.customerName}* wants ${opts.service}${date}.\n\n` +
-    `Manage it in My Space: https://kryla.work/my-space`
+    `Manage it in My Chat: https://kryla.work/mychat`
   )
 }
 
@@ -74,6 +74,6 @@ export function buildPageLiveMessage(opts: {
   return (
     `Hi ${opts.memberName}, your Kryla page is live! 🚀\n\n` +
     `Share it with your customers: https://kryla.work/${opts.slug}\n\n` +
-    `Log in to manage your page: https://kryla.work/my-space`
+    `Log in to manage your page: https://kryla.work/mychat`
   )
 }

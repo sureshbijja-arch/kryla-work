@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -68,7 +68,7 @@ export default function WhatsAppSettingsTab({ providerId, plan, onBack }: Props)
     setConnecting(true)
     setConnectError('')
     try {
-      const res = await fetch('/api/my-space/whatsapp-connect', {
+      const res = await fetch('/api/mychat/whatsapp-connect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -95,7 +95,7 @@ export default function WhatsAppSettingsTab({ providerId, plan, onBack }: Props)
   async function handleDisconnect() {
     setDisconnecting(true)
     try {
-      const res = await fetch('/api/my-space/whatsapp-connect', {
+      const res = await fetch('/api/mychat/whatsapp-connect', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId }),
@@ -112,7 +112,7 @@ export default function WhatsAppSettingsTab({ providerId, plan, onBack }: Props)
     setTogglingVisibility(true)
     const next = !waPublic
     try {
-      const res = await fetch('/api/my-space/whatsapp-connect', {
+      const res = await fetch('/api/mychat/whatsapp-connect', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId, whatsappPublic: next }),

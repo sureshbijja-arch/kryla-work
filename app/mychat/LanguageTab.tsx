@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 
@@ -29,7 +29,7 @@ export default function LanguageTab({ providerId, currentLanguage }: Props) {
     setError('')
     setDone(null)
     try {
-      const res = await fetch('/api/my-space/translate', {
+      const res = await fetch('/api/mychat/translate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId, language: code }),
@@ -48,7 +48,7 @@ export default function LanguageTab({ providerId, currentLanguage }: Props) {
   async function setDefault(code: string) {
     setError('')
     try {
-      await fetch('/api/my-space/translate', {
+      await fetch('/api/mychat/translate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId, language: code, setOnly: true }),

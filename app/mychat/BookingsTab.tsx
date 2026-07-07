@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 
@@ -53,7 +53,7 @@ export default function BookingsTab({
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const res  = await fetch(`/api/my-space/bookings?providerId=${providerId}`)
+      const res  = await fetch(`/api/mychat/bookings?providerId=${providerId}`)
       const data = await res.json()
       const list: Booking[] = data.bookings ?? []
       setBookings(list)
@@ -68,7 +68,7 @@ export default function BookingsTab({
   async function updateStatus(bookingId: string, status: string) {
     setUpdating(bookingId)
     try {
-      await fetch('/api/my-space/bookings', {
+      await fetch('/api/mychat/bookings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId, bookingId, status }),

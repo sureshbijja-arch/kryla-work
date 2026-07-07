@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -78,7 +78,7 @@ export default function SuggestionsTab({ providerId, onSuggestionFromChat }: Pro
     setError('')
     setSaved(false)
     try {
-      const res = await fetch('/api/my-space/suggestion', {
+      const res = await fetch('/api/mychat/suggestion', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId, description: body }),

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 
@@ -30,7 +30,7 @@ export default function AvailabilityTab({ providerId }: { providerId: string }) 
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const res  = await fetch(`/api/my-space/availability?providerId=${providerId}`)
+      const res  = await fetch(`/api/mychat/availability?providerId=${providerId}`)
       const data = await res.json()
       const map: Record<string, DayEntry> = {}
       for (const row of data.availability ?? []) map[row.day_key] = row
@@ -73,7 +73,7 @@ export default function AvailabilityTab({ providerId }: { providerId: string }) 
   async function saveDay(key: string, active: boolean, slots: string[]) {
     setSaving(true)
     try {
-      await fetch('/api/my-space/availability', {
+      await fetch('/api/mychat/availability', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId, dayKey: key, active, slots }),
@@ -87,7 +87,7 @@ export default function AvailabilityTab({ providerId }: { providerId: string }) 
   async function removeDay(key: string) {
     setSaving(true)
     try {
-      await fetch('/api/my-space/availability', {
+      await fetch('/api/mychat/availability', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId, dayKey: key }),

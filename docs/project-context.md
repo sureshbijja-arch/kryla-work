@@ -63,12 +63,12 @@ _Critical rules and patterns for implementing code in kryla.work. Focused on uno
 ### ISR & Caching
 - `app/[slug]/page.tsx` uses `export const revalidate = 3600` (ISR, not dynamic).
 - Call `revalidatePath(`/${slug}`)` after any DB write that must reflect on the public profile.
-- `app/my-space/page.tsx` uses `export const dynamic = 'force-dynamic'` (auth guard).
+- `app/mychat/page.tsx` uses `export const dynamic = 'force-dynamic'` (auth guard — slug resolver).
 
 ### Middleware & Subdomain Routing
 - `priya.kryla.work` → middleware rewrites to `/priya` → `app/[slug]/page.tsx`.
 - `/api` and `/_next` are **excluded from slug rewrite** in `middleware.ts`. Never remove this — it prevents `/priya/api/booking` (404).
-- `/my-space` is protected: no session → redirect to `/login`.
+- `/mychat` is protected: no session → redirect to `/login`. It resolves the member's slug and redirects to `/{slug}/mychat`.
 
 ### API Routes
 - All DB mutations use `supabaseAdmin` (service role). Never use anon client for writes.
@@ -166,9 +166,9 @@ All templates receive `ProfileData` from `app/[slug]/types.ts`. Never add templa
 - `from` must be `Kryla <hello@kryla.work>` (verified domain in Resend).
 - Always non-fatal — wrap in try/catch, never block the primary response.
 
-### My Space Panel Auth
-- `MySpacePanel.tsx` uses `createBrowserClient` — sets cookies on the current subdomain (`priya.kryla.work`), not on `kryla.work`.
-- API calls from the panel go to `/api/my-space/*` on the same subdomain — same-origin, cookies included. Works correctly.
+### My Chat Panel Auth
+- `SpaceClient.tsx` uses `createBrowserClient` — sets cookies on the current subdomain (`priya.kryla.work`), not on `kryla.work`.
+- API calls from the panel go to `/api/mychat/*` on the same subdomain — same-origin, cookies included. Works correctly.
 - Do not attempt to share sessions between `kryla.work` and `*.kryla.work` — separate cookie domains by design.
 
 ### Slug Rules

@@ -153,9 +153,9 @@ export async function POST(req: NextRequest) {
               ${dateLine}
               ${msgLine}
               <hr style="border:none;border-top:1px solid #E5E5E5;margin:16px 0"/>
-              <a href="https://kryla.work/my-space"
+              <a href="https://kryla.work/mychat"
                 style="display:inline-block;background:#0D0D0D;color:#fff;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:600;font-size:14px">
-                Accept or decline in My Space →
+                Accept or decline in My Chat →
               </a>
             </div>`,
         })

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 
@@ -18,7 +18,7 @@ export default function ReferTab({ providerId, initialCode, slug }: Props) {
   const [copied,         setCopied]         = useState(false)
 
   useEffect(() => {
-    fetch(`/api/my-space/referral-code?providerId=${encodeURIComponent(providerId)}`)
+    fetch(`/api/mychat/referral-code?providerId=${encodeURIComponent(providerId)}`)
       .then(r => r.json())
       .then(data => {
         if (data.code)          setSavedCode(data.code)
@@ -41,7 +41,7 @@ export default function ReferTab({ providerId, initialCode, slug }: Props) {
     setError('')
     setSaved(false)
     try {
-      const res  = await fetch('/api/my-space/referral-code', {
+      const res  = await fetch('/api/mychat/referral-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId, code }),

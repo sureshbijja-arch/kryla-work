@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import SpaceClient from '@/app/my-space/SpaceClient'
-import type { SectionEntry } from '@/app/my-space/SectionsTab'
-import type { ServiceItem } from '@/app/my-space/ServicesTab'
+import SpaceClient from '@/app/mychat/SpaceClient'
+import type { SectionEntry } from '@/app/mychat/SectionsTab'
+import type { ServiceItem } from '@/app/mychat/ServicesTab'
 import type { PlanDef } from '@/lib/plans'
 
 interface SpaceProps {
