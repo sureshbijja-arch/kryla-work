@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { sendWhatsAppMessage, waLink } from '@/lib/whatsapp'
+import { sendWhatsAppMessage, waLink, downloadWhatsAppMedia } from '@/lib/whatsapp'
+import { transcribeAudio, TranscribeError } from '@/lib/transcribe'
 import { getPlanGate } from '@/lib/plans'
 import { normalizeHandle, normalizeNextdoorUrl } from '@/lib/social'
 import { sendEmail } from '@/lib/email'
@@ -29,15 +30,16 @@ export async function POST(req: NextRequest) {
   }
 
   const msg = body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]
-  // Only handle text messages for now (voice = Phase 2)
-  if (!msg || msg.type !== 'text') return NextResponse.json({ ok: true })
+  if (!msg || (msg.type !== 'text' && msg.type !== 'audio')) return NextResponse.json({ ok: true })
 
   const senderPhone = msg.from as string   // bare digits from Meta, e.g. "14695550112"
-  const messageText = (msg.text?.body as string)?.trim()
+  const messageText = msg.type === 'text' ? ((msg.text?.body as string)?.trim() ?? '') : ''
+  const audioId     = msg.type === 'audio' ? (msg.audio?.id as string | undefined) : undefined
 
-  if (!senderPhone || !messageText) return NextResponse.json({ ok: true })
+  if (!senderPhone) return NextResponse.json({ ok: true })
+  if (!messageText && !audioId) return NextResponse.json({ ok: true })
 
-  await handleInbound(senderPhone, messageText)
+  await handleInbound(senderPhone, messageText, audioId)
 
   return NextResponse.json({ ok: true })
 }
@@ -136,7 +138,7 @@ Rules:
 Current page content:
 {{PROFILE}}`
 
-async function handleInbound(senderPhone: string, messageText: string) {
+async function handleInbound(senderPhone: string, messageText: string, audioId?: string) {
   // Look up provider by whatsapp_number — stored as bare digits matching Meta's format
   const { data: matches } = await supabaseAdmin
     .from('providers')
@@ -169,6 +171,29 @@ async function handleInbound(senderPhone: string, messageText: string) {
       text: `Hi ${provider.first_name}! WhatsApp editing is available on the Thrive plan and above. Upgrade at kryla.work/${provider.slug} to unlock it.`,
     })
     return
+  }
+
+  // ── Voice note transcription (Thrive+ gate already passed above) ─────────
+  if (audioId && !messageText) {
+    try {
+      const { bytes, mimeType } = await downloadWhatsAppMedia(audioId)
+      // Derive file extension from MIME (e.g. "audio/ogg; codecs=opus" → "ogg")
+      const ext = mimeType.split('/')[1]?.split(';')[0]?.trim() ?? 'ogg'
+      messageText = await transcribeAudio(bytes, `voice.${ext}`, mimeType)
+      // Echo back what we heard so the member can confirm before the edit applies
+      await sendWhatsAppMessage({
+        to: senderPhone,
+        text: `🎙 Heard: "${messageText}"`,
+      })
+    } catch (err) {
+      console.error('[wa-webhook] voice transcription failed:', err)
+      const errMsg =
+        err instanceof TranscribeError && err.code === 'no_key'
+          ? "Voice messages aren't set up yet. Please type your request for now."
+          : "Sorry, I couldn't understand that voice note. Please type your request or resend the voice note."
+      await sendWhatsAppMessage({ to: senderPhone, text: errMsg })
+      return
+    }
   }
 
   // ── PUBLISH command — flush pending mychat draft to live ─────────────────

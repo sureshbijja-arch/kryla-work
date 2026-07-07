@@ -80,6 +80,33 @@ export function buildNewBookingMessage(opts: {
   )
 }
 
+/**
+ * Download a WhatsApp media attachment (e.g. voice note) by its media ID.
+ * Step 1: resolve the temporary download URL from the Graph API.
+ * Step 2: fetch the binary from that URL using the same Bearer token.
+ */
+export async function downloadWhatsAppMedia(
+  mediaId: string,
+): Promise<{ bytes: Buffer; mimeType: string }> {
+  const token = process.env.WHATSAPP_ACCESS_TOKEN
+  if (!token) throw new Error('WHATSAPP_ACCESS_TOKEN not set')
+
+  const metaRes = await fetch(
+    `https://graph.facebook.com/v19.0/${mediaId}`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  )
+  if (!metaRes.ok) throw new Error(`Media metadata fetch failed: ${metaRes.status}`)
+  const meta = await metaRes.json() as { url: string; mime_type: string }
+
+  const dlRes = await fetch(meta.url, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!dlRes.ok) throw new Error(`Media download failed: ${dlRes.status}`)
+
+  const bytes = Buffer.from(await dlRes.arrayBuffer())
+  return { bytes, mimeType: meta.mime_type ?? 'audio/ogg' }
+}
+
 /** Notify a member that their page just went live */
 export function buildPageLiveMessage(opts: {
   memberName: string

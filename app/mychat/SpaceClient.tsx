@@ -212,6 +212,9 @@ export default function SpaceClient({
   const bottomRef               = useRef<HTMLDivElement>(null)
   const inputRef                = useRef<HTMLTextAreaElement>(null)
   const recognitionRef          = useRef<unknown>(null)
+  const mediaRecorderRef        = useRef<MediaRecorder | null>(null)
+  const audioChunksRef          = useRef<Blob[]>([])
+  const [transcribing, setTranscribing] = useState(false)
 
   // ── Billing return toast ─────────────────────────────────────────────────────
   const router = useRouter()
@@ -275,6 +278,74 @@ export default function SpaceClient({
     recognitionRef.current = rec
     rec.start()
   }, [listening])
+
+  async function toggleMic() {
+    // Stop an active MediaRecorder recording
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop()
+      return
+    }
+    // Stop active browser dictation
+    if (listening) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(recognitionRef.current as any)?.stop()
+      return
+    }
+
+    // Try Whisper via MediaRecorder
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.MediaRecorder !== 'undefined' &&
+      navigator.mediaDevices?.getUserMedia
+    ) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        const mimeType =
+          MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' :
+          MediaRecorder.isTypeSupported('audio/mp4')  ? 'audio/mp4'  : 'audio/ogg'
+        const recorder = new MediaRecorder(stream, { mimeType })
+        audioChunksRef.current = []
+
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) audioChunksRef.current.push(e.data)
+        }
+
+        recorder.onstop = async () => {
+          stream.getTracks().forEach(t => t.stop())
+          setListening(false)
+          setTranscribing(true)
+          try {
+            const blob = new Blob(audioChunksRef.current, { type: mimeType })
+            const ext  = mimeType.split('/')[1].split(';')[0]
+            const form = new FormData()
+            form.append('file', blob, `audio.${ext}`)
+            const res = await fetch('/api/mychat/transcribe', { method: 'POST', body: form })
+            if (res.ok) {
+              const { text } = await res.json()
+              if (text) setInput(prev => (prev ? prev + ' ' : '') + text)
+            } else {
+              // 503 = key missing, any error → fall back to browser dictation
+              startListening()
+            }
+          } catch {
+            startListening()
+          } finally {
+            setTranscribing(false)
+          }
+        }
+
+        mediaRecorderRef.current = recorder
+        recorder.start()
+        setListening(true)
+        return
+      } catch {
+        // getUserMedia denied or unavailable → fall back
+      }
+    }
+
+    // Fall back to browser Web Speech API
+    startListening()
+  }
 
   async function send() {
     const text = input.trim()
@@ -515,24 +586,33 @@ export default function SpaceClient({
             <div className="flex gap-2 items-end">
               {/* Mic button */}
               <button
-                onClick={startListening}
-                title={listening ? 'Stop listening' : 'Speak your message'}
+                onClick={toggleMic}
+                disabled={transcribing}
+                title={listening ? 'Stop recording' : transcribing ? 'Transcribing…' : 'Speak your message'}
                 className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
                   listening
                     ? 'bg-red-500 text-white animate-pulse'
+                    : transcribing
+                    ? 'bg-[#F5F5F5] text-[#bbb] cursor-wait'
                     : 'bg-[#F5F5F5] text-[#666] hover:bg-[#E5E5E5]'
                 }`}>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <rect x="5" y="1" width="6" height="9" rx="3" stroke="currentColor" strokeWidth="1.5"/>
-                  <path d="M2 8c0 3.314 2.686 6 6 6s6-2.686 6-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  <line x1="8" y1="14" x2="8" y2="16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
+                {transcribing ? (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="animate-spin">
+                    <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" strokeDasharray="28" strokeDashoffset="10"/>
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <rect x="5" y="1" width="6" height="9" rx="3" stroke="currentColor" strokeWidth="1.5"/>
+                    <path d="M2 8c0 3.314 2.686 6 6 6s6-2.686 6-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="8" y1="14" x2="8" y2="16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                )}
               </button>
 
               <textarea
                 ref={inputRef}
                 rows={1}
-                placeholder={listening ? '…' : t.placeholder}
+                placeholder={transcribing ? 'Transcribing…' : listening ? '…' : t.placeholder}
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
