@@ -66,6 +66,7 @@ export default function HoursTab({ providerId }: Props) {
   const [hours, setHours]     = useState<BusinessHours>(DEFAULT_HOURS)
   const [saving, setSaving]   = useState(false)
   const [saved, setSaved]     = useState(false)
+  const [saveErr, setSaveErr] = useState('')
   const [loading, setLoading] = useState(true)
 
   // ── Exceptions (holidays / leave / special hours) ──
@@ -104,6 +105,7 @@ export default function HoursTab({ providerId }: Props) {
 
   async function save() {
     setSaving(true)
+    setSaveErr('')
     try {
       const res = await fetch('/api/mychat/hours', {
         method: 'POST',
@@ -113,7 +115,12 @@ export default function HoursTab({ providerId }: Props) {
       if (res.ok) {
         setSaved(true)
         setTimeout(() => setSaved(false), 2500)
+      } else {
+        const body = await res.json().catch(() => ({}))
+        setSaveErr(body.error ?? `Save failed (${res.status}) — please try again`)
       }
+    } catch {
+      setSaveErr('Network error — please check your connection and try again')
     } finally {
       setSaving(false)
     }
@@ -219,6 +226,7 @@ export default function HoursTab({ providerId }: Props) {
         }`}>
         {saving ? 'Saving…' : saved ? '✓ Hours saved' : 'Save hours'}
       </button>
+      {saveErr && <p className="text-xs text-red-500 text-center mt-2">{saveErr}</p>}
       <p className="text-[10px] text-[#bbb] text-center mt-2">
         Visitors will see an open / closed badge on your page
       </p>
@@ -333,6 +341,7 @@ export default function HoursTab({ providerId }: Props) {
           }`}>
           {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save changes'}
         </button>
+        {saveErr && <p className="text-xs text-red-500 text-center mt-2">{saveErr}</p>}
       </div>
     </div>
   )
