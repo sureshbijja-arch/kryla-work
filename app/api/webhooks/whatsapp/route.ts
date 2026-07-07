@@ -86,7 +86,8 @@ Fields you can update in patch_pages:
 
 Fields you can update in patch_providers:
 - location (city or address)
-- business_hours: full schedule object (weekly template + optional per-date exceptions):
+- business_hours: USE THIS whenever the member mentions a holiday, closure, day off, leave, or special hours for a specific date — these appear as a visible notice on their PUBLIC PAGE for visitors to see.
+  Full schedule object (weekly template + optional per-date exceptions):
   {
     timezone: "America/New_York" (or any IANA tz),
     enabled: true,
@@ -100,17 +101,21 @@ Fields you can update in patch_providers:
   Time format is 24-hour "HH:MM". null means closed that weekday.
   exceptions override the weekly schedule for specific calendar dates (holidays, leave, special hours).
   When adding/removing exceptions, preserve ALL existing exceptions AND all weekly day entries.
-  Examples: "open Mon-Fri 9am to 6pm, closed weekends" → mon..fri with open/close, sat/sun null
-           "close the shop on Dec 25 for Christmas" → add {date:"2026-12-25",closed:true,note:"Christmas"} to exceptions
+  Examples that require business_hours.exceptions (NOT patch_availability):
+    "mark July 10 as closed" → exceptions: [{date:"2026-07-10",closed:true}]
+    "I'm closed on Dec 25 for Christmas" → exceptions: [{date:"2026-12-25",closed:true,note:"Christmas"}]
+    "I'll be on leave this Friday" → exceptions: [{date:"<resolved>",closed:true,note:"On leave"}]
+    "half-day on July 15" → exceptions: [{date:"2026-07-15",open:"09:00",close:"13:00"}]
+    "open Mon-Fri 9am to 6pm, closed weekends" → mon..fri with open/close, sat/sun null
 - instagram_handle: bare username without @ (e.g. "celinabakes"). Shows Instagram icon on page.
 - nextdoor_url: full nextdoor.com business-page URL (must be a valid nextdoor.com URL).
 
-patch_availability: set or update specific dates (takes effect immediately).
+patch_availability: USE THIS ONLY for managing appointment booking slots on the calendar. This does NOT show anything on the public page — use business_hours.exceptions for public-facing closures instead.
 - Array of { dayKey: "YYYY-MM-DD", active: boolean, slots: ["09:00","10:00",...] }
 - Resolve natural language ("next Monday", "this Friday") to YYYY-MM-DD using TODAY'S DATE above.
 - active:true = day is open; active:false = closed. slots use 24h format.
 - To add slots include all existing slots PLUS the new ones.
-delete_availability: array of "YYYY-MM-DD" strings to remove entirely (different from closing).
+delete_availability: array of "YYYY-MM-DD" strings to remove entirely from the booking calendar (different from business_hours exceptions).
 
 new_ad: { title: string, description?: string, linkUrl?: string } — Thrive+ plan only.
 - No image upload via WhatsApp — text/link ads only.
@@ -301,6 +306,13 @@ async function handleInbound(senderPhone: string, messageText: string) {
     patch_booking      = null,
     new_suggestion     = null,
   } = parsed
+
+  console.log('[wa] patch_providers keys:', Object.keys(patch_providers))
+  console.log('[wa] patch_availability:', patch_availability ? JSON.stringify(patch_availability) : 'null')
+  if (patch_providers?.business_hours) {
+    const bh = patch_providers.business_hours as Record<string, unknown>
+    console.log('[wa] business_hours.enabled:', bh.enabled, '| exceptions count:', Array.isArray(bh.exceptions) ? (bh.exceptions as unknown[]).length : 'none')
+  }
 
   const allowedPages     = ['headline', 'subheadline', 'bio', 'cta_primary', 'cta_secondary', 'services', 'highlights', 'faq']
   const allowedProviders = ['location', 'business_hours', 'instagram_handle', 'nextdoor_url']
