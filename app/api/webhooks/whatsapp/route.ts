@@ -261,7 +261,7 @@ async function handleInbound(senderPhone: string, messageText: string) {
 
   const completion = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 768,
+    max_tokens: 1500,
     system: systemPrompt,
     messages: [{ role: 'user', content: messageText }],
   })
@@ -319,9 +319,9 @@ async function handleInbound(senderPhone: string, messageText: string) {
       const u = normalizeNextdoorUrl(v)
       if (u) safePatchProviders[k] = u
     } else if (k === 'business_hours' && v && typeof v === 'object' && !Array.isArray(v)) {
-      // Default enabled:true when AI omits the flag — ensures hours show on the page
+      // Always force enabled:true via WhatsApp — if you're asking to mark a closure you want it visible
       const bh = v as Record<string, unknown>
-      safePatchProviders[k] = bh['enabled'] === undefined ? { ...bh, enabled: true } : bh
+      safePatchProviders[k] = { ...bh, enabled: true }
     } else {
       safePatchProviders[k] = v
     }

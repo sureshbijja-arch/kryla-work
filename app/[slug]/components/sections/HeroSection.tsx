@@ -54,8 +54,8 @@ function BusinessStatusBadge({ hours, dark }: { hours: BusinessHours; dark?: boo
   const todayStr = getDateStr(tz, 0)
 
   // Upcoming exceptions strictly after today (today's status is already in the pill)
-  const upcoming     = getUpcomingExceptions(hours, tz, 5).filter(e => e.date > todayStr)
-  const nextClosure  = upcoming.find(e => e.closed)
+  const upcoming  = getUpcomingExceptions(hours, tz, 5).filter(e => e.date > todayStr)
+  const closures  = upcoming.filter(e => e.closed)
 
   const pillBg     = dark ? 'rgba(255,255,255,0.14)' : 'var(--color-accent-surface)'
   const pillBorder = dark ? '1px solid rgba(255,255,255,0.28)' : '1px solid var(--color-accent-border)'
@@ -86,15 +86,19 @@ function BusinessStatusBadge({ hours, dark }: { hours: BusinessHours; dark?: boo
         </svg>
       </button>
 
-      {/* Always-visible upcoming-closure notice — no expand required */}
-      {nextClosure && (
-        <div className="mt-1.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-          style={{ background: noticeBg, border: `1px solid ${noticeBdr}`, color: noticeColor }}>
-          <svg width="11" height="11" viewBox="0 0 11 11" fill="none" style={{ flexShrink: 0 }}>
-            <circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" strokeWidth="1.3"/>
-            <path d="M5.5 3v2.5l1.5 1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-          </svg>
-          Closed {shortDate(nextClosure.date)}{nextClosure.note ? ` · ${nextClosure.note}` : ''}
+      {/* Always-visible upcoming-closure chips — one per closure, no expand required */}
+      {closures.length > 0 && (
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {closures.map(c => (
+            <div key={c.date} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
+              style={{ background: noticeBg, border: `1px solid ${noticeBdr}`, color: noticeColor }}>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" style={{ flexShrink: 0 }}>
+                <circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" strokeWidth="1.3"/>
+                <path d="M5.5 3v2.5l1.5 1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+              </svg>
+              Closed {shortDate(c.date)}{c.note ? ` · ${c.note}` : ''}
+            </div>
+          ))}
         </div>
       )}
 
