@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { sendWhatsAppMessage } from '@/lib/whatsapp'
 import { getPlanGate } from '@/lib/plans'
+import { normalizeHandle, normalizeNextdoorUrl } from '@/lib/social'
 import Anthropic from '@anthropic-ai/sdk'
 
 const anthropic = new Anthropic()
@@ -49,8 +50,13 @@ Respond with ONLY valid JSON — no extra text before or after. Shape:
   "message": "string — short friendly plain-text reply (2-3 sentences, no markdown, no asterisks)",
   "patch_pages": {},
   "patch_providers": {},
-  "set_language": null
+  "set_language": null,
+  "patch_availability": null,
+  "delete_availability": null,
+  "new_ad": null
 }
+
+TODAY'S DATE: {{TODAY}}
 
 set_language: ISO code string or null. Use this when the member wants to change the page language.
 Valid codes: "en" (English), "hi" (Hindi), "ta" (Tamil), "te" (Telugu), "kn" (Kannada), "ml" (Malayalam), "mr" (Marathi), "gu" (Gujarati), "es" (Spanish).
@@ -72,10 +78,20 @@ Fields you can update in patch_providers:
     tue: ..., wed: ..., thu: ..., fri: ..., sat: ..., sun: ...
   }
   Time format is 24-hour "HH:MM". null means closed that day.
-  Examples the member might say:
-  - "open Mon-Fri 9am to 6pm, closed weekends" → mon..fri with open/close, sat/sun null
-  - "closed Mondays" → set mon to null, keep rest as-is
-  - "change my timezone to India" → set timezone to "Asia/Kolkata"
+  Examples: "open Mon-Fri 9am to 6pm, closed weekends" → mon..fri with open/close, sat/sun null
+- instagram_handle: bare username without @ (e.g. "celinabakes"). Shows Instagram icon on page.
+- nextdoor_url: full nextdoor.com business-page URL (must be a valid nextdoor.com URL).
+
+patch_availability: set or update specific dates (takes effect immediately).
+- Array of { dayKey: "YYYY-MM-DD", active: boolean, slots: ["09:00","10:00",...] }
+- Resolve natural language ("next Monday", "this Friday") to YYYY-MM-DD using TODAY'S DATE above.
+- active:true = day is open; active:false = closed. slots use 24h format.
+- To add slots include all existing slots PLUS the new ones.
+delete_availability: array of "YYYY-MM-DD" strings to remove entirely (different from closing).
+
+new_ad: { title: string, description?: string, linkUrl?: string } — Thrive+ plan only.
+- No image upload via WhatsApp — text/link ads only.
+- For Grow members, explain it is a Thrive feature. Leave new_ad as null.
 
 Rules:
 - Always return the COMPLETE array for services / highlights / faq (never partial)
@@ -86,7 +102,7 @@ Rules:
 - Keep message short — this is WhatsApp
 - If the request is unclear, ask one short clarifying question
 - Leave patch_pages and patch_providers as empty objects {} when no change is needed
-- Leave set_language as null when no language change is needed
+- Leave set_language, patch_availability, delete_availability, new_ad as null when not used
 
 Current page content:
 {{PROFILE}}`
@@ -95,7 +111,7 @@ async function handleInbound(senderPhone: string, messageText: string) {
   // Look up provider by whatsapp_number — stored as bare digits matching Meta's format
   const { data: matches } = await supabaseAdmin
     .from('providers')
-    .select('id, slug, first_name, plan, wa_undo, page_language')
+    .select('id, slug, first_name, plan, wa_undo, page_language, instagram_handle, nextdoor_url')
     .eq('whatsapp_number', senderPhone)
 
   if (!matches || matches.length === 0) {
@@ -170,7 +186,7 @@ async function handleInbound(senderPhone: string, messageText: string) {
   }
 
   // ── Fetch current live content for AI context ────────────────────────────
-  const [{ data: page }, { data: prov }] = await Promise.all([
+  const [{ data: page }, { data: prov }, { data: availRows }] = await Promise.all([
     supabaseAdmin
       .from('pages')
       .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, translations')
@@ -178,20 +194,31 @@ async function handleInbound(senderPhone: string, messageText: string) {
       .single(),
     supabaseAdmin
       .from('providers')
-      .select('location, business_hours, page_language')
+      .select('location, business_hours, page_language, instagram_handle, nextdoor_url')
       .eq('id', provider.id)
       .single(),
+    supabaseAdmin
+      .from('availability')
+      .select('day_key, active, slots')
+      .eq('provider_id', provider.id)
+      .order('day_key'),
   ])
 
   const profile = {
-    firstName: provider.first_name,
-    location: prov?.location ?? null,
-    business_hours: prov?.business_hours ?? null,
-    page_language: prov?.page_language ?? 'en',
+    firstName:       provider.first_name,
+    location:        prov?.location         ?? null,
+    business_hours:  prov?.business_hours   ?? null,
+    page_language:   prov?.page_language    ?? 'en',
+    instagram_handle: prov?.instagram_handle ?? null,
+    nextdoor_url:    prov?.nextdoor_url      ?? null,
+    availability:    availRows              ?? [],
     ...(page ?? {}),
   }
 
-  const systemPrompt = WA_SYSTEM_PROMPT.replace('{{PROFILE}}', JSON.stringify(profile, null, 2))
+  const today = new Date().toISOString().slice(0, 10)
+  const systemPrompt = WA_SYSTEM_PROMPT
+    .replace('{{TODAY}}', today)
+    .replace('{{PROFILE}}', JSON.stringify(profile, null, 2))
 
   const completion = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
@@ -207,6 +234,9 @@ async function handleInbound(senderPhone: string, messageText: string) {
     patch_pages?: Record<string, unknown>
     patch_providers?: Record<string, unknown>
     set_language?: string | null
+    patch_availability?: { dayKey: string; active: boolean; slots: string[] }[] | null
+    delete_availability?: string[] | null
+    new_ad?: { title: string; description?: string; linkUrl?: string } | null
   }
   try {
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
@@ -219,23 +249,36 @@ async function handleInbound(senderPhone: string, messageText: string) {
     return
   }
 
-  const { message, patch_pages = {}, patch_providers = {}, set_language = null } = parsed
+  const {
+    message,
+    patch_pages        = {},
+    patch_providers    = {},
+    set_language       = null,
+    patch_availability = null,
+    delete_availability = null,
+    new_ad             = null,
+  } = parsed
 
   const allowedPages     = ['headline', 'subheadline', 'bio', 'cta_primary', 'cta_secondary', 'services', 'highlights', 'faq']
-  const allowedProviders = ['location', 'business_hours']
+  const allowedProviders = ['location', 'business_hours', 'instagram_handle', 'nextdoor_url']
 
   const safePatchPages = Object.fromEntries(
     Object.entries(patch_pages).filter(([k]) => allowedPages.includes(k))
   )
 
-  const safePatchProviders = Object.fromEntries(
-    Object.entries(patch_providers)
-      .filter(([k]) => allowedProviders.includes(k))
-      .map(([k, v]) =>
-        // Normalize whatsapp_number if AI ever tries to patch it (not allowed above, but belt+suspenders)
-        k === 'whatsapp_number' && typeof v === 'string' ? [k, v.replace(/\D/g, '')] : [k, v]
-      )
-  )
+  const safePatchProviders: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(patch_providers)) {
+    if (!allowedProviders.includes(k)) continue
+    if (k === 'instagram_handle' && typeof v === 'string') {
+      const h = normalizeHandle(v)
+      if (h) safePatchProviders[k] = h
+    } else if (k === 'nextdoor_url' && typeof v === 'string') {
+      const u = normalizeNextdoorUrl(v)
+      if (u) safePatchProviders[k] = u
+    } else {
+      safePatchProviders[k] = v
+    }
+  }
 
   const hasPageChanges     = Object.keys(safePatchPages).length > 0
   const hasProviderChanges = Object.keys(safePatchProviders).length > 0
@@ -286,7 +329,11 @@ async function handleInbound(senderPhone: string, messageText: string) {
     return
   }
 
-  if (!hasPageChanges && !hasProviderChanges) {
+  const hasAvailability = Array.isArray(patch_availability) && patch_availability.length > 0
+  const hasDeleteAvail  = Array.isArray(delete_availability) && delete_availability.length > 0
+  const hasNewAd        = !!(new_ad?.title?.trim())
+
+  if (!hasPageChanges && !hasProviderChanges && !hasAvailability && !hasDeleteAvail && !hasNewAd) {
     // No changes — just send the AI reply (e.g. clarifying question or "can't do that")
     await sendWhatsAppMessage({ to: senderPhone, text: message })
     return
@@ -313,6 +360,41 @@ async function handleInbound(senderPhone: string, messageText: string) {
   }
   if (hasProviderChanges) {
     await supabaseAdmin.from('providers').update(safePatchProviders).eq('id', provider.id)
+  }
+
+  // ── Availability upserts (live immediately) ──────────────────────────────
+  if (hasAvailability) {
+    for (const entry of patch_availability!) {
+      if (!entry.dayKey || !/^\d{4}-\d{2}-\d{2}$/.test(entry.dayKey)) continue
+      await supabaseAdmin
+        .from('availability')
+        .upsert(
+          { provider_id: provider.id, day_key: entry.dayKey, active: entry.active ?? true, slots: entry.slots ?? [], updated_at: new Date().toISOString() },
+          { onConflict: 'provider_id,day_key' }
+        )
+    }
+  }
+
+  // ── Availability deletes (live immediately) ──────────────────────────────
+  if (hasDeleteAvail) {
+    for (const dayKey of delete_availability!) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dayKey)) continue
+      await supabaseAdmin.from('availability').delete().eq('provider_id', provider.id).eq('day_key', dayKey)
+    }
+  }
+
+  // ── New ad (live immediately, plan-gated) ────────────────────────────────
+  if (hasNewAd) {
+    const gate = await getPlanGate()
+    if (gate.allows('ads', provider.plan ?? 'grow')) {
+      await supabaseAdmin.from('ads').insert({
+        provider_id: provider.id,
+        title:       new_ad!.title.trim().slice(0, 100),
+        description: new_ad!.description?.trim().slice(0, 500) ?? null,
+        link_url:    new_ad!.linkUrl ?? null,
+        status:      'approved',
+      })
+    }
   }
 
   // Save undo snapshot on provider row
