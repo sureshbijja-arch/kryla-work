@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { mapsUrl, waUrl } from '../../types'
 import type { ProfileData, BusinessHours } from '../../types'
 import { getPersonaConfig } from '../../personaConfig'
-import { DAY_ORDER, DAY_LABELS, DAY_FULL, toMins, fmt12, getTodayKey, getStatus } from '../../hours'
+import { DAY_ORDER, DAY_LABELS, DAY_FULL, toMins, fmt12, getTodayKey, getStatus, getUpcomingExceptions, fmtExceptionDate, getDateStr } from '../../hours'
 
 interface Props {
   data: ProfileData
@@ -49,7 +49,13 @@ function BusinessStatusBadge({ hours, dark }: { hours: BusinessHours; dark?: boo
     return () => clearInterval(id)
   }, [hours])
 
-  const todayKey = getTodayKey(hours.timezone || 'UTC')
+  const tz       = hours.timezone || 'UTC'
+  const todayKey = getTodayKey(tz)
+  const todayStr = getDateStr(tz, 0)
+
+  // Upcoming exceptions strictly after today (today's status is already in the pill)
+  const upcoming     = getUpcomingExceptions(hours, tz, 5).filter(e => e.date > todayStr)
+  const nextClosure  = upcoming.find(e => e.closed)
 
   const pillBg     = dark ? 'rgba(255,255,255,0.14)' : 'var(--color-accent-surface)'
   const pillBorder = dark ? '1px solid rgba(255,255,255,0.28)' : '1px solid var(--color-accent-border)'
@@ -58,6 +64,12 @@ function BusinessStatusBadge({ hours, dark }: { hours: BusinessHours; dark?: boo
   const panelBg    = dark ? 'rgba(0,0,0,0.5)' : 'var(--color-accent-surface)'
   const panelBdr   = dark ? 'rgba(255,255,255,0.14)' : 'var(--color-accent-border)'
   const rowColor   = dark ? 'rgba(255,255,255,0.85)' : 'var(--color-accent)'
+  const noticeColor = dark ? 'rgba(255,255,255,0.72)' : '#92400E'
+  const noticeBg   = dark ? 'rgba(255,255,255,0.08)' : '#FEF3C7'
+  const noticeBdr  = dark ? 'rgba(255,255,255,0.16)' : '#FDE68A'
+
+  // Short date label: "Jul 10" (strip the year)
+  const shortDate = (dateStr: string) => fmtExceptionDate(dateStr).replace(/,\s*\d{4}$/, '')
 
   return (
     <div className="mb-5">
@@ -73,6 +85,18 @@ function BusinessStatusBadge({ hours, dark }: { hours: BusinessHours; dark?: boo
           <path d="M1.5 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </button>
+
+      {/* Always-visible upcoming-closure notice — no expand required */}
+      {nextClosure && (
+        <div className="mt-1.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
+          style={{ background: noticeBg, border: `1px solid ${noticeBdr}`, color: noticeColor }}>
+          <svg width="11" height="11" viewBox="0 0 11 11" fill="none" style={{ flexShrink: 0 }}>
+            <circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" strokeWidth="1.3"/>
+            <path d="M5.5 3v2.5l1.5 1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+          </svg>
+          Closed {shortDate(nextClosure.date)}{nextClosure.note ? ` · ${nextClosure.note}` : ''}
+        </div>
+      )}
 
       {expanded && (
         <div
@@ -97,6 +121,31 @@ function BusinessStatusBadge({ hours, dark }: { hours: BusinessHours; dark?: boo
               </div>
             )
           })}
+
+          {/* Upcoming exceptions: closures + special hours */}
+          {upcoming.length > 0 && (
+            <div className="px-4 py-3" style={{ borderTop: `1px solid ${panelBdr}` }}>
+              <p className="text-[10px] font-black uppercase tracking-wider mb-1.5" style={{ color: rowColor, opacity: 0.55 }}>
+                Upcoming closures &amp; special days
+              </p>
+              <div className="space-y-1">
+                {upcoming.map(exc => (
+                  <div key={exc.date} className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold" style={{ color: rowColor }}>
+                      {shortDate(exc.date)}
+                    </span>
+                    <span className="text-xs" style={{ color: rowColor, opacity: 0.7 }}>
+                      {exc.closed
+                        ? (exc.note ? `Closed · ${exc.note}` : 'Closed')
+                        : (exc.open && exc.close
+                          ? `${fmt12(exc.open)} – ${fmt12(exc.close)}${exc.note ? ` · ${exc.note}` : ''}`
+                          : exc.note ?? 'Special hours')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
