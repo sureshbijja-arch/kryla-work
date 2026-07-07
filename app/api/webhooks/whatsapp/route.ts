@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 import { sendWhatsAppMessage } from '@/lib/whatsapp'
 import { getPlanGate } from '@/lib/plans'
 import { normalizeHandle, normalizeNextdoorUrl } from '@/lib/social'
+import { sendEmail } from '@/lib/email'
 import Anthropic from '@anthropic-ai/sdk'
 
 const anthropic = new Anthropic()
@@ -53,8 +54,17 @@ Respond with ONLY valid JSON — no extra text before or after. Shape:
   "set_language": null,
   "patch_availability": null,
   "delete_availability": null,
-  "new_ad": null
+  "new_ad": null,
+  "patch_booking": null
 }
+
+patch_booking: { "id": "<booking-uuid>", "status": "accepted" | "rejected" | "cancelled" } — or null.
+- Use this when the member wants to accept, decline, or cancel a booking.
+- Resolve the customer name or service from the bookings list in context to find the matching id.
+- "accept" → accepted, "decline" / "reject" → rejected, "cancel" → cancelled.
+- If the request matches more than one pending booking, ask a short clarifying question instead of guessing.
+- If exactly one booking is pending and the member says just "accept" or "decline", use that one.
+- If no matching booking is found, say so clearly and do not set patch_booking.
 
 TODAY'S DATE: {{TODAY}}
 
@@ -186,7 +196,7 @@ async function handleInbound(senderPhone: string, messageText: string) {
   }
 
   // ── Fetch current live content for AI context ────────────────────────────
-  const [{ data: page }, { data: prov }, { data: availRows }] = await Promise.all([
+  const [{ data: page }, { data: prov }, { data: availRows }, { data: bookingRows }] = await Promise.all([
     supabaseAdmin
       .from('pages')
       .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, translations')
@@ -202,16 +212,32 @@ async function handleInbound(senderPhone: string, messageText: string) {
       .select('day_key, active, slots')
       .eq('provider_id', provider.id)
       .order('day_key'),
+    supabaseAdmin
+      .from('bookings')
+      .select('id, created_at, customer_name, client_email, service, preferred_date, status')
+      .eq('provider_id', provider.id)
+      .order('created_at', { ascending: false })
+      .limit(15),
   ])
+
+  const bookings = (bookingRows ?? []).map(b => ({
+    id:       b.id,
+    customer: b.customer_name,
+    email:    b.client_email ?? null,
+    service:  b.service,
+    date:     b.preferred_date ?? null,
+    status:   b.status,
+  }))
 
   const profile = {
     firstName:       provider.first_name,
-    location:        prov?.location         ?? null,
-    business_hours:  prov?.business_hours   ?? null,
-    page_language:   prov?.page_language    ?? 'en',
+    location:        prov?.location          ?? null,
+    business_hours:  prov?.business_hours    ?? null,
+    page_language:   prov?.page_language     ?? 'en',
     instagram_handle: prov?.instagram_handle ?? null,
-    nextdoor_url:    prov?.nextdoor_url      ?? null,
-    availability:    availRows              ?? [],
+    nextdoor_url:    prov?.nextdoor_url       ?? null,
+    availability:    availRows               ?? [],
+    bookings,
     ...(page ?? {}),
   }
 
@@ -237,6 +263,7 @@ async function handleInbound(senderPhone: string, messageText: string) {
     patch_availability?: { dayKey: string; active: boolean; slots: string[] }[] | null
     delete_availability?: string[] | null
     new_ad?: { title: string; description?: string; linkUrl?: string } | null
+    patch_booking?: { id: string; status: string } | null
   }
   try {
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
@@ -257,6 +284,7 @@ async function handleInbound(senderPhone: string, messageText: string) {
     patch_availability = null,
     delete_availability = null,
     new_ad             = null,
+    patch_booking      = null,
   } = parsed
 
   const allowedPages     = ['headline', 'subheadline', 'bio', 'cta_primary', 'cta_secondary', 'services', 'highlights', 'faq']
@@ -325,6 +353,65 @@ async function handleInbound(senderPhone: string, messageText: string) {
       }
     }
     revalidatePath(`/${provider.slug}`)
+    await sendWhatsAppMessage({ to: senderPhone, text: message })
+    return
+  }
+
+  // ── Booking status update (live immediately) ────────────────────────────
+  const validStatuses = ['accepted', 'rejected', 'cancelled']
+  if (patch_booking?.id && patch_booking?.status && validStatuses.includes(patch_booking.status)) {
+    const { data: bk } = await supabaseAdmin
+      .from('bookings')
+      .select('customer_name, client_email, service, preferred_date')
+      .eq('id', patch_booking.id)
+      .eq('provider_id', provider.id)
+      .single()
+
+    const { error: bkErr } = await supabaseAdmin
+      .from('bookings')
+      .update({ status: patch_booking.status, status_updated_at: new Date().toISOString() })
+      .eq('id', patch_booking.id)
+      .eq('provider_id', provider.id)
+
+    if (!bkErr && bk?.client_email) {
+      try {
+        const dateLine = bk.preferred_date
+          ? `<p style="margin:6px 0"><strong>Date requested:</strong> ${bk.preferred_date}</p>` : ''
+
+        if (patch_booking.status === 'accepted') {
+          await sendEmail({
+            to: bk.client_email,
+            subject: `Your booking with ${provider.first_name} is confirmed!`,
+            html: `
+              <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#0D0D0D">
+                <p style="font-size:20px;font-weight:700;margin-bottom:4px">Booking confirmed</p>
+                <p style="color:#666;margin-top:0">Hi ${bk.customer_name}, your booking has been accepted.</p>
+                <hr style="border:none;border-top:1px solid #E5E5E5;margin:16px 0"/>
+                <p style="margin:6px 0"><strong>Service:</strong> ${bk.service}</p>
+                ${dateLine}
+                <p style="margin:6px 0"><strong>With:</strong> ${provider.first_name}</p>
+                <hr style="border:none;border-top:1px solid #E5E5E5;margin:16px 0"/>
+                <p style="color:#666;font-size:13px">Reach out on WhatsApp: <a href="https://wa.me/${senderPhone}" style="color:#F5A623">+${senderPhone}</a></p>
+              </div>`,
+          })
+        } else if (patch_booking.status === 'rejected') {
+          await sendEmail({
+            to: bk.client_email,
+            subject: `Update on your booking request with ${provider.first_name}`,
+            html: `
+              <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#0D0D0D">
+                <p style="font-size:20px;font-weight:700;margin-bottom:4px">Booking update</p>
+                <p style="color:#666;margin-top:0">Hi ${bk.customer_name},</p>
+                <p style="color:#444">Unfortunately, ${provider.first_name} isn't able to take your booking for <strong>${bk.service}</strong> at this time.</p>
+                <p style="color:#666;font-size:13px;margin-top:20px">You're welcome to visit their page and submit a new request.</p>
+              </div>`,
+          })
+        }
+      } catch (err) {
+        console.error('[wa-webhook] booking email failed (non-fatal):', err)
+      }
+    }
+
     await sendWhatsAppMessage({ to: senderPhone, text: message })
     return
   }

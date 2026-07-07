@@ -62,7 +62,7 @@ export function buildNewBookingMessage(opts: {
   return (
     `${opts.memberName}, someone wants to book you! 🎉\n\n` +
     `*${opts.customerName}* wants ${opts.service}${date}.\n\n` +
-    `Manage it in My Chat: https://kryla.work/mychat`
+    `Reply *accept* or *decline* to respond here, or manage in My Chat: https://kryla.work/mychat`
   )
 }
 
