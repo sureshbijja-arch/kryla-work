@@ -55,8 +55,14 @@ Respond with ONLY valid JSON — no extra text before or after. Shape:
   "patch_availability": null,
   "delete_availability": null,
   "new_ad": null,
-  "patch_booking": null
+  "patch_booking": null,
+  "new_suggestion": null
 }
+
+new_suggestion: a plain-English Kryla platform feature wish — or null.
+- Only set this when the member is wishing for a Kryla product capability (something Kryla the platform should build), not when they are editing their own page.
+- Acknowledge warmly in message (e.g. "Thanks! I've noted your idea — the Kryla team will love hearing that.").
+- Leave null for all normal page/booking/availability edits.
 
 patch_booking: { "id": "<booking-uuid>", "status": "accepted" | "rejected" | "cancelled" } — or null.
 - Use this when the member wants to accept, decline, or cancel a booking.
@@ -264,6 +270,7 @@ async function handleInbound(senderPhone: string, messageText: string) {
     delete_availability?: string[] | null
     new_ad?: { title: string; description?: string; linkUrl?: string } | null
     patch_booking?: { id: string; status: string } | null
+    new_suggestion?: string | null
   }
   try {
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
@@ -285,6 +292,7 @@ async function handleInbound(senderPhone: string, messageText: string) {
     delete_availability = null,
     new_ad             = null,
     patch_booking      = null,
+    new_suggestion     = null,
   } = parsed
 
   const allowedPages     = ['headline', 'subheadline', 'bio', 'cta_primary', 'cta_secondary', 'services', 'highlights', 'faq']
@@ -412,6 +420,15 @@ async function handleInbound(senderPhone: string, messageText: string) {
       }
     }
 
+    await sendWhatsAppMessage({ to: senderPhone, text: message })
+    return
+  }
+
+  // ── Suggestions capture (live immediately, non-fatal) ───────────────────
+  if (new_suggestion?.trim()) {
+    try {
+      await supabaseAdmin.from('suggestions').insert({ provider_id: provider.id, description: new_suggestion.trim() })
+    } catch { /* non-fatal */ }
     await sendWhatsAppMessage({ to: senderPhone, text: message })
     return
   }
