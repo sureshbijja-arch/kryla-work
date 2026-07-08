@@ -29,6 +29,7 @@ interface Message {
   changed?: boolean
   suggestTab?: string
   suggestDesignTab?: string
+  sources?: { title: string; url: string }[]
 }
 
 interface CurrentProfile {
@@ -215,6 +216,7 @@ export default function SpaceClient({
   const mediaRecorderRef        = useRef<MediaRecorder | null>(null)
   const audioChunksRef          = useRef<Blob[]>([])
   const [transcribing, setTranscribing] = useState(false)
+  const [researchMode, setResearchMode] = useState(false)
 
   // ── Billing return toast ─────────────────────────────────────────────────────
   const router = useRouter()
@@ -371,28 +373,50 @@ export default function SpaceClient({
     setLoading(true)
 
     try {
-      const res = await fetch('/api/mychat/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          providerId,
-          messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
-          currentProfile,
-        }),
-      })
-      const data = await res.json()
-      setMessages(prev => [
-        ...prev,
-        {
-          role: 'assistant',
-          content: data.message,
-          changed: data.changed,
-          suggestTab: data.suggestTab,
-          suggestDesignTab: data.suggestDesignTab,
-        },
-      ])
-      if (data.changed) onRefresh()
-      if (voiceOn && data.message) speak(data.message)
+      if (researchMode) {
+        // ── Research path — persona-scoped web search ───────────────────────
+        const res = await fetch('/api/mychat/research', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            providerId,
+            messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
+          }),
+        })
+        const data = await res.json()
+        setMessages(prev => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: data.message ?? 'Research failed — please try again.',
+            sources: data.sources?.length ? data.sources : undefined,
+          },
+        ])
+      } else {
+        // ── Normal chat path — page editing ────────────────────────────────
+        const res = await fetch('/api/mychat/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            providerId,
+            messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
+            currentProfile,
+          }),
+        })
+        const data = await res.json()
+        setMessages(prev => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: data.message,
+            changed: data.changed,
+            suggestTab: data.suggestTab,
+            suggestDesignTab: data.suggestDesignTab,
+          },
+        ])
+        if (data.changed) onRefresh()
+        if (voiceOn && data.message) speak(data.message)
+      }
     } catch {
       setMessages(prev => [
         ...prev,
@@ -557,6 +581,25 @@ export default function SpaceClient({
                         <span className="text-[10px] text-[#22C55E] font-semibold">Draft saved · publish when ready</span>
                       </div>
                     )}
+                    {msg.sources && msg.sources.length > 0 && (
+                      <div className="mt-2.5 flex flex-col gap-1 border-t border-[#F0F0F0] pt-2">
+                        <p className="text-[10px] font-semibold text-[#bbb] uppercase tracking-wide mb-0.5">Sources</p>
+                        {msg.sources.map((s, i) => (
+                          <a
+                            key={i}
+                            href={s.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[11px] text-[#666] hover:text-[#0D0D0D] truncate flex items-center gap-1.5 transition-colors">
+                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="shrink-0">
+                              <path d="M4 1.5H2A.5.5 0 001.5 2v6a.5.5 0 00.5.5h6A.5.5 0 008.5 8V6M6 1.5h2.5V4M5 5l3.5-3.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            {s.title || s.url}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+
                     {msg.suggestTab && (
                       <button
                         onClick={() => {
@@ -598,6 +641,21 @@ export default function SpaceClient({
 
           <div className="bg-white border-t border-[#E5E5E5] px-4 py-4 shrink-0">
             <div className="flex gap-2 items-end">
+              {/* Research mode toggle */}
+              <button
+                onClick={() => setResearchMode(r => !r)}
+                title={researchMode ? 'Research mode on — click to return to page editing' : 'Research mode — ask about trends in your industry'}
+                className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                  researchMode
+                    ? 'bg-[#0D0D0D] text-white'
+                    : 'bg-[#F5F5F5] text-[#666] hover:bg-[#E5E5E5]'
+                }`}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M10 10l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              </button>
+
               {/* Mic button */}
               <button
                 onClick={toggleMic}
@@ -626,7 +684,7 @@ export default function SpaceClient({
               <textarea
                 ref={inputRef}
                 rows={1}
-                placeholder={transcribing ? 'Transcribing…' : listening ? '…' : t.placeholder}
+                placeholder={transcribing ? 'Transcribing…' : listening ? '…' : researchMode ? 'Ask about trends in your industry…' : t.placeholder}
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
