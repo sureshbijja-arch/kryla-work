@@ -7,6 +7,7 @@
  * DELETE { providerId, draftId }  → delete
  */
 
+import { randomUUID }    from 'node:crypto'
 import { createClient }  from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextResponse }  from 'next/server'
@@ -103,6 +104,17 @@ export async function PATCH(req: Request) {
   const provider = await getAuthedProvider(providerId)
   if (!provider) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  // IDOR guard: when re-attaching to a matter, verify the student belongs to this provider
+  if (studentId !== undefined && studentId !== null) {
+    const { data: student } = await supabaseAdmin
+      .from('students')
+      .select('id')
+      .eq('id', studentId)
+      .eq('provider_id', providerId)
+      .single()
+    if (!student) return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+  }
+
   // Build update payload
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updates: Record<string, any> = { updated_at: new Date().toISOString() }
@@ -111,16 +123,9 @@ export async function PATCH(req: Request) {
   if (status     !== undefined) updates.status     = status
   if (studentId  !== undefined) updates.student_id = studentId ?? null
 
-  // Generate a share_token if enabling, clear it if disabling
-  if (enableShare === true) {
-    // Use PostgreSQL gen_random_uuid() via a subquery isn't possible via client;
-    // generate a UUID client-side (crypto.randomUUID is available in Node 19+ / edge)
-    updates.share_token = typeof crypto !== 'undefined'
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2)}`
-  } else if (enableShare === false) {
-    updates.share_token = null
-  }
+  // Use node:crypto — no insecure Math.random() fallback for security tokens
+  if (enableShare === true)  updates.share_token = randomUUID()
+  if (enableShare === false) updates.share_token = null
 
   const { data, error } = await supabaseAdmin
     .from('drafts')
