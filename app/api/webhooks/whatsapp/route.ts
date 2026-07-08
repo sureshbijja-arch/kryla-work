@@ -58,13 +58,33 @@ Respond with ONLY valid JSON — no extra text before or after. Shape:
   "delete_availability": null,
   "new_ad": null,
   "patch_booking": null,
-  "new_suggestion": null
+  "new_suggestion": null,
+  "do_research": null,
+  "new_student": null,
+  "log_session": null,
+  "patch_student": null
 }
 
 new_suggestion: a plain-English Kryla platform feature wish — or null.
 - Only set this when the member is wishing for a Kryla product capability (something Kryla the platform should build), not when they are editing their own page.
 - Acknowledge warmly in message (e.g. "Thanks! I've noted your idea — the Kryla team will love hearing that.").
 - Leave null for all normal page/booking/availability edits.
+
+do_research: "query string" or null.
+- Use when the member asks to research a business topic (best practices, competitor pricing, marketing ideas, local demand, etc.).
+- Set to the search query string; leave null for all page/booking/student edits.
+- Your message should say something like "Researching that now, one moment..." — the actual results will be sent separately.
+
+new_student: { "name": "string", "label_1": "grade/year", "label_2": "subject", "notes": "optional" } or null.
+- Use when the member wants to add a new student (tutor persona only).
+- label_1 = grade or school year, label_2 = subject taught.
+
+log_session: { "studentId": "uuid", "topic": "optional", "homework": "optional", "notes": "optional" } or null.
+- Use when the member logs a completed lesson. Resolve the student's name to their id using the student roster below.
+- Tutor persona only.
+
+patch_student: { "id": "uuid", "name"?: "...", "label_1"?: "...", "label_2"?: "...", "notes"?: "...", "next_session"?: "YYYY-MM-DD" } or null.
+- Use to update a student's details. Tutor persona only.
 
 patch_booking: { "id": "<booking-uuid>", "status": "accepted" | "rejected" | "cancelled" } — or null.
 - Use this when the member wants to accept, decline, or cancel a booking.
@@ -136,13 +156,15 @@ Rules:
 - Leave set_language, patch_availability, delete_availability, new_ad as null when not used
 
 Current page content:
-{{PROFILE}}`
+{{PROFILE}}
+
+{{STUDENTS}}`
 
 async function handleInbound(senderPhone: string, messageText: string, audioId?: string) {
   // Look up provider by whatsapp_number — stored as bare digits matching Meta's format
   const { data: matches } = await supabaseAdmin
     .from('providers')
-    .select('id, slug, first_name, plan, wa_undo, page_language, instagram_handle, nextdoor_url')
+    .select('id, slug, first_name, plan, persona, wa_undo, page_language, instagram_handle, nextdoor_url')
     .eq('whatsapp_number', senderPhone)
 
   if (!matches || matches.length === 0) {
@@ -240,7 +262,7 @@ async function handleInbound(senderPhone: string, messageText: string, audioId?:
   }
 
   // ── Fetch current live content for AI context ────────────────────────────
-  const [{ data: page }, { data: prov }, { data: availRows }, { data: bookingRows }] = await Promise.all([
+  const [{ data: page }, { data: prov }, { data: availRows }, { data: bookingRows }, { data: studentsRows }] = await Promise.all([
     supabaseAdmin
       .from('pages')
       .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, translations')
@@ -262,6 +284,12 @@ async function handleInbound(senderPhone: string, messageText: string, audioId?:
       .eq('provider_id', provider.id)
       .order('created_at', { ascending: false })
       .limit(15),
+    supabaseAdmin
+      .from('students')
+      .select('id, name, label_1, label_2, sessions, next_session')
+      .eq('provider_id', provider.id)
+      .order('name')
+      .limit(50),
   ])
 
   const bookings = (bookingRows ?? []).map(b => ({
@@ -287,9 +315,15 @@ async function handleInbound(senderPhone: string, messageText: string, audioId?:
   }
 
   const today = new Date().toISOString().slice(0, 10)
+  const studentsSection = (studentsRows ?? []).length > 0
+    ? `Student roster (use for new_student / log_session / patch_student actions):\n${JSON.stringify(
+        (studentsRows ?? []).map(s => ({ id: s.id, name: s.name, grade: s.label_1, subject: s.label_2, sessions: s.sessions })),
+        null, 2)}`
+    : ''
   const systemPrompt = WA_SYSTEM_PROMPT
     .replace('{{TODAY}}', today)
     .replace('{{PROFILE}}', JSON.stringify(profile, null, 2))
+    .replace('{{STUDENTS}}', studentsSection)
 
   const completion = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
@@ -310,6 +344,10 @@ async function handleInbound(senderPhone: string, messageText: string, audioId?:
     new_ad?: { title: string; description?: string; linkUrl?: string } | null
     patch_booking?: { id: string; status: string } | null
     new_suggestion?: string | null
+    do_research?: string | null
+    new_student?: { name: string; label_1?: string; label_2?: string; notes?: string } | null
+    log_session?: { studentId: string; topic?: string; homework?: string; notes?: string } | null
+    patch_student?: { id: string; name?: string; label_1?: string; label_2?: string; notes?: string; next_session?: string } | null
   }
   try {
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
@@ -332,6 +370,10 @@ async function handleInbound(senderPhone: string, messageText: string, audioId?:
     new_ad             = null,
     patch_booking      = null,
     new_suggestion     = null,
+    do_research        = null,
+    new_student        = null,
+    log_session        = null,
+    patch_student      = null,
   } = parsed
 
   console.log('[wa] patch_providers keys:', Object.keys(patch_providers))
@@ -491,6 +533,87 @@ async function handleInbound(senderPhone: string, messageText: string, audioId?:
     return
   }
 
+  // ── Research via web_search ──────────────────────────────────────────────
+  if (do_research?.trim()) {
+    if (!gate.allows('research', provider.plan ?? 'grow')) {
+      await sendWhatsAppMessage({ to: senderPhone, text: `Research insights are available on the Thrive plan. Upgrade at kryla.work/${provider.slug}` })
+      return
+    }
+    const resLocation = prov?.location ?? ''
+    const resPrompt = `You are a business intelligence assistant for ${provider.first_name}, a ${provider.persona ?? 'professional'} based in ${resLocation || 'their area'} on Kryla. Use web search to answer their business question with 3–5 specific, actionable ideas. Cite 1–2 sources by name. Plain text only — no markdown, no asterisks. This is a WhatsApp reply so keep it concise.`
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const resResp = await (anthropic as any).messages.create(
+        {
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1024,
+          system: resPrompt,
+          tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }],
+          messages: [{ role: 'user', content: do_research.trim() }],
+        },
+        { headers: { 'anthropic-beta': 'web-search-2025-03-05' } },
+      )
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const resText = (resResp.content as any[]).filter(b => b.type === 'text').map(b => (b as any).text as string).join('\n').trim()
+      await sendWhatsAppMessage({ to: senderPhone, text: resText || "I couldn't find relevant results. Try rephrasing your question." })
+    } catch (err) {
+      console.error('[wa-webhook] research failed:', err)
+      await sendWhatsAppMessage({ to: senderPhone, text: "Research failed — please try again." })
+    }
+    return
+  }
+
+  // ── Student actions (tutor persona) ─────────────────────────────────────
+  if (new_student?.name) {
+    const { error: nsErr } = await supabaseAdmin.from('students').insert({
+      provider_id:  provider.id,
+      name:         new_student.name,
+      label_1:      new_student.label_1 ?? null,
+      label_2:      new_student.label_2 ?? null,
+      notes:        new_student.notes   ?? null,
+      sessions:     0,
+      avatar_color: '#6366F1',
+    })
+    if (nsErr) console.error('[wa-webhook] new_student insert failed:', nsErr)
+    await sendWhatsAppMessage({ to: senderPhone, text: message })
+    return
+  }
+
+  if (log_session?.studentId) {
+    const { data: stu } = await supabaseAdmin
+      .from('students').select('sessions')
+      .eq('id', log_session.studentId).eq('provider_id', provider.id).single()
+    await supabaseAdmin.from('students')
+      .update({ sessions: (stu?.sessions ?? 0) + 1, updated_at: new Date().toISOString() })
+      .eq('id', log_session.studentId).eq('provider_id', provider.id)
+    if (log_session.topic || log_session.homework || log_session.notes) {
+      void supabaseAdmin.from('student_sessions').insert({
+        provider_id:  provider.id,
+        student_id:   log_session.studentId,
+        session_date: new Date().toISOString().slice(0, 10),
+        topic:        log_session.topic    ?? null,
+        homework:     log_session.homework ?? null,
+        notes:        log_session.notes    ?? null,
+        attended:     true,
+      })
+    }
+    await sendWhatsAppMessage({ to: senderPhone, text: message })
+    return
+  }
+
+  if (patch_student?.id) {
+    const psUpdate: Record<string, unknown> = { updated_at: new Date().toISOString() }
+    if ('name'         in patch_student) psUpdate.name         = patch_student.name
+    if ('label_1'      in patch_student) psUpdate.label_1      = patch_student.label_1
+    if ('label_2'      in patch_student) psUpdate.label_2      = patch_student.label_2
+    if ('notes'        in patch_student) psUpdate.notes        = patch_student.notes
+    if ('next_session' in patch_student) psUpdate.next_session = patch_student.next_session
+    await supabaseAdmin.from('students').update(psUpdate)
+      .eq('id', patch_student.id).eq('provider_id', provider.id)
+    await sendWhatsAppMessage({ to: senderPhone, text: message })
+    return
+  }
+
   const hasAvailability = Array.isArray(patch_availability) && patch_availability.length > 0
   const hasDeleteAvail  = Array.isArray(delete_availability) && delete_availability.length > 0
   const hasNewAd        = !!(new_ad?.title?.trim())
@@ -547,7 +670,6 @@ async function handleInbound(senderPhone: string, messageText: string, audioId?:
 
   // ── New ad (live immediately, plan-gated) ────────────────────────────────
   if (hasNewAd) {
-    const gate = await getPlanGate()
     if (gate.allows('ads', provider.plan ?? 'grow')) {
       await supabaseAdmin.from('ads').insert({
         provider_id: provider.id,
