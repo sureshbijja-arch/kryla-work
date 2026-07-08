@@ -158,7 +158,7 @@ export function getPersonaConfig(persona: string) {
 }
 
 // ── Roster copy per persona ───────────────────────────────────────────────────
-// Used by StudentsTab and SpaceClient to render persona-appropriate labels.
+// Used by PersonaTab and SpaceClient to render persona-appropriate labels.
 // Tutor is the default / reference; advocate overrides for legal language.
 
 export interface RosterCopy {

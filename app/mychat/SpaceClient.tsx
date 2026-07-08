@@ -18,10 +18,11 @@ import SuggestionsTab from './SuggestionsTab'
 import ReferTab from './ReferTab'
 import AvailabilityTab from './AvailabilityTab'
 import HoursTab from './HoursTab'
-import StudentsTab from './StudentsTab'
+import PersonaTab from './PersonaTab'
 import ReviewsTab from './ReviewsTab'
 import StatsTab from './StatsTab'
 import ResearchChat from './ResearchChat'
+import DraftingStudio from './DraftingStudio'
 import { getPersonaConfig, getRosterConfig } from '@/app/[slug]/personaConfig'
 
 interface Message {
@@ -226,6 +227,7 @@ export default function SpaceClient({
   const [transcribing, setTranscribing]     = useState(false)
   const [researchOpen, setResearchOpen]     = useState(false)
   const [researchQuery, setResearchQuery]   = useState<string | undefined>(undefined)
+  const [draftOpen, setDraftOpen]           = useState(false)
 
   // ── Billing return toast ─────────────────────────────────────────────────────
   const router = useRouter()
@@ -479,6 +481,15 @@ export default function SpaceClient({
         initialQuery={researchQuery}
       />
 
+      {/* ── Advocate-only Drafting Studio overlay ── */}
+      {currentProfile.persona === 'advocate' && (
+        <DraftingStudio
+          providerId={providerId}
+          open={draftOpen}
+          onClose={() => setDraftOpen(false)}
+        />
+      )}
+
       {/* ── Billing return toast ── */}
       {billingToast && (
         <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl text-sm font-medium shadow-xl transition-all ${
@@ -721,6 +732,18 @@ export default function SpaceClient({
                 </svg>
               </button>
 
+              {/* Advocate-only: Drafting Studio button */}
+              {currentProfile.persona === 'advocate' && (
+                <button
+                  onClick={() => setDraftOpen(true)}
+                  title="Open Drafting Studio — draft, review, and save legal documents"
+                  className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-[#F5F5F5] text-[#666] hover:bg-[#E5E5E5]">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 1v14M1 13h14M4 13V9L1 5M12 13V9l3-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              )}
+
               {/* Mic button */}
               <button
                 onClick={toggleMic}
@@ -887,7 +910,7 @@ export default function SpaceClient({
       {/* ── Messages: Clients / Students ── */}
       {tab === 'messages' && messagesTab === 'clients' && (
         <div className="flex-1 overflow-y-auto">
-          <StudentsTab
+          <PersonaTab
             providerId={providerId}
             persona={currentProfile.persona}
             label1Label={

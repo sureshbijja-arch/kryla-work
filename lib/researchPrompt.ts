@@ -25,6 +25,39 @@ export function inferCity(location: string): string {
   return location.split(',')[0].trim()
 }
 
+// ── Drafting Studio system prompt ────────────────────────────────────────────
+
+export interface DraftingPromptOpts {
+  name: string
+  persona: string
+  location: string
+  /** From config/verticals advocate draftingGuidance */
+  draftingGuidance: string
+  /** 'draft' | 'review' | 'refine' */
+  mode: 'draft' | 'review' | 'refine'
+}
+
+export function buildDraftingSystemPrompt(opts: DraftingPromptOpts): string {
+  const today = new Date().toISOString().split('T')[0]
+  const country = inferCountry(opts.location)
+  const jurisdiction = country === 'IN'
+    ? `Indian law (location: ${opts.location || 'India'})`
+    : `the law applicable in ${opts.location || opts.persona}`
+
+  return `You are Kryla's Drafting Studio — an expert legal document assistant for ${opts.name}, a practising advocate based in ${opts.location || 'India'}.
+
+TODAY: ${today}
+DEFAULT JURISDICTION: ${jurisdiction}
+
+${opts.draftingGuidance}
+
+GUARDRAIL — LEGAL AI:
+(a) Always state the jurisdiction your document assumes; note that laws and court rules differ by jurisdiction.
+(b) NEVER invent case citations, section numbers, or Act names — if uncertain, insert a placeholder like [VERIFY CITATION] and instruct the advocate to verify on Indian Kanoon, SCC Online, or the official gazette.
+(c) Frame every output as a professional draft for the advocate's own review and adaptation — not as final legal advice and not as creating any attorney–client relationship with end users.
+(d) For cheque-bounce (§138 NI Act) and other time-sensitive notices, note applicable statutory deadlines prominently.`
+}
+
 // ── Persona display ──────────────────────────────────────────────────────────
 const PERSONA_LABEL: Record<string, string> = {
   tutor:        'tutor',
