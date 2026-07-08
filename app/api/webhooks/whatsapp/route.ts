@@ -6,6 +6,8 @@ import { transcribeAudio, TranscribeError } from '@/lib/transcribe'
 import { getPlanGate } from '@/lib/plans'
 import { normalizeHandle, normalizeNextdoorUrl } from '@/lib/social'
 import { sendEmail } from '@/lib/email'
+import { buildResearchSystemPrompt } from '@/lib/researchPrompt'
+import { getVertical } from '@/config/verticals'
 import Anthropic from '@anthropic-ai/sdk'
 
 const anthropic = new Anthropic()
@@ -540,7 +542,15 @@ async function handleInbound(senderPhone: string, messageText: string, audioId?:
       return
     }
     const resLocation = prov?.location ?? ''
-    const resPrompt = `You are a business intelligence assistant for ${provider.first_name}, a ${provider.persona ?? 'professional'} based in ${resLocation || 'their area'} on Kryla. Use web search to answer their business question with 3–5 specific, actionable ideas. Cite 1–2 sources by name. Plain text only — no markdown, no asterisks. This is a WhatsApp reply so keep it concise.`
+    const resVertical = getVertical(provider.persona ?? '')
+    const resPrompt = buildResearchSystemPrompt({
+      name:         provider.first_name ?? 'there',
+      persona:      provider.persona ?? 'other',
+      location:     resLocation || 'their area',
+      services:     '',
+      guidance:     resVertical?.researchGuidance,
+      concise:      true,
+    })
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const resResp = await (anthropic as any).messages.create(

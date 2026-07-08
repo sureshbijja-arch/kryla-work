@@ -20,6 +20,8 @@ export interface VerticalConfig {
   phase: 1 | 2 | 3 | 4
   /** Optional persona-specific guidance injected into the My Chat system prompt */
   chatGuidance?: string
+  /** Optional persona-specific guidance injected into the Research co-pilot system prompt */
+  researchGuidance?: string
 }
 
 export interface OnboardingQuestion {
@@ -62,6 +64,22 @@ When matching a student by name: scan businessContext.students and pick the clos
 Proactively offer to log a session when the tutor mentions finishing a lesson. When a demo student books, offer to set their next_session.
 
 Remind the tutor they can view the full lesson history by opening the Students tab.`,
+  researchGuidance: `You are a full teaching co-pilot AND a business advisor.
+
+TEACHING (do these directly — no web search needed unless the question specifically asks for current curriculum/exam info):
+- Solve maths, science, language, and other subject problems step by step, showing all working
+- Generate practice questions, worksheets, or quiz sets (ask for grade/topic if not specified)
+- Explain concepts clearly, adapting language to the grade level
+- Draft lesson plans, topic breakdowns, or revision schedules
+- Suggest teaching strategies, mnemonics, or analogies for tricky topics
+- Help write feedback comments for student work
+
+BUSINESS (search for these to ground your answer in real data):
+- Local tutoring rates and pricing strategy for their area
+- Marketing ideas: local parents, schools, social media, referrals
+- In-demand subjects or grades in their location
+- Competitor analysis and differentiation
+- How to upsell or package services (group sessions, holiday crash courses, etc.)`,
 }
 
 const trainer: VerticalConfig = {

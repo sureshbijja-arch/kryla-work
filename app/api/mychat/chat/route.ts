@@ -32,7 +32,8 @@ You MUST respond with ONLY valid JSON — no extra text before or after. Shape:
   "new_suggestion": null,
   "new_student": null,
   "log_session": null,
-  "patch_student": null
+  "patch_student": null,
+  "suggest_research": false
 }
 
 patch_booking shape: { "id": "<booking-uuid>", "status": "accepted" | "rejected" | "cancelled" }
@@ -135,6 +136,10 @@ log_session: { studentId, topic?, homework?, notes? } — logs a completed lesso
 patch_student: { id, next_session?, notes?, label_1?, label_2? } — updates a student's record immediately.
 Use the student roster in businessContext.students to find studentId by name.
 
+suggest_research: true | false (default false).
+- Set to true when the member asks something that needs deep knowledge, working through a problem, or research — e.g. subject questions, lesson planning, practice problems, competitor pricing, industry trends.
+- When set to true: your "message" should warmly say something like "For that, tap the 🔍 Research button and ask me there — I'll work through it with you!" Do NOT attempt to answer it yourself. Never use dismissive language like "I'm a business assistant" — always frame it as a helpful handoff to Research.
+
 {PERSONA_GUIDANCE}
 
 ═══════════════════════════════════════════
@@ -150,7 +155,8 @@ RULES
 - Bookings: when member says "accept/reject/cancel [name]'s booking" → set patch_booking. If ambiguous, list matches and ask.
 - Never say "AI" — you are Kryla
 - Keep message warm, plain English, 2-4 sentences
-- For Kryla platform wishes, set new_suggestion`
+- For Kryla platform wishes, set new_suggestion
+- For subject questions, research tasks, practice problems, lesson planning, competitor analysis, or industry trends: set suggest_research:true and warmly hand off to Research — never refuse or answer those yourself`
 
 export async function POST(req: Request) {
   const supabase = createClient()
@@ -330,6 +336,7 @@ ${JSON.stringify(businessContext, null, 2)}`
     new_student: { name: string; label_1?: string | null; label_2?: string | null; notes?: string | null } | null
     log_session: { studentId: string; topic?: string | null; homework?: string | null; notes?: string | null } | null
     patch_student: { id: string; next_session?: string | null; notes?: string | null; label_1?: string | null; label_2?: string | null } | null
+    suggest_research: boolean | null
   }
   try {
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
@@ -353,6 +360,7 @@ ${JSON.stringify(businessContext, null, 2)}`
     new_student       = null,
     log_session       = null,
     patch_student     = null,
+    suggest_research  = false,
   } = parsed
 
   // ── Normalise provider patch ────────────────────────────────────────────────
@@ -662,5 +670,6 @@ ${JSON.stringify(content, null, 2)}`,
     suggestTab:       suggest_tab       ?? undefined,
     suggestDesignTab: suggest_design_tab ?? undefined,
     newSuggestion:    new_suggestion    ?? undefined,
+    suggestResearch:  suggest_research  || undefined,
   })
 }

@@ -21,6 +21,7 @@ import HoursTab from './HoursTab'
 import StudentsTab from './StudentsTab'
 import ReviewsTab from './ReviewsTab'
 import StatsTab from './StatsTab'
+import ResearchChat from './ResearchChat'
 import { getPersonaConfig } from '@/app/[slug]/personaConfig'
 
 interface Message {
@@ -30,6 +31,9 @@ interface Message {
   suggestTab?: string
   suggestDesignTab?: string
   sources?: { title: string; url: string }[]
+  suggestResearch?: boolean
+  /** The user's question, stored so the Research overlay can be pre-filled */
+  researchQuery?: string
 }
 
 interface CurrentProfile {
@@ -215,8 +219,9 @@ export default function SpaceClient({
   const recognitionRef          = useRef<unknown>(null)
   const mediaRecorderRef        = useRef<MediaRecorder | null>(null)
   const audioChunksRef          = useRef<Blob[]>([])
-  const [transcribing, setTranscribing] = useState(false)
-  const [researchMode, setResearchMode] = useState(false)
+  const [transcribing, setTranscribing]     = useState(false)
+  const [researchOpen, setResearchOpen]     = useState(false)
+  const [researchQuery, setResearchQuery]   = useState<string | undefined>(undefined)
 
   // ── Billing return toast ─────────────────────────────────────────────────────
   const router = useRouter()
@@ -373,50 +378,31 @@ export default function SpaceClient({
     setLoading(true)
 
     try {
-      if (researchMode) {
-        // ── Research path — persona-scoped web search ───────────────────────
-        const res = await fetch('/api/mychat/research', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            providerId,
-            messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
-          }),
-        })
-        const data = await res.json()
-        setMessages(prev => [
-          ...prev,
-          {
-            role: 'assistant',
-            content: data.message ?? 'Research failed — please try again.',
-            sources: data.sources?.length ? data.sources : undefined,
-          },
-        ])
-      } else {
-        // ── Normal chat path — page editing ────────────────────────────────
-        const res = await fetch('/api/mychat/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            providerId,
-            messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
-            currentProfile,
-          }),
-        })
-        const data = await res.json()
-        setMessages(prev => [
-          ...prev,
-          {
-            role: 'assistant',
-            content: data.message,
-            changed: data.changed,
-            suggestTab: data.suggestTab,
-            suggestDesignTab: data.suggestDesignTab,
-          },
-        ])
-        if (data.changed) onRefresh()
-        if (voiceOn && data.message) speak(data.message)
-      }
+      // ── Normal chat path — page editing (Research is now its own overlay) ──
+      const res = await fetch('/api/mychat/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          providerId,
+          messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
+          currentProfile,
+        }),
+      })
+      const data = await res.json()
+      setMessages(prev => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: data.message,
+          changed: data.changed,
+          suggestTab: data.suggestTab,
+          suggestDesignTab: data.suggestDesignTab,
+          suggestResearch: data.suggestResearch || undefined,
+          researchQuery: data.suggestResearch ? text : undefined,
+        },
+      ])
+      if (data.changed) onRefresh()
+      if (voiceOn && data.message) speak(data.message)
     } catch {
       setMessages(prev => [
         ...prev,
@@ -458,6 +444,14 @@ export default function SpaceClient({
 
   return (
     <div className="h-full flex flex-col bg-[#FAFAFA]">
+
+      {/* ── Full-screen Research chat overlay ── */}
+      <ResearchChat
+        providerId={providerId}
+        open={researchOpen}
+        onClose={() => { setResearchOpen(false); setResearchQuery(undefined) }}
+        initialQuery={researchQuery}
+      />
 
       {/* ── Billing return toast ── */}
       {billingToast && (
@@ -615,6 +609,20 @@ export default function SpaceClient({
                         </svg>
                       </button>
                     )}
+
+                    {msg.suggestResearch && (
+                      <button
+                        onClick={() => {
+                          setResearchQuery(msg.researchQuery)
+                          setResearchOpen(true)
+                        }}
+                        className="mt-2 ml-1 flex items-center gap-1.5 text-xs font-semibold text-[#0D0D0D] bg-[#F5F5F5] hover:bg-[#E5E5E5] rounded-xl px-3 py-1.5 transition-colors">
+                        Open Research 🔍
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                          <path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -641,15 +649,11 @@ export default function SpaceClient({
 
           <div className="bg-white border-t border-[#E5E5E5] px-4 py-4 shrink-0">
             <div className="flex gap-2 items-end">
-              {/* Research mode toggle */}
+              {/* Research button — opens full-screen Research chat */}
               <button
-                onClick={() => setResearchMode(r => !r)}
-                title={researchMode ? 'Research mode on — click to return to page editing' : 'Research mode — ask about trends in your industry'}
-                className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                  researchMode
-                    ? 'bg-[#0D0D0D] text-white'
-                    : 'bg-[#F5F5F5] text-[#666] hover:bg-[#E5E5E5]'
-                }`}>
+                onClick={() => { setResearchQuery(undefined); setResearchOpen(true) }}
+                title="Open Research — solve problems, plan lessons, market smarter"
+                className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-[#F5F5F5] text-[#666] hover:bg-[#E5E5E5]">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
                   <path d="M10 10l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -684,7 +688,7 @@ export default function SpaceClient({
               <textarea
                 ref={inputRef}
                 rows={1}
-                placeholder={transcribing ? 'Transcribing…' : listening ? '…' : researchMode ? 'Ask about trends in your industry…' : t.placeholder}
+                placeholder={transcribing ? 'Transcribing…' : listening ? '…' : t.placeholder}
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}

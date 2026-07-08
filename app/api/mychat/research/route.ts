@@ -1,7 +1,11 @@
 /**
  * POST /api/mychat/research
  *
- * Persona-scoped business research powered by Anthropic's native web_search tool.
+ * Persona-aware co-pilot powered by Anthropic's native web_search tool.
+ * Handles BOTH profession-specific help (teaching, craft, coaching) and
+ * business research (pricing, marketing, demand). The old "business-only"
+ * restriction is removed — the shared buildResearchSystemPrompt handles scope.
+ *
  * Separate from /api/mychat/chat so the strict JSON-patch contract there is untouched.
  * Returns { message: string; sources: { title: string; url: string }[] }
  *
@@ -12,73 +16,14 @@
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { getPlanGate } from '@/lib/plans'
+import { buildResearchSystemPrompt, inferCity, inferCountry } from '@/lib/researchPrompt'
+import { getVertical } from '@/config/verticals'
 import Anthropic from '@anthropic-ai/sdk'
 import { NextResponse } from 'next/server'
 
 const anthropic = new Anthropic()
 
 const DAILY_LIMIT = parseInt(process.env.RESEARCH_DAILY_LIMIT ?? '10', 10)
-
-// ── Location helpers ────────────────────────────────────────────────────────
-// Derive an approximate ISO country code from a free-text location string.
-// Best-effort — Whisper auto-detect handles edge cases.
-function inferCountry(location: string): string {
-  const l = location.toLowerCase()
-  if (l.includes('india') || /\b(delhi|mumbai|bangalore|bengaluru|chennai|hyderabad|kolkata|pune|ahmedabad|jaipur|surat)\b/.test(l)) return 'IN'
-  if (l.includes('united kingdom') || l.includes(' uk') || l.includes('england') || l.includes('london') || l.includes('scotland') || l.includes('wales')) return 'GB'
-  if (l.includes('canada') || l.includes('toronto') || l.includes('vancouver') || l.includes('montreal')) return 'CA'
-  if (l.includes('australia') || l.includes('sydney') || l.includes('melbourne') || l.includes('brisbane')) return 'AU'
-  return 'US' // default
-}
-
-// Extract a city-like string from the location (first segment before comma or state abbr)
-function inferCity(location: string): string {
-  return location.split(',')[0].trim()
-}
-
-// ── Persona display ─────────────────────────────────────────────────────────
-const PERSONA_LABEL: Record<string, string> = {
-  tutor: 'tutor', trainer: 'personal trainer', baker: 'baker/pastry chef',
-  photographer: 'photographer', salon: 'salon/beauty professional',
-  chef: 'private chef', doctor: 'healthcare professional',
-  musician: 'musician/music teacher', other: 'professional',
-}
-
-function personaLabel(persona: string, customName?: string | null): string {
-  if (persona === 'other' && customName) return customName
-  return PERSONA_LABEL[persona] ?? persona
-}
-
-// ── System prompt ───────────────────────────────────────────────────────────
-function buildSystemPrompt(opts: {
-  name: string
-  persona: string
-  customPersona?: string | null
-  location: string
-  services: string
-}): string {
-  const role = personaLabel(opts.persona, opts.customPersona)
-  const today = new Date().toISOString().split('T')[0]
-
-  const guardrail = opts.persona === 'doctor'
-    ? '\n\nIMPORTANT: This is a healthcare professional. NEVER give medical advice, diagnoses, or treatment recommendations. Limit research strictly to business topics (marketing, pricing, patient experience, practice management).'
-    : ''
-
-  return `You are a business intelligence assistant for ${opts.name}, a ${role} based in ${opts.location} on the Kryla platform.
-
-TODAY: ${today}
-
-Their services: ${opts.services || 'not specified'}
-
-Your job: use web search to answer their business-related questions with concrete, actionable insights scoped to their niche and location. Always:
-- Search before answering — ground every claim in real sources
-- Give 3–5 specific, actionable ideas relevant to a ${role} in ${opts.location}
-- Frame everything as "ideas to consider" or "what others in your field are doing" — not definitive facts
-- Mention 1-2 specific sources by name (e.g. "According to WeddingWire…")
-- Keep the tone warm and practical — like a knowledgeable friend, not a consultant
-- End with one concrete next step they can take in My Chat (e.g. "Want me to add X as a service?")
-- Never mention "AI" — you are Kryla${guardrail}`
-}
 
 // ── Source extraction ───────────────────────────────────────────────────────
 interface Source { title: string; url: string }
@@ -99,7 +44,7 @@ function extractSources(content: any[]): Source[] {
       }
     }
   }
-  return sources.slice(0, 5) // cap at 5 sources
+  return sources.slice(0, 5)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -179,6 +124,18 @@ export async function POST(req: Request) {
     ? { type: 'approximate' as const, city: inferCity(location), country: inferCountry(location) }
     : undefined
 
+  // ── Build co-pilot system prompt ──────────────────────────────────────────
+  const vertical = getVertical(provider.persona ?? '')
+  const systemPrompt = buildResearchSystemPrompt({
+    name:         provider.first_name ?? 'there',
+    persona:      provider.persona ?? 'other',
+    customPersona: provider.custom_persona_name,
+    location:     location || 'your area',
+    services,
+    guidance:     vertical?.researchGuidance,
+    concise:      false,
+  })
+
   // ── Anthropic web_search call ─────────────────────────────────────────────
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -186,13 +143,7 @@ export async function POST(req: Request) {
       {
         model: 'claude-sonnet-4-6',
         max_tokens: 1024,
-        system: buildSystemPrompt({
-          name: provider.first_name ?? 'there',
-          persona: provider.persona ?? 'other',
-          customPersona: provider.custom_persona_name,
-          location: location || 'your area',
-          services,
-        }),
+        system: systemPrompt,
         tools: [
           {
             type: 'web_search_20250305',
