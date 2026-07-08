@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 import { sendEmail } from '@/lib/email'
 import { getPlanGate } from '@/lib/plans'
 import { normalizeHandle, normalizeNextdoorUrl } from '@/lib/social'
+import { getVertical } from '@/config/verticals'
 import Anthropic from '@anthropic-ai/sdk'
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
@@ -28,7 +29,10 @@ You MUST respond with ONLY valid JSON — no extra text before or after. Shape:
   "new_ad": null,
   "suggest_tab": null,
   "suggest_design_tab": null,
-  "new_suggestion": null
+  "new_suggestion": null,
+  "new_student": null,
+  "log_session": null,
+  "patch_student": null
 }
 
 patch_booking shape: { "id": "<booking-uuid>", "status": "accepted" | "rejected" | "cancelled" }
@@ -39,6 +43,9 @@ new_ad: { title: string, description?: string, linkUrl?: string } — or null (T
 suggest_tab: "design" | "messages" | "bookings" | "plan" | "suggestions" — or null (NEVER auto-navigate)
 suggest_design_tab: "services" | "sections" | "layouts" | "ads" | "media" — or null (only with suggest_tab "design")
 new_suggestion: plain-English Kryla platform feature wish — or null
+new_student: { name: string, label_1?: string, label_2?: string, notes?: string } — add to student roster — or null
+log_session: { studentId: string, topic?: string, homework?: string, notes?: string } — log a completed lesson — or null
+patch_student: { id: string, next_session?: string, notes?: string, label_1?: string, label_2?: string } — update student info — or null
 
 TODAY'S DATE: {TODAY}
 
@@ -122,6 +129,14 @@ BOOKINGS tab:
 SUGGESTIONS tab:
   Submit Kryla platform feature wishes. When member expresses a wish, set new_suggestion and offer to take them there.
 
+── Students / roster ──
+new_student: { name, label_1? (e.g. grade), label_2? (e.g. subject), notes? } — adds to the student roster immediately.
+log_session: { studentId, topic?, homework?, notes? } — logs a completed lesson. Increments session count. Match student by id from businessContext.students.
+patch_student: { id, next_session?, notes?, label_1?, label_2? } — updates a student's record immediately.
+Use the student roster in businessContext.students to find studentId by name.
+
+{PERSONA_GUIDANCE}
+
 ═══════════════════════════════════════════
 RULES
 ═══════════════════════════════════════════
@@ -153,7 +168,7 @@ export async function POST(req: Request) {
 
   const { data: provider } = await supabaseAdmin
     .from('providers')
-    .select('id, slug, email, avatar_url, first_name, whatsapp_number, page_language, plan, business_hours, instagram_handle, nextdoor_url')
+    .select('id, slug, email, avatar_url, first_name, whatsapp_number, page_language, plan, business_hours, instagram_handle, nextdoor_url, persona, custom_persona_name')
     .eq('id', providerId)
     .eq('email', user.email)
     .single()
@@ -162,7 +177,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
   }
 
-  const [pageRow, bookingsRow, messagesRow, adsRow, availabilityRow] = await Promise.all([
+  const [pageRow, bookingsRow, messagesRow, adsRow, availabilityRow, studentsRow] = await Promise.all([
     supabaseAdmin
       .from('pages')
       .select('gallery, draft_data')
@@ -194,6 +209,13 @@ export async function POST(req: Request) {
       .select('day_key, active, slots')
       .eq('provider_id', providerId)
       .order('day_key'),
+
+    supabaseAdmin
+      .from('students')
+      .select('id, name, label_1, label_2, sessions, next_session')
+      .eq('provider_id', providerId)
+      .order('created_at', { ascending: false })
+      .limit(50),
   ])
 
   type DraftShape = { pages?: Record<string, unknown>; providers?: Record<string, unknown> }
@@ -212,10 +234,11 @@ export async function POST(req: Request) {
     pageLanguage:    provider.page_language  ?? 'en',
   }
 
-  const bookings   = bookingsRow.data   ?? []
-  const waMessages = messagesRow.data   ?? []
-  const ads        = adsRow.data        ?? []
+  const bookings     = bookingsRow.data   ?? []
+  const waMessages   = messagesRow.data   ?? []
+  const ads          = adsRow.data        ?? []
   const availability = availabilityRow.data ?? []
+  const students     = studentsRow.data   ?? []
 
   const threadMap = new Map<string, { name: string | null; lastMsg: string; unread: number; ts: string }>()
   for (const m of waMessages) {
@@ -248,6 +271,14 @@ export async function POST(req: Request) {
     messageThreads,
     ads: ads.map(a => ({ id: a.id, title: a.title, status: a.status })),
     availability,
+    students: students.map(s => ({
+      id: s.id,
+      name: s.name,
+      grade: s.label_1,
+      subject: s.label_2,
+      sessions: s.sessions,
+      nextSession: s.next_session,
+    })),
   }
 
   const pageLang = (provider.page_language as string) ?? 'en'
@@ -256,7 +287,13 @@ export async function POST(req: Request) {
     : ''
 
   const today = new Date().toISOString().slice(0, 10)
-  const promptWithDate = SYSTEM_PROMPT.replace('{TODAY}', today)
+  const vertical = getVertical(provider.persona ?? '')
+  const personaBlock = vertical?.chatGuidance
+    ? `\n\n═══════════════════════════════════════════\n${vertical.chatGuidance}\n═══════════════════════════════════════════`
+    : ''
+  const promptWithDate = SYSTEM_PROMPT
+    .replace('{TODAY}', today)
+    .replace('{PERSONA_GUIDANCE}', personaBlock)
 
   const systemWithContext = `${promptWithDate}${langInstruction}
 
@@ -290,6 +327,9 @@ ${JSON.stringify(businessContext, null, 2)}`
     suggest_tab: string | null
     suggest_design_tab: string | null
     new_suggestion: string | null
+    new_student: { name: string; label_1?: string | null; label_2?: string | null; notes?: string | null } | null
+    log_session: { studentId: string; topic?: string | null; homework?: string | null; notes?: string | null } | null
+    patch_student: { id: string; next_session?: string | null; notes?: string | null; label_1?: string | null; label_2?: string | null } | null
   }
   try {
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
@@ -310,6 +350,9 @@ ${JSON.stringify(businessContext, null, 2)}`
     suggest_tab       = null,
     suggest_design_tab = null,
     new_suggestion    = null,
+    new_student       = null,
+    log_session       = null,
+    patch_student     = null,
   } = parsed
 
   // ── Normalise provider patch ────────────────────────────────────────────────
@@ -536,6 +579,78 @@ ${JSON.stringify(content, null, 2)}`,
       await supabaseAdmin
         .from('suggestions')
         .insert({ provider_id: providerId, description: new_suggestion.trim() })
+    } catch {
+      // non-fatal
+    }
+  }
+
+  // ── Add student ─────────────────────────────────────────────────────────────
+  if (new_student?.name?.trim()) {
+    try {
+      await supabaseAdmin.from('students').insert({
+        provider_id:  providerId,
+        name:         new_student.name.trim(),
+        label_1:      new_student.label_1 ?? null,
+        label_2:      new_student.label_2 ?? null,
+        notes:        new_student.notes   ?? null,
+        avatar_color: '#6366F1',
+        sessions:     0,
+      })
+      changed = true
+    } catch {
+      // non-fatal
+    }
+  }
+
+  // ── Log session ─────────────────────────────────────────────────────────────
+  if (log_session?.studentId) {
+    try {
+      const { data: current } = await supabaseAdmin
+        .from('students')
+        .select('sessions')
+        .eq('id', log_session.studentId)
+        .eq('provider_id', providerId)
+        .single()
+
+      if (current) {
+        await supabaseAdmin
+          .from('students')
+          .update({ sessions: (current.sessions ?? 0) + 1, updated_at: new Date().toISOString() })
+          .eq('id', log_session.studentId)
+          .eq('provider_id', providerId)
+
+        if (log_session.topic || log_session.homework || log_session.notes) {
+          void supabaseAdmin.from('student_sessions').insert({
+            provider_id:  providerId,
+            student_id:   log_session.studentId,
+            session_date: today,
+            topic:        log_session.topic    ?? null,
+            homework:     log_session.homework ?? null,
+            notes:        log_session.notes    ?? null,
+            attended:     true,
+          })
+        }
+        changed = true
+      }
+    } catch {
+      // non-fatal
+    }
+  }
+
+  // ── Patch student ────────────────────────────────────────────────────────────
+  if (patch_student?.id) {
+    try {
+      const allowedPatch = ['next_session', 'notes', 'label_1', 'label_2'] as const
+      const update: Record<string, unknown> = { updated_at: new Date().toISOString() }
+      for (const key of allowedPatch) {
+        if (key in patch_student) update[key] = (patch_student as Record<string, unknown>)[key]
+      }
+      await supabaseAdmin
+        .from('students')
+        .update(update)
+        .eq('id', patch_student.id)
+        .eq('provider_id', providerId)
+      changed = true
     } catch {
       // non-fatal
     }

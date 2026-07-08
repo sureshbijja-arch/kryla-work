@@ -18,6 +18,8 @@ export interface VerticalConfig {
   bookingLabel: string
   ctaLabel: string
   phase: 1 | 2 | 3 | 4
+  /** Optional persona-specific guidance injected into the My Chat system prompt */
+  chatGuidance?: string
 }
 
 export interface OnboardingQuestion {
@@ -47,6 +49,19 @@ const tutor: VerticalConfig = {
     { id: 'location',    question: 'Where do you teach? (area or city)',           placeholder: 'e.g. Celina TX, or online' },
     { id: 'pricing',     question: "What's your session rate? (optional)",         placeholder: 'e.g. $40/hour or ₹500/hour' },
   ],
+  chatGuidance: `PERSONA: TUTOR
+Speak in tutor language: say "students", "sessions", "lessons", "subjects", "grades" — never "clients", "customers", or "appointments".
+
+You have access to the student roster in businessContext.students. You can act on it directly:
+- new_student: Add a new student by name, optionally with grade (label_1) and subject (label_2)
+- log_session: Log a completed lesson for a student (by studentId). Include topic covered, homework assigned, and any private notes.
+- patch_student: Update a student's details — next_session, grade, subject, or private notes.
+
+When matching a student by name: scan businessContext.students and pick the closest match. If ambiguous, list matches and ask. Always confirm the student name in your reply before acting (e.g. "Logged a session for Aryan · Grade 8 · Maths ✓").
+
+Proactively offer to log a session when the tutor mentions finishing a lesson. When a demo student books, offer to set their next_session.
+
+Remind the tutor they can view the full lesson history by opening the Students tab.`,
 }
 
 const trainer: VerticalConfig = {
