@@ -35,8 +35,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ text })
   } catch (err) {
     if (err instanceof TranscribeError && err.code === 'no_key') {
-      return NextResponse.json({ error: err.message }, { status: 503 })
+      return NextResponse.json({ error: err.message, reason: 'no_key' }, { status: 503 })
     }
-    return NextResponse.json({ error: 'Transcription failed' }, { status: 502 })
+    // Log the full OpenAI error (status + body) so it appears in Vercel function logs
+    console.error('[transcribe] failed:', err)
+    return NextResponse.json({ error: 'Transcription failed', reason: 'api_error' }, { status: 502 })
   }
 }

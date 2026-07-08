@@ -324,11 +324,25 @@ export default function SpaceClient({
               const { text } = await res.json()
               if (text) setInput(prev => (prev ? prev + ' ' : '') + text)
             } else {
-              // 503 = key missing, any error → fall back to browser dictation
-              startListening()
+              const body = await res.json().catch(() => ({}))
+              if (res.status === 503 && body.reason === 'no_key') {
+                // Key not configured → fall back to browser dictation (en-US)
+                startListening()
+              } else {
+                // Real Whisper error (billing, quota, bad audio, etc.) — surface it
+                // so the user knows and doesn't wonder why English-only is coming back
+                setMessages(prev => [...prev, {
+                  role: 'assistant',
+                  content: "⚠️ Voice transcription failed. Please check your OpenAI billing at platform.openai.com, or just type your message.",
+                }])
+              }
             }
           } catch {
-            startListening()
+            // Network error — show honest message, don't silently re-record in English
+            setMessages(prev => [...prev, {
+              role: 'assistant',
+              content: "⚠️ Couldn't reach the transcription service. Please check your connection, or type your message.",
+            }])
           } finally {
             setTranscribing(false)
           }
