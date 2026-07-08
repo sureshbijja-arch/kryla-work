@@ -21,7 +21,9 @@ import { getVertical } from '@/config/verticals'
 import Anthropic from '@anthropic-ai/sdk'
 import { NextResponse } from 'next/server'
 
-const anthropic = new Anthropic()
+const anthropic = new Anthropic({ maxRetries: 2 })
+
+export const maxDuration = 60
 
 const DAILY_LIMIT = parseInt(process.env.RESEARCH_DAILY_LIMIT ?? '10', 10)
 
@@ -142,7 +144,7 @@ export async function POST(req: Request) {
     const response = await (anthropic as any).messages.create(
       {
         model: 'claude-sonnet-4-6',
-        max_tokens: 1024,
+        max_tokens: 4096,
         system: systemPrompt,
         tools: [
           {

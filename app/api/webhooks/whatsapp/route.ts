@@ -10,7 +10,9 @@ import { buildResearchSystemPrompt } from '@/lib/researchPrompt'
 import { getVertical } from '@/config/verticals'
 import Anthropic from '@anthropic-ai/sdk'
 
-const anthropic = new Anthropic()
+const anthropic = new Anthropic({ maxRetries: 2 })
+
+export const maxDuration = 60
 
 // ── Webhook verification (Meta calls this once when you register the webhook) ──
 export async function GET(req: NextRequest) {
@@ -556,7 +558,7 @@ async function handleInbound(senderPhone: string, messageText: string, audioId?:
       const resResp = await (anthropic as any).messages.create(
         {
           model: 'claude-sonnet-4-6',
-          max_tokens: 1024,
+          max_tokens: 2048,
           system: resPrompt,
           tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }],
           messages: [{ role: 'user', content: do_research.trim() }],
