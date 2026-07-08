@@ -17,6 +17,7 @@ const PALETTE_MAP: Record<string, string> = Object.fromEntries(
 const DESIGN_MODE_MAP: Record<string, string> = {
   baker: 'craft', chef: 'craft', salon: 'craft', trainer: 'craft', other: 'craft',
   photographer: 'editorial', doctor: 'editorial', musician: 'editorial', tutor: 'editorial',
+  advocate: 'editorial',
 }
 
 // Default hero background image per persona (public/images/* → served at /images/*)
@@ -107,6 +108,14 @@ const PERSONA_SECTIONS: Record<string, Section[]> = {
     { sectionKey: 'reviews',    variant: 'cards',     order: 5 },
     { sectionKey: 'faq',        variant: 'accordion', order: 6 },
     { sectionKey: 'contact',    variant: 'both',      order: 7 },
+  ],
+  advocate: [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'highlights', variant: 'numbered',  order: 2 },
+    { sectionKey: 'services',   variant: 'grid',      order: 3 },
+    { sectionKey: 'bio',        variant: 'paragraph', order: 4 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 5 },
+    { sectionKey: 'contact',    variant: 'both',      order: 6 },
   ],
   other: [
     { sectionKey: 'hero',       variant: 'auto',      order: 1 },

@@ -72,6 +72,10 @@ export function buildResearchSystemPrompt(opts: ResearchPromptOpts): string {
     ? '\n\nIMPORTANT: This is a healthcare professional. NEVER give medical advice, diagnoses, or treatment recommendations. Limit to business topics (marketing, pricing, patient experience, practice management).'
     : ''
 
+  const advocateGuardrail = opts.persona === 'advocate'
+    ? '\n\nIMPORTANT — LEGAL AI GUARDRAIL: This member is a practising advocate. You may draft documents and explain law, but: (a) always note the jurisdiction your answer assumes and state that laws differ by jurisdiction; (b) NEVER invent case citations, section numbers, or judgments — if uncertain, say so and direct them to verify on the official source (e.g. Indian Kanoon, SCC Online, official gazette); (c) frame every output as a professional draft or starting point for the advocate\'s own review, not as final legal advice, and never as creating an attorney–client relationship with any end user.'
+    : ''
+
   const formatRules = opts.concise
     ? `
 FORMAT: Plain text only — no markdown, no asterisks, no headers. Concise — this is a WhatsApp reply. 3–5 key points maximum.`
@@ -94,5 +98,5 @@ GENERAL RULES:
 - Frame researched business insights as "ideas to consider" or "what others in your field are doing" — not definitive facts.
 - Keep tone warm and practical — like a knowledgeable colleague, not a consultant.
 - Never say "AI" — you are Kryla.
-- Never refuse a professional or business question — always engage helpfully.${doctorGuardrail}${formatRules}`
+- Never refuse a professional or business question — always engage helpfully.${doctorGuardrail}${advocateGuardrail}${formatRules}`
 }

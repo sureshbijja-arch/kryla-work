@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { getRosterConfig, type RosterCopy } from '@/app/[slug]/personaConfig'
 
 interface Student {
   id:           string
@@ -69,13 +70,17 @@ const EMPTY_LOG: LogLessonForm = {
 
 export default function StudentsTab({
   providerId,
+  persona = 'tutor',
   label1Label = 'Grade',
   label2Label = 'Subject',
 }: {
   providerId:   string
+  persona?:     string
   label1Label?: string
   label2Label?: string
 }) {
+  const copy: RosterCopy = getRosterConfig(persona)
+
   const [students, setStudents]   = useState<Student[]>([])
   const [loading, setLoading]     = useState(true)
   const [modal, setModal]         = useState<'add' | { edit: Student } | null>(null)
@@ -263,7 +268,7 @@ export default function StudentsTab({
   }
 
   async function deleteStudent(id: string) {
-    if (!confirm('Remove this student?')) return
+    if (!confirm(copy.removeConfirm)) return
     setDeleting(id)
     try {
       await fetch('/api/mychat/students', {
@@ -278,7 +283,7 @@ export default function StudentsTab({
   }
 
   if (loading) {
-    return <div className="flex items-center justify-center py-20 text-[#bbb] text-sm">Loading students…</div>
+    return <div className="flex items-center justify-center py-20 text-[#bbb] text-sm">Loading {copy.plural}…</div>
   }
 
   return (
@@ -287,20 +292,20 @@ export default function StudentsTab({
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <p className="text-xs text-[#999] font-semibold uppercase tracking-wide">
-          {students.length} student{students.length !== 1 ? 's' : ''}
+          {students.length} {students.length !== 1 ? copy.plural : copy.singular}
         </p>
         <button
           onClick={openAdd}
           className="text-xs font-semibold bg-[#0D0D0D] text-white px-3 py-1.5 rounded-lg hover:opacity-80 transition-opacity">
-          + Add student
+          {copy.addLabel}
         </button>
       </div>
 
       {students.length === 0 && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-12 h-12 rounded-full bg-[#F5F5F5] flex items-center justify-center mb-4 text-2xl">🎓</div>
-          <p className="font-semibold text-[#0D0D0D] text-sm">No students yet</p>
-          <p className="text-[#999] text-xs mt-1">Students appear here automatically when you accept a booking.</p>
+          <div className="w-12 h-12 rounded-full bg-[#F5F5F5] flex items-center justify-center mb-4 text-2xl">{copy.emoji}</div>
+          <p className="font-semibold text-[#0D0D0D] text-sm">{copy.emptyHeading}</p>
+          <p className="text-[#999] text-xs mt-1">{copy.emptySubtext}</p>
         </div>
       )}
 
@@ -322,7 +327,7 @@ export default function StudentsTab({
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-semibold text-[#0D0D0D] text-sm truncate">{s.name}</p>
                     <span className="shrink-0 text-[10px] font-bold bg-[#F0F4FF] text-[#6366F1] px-2 py-0.5 rounded-full">
-                      {s.sessions} session{s.sessions !== 1 ? 's' : ''}
+                      {s.sessions} {s.sessions !== 1 ? `${copy.sessionNoun}s` : copy.sessionNoun}
                     </span>
                   </div>
 
@@ -334,7 +339,7 @@ export default function StudentsTab({
 
                   {s.next_session && (
                     <p className="text-xs text-[#999] mt-0.5">
-                      Next: <span className="text-[#0D0D0D]">{s.next_session}</span>
+                      {copy.nextLabel}: <span className="text-[#0D0D0D]">{s.next_session}</span>
                     </p>
                   )}
 
@@ -343,7 +348,7 @@ export default function StudentsTab({
                   )}
 
                   {s.parent_name && (
-                    <p className="text-xs text-[#bbb] mt-1">Parent: {s.parent_name}</p>
+                    <p className="text-xs text-[#bbb] mt-1">{copy.contactRowLabel}: {s.parent_name}</p>
                   )}
 
                   {/* Actions */}
@@ -352,7 +357,7 @@ export default function StudentsTab({
                       onClick={() => quickLogSession(s.id)}
                       disabled={logging === s.id}
                       className="flex items-center gap-1 text-xs font-semibold bg-[#F0FDF4] text-[#16A34A] hover:bg-[#DCFCE7] px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-40">
-                      {logging === s.id ? '…' : '✓ Quick log'}
+                      {logging === s.id ? '…' : copy.quickLogLabel}
                     </button>
                     <button
                       onClick={() => toggleExpand(s.id)}
@@ -361,7 +366,7 @@ export default function StudentsTab({
                           ? 'bg-[#0D0D0D] text-white'
                           : 'text-[#666] bg-[#F5F5F5] hover:bg-[#E5E5E5]'
                       }`}>
-                      📚 Lessons
+                      {copy.lessonsBtnLabel}
                     </button>
                     <button
                       onClick={() => openEdit(s)}
@@ -379,13 +384,13 @@ export default function StudentsTab({
               </div>
             </div>
 
-            {/* Expandable lesson timeline */}
+            {/* Expandable session timeline */}
             {expanded === s.id && (
               <div className="border-t border-[#F0F0F0] bg-[#FAFAFA] px-4 py-4 space-y-4">
 
-                {/* Log a lesson form */}
+                {/* Log form */}
                 <div>
-                  <p className="text-[10px] font-semibold text-[#999] uppercase tracking-wide mb-2">Log a lesson</p>
+                  <p className="text-[10px] font-semibold text-[#999] uppercase tracking-wide mb-2">{copy.logTitle}</p>
                   <div className="space-y-2">
                     <div className="grid grid-cols-2 gap-2">
                       <div>
@@ -398,12 +403,12 @@ export default function StudentsTab({
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-[#999] font-semibold uppercase tracking-wide block mb-1">Topic</label>
+                        <label className="text-[10px] text-[#999] font-semibold uppercase tracking-wide block mb-1">{copy.topicLabel}</label>
                         <input
                           type="text"
                           value={logForm.topic}
                           onChange={e => setLogForm(f => ({ ...f, topic: e.target.value }))}
-                          placeholder="e.g. Quadratic equations"
+                          placeholder={copy.topicPlaceholder}
                           className="w-full border border-[#E5E5E5] rounded-lg px-2.5 py-2 text-xs bg-white focus:outline-none focus:border-[#0D0D0D] transition-colors"
                         />
                       </div>
@@ -412,33 +417,33 @@ export default function StudentsTab({
                       type="text"
                       value={logForm.homework}
                       onChange={e => setLogForm(f => ({ ...f, homework: e.target.value }))}
-                      placeholder="Homework assigned (e.g. Practice problems p.42)"
+                      placeholder={copy.homeworkPlaceholder}
                       className="w-full border border-[#E5E5E5] rounded-lg px-2.5 py-2 text-xs bg-white focus:outline-none focus:border-[#0D0D0D] transition-colors"
                     />
                     <input
                       type="text"
                       value={logForm.notes}
                       onChange={e => setLogForm(f => ({ ...f, notes: e.target.value }))}
-                      placeholder="Private notes (not shared with parent)"
+                      placeholder={copy.notesPlaceholder}
                       className="w-full border border-[#E5E5E5] rounded-lg px-2.5 py-2 text-xs bg-white focus:outline-none focus:border-[#0D0D0D] transition-colors"
                     />
                     <button
                       onClick={() => saveLesson(s.id)}
                       disabled={savingLog || (!logForm.topic && !logForm.homework && !logForm.notes)}
                       className="w-full py-2 rounded-lg bg-[#0D0D0D] text-white text-xs font-semibold disabled:opacity-40 hover:opacity-80 transition-opacity">
-                      {savingLog ? 'Saving…' : 'Save lesson'}
+                      {savingLog ? 'Saving…' : 'Save'}
                     </button>
                   </div>
                 </div>
 
-                {/* Lesson history */}
+                {/* Session history */}
                 <div>
-                  <p className="text-[10px] font-semibold text-[#999] uppercase tracking-wide mb-2">History</p>
+                  <p className="text-[10px] font-semibold text-[#999] uppercase tracking-wide mb-2">{copy.historyLabel}</p>
                   {loadingSess === s.id && (
                     <p className="text-xs text-[#bbb]">Loading…</p>
                   )}
                   {!loadingSess && (sessions[s.id] ?? []).length === 0 && (
-                    <p className="text-xs text-[#bbb]">No lessons logged yet.</p>
+                    <p className="text-xs text-[#bbb]">None logged yet.</p>
                   )}
                   <div className="space-y-2">
                     {(sessions[s.id] ?? []).map(sess => (
@@ -456,7 +461,7 @@ export default function StudentsTab({
                           <p className="text-xs text-[#0D0D0D] mt-0.5">{sess.topic}</p>
                         )}
                         {sess.homework && (
-                          <p className="text-xs text-[#666] mt-0.5">HW: {sess.homework}</p>
+                          <p className="text-xs text-[#666] mt-0.5">{copy.homeworkLabel}: {sess.homework}</p>
                         )}
                         {sess.notes && (
                           <p className="text-xs text-[#999] mt-0.5 italic">{sess.notes}</p>
@@ -477,7 +482,9 @@ export default function StudentsTab({
           className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-4"
           onClick={e => { if (e.target === e.currentTarget) setModal(null) }}>
           <div className="bg-white rounded-2xl w-full max-w-sm p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <p className="font-bold text-[#0D0D0D]">{modal === 'add' ? 'Add student' : 'Edit student'}</p>
+            <p className="font-bold text-[#0D0D0D]">
+              {modal === 'add' ? `Add ${copy.singular}` : `Edit ${copy.singular}`}
+            </p>
 
             <label className="block">
               <span className="text-xs font-semibold uppercase tracking-wide text-[#666] block mb-1">Name</span>
@@ -485,7 +492,7 @@ export default function StudentsTab({
                 type="text"
                 value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                placeholder="Student name"
+                placeholder={`${copy.singular.charAt(0).toUpperCase() + copy.singular.slice(1)} name`}
                 className="w-full border border-[#E5E5E5] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors"
               />
             </label>
@@ -514,12 +521,12 @@ export default function StudentsTab({
             </div>
 
             <label className="block">
-              <span className="text-xs font-semibold uppercase tracking-wide text-[#666] block mb-1">Next session</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-[#666] block mb-1">{copy.nextLabel}</span>
               <input
                 type="text"
                 value={form.nextSession}
                 onChange={e => setForm(f => ({ ...f, nextSession: e.target.value }))}
-                placeholder="e.g. Saturday 10 AM"
+                placeholder={copy.nextPlaceholder}
                 className="w-full border border-[#E5E5E5] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors"
               />
             </label>
@@ -530,20 +537,20 @@ export default function StudentsTab({
                 rows={2}
                 value={form.notes}
                 onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
-                placeholder="Quick notes about this student…"
+                placeholder={`Quick notes about this ${copy.singular}…`}
                 className="w-full border border-[#E5E5E5] rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:border-[#0D0D0D] transition-colors"
               />
             </label>
 
-            {/* Parent / guardian */}
+            {/* Contact section */}
             <div className="pt-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#999] mb-3">Parent / guardian (optional)</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#999] mb-3">{copy.contactSectionLabel}</p>
               <div className="space-y-2">
                 <input
                   type="text"
                   value={form.parentName}
                   onChange={e => setForm(f => ({ ...f, parentName: e.target.value }))}
-                  placeholder="Parent name"
+                  placeholder="Contact name"
                   className="w-full border border-[#E5E5E5] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors"
                 />
                 <div className="grid grid-cols-2 gap-2">

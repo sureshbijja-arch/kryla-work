@@ -320,8 +320,8 @@ async function handleInbound(senderPhone: string, messageText: string, audioId?:
 
   const today = new Date().toISOString().slice(0, 10)
   const studentsSection = (studentsRows ?? []).length > 0
-    ? `Student roster (use for new_student / log_session / patch_student actions):\n${JSON.stringify(
-        (studentsRows ?? []).map(s => ({ id: s.id, name: s.name, grade: s.label_1, subject: s.label_2, sessions: s.sessions })),
+    ? `Client/roster records (use for new_student / log_session / patch_student actions):\n${JSON.stringify(
+        (studentsRows ?? []).map(s => ({ id: s.id, name: s.name, label_1: s.label_1, label_2: s.label_2, sessions: s.sessions })),
         null, 2)}`
     : ''
   const systemPrompt = WA_SYSTEM_PROMPT

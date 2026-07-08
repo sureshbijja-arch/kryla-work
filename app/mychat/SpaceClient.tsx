@@ -22,7 +22,7 @@ import StudentsTab from './StudentsTab'
 import ReviewsTab from './ReviewsTab'
 import StatsTab from './StatsTab'
 import ResearchChat from './ResearchChat'
-import { getPersonaConfig } from '@/app/[slug]/personaConfig'
+import { getPersonaConfig, getRosterConfig } from '@/app/[slug]/personaConfig'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -237,9 +237,12 @@ export default function SpaceClient({
   }, [])
 
   const bookingsLabel = getPersonaConfig(currentProfile.persona).tabLabel
+  const rosterCopy = getRosterConfig(currentProfile.persona)
   const t = UI[pageLanguage] ?? EN_UI
   // Bookings tab: use translated generic label unless English (persona-specific)
   const bookingsTabLabel = pageLanguage !== 'en' ? t.tabs.bookings : bookingsLabel
+  // Students/Clients tab: use persona-aware label for English; keep translated string otherwise
+  const studentsTabLabel = pageLanguage !== 'en' ? t.tabs.students : rosterCopy.tabLabel
 
   useEffect(() => {
     if (tab === 'chat') bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -496,7 +499,7 @@ export default function SpaceClient({
             { key: 'design',      label: t.tabs.design },
             { key: 'messages',    label: t.tabs.messages },
             { key: 'bookings',    label: bookingsTabLabel },
-            { key: 'students',    label: t.tabs.students },
+            { key: 'students',    label: studentsTabLabel },
             { key: 'reviews',     label: t.tabs.reviews },
             { key: 'schedule',    label: t.tabs.schedule },
             { key: 'stats',       label: t.tabs.stats },
@@ -816,13 +819,24 @@ export default function SpaceClient({
         </div>
       )}
 
-      {/* ── Students ── */}
+      {/* ── Students / Clients ── */}
       {tab === 'students' && (
         <div className="flex-1 overflow-y-auto">
           <StudentsTab
             providerId={providerId}
-            label1Label={currentProfile.persona === 'tutor' ? 'Grade' : currentProfile.persona === 'trainer' ? 'Level' : 'Category'}
-            label2Label={currentProfile.persona === 'tutor' ? 'Subject' : currentProfile.persona === 'trainer' ? 'Goal' : 'Notes label'}
+            persona={currentProfile.persona}
+            label1Label={
+              currentProfile.persona === 'tutor'     ? 'Grade'       :
+              currentProfile.persona === 'trainer'   ? 'Level'       :
+              currentProfile.persona === 'advocate'  ? 'Matter type' :
+              'Category'
+            }
+            label2Label={
+              currentProfile.persona === 'tutor'     ? 'Subject'      :
+              currentProfile.persona === 'trainer'   ? 'Goal'         :
+              currentProfile.persona === 'advocate'  ? 'Court / Stage' :
+              'Notes label'
+            }
           />
         </div>
       )}
