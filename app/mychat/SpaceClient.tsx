@@ -81,7 +81,7 @@ interface Props {
 }
 
 type UIStrings = {
-  tabs:       { chat: string; design: string; messages: string; bookings: string; plan: string; suggestions: string; refer: string; students: string; reviews: string; schedule: string; stats: string }
+  tabs:       { chat: string; design: string; messages: string; bookings: string; plan: string; suggestions: string; refer: string; students: string; reviews: string; schedule: string; stats: string; inbox: string }
   sub:        { services: string; sections: string; layouts: string; ads: string; media: string; language: string }
   placeholder: string
   hint:        string
@@ -92,56 +92,56 @@ type UIStrings = {
 
 const UI: Record<string, UIStrings> = {
   hi: {
-    tabs: { chat: 'चैट', design: 'डिज़ाइन', messages: 'संदेश', bookings: 'बुकिंग', plan: 'मेरी योजना', suggestions: 'सुझाव', refer: 'रेफर', students: 'छात्र', reviews: 'समीक्षाएं', schedule: 'शेड्यूल', stats: 'आंकड़े' },
+    tabs: { chat: 'चैट', design: 'डिज़ाइन', messages: 'संदेश', bookings: 'बुकिंग', plan: 'मेरी योजना', suggestions: 'सुझाव', refer: 'रेफर', students: 'छात्र', reviews: 'समीक्षाएं', schedule: 'शेड्यूल', stats: 'आंकड़े', inbox: 'इनबॉक्स' },
     sub:  { services: 'सेवाएं', sections: 'पेज लेआउट', layouts: 'लेआउट', ads: 'विज्ञापन', media: 'मीडिया', language: 'भाषा' },
     placeholder: 'आप क्या बदलना चाहते हैं?',
     hint:        'भेजने के लिए Enter · नई पंक्ति Shift+Enter',
     publish: 'प्रकाशित करें →', publishing: 'प्रकाशित हो रहा है…', published: '✓ प्रकाशित',
   },
   ta: {
-    tabs: { chat: 'அரட்டை', design: 'வடிவமைப்பு', messages: 'செய்திகள்', bookings: 'பதிவுகள்', plan: 'என் திட்டம்', suggestions: 'யோசனைகள்', refer: 'பரிந்துரை', students: 'மாணவர்கள்', reviews: 'மதிப்புரைகள்', schedule: 'அட்டவணை', stats: 'புள்ளிவிவரங்கள்' },
+    tabs: { chat: 'அரட்டை', design: 'வடிவமைப்பு', messages: 'செய்திகள்', bookings: 'பதிவுகள்', plan: 'என் திட்டம்', suggestions: 'யோசனைகள்', refer: 'பரிந்துரை', students: 'மாணவர்கள்', reviews: 'மதிப்புரைகள்', schedule: 'அட்டவணை', stats: 'புள்ளிவிவரங்கள்', inbox: 'உள்ளிடல்' },
     sub:  { services: 'சேவைகள்', sections: 'பக்க தளவமைப்பு', layouts: 'தளவமைப்புகள்', ads: 'விளம்பரங்கள்', media: 'ஊடகம்', language: 'மொழி' },
     placeholder: 'என்ன மாற்ற விரும்புகிறீர்கள்?',
     hint:        'அனுப்ப Enter · புதிய வரிக்கு Shift+Enter',
     publish: 'வெளியிடு →', publishing: 'வெளியிடுகிறது…', published: '✓ வெளியிடப்பட்டது',
   },
   te: {
-    tabs: { chat: 'చాట్', design: 'డిజైన్', messages: 'సందేశాలు', bookings: 'బుకింగ్‌లు', plan: 'నా ప్లాన్', suggestions: 'సూచనలు', refer: 'రెఫర్', students: 'విద్యార్థులు', reviews: 'సమీక్షలు', schedule: 'షెడ్యూల్', stats: 'గణాంకాలు' },
+    tabs: { chat: 'చాట్', design: 'డిజైన్', messages: 'సందేశాలు', bookings: 'బుకింగ్‌లు', plan: 'నా ప్లాన్', suggestions: 'సూచనలు', refer: 'రెఫర్', students: 'విద్యార్థులు', reviews: 'సమీక్షలు', schedule: 'షెడ్యూల్', stats: 'గణాంకాలు', inbox: 'ఇన్‌బాక్స్' },
     sub:  { services: 'సేవలు', sections: 'పేజీ లేఅవుట్', layouts: 'లేఅవుట్‌లు', ads: 'ప్రకటనలు', media: 'మీడియా', language: 'భాష' },
     placeholder: 'మీరు ఏమి మార్చాలనుకుంటున్నారు?',
     hint:        'పంపడానికి Enter · కొత్త వరుసకు Shift+Enter',
     publish: 'ప్రచురించు →', publishing: 'ప్రచురిస్తోంది…', published: '✓ ప్రచురితమైంది',
   },
   kn: {
-    tabs: { chat: 'ಚಾಟ್', design: 'ವಿನ್ಯಾಸ', messages: 'ಸಂದೇಶಗಳು', bookings: 'ಬುಕಿಂಗ್‌ಗಳು', plan: 'ನನ್ನ ಯೋಜನೆ', suggestions: 'ಸಲಹೆಗಳು', refer: 'ರೆಫರ್', students: 'ವಿದ್ಯಾರ್ಥಿಗಳು', reviews: 'ವಿಮರ್ಶೆಗಳು', schedule: 'ವೇಳಾಪಟ್ಟಿ', stats: 'ಅಂಕಿಅಂಶಗಳು' },
+    tabs: { chat: 'ಚಾಟ್', design: 'ವಿನ್ಯಾಸ', messages: 'ಸಂದೇಶಗಳು', bookings: 'ಬುಕಿಂಗ್‌ಗಳು', plan: 'ನನ್ನ ಯೋಜನೆ', suggestions: 'ಸಲಹೆಗಳು', refer: 'ರೆಫರ್', students: 'ವಿದ್ಯಾರ್ಥಿಗಳು', reviews: 'ವಿಮರ್ಶೆಗಳು', schedule: 'ವೇಳಾಪಟ್ಟಿ', stats: 'ಅಂಕಿಅಂಶಗಳು', inbox: 'ಇನ್‌ಬಾಕ್ಸ್' },
     sub:  { services: 'ಸೇವೆಗಳು', sections: 'ಪೇಜ್ ಲೇಔಟ್', layouts: 'ಲೇಔಟ್‌ಗಳು', ads: 'ಜಾಹೀರಾತುಗಳು', media: 'ಮೀಡಿಯಾ', language: 'ಭಾಷೆ' },
     placeholder: 'ನೀವು ಏನು ಬದಲಾಯಿಸಲು ಬಯಸುತ್ತೀರಿ?',
     hint:        'ಕಳುಹಿಸಲು Enter · ಹೊಸ ಸಾಲಿಗೆ Shift+Enter',
     publish: 'ಪ್ರಕಟಿಸಿ →', publishing: 'ಪ್ರಕಟಿಸಲಾಗುತ್ತಿದೆ…', published: '✓ ಪ್ರಕಟಿಸಲಾಗಿದೆ',
   },
   ml: {
-    tabs: { chat: 'ചാറ്റ്', design: 'ഡിസൈൻ', messages: 'സന്ദേശങ്ങൾ', bookings: 'ബുക്കിംഗുകൾ', plan: 'എന്റെ പ്ലാൻ', suggestions: 'നിർദ്ദേശങ്ങൾ', refer: 'റഫർ', students: 'വിദ്യാർത്ഥികൾ', reviews: 'അവലോകനങ്ങൾ', schedule: 'ഷെഡ്യൂൾ', stats: 'സ്ഥിതിവിവരക്കണക്കുകൾ' },
+    tabs: { chat: 'ചാറ്റ്', design: 'ഡിസൈൻ', messages: 'സന്ദേശങ്ങൾ', bookings: 'ബുക്കിംഗുകൾ', plan: 'എന്റെ പ്ലാൻ', suggestions: 'നിർദ്ദേശങ്ങൾ', refer: 'റഫർ', students: 'വിദ്യാർത്ഥികൾ', reviews: 'അവലോകനങ്ങൾ', schedule: 'ഷെഡ്യൂൾ', stats: 'സ്ഥിതിവിവരക്കണക്കുകൾ', inbox: 'ഇൻബോക്സ്' },
     sub:  { services: 'സേവനങ്ങൾ', sections: 'പേജ് ലേഔട്ട്', layouts: 'ലേഔട്ടുകൾ', ads: 'പരസ്യങ്ങൾ', media: 'മീഡിയ', language: 'ഭാഷ' },
     placeholder: 'നിങ്ങൾക്ക് എന്ത് മാറ്റണം?',
     hint:        'അയക്കാൻ Enter · പുതിയ വരിക്ക് Shift+Enter',
     publish: 'പ്രസിദ്ധീകരിക്കൂ →', publishing: 'പ്രസിദ്ധീകരിക്കുന്നു…', published: '✓ പ്രസിദ്ധീകരിച്ചു',
   },
   mr: {
-    tabs: { chat: 'चॅट', design: 'डिझाइन', messages: 'संदेश', bookings: 'बुकिंग', plan: 'माझी योजना', suggestions: 'सूचना', refer: 'रेफर', students: 'विद्यार्थी', reviews: 'पुनरावलोकने', schedule: 'वेळापत्रक', stats: 'आकडेवारी' },
+    tabs: { chat: 'चॅट', design: 'डिझाइन', messages: 'संदेश', bookings: 'बुकिंग', plan: 'माझी योजना', suggestions: 'सूचना', refer: 'रेफर', students: 'विद्यार्थी', reviews: 'पुनरावलोकने', schedule: 'वेळापत्रक', stats: 'आकडेवारी', inbox: 'इनबॉक्स' },
     sub:  { services: 'सेवा', sections: 'पेज लेआउट', layouts: 'लेआउट', ads: 'जाहिराती', media: 'मीडिया', language: 'भाषा' },
     placeholder: 'तुम्हाला काय बदलायचे आहे?',
     hint:        'पाठवण्यासाठी Enter · नवीन ओळीसाठी Shift+Enter',
     publish: 'प्रकाशित करा →', publishing: 'प्रकाशित होत आहे…', published: '✓ प्रकाशित',
   },
   gu: {
-    tabs: { chat: 'ચેટ', design: 'ડિઝાઇન', messages: 'સંદેશ', bookings: 'બુકિંગ', plan: 'મારી યોજના', suggestions: 'સૂચનો', refer: 'રેફર', students: 'વિદ્યાર્થીઓ', reviews: 'સમીક્ષાઓ', schedule: 'શેડ્યૂલ', stats: 'આંકડા' },
+    tabs: { chat: 'ચેટ', design: 'ડિઝાઇન', messages: 'સંદેશ', bookings: 'બુકિંગ', plan: 'મારી યોજના', suggestions: 'સૂચનો', refer: 'રેફર', students: 'વિદ્યાર્થીઓ', reviews: 'સમીક્ષાઓ', schedule: 'શેડ્યૂલ', stats: 'આંકડા', inbox: 'ઇનબોક્સ' },
     sub:  { services: 'સેવાઓ', sections: 'પેજ લેઆઉટ', layouts: 'લેઆઉટ', ads: 'જાહેરાત', media: 'મીડિયા', language: 'ભાષા' },
     placeholder: 'તમે શું બદલવા માંગો છો?',
     hint:        'મોકલવા Enter · નવી લાઇન Shift+Enter',
     publish: 'પ્રકાશિત કરો →', publishing: 'પ્રકાશિત થઈ રહ્યું છે…', published: '✓ પ્રકાશિત',
   },
   es: {
-    tabs: { chat: 'Chat', design: 'Diseño', messages: 'Mensajes', bookings: 'Reservas', plan: 'Mi plan', suggestions: 'Sugerencias', refer: 'Referir', students: 'Alumnos', reviews: 'Reseñas', schedule: 'Horario', stats: 'Estadísticas' },
+    tabs: { chat: 'Chat', design: 'Diseño', messages: 'Mensajes', bookings: 'Reservas', plan: 'Mi plan', suggestions: 'Sugerencias', refer: 'Referir', students: 'Alumnos', reviews: 'Reseñas', schedule: 'Horario', stats: 'Estadísticas', inbox: 'Bandeja' },
     sub:  { services: 'Servicios', sections: 'Diseño de página', layouts: 'Plantillas', ads: 'Anuncios', media: 'Medios', language: 'Idioma' },
     placeholder: '¿Qué te gustaría cambiar?',
     hint:        'Enter para enviar · Shift+Enter nueva línea',
@@ -150,7 +150,7 @@ const UI: Record<string, UIStrings> = {
 }
 
 const EN_UI: UIStrings = {
-  tabs: { chat: 'Chat', design: 'Design', messages: 'Messages', bookings: '', plan: 'My plan', suggestions: 'Suggest', refer: 'Refer', students: 'Students', reviews: 'Reviews', schedule: 'Schedule', stats: 'Stats' },
+  tabs: { chat: 'Chat', design: 'Design', messages: 'Messages', bookings: '', plan: 'My plan', suggestions: 'Suggest', refer: 'Refer', students: 'Students', reviews: 'Reviews', schedule: 'Schedule', stats: 'Stats', inbox: 'Inbox' },
   sub:  { services: 'Services', sections: 'Page layout', layouts: 'Layouts', ads: 'Ads', media: 'Media', language: 'Language' },
   placeholder: 'What would you like to change?',
   hint:        'Enter to send · Shift+Enter for new line',
@@ -174,8 +174,10 @@ function getGreeting(lang: string, name: string): string {
   return `Hi ${name}! Ask me anything about your page — change your headline, bio, services, colours, layout, or anything else.`
 }
 
-type MainTab   = 'chat' | 'design' | 'messages' | 'bookings' | 'students' | 'reviews' | 'schedule' | 'stats' | 'plan' | 'suggestions' | 'refer'
-type DesignTab = 'services' | 'sections' | 'layouts' | 'ads' | 'media' | 'language'
+type MainTab     = 'chat' | 'design' | 'messages' | 'schedule' | 'plan'
+type DesignTab   = 'services' | 'sections' | 'layouts' | 'ads' | 'media' | 'language'
+type MessagesTab = 'inbox' | 'consultations' | 'clients'
+type PlanTab     = 'plan' | 'reviews' | 'suggestions' | 'stats' | 'refer'
 
 const PALETTE_LABELS: Record<string, string> = {
   professional: 'Professional', fresh: 'Fresh', warm: 'Warm',
@@ -203,8 +205,10 @@ export default function SpaceClient({
     { sectionKey: 'contact',    variant: 'both',      order: 6 },
   ]
 
-  const [tab, setTab]             = useState<MainTab>('chat')
-  const [designTab, setDesignTab] = useState<DesignTab>('services')
+  const [tab, setTab]                   = useState<MainTab>('chat')
+  const [designTab, setDesignTab]       = useState<DesignTab>('services')
+  const [messagesTab, setMessagesTab]   = useState<MessagesTab>('inbox')
+  const [planTab, setPlanTab]           = useState<PlanTab>('plan')
   const [publishing, setPublishing] = useState(false)
   const [published, setPublished]   = useState(false)
   const [messages, setMessages] = useState<Message[]>([
@@ -445,6 +449,25 @@ export default function SpaceClient({
     }
   }
 
+  // ── Navigation resolver ───────────────────────────────────────────────────
+  // Centralises navigation so legacy `suggestTab` values from the chat API
+  // (bookings / plan / suggestions) and internal `onUpgrade` / `onGoToMessages`
+  // calls all route to the correct (mainTab, subTab) pair.
+  function goTo(target: string, designSub?: string) {
+    switch (target) {
+      case 'bookings':     setTab('messages'); setMessagesTab('consultations'); break
+      case 'students':     setTab('messages'); setMessagesTab('clients');       break
+      case 'messages':     setTab('messages'); setMessagesTab('inbox');         break
+      case 'reviews':
+      case 'stats':
+      case 'suggestions':
+      case 'refer':        setTab('plan'); setPlanTab(target as PlanTab);       break
+      case 'plan':         setTab('plan'); setPlanTab('plan');                  break
+      case 'design':       setTab('design'); if (designSub) setDesignTab(designSub as DesignTab); break
+      default:             setTab(target as MainTab)
+    }
+  }
+
   return (
     <div className="h-full flex flex-col bg-[#FAFAFA]">
 
@@ -493,19 +516,13 @@ export default function SpaceClient({
 
       {/* Tab bar */}
       <div className="bg-white border-b border-[#E5E5E5] shrink-0">
-        <div className="flex flex-wrap border-b border-[#F0F0F0]">
+        <div className="flex border-b border-[#F0F0F0]">
           {([
-            { key: 'chat',        label: t.tabs.chat },
-            { key: 'design',      label: t.tabs.design },
-            { key: 'messages',    label: t.tabs.messages },
-            { key: 'bookings',    label: bookingsTabLabel },
-            { key: 'students',    label: studentsTabLabel },
-            { key: 'reviews',     label: t.tabs.reviews },
-            { key: 'schedule',    label: t.tabs.schedule },
-            { key: 'stats',       label: t.tabs.stats },
-            { key: 'plan',        label: t.tabs.plan },
-            { key: 'suggestions', label: t.tabs.suggestions },
-            { key: 'refer',       label: t.tabs.refer },
+            { key: 'chat',     label: t.tabs.chat },
+            { key: 'design',   label: t.tabs.design },
+            { key: 'messages', label: t.tabs.messages },
+            { key: 'schedule', label: t.tabs.schedule },
+            { key: 'plan',     label: t.tabs.plan },
           ] as { key: MainTab; label: string }[]).map(({ key, label }) => (
             <button
               key={key}
@@ -536,6 +553,52 @@ export default function SpaceClient({
                 onClick={() => setDesignTab(key)}
                 className={`py-2 px-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
                   designTab === key
+                    ? 'border-[#0D0D0D] text-[#0D0D0D]'
+                    : 'border-transparent text-[#999] hover:text-[#0D0D0D]'
+                }`}>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Messages sub-tab bar */}
+        {tab === 'messages' && (
+          <div className="px-4 flex items-center gap-1 border-t border-[#F0F0F0] bg-[#FAFAFA] overflow-x-auto scrollbar-none">
+            {([
+              { key: 'inbox',         label: t.tabs.inbox },
+              { key: 'consultations', label: bookingsTabLabel },
+              { key: 'clients',       label: studentsTabLabel },
+            ] as { key: MessagesTab; label: string }[]).map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setMessagesTab(key)}
+                className={`py-2 px-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
+                  messagesTab === key
+                    ? 'border-[#0D0D0D] text-[#0D0D0D]'
+                    : 'border-transparent text-[#999] hover:text-[#0D0D0D]'
+                }`}>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* My plan sub-tab bar */}
+        {tab === 'plan' && (
+          <div className="px-4 flex items-center gap-1 border-t border-[#F0F0F0] bg-[#FAFAFA] overflow-x-auto scrollbar-none">
+            {([
+              { key: 'plan',        label: t.tabs.plan },
+              { key: 'reviews',     label: t.tabs.reviews },
+              { key: 'suggestions', label: t.tabs.suggestions },
+              { key: 'stats',       label: t.tabs.stats },
+              { key: 'refer',       label: t.tabs.refer },
+            ] as { key: PlanTab; label: string }[]).map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setPlanTab(key)}
+                className={`py-2 px-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
+                  planTab === key
                     ? 'border-[#0D0D0D] text-[#0D0D0D]'
                     : 'border-transparent text-[#999] hover:text-[#0D0D0D]'
                 }`}>
@@ -599,12 +662,7 @@ export default function SpaceClient({
 
                     {msg.suggestTab && (
                       <button
-                        onClick={() => {
-                          setTab(msg.suggestTab as MainTab)
-                          if (msg.suggestTab === 'design' && msg.suggestDesignTab) {
-                            setDesignTab(msg.suggestDesignTab as DesignTab)
-                          }
-                        }}
+                        onClick={() => goTo(msg.suggestTab!, msg.suggestDesignTab)}
                         className="mt-2 ml-1 flex items-center gap-1.5 text-xs font-semibold text-[#0D0D0D] bg-[#F5F5F5] hover:bg-[#E5E5E5] rounded-xl px-3 py-1.5 transition-colors">
                         Yes, take me there
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -769,7 +827,7 @@ export default function SpaceClient({
           currentPalette={currentProfile.palette}
           currentFont={currentProfile.font}
           onPreview={onRefresh}
-          onUpgrade={() => setTab('plan')}
+          onUpgrade={() => goTo('plan')}
         />
       )}
 
@@ -780,7 +838,7 @@ export default function SpaceClient({
           slug={slug}
           plan={plan}
           canAds={canAds}
-          onUpgrade={() => setTab('plan')}
+          onUpgrade={() => goTo('plan')}
         />
       )}
 
@@ -791,7 +849,7 @@ export default function SpaceClient({
           slug={slug}
           firstName={firstName}
           plan={plan}
-          onUpgrade={() => setTab('plan')}
+          onUpgrade={() => goTo('plan')}
         />
       )}
 
@@ -812,15 +870,22 @@ export default function SpaceClient({
         </div>
       )}
 
-      {/* ── Stats ── */}
-      {tab === 'stats' && (
-        <div className="flex-1 overflow-y-auto">
-          <StatsTab providerId={providerId} />
+      {/* ── Messages: Inbox ── */}
+      {tab === 'messages' && messagesTab === 'inbox' && (
+        <div className="flex-1 flex flex-col min-h-0">
+          <MessagesTab providerId={providerId} plan={plan} />
         </div>
       )}
 
-      {/* ── Students / Clients ── */}
-      {tab === 'students' && (
+      {/* ── Messages: Consultations / Bookings ── */}
+      {tab === 'messages' && messagesTab === 'consultations' && (
+        <div className="flex-1 overflow-y-auto">
+          <BookingsTab providerId={providerId} />
+        </div>
+      )}
+
+      {/* ── Messages: Clients / Students ── */}
+      {tab === 'messages' && messagesTab === 'clients' && (
         <div className="flex-1 overflow-y-auto">
           <StudentsTab
             providerId={providerId}
@@ -841,29 +906,8 @@ export default function SpaceClient({
         </div>
       )}
 
-      {/* ── Reviews ── */}
-      {tab === 'reviews' && (
-        <div className="flex-1 overflow-y-auto">
-          <ReviewsTab providerId={providerId} />
-        </div>
-      )}
-
-      {/* ── Messages ── */}
-      {tab === 'messages' && (
-        <div className="flex-1 flex flex-col min-h-0">
-          <MessagesTab providerId={providerId} plan={plan} />
-        </div>
-      )}
-
-      {/* ── Bookings ── */}
-      {tab === 'bookings' && (
-        <div className="flex-1 overflow-y-auto">
-          <BookingsTab providerId={providerId} />
-        </div>
-      )}
-
-      {/* ── My plan ── */}
-      {tab === 'plan' && (
+      {/* ── My plan: Plan / Billing ── */}
+      {tab === 'plan' && planTab === 'plan' && (
         <div className="flex-1 overflow-y-auto">
           <PlanSection
             currentPlan={plan}
@@ -874,19 +918,33 @@ export default function SpaceClient({
             trialEndsAt={trialEndsAt}
             providerId={providerId}
             slug={slug}
-            onGoToMessages={() => setTab('messages')}
+            onGoToMessages={() => goTo('messages')}
           />
           <CustomNameCard providerId={providerId} slug={slug} canUse={canCustomName} initialDomain={customName} />
         </div>
       )}
 
-      {/* ── Suggestions ── */}
-      {tab === 'suggestions' && (
+      {/* ── My plan: Reviews ── */}
+      {tab === 'plan' && planTab === 'reviews' && (
+        <div className="flex-1 overflow-y-auto">
+          <ReviewsTab providerId={providerId} />
+        </div>
+      )}
+
+      {/* ── My plan: Suggestions ── */}
+      {tab === 'plan' && planTab === 'suggestions' && (
         <SuggestionsTab providerId={providerId} />
       )}
 
-      {/* ── Refer ── */}
-      {tab === 'refer' && (
+      {/* ── My plan: Stats ── */}
+      {tab === 'plan' && planTab === 'stats' && (
+        <div className="flex-1 overflow-y-auto">
+          <StatsTab providerId={providerId} />
+        </div>
+      )}
+
+      {/* ── My plan: Refer ── */}
+      {tab === 'plan' && planTab === 'refer' && (
         <ReferTab providerId={providerId} slug={slug} initialCode={referralCode} />
       )}
 
