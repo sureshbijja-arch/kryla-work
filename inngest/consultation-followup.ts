@@ -30,6 +30,22 @@ export const consultationFollowupFunction = inngest.createFunction(
   async ({ event, step }) => {
     const { providerId, studentId, sessionId } = event.data as ConsultationLoggedPayload
 
+    // Check global notification config — honour admin kill switch
+    const enabled = await step.run('check-notification-config', async () => {
+      const { data } = await supabaseAdmin
+        .from('system_config')
+        .select('value')
+        .eq('key', 'notification_types_enabled')
+        .single()
+      const cfg = (data?.value ?? {}) as Record<string, boolean>
+      return cfg['consultation_followup'] !== false
+    })
+
+    if (!enabled) {
+      console.log('[consultation-followup] disabled via admin config — skipping', { sessionId })
+      return { skipped: true }
+    }
+
     await step.run('send-client-followup', async () => {
       // Load session + client in parallel
       const [sessionRes, clientRes] = await Promise.all([

@@ -118,8 +118,23 @@ export const hearingRemindersFunction = inngest.createFunction(
   { id: 'hearing-reminders', name: 'Hearing date reminders' },
   { cron: '30 2 * * *' },   // 02:30 UTC = ~08:00 IST
   async ({ step }) => {
-    const sent7d = await step.run('send-7-day-reminders', () => sendRemindersForWindow(7, 'reminder_7d_sent_for'))
-    const sent1d = await step.run('send-1-day-reminders', () => sendRemindersForWindow(1, 'reminder_1d_sent_for'))
+    const cfg = await step.run('load-notification-config', async () => {
+      const { data } = await supabaseAdmin
+        .from('system_config')
+        .select('value')
+        .eq('key', 'notification_types_enabled')
+        .single()
+      return (data?.value ?? {}) as Record<string, boolean>
+    })
+
+    const sent7d = cfg['hearing_reminder_7d'] !== false
+      ? await step.run('send-7-day-reminders', () => sendRemindersForWindow(7, 'reminder_7d_sent_for'))
+      : (console.log('[hearing-reminders] 7d reminders disabled via admin config'), 0)
+
+    const sent1d = cfg['hearing_reminder_1d'] !== false
+      ? await step.run('send-1-day-reminders', () => sendRemindersForWindow(1, 'reminder_1d_sent_for'))
+      : (console.log('[hearing-reminders] 1d reminders disabled via admin config'), 0)
+
     return { sent7d, sent1d }
   },
 )

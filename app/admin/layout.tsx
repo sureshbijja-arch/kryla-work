@@ -7,10 +7,11 @@ import { createClient } from '@/lib/supabase/client'
 type AuthState = 'loading' | 'login_email' | 'login_code' | 'ready'
 
 const NAV = [
-  { label: 'Layouts',     href: '/admin/layouts' },
-  { label: 'Plans',       href: '/admin/plans' },
-  { label: 'Personas',    href: '/admin/personas' },
-  { label: 'Suggestions', href: '/admin/suggestions' },
+  { label: 'Layouts',       href: '/admin/layouts' },
+  { label: 'Plans',         href: '/admin/plans' },
+  { label: 'Personas',      href: '/admin/personas' },
+  { label: 'Suggestions',   href: '/admin/suggestions' },
+  { label: 'Notifications', href: '/admin/notifications' },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

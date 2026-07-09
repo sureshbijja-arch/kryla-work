@@ -24,6 +24,12 @@ export default function AdminDashboard() {
       title:       'Suggestions',
       description: 'Review feature requests from members, update status, and trigger AI agents.',
     },
+    {
+      href:        '/admin/notifications',
+      emoji:       '🔔',
+      title:       'Notifications',
+      description: 'Toggle automated WhatsApp notifications on/off and view the send history log.',
+    },
   ]
 
   return (
