@@ -1,13 +1,14 @@
 import { inngest, BUILD_PAGE_EVENT } from '@/lib/inngest'
 import { createServerClient } from '@/lib/supabase'
 import { getAllVerticals } from '@/config/verticals'
+import { fetchPersonaDefaults } from '@/lib/personas'
 import Anthropic from '@anthropic-ai/sdk'
 import type { BuildPageJobPayload } from '@/lib/inngest'
 import { sendWhatsAppMessage, buildPageLiveMessage } from '@/lib/whatsapp'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-// Derived from config/verticals — adding a persona there auto-updates these maps
+// Code-derived fallbacks — used only when the DB lookup fails
 const TEMPLATE_MAP: Record<string, string> = Object.fromEntries(
   getAllVerticals().map((v) => [v.id, v.defaultTemplate])
 )
@@ -199,6 +200,12 @@ export const buildPageFunction = inngest.createFunction(
     })
 
     await step.run('write-pages-row', async () => {
+      // Fetch visual defaults from DB (admin-editable); fall back to code-derived maps on error
+      const defaults = await fetchPersonaDefaults(payload.persona)
+      const template    = defaults.template ?? TEMPLATE_MAP[payload.persona] ?? 'focus'
+      const palette     = defaults.palette  ?? PALETTE_MAP[payload.persona] ?? 'professional'
+      const font        = defaults.font     ?? 'inter'
+
       const { error } = await supabase.from('pages').upsert({
         provider_id: providerId,
         headline: content.headline,
@@ -212,12 +219,12 @@ export const buildPageFunction = inngest.createFunction(
         seo_title: content.seo_title,
         seo_description: content.seo_description,
         schema_type: content.schema_type,
-        template: TEMPLATE_MAP[payload.persona] ?? 'focus',
-        palette: PALETTE_MAP[payload.persona] ?? 'professional',
+        template,
+        palette,
+        font,
         design_mode: DESIGN_MODE_MAP[payload.persona] ?? 'craft',
         sections: PERSONA_SECTIONS[payload.persona] ?? PERSONA_SECTIONS.other,
         gallery: PERSONA_DEFAULT_GALLERY[payload.persona] ?? [],
-        font: 'inter',
         show_sections: {
           hero: true, services: true, highlights: true,
           booking: payload.plan !== 'seed', faq: true, contact: true,

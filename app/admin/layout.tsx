@@ -9,6 +9,7 @@ type AuthState = 'loading' | 'login_email' | 'login_code' | 'ready'
 const NAV = [
   { label: 'Layouts',     href: '/admin/layouts' },
   { label: 'Plans',       href: '/admin/plans' },
+  { label: 'Personas',    href: '/admin/personas' },
   { label: 'Suggestions', href: '/admin/suggestions' },
 ]
 

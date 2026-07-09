@@ -13,6 +13,12 @@ export default function AdminDashboard() {
       description: 'Configure pricing plans and feature keys that gate member functionality.',
     },
     {
+      href:        '/admin/personas',
+      emoji:       '🎭',
+      title:       'Personas',
+      description: 'Toggle personas on/off, reorder them, and add new ones. Changes reflect on landing and onboarding.',
+    },
+    {
       href:        '/admin/suggestions',
       emoji:       '💡',
       title:       'Suggestions',
