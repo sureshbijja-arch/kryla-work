@@ -785,7 +785,7 @@ function HorizontalSlider({ loc, plans }: { loc: Loc; plans: PlanDef[] }) {
                   <div className="feature-item"><span className="feature-check">✓</span><strong>Booking management</strong> — accept, track and follow up on every booking</div>
                   <div className="feature-item"><span className="feature-check">✓</span><strong>Service &amp; menu editor</strong> — update offerings, pricing &amp; photos via chat</div>
                   <div className="feature-item"><span className="feature-check">✓</span><strong>Share</strong> — Instagram, Nextdoor &amp; WhatsApp — fully integrated</div>
-                  <div className="feature-item"><span className="feature-check">✓</span><strong>9 languages</strong> — English, Hindi, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati &amp; Spanish</div>
+                  <div className="feature-item"><span className="feature-check">✓</span><strong>Multilanguage</strong> — your page, your clients, in the language that feels like home</div>
                 </div>
               </div>
               <div className="card-col"><PriyaCard loc={loc} /></div>
