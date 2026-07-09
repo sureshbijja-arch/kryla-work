@@ -731,7 +731,7 @@ function HorizontalSlider({ loc, plans }: { loc: Loc; plans: PlanDef[] }) {
               <div className="text-col">
                 <p className="sec-eyebrow">STEP 1 · GET INVITED</p>
                 <h2 className="sec-h2 dark">Kryla is invite-only.<br />Apply for your<br />spot today.</h2>
-                <p className="sec-body on-light">We&apos;re a curated community of skilled professionals. Your application takes under a minute — we review every request and get back to you quickly.</p>
+                <p className="sec-body on-light">We&apos;re a curated community of skilled professionals and businesses. Your application takes under a minute — we review every request and get back to you quickly.</p>
                 <p className="sec-warm">Because quality matters more than quantity.</p>
               </div>
               <div className="card-col"><PriyaCard loc={loc} /></div>
@@ -920,7 +920,7 @@ export default function HomeClient({ plans, enabledPersonaIds = [] }: { plans: P
 
         {/* Foreground text content */}
         <div className="hero-content">
-          <p className="hero-eyebrow">INVITE-ONLY COMMUNITY · FOR SKILLED PROFESSIONALS</p>
+          <p className="hero-eyebrow">INVITE-ONLY · FOR SKILLED PROFESSIONALS & BUSINESSES</p>
           <h1 className="hero-h1">
             <span className="h1-l1">One platform,</span>
             <span className="h1-l2">built around your craft.</span>
@@ -952,7 +952,7 @@ export default function HomeClient({ plans, enabledPersonaIds = [] }: { plans: P
       <section className="community">
         <div className="community-head">
           <p className="sec-eyebrow">THE COMMUNITY</p>
-          <h2 className="sec-h2 light">Join professionals already growing on Kryla</h2>
+          <h2 className="sec-h2 light">Join professionals & businesses already growing on Kryla</h2>
         </div>
         <div className="ticker-row">
           <div className="ticker-track tick-left">
@@ -986,7 +986,7 @@ export default function HomeClient({ plans, enabledPersonaIds = [] }: { plans: P
       <section className="pricing">
         <div className="pricing-head">
           <p className="sec-eyebrow">YOUR MEMBERSHIP</p>
-          <h2 className="sec-h2">Invite-only. Built for serious professionals.</h2>
+          <h2 className="sec-h2">Invite-only. Built for serious professionals & businesses.</h2>
           <p className="pricing-sub">Kryla is invite-only. Every member was brought in by someone already on the platform.</p>
         </div>
         <div className="pricing-grid">
