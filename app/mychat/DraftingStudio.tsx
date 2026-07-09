@@ -63,9 +63,14 @@ type Mode     = 'draft' | 'review' | 'refine'
 type RightTab = 'outline' | 'clauses'
 
 interface Props {
-  providerId: string
-  open:       boolean
-  onClose:    () => void
+  providerId:     string
+  open:           boolean
+  onClose:        () => void
+  // Phase 5 seed: when opened from a client/matter card, pre-populate template + client
+  seedStudentId?: string | null
+  seedClientName?: string | null
+  seedMatterType?: string | null
+  seedDocType?:   string | null
 }
 
 // ── Plain text → basic HTML ───────────────────────────────────────────────────
@@ -95,7 +100,10 @@ function slugify(text: string): string {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function DraftingStudio({ providerId, open, onClose }: Props) {
+export default function DraftingStudio({
+  providerId, open, onClose,
+  seedStudentId, seedClientName, seedMatterType, seedDocType,
+}: Props) {
   const [mode, setMode]                             = useState<Mode>('draft')
   const [showSidebar, setShowSidebar]               = useState(false)
   const [showRightPanel, setShowRightPanel]         = useState(false)
@@ -166,6 +174,29 @@ export default function DraftingStudio({ providerId, open, onClose }: Props) {
   useEffect(() => {
     if (open) { loadTemplates(); loadClients(); loadSavedDrafts() }
   }, [open, loadTemplates, loadClients, loadSavedDrafts])
+
+  // Phase 5 seed: when opened from a matter card, pre-populate client + template + facts
+  useEffect(() => {
+    if (!open || !seedStudentId) return
+    // Pre-attach client
+    setAttachedClientId(seedStudentId)
+    // Pre-populate client name fact if a seedDocType template is found (after templates load)
+    if (seedClientName) {
+      setFacts(prev => ({
+        ...prev,
+        client_name:    seedClientName,
+        sender_name:    seedClientName,
+        payee_name:     seedClientName,
+        deponent_name:  seedClientName,
+      }))
+    }
+    // Try to auto-select the requested doc type template
+    if (seedDocType && templates.length > 0) {
+      const match = templates.find(t => t.doc_type === seedDocType)
+      if (match) setSelectedTemplate(match)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, seedStudentId, seedClientName, seedDocType, templates])
 
   // Reset on close
   useEffect(() => {

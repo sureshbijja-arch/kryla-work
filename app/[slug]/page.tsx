@@ -7,6 +7,7 @@ import AdsScroller from './components/AdsScroller'
 import LanguagePage from './components/LanguagePage'
 import PageTracker from './components/PageTracker'
 import LikeButton from './components/LikeButton'
+import AdvocateIntakeChat from './components/AdvocateIntakeChat'
 import type { SectionEntry } from './components/LayoutRenderer'
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'kryla.work'
@@ -184,6 +185,14 @@ export default async function MemberProfilePage({ params }: Props) {
         isTutor={isTutor}
       />
       <AdsScroller slug={params.slug} />
+      {/* Advocate persona: AI intake chat widget (Phase 2) */}
+      {provider.persona === 'advocate' && (
+        <AdvocateIntakeChat
+          slug={params.slug}
+          advocateName={`${provider.first_name} ${provider.last_name}`}
+          accentColor={accentColor}
+        />
+      )}
       <div className="fixed bottom-6 right-6 z-50">
         <LikeButton providerId={provider.id} slug={params.slug} accentColor={accentColor} />
       </div>

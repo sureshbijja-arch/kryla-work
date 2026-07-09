@@ -23,7 +23,16 @@ export interface GeneratePersonaPayload {
 
 export const GENERATE_PERSONA_EVENT = 'kryla/persona.template.generate'
 
-export const BILLING_PAYMENT_FAILED_EVENT = 'kryla/billing.payment.failed'
+export const BILLING_PAYMENT_FAILED_EVENT  = 'kryla/billing.payment.failed'
+
+// Emitted by /api/mychat/student-sessions POST when sendFollowup=true
+export const CONSULTATION_LOGGED_EVENT = 'kryla/consultation.logged'
+
+export interface ConsultationLoggedPayload {
+  providerId: string
+  studentId:  string
+  sessionId:  string
+}
 
 export interface BillingPaymentFailedPayload {
   providerId:   string

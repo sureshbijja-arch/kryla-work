@@ -4,8 +4,17 @@ import { buildPageFunction } from '@/inngest/build-page'
 import { generatePersonaFunction } from '@/inngest/generate-persona-template'
 import { trialWatchFunction } from '@/inngest/trial-watch'
 import { paymentAlertsFunction } from '@/inngest/payment-alerts'
+import { hearingRemindersFunction } from '@/inngest/hearing-reminders'
+import { consultationFollowupFunction } from '@/inngest/consultation-followup'
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
-  functions: [buildPageFunction, generatePersonaFunction, trialWatchFunction, paymentAlertsFunction],
+  functions: [
+    buildPageFunction,
+    generatePersonaFunction,
+    trialWatchFunction,
+    paymentAlertsFunction,
+    hearingRemindersFunction,
+    consultationFollowupFunction,
+  ],
 })

@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { inngest, CONSULTATION_LOGGED_EVENT } from '@/lib/inngest'
 import { NextResponse } from 'next/server'
 
 async function getAuthedProvider(providerId: string) {
@@ -42,7 +43,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const body = await req.json()
-  const { providerId, studentId, sessionDate, topic, homework, notes, attended } = body
+  const { providerId, studentId, sessionDate, topic, homework, notes, attended, sendFollowup } = body
 
   if (!providerId || !studentId) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -81,6 +82,14 @@ export async function POST(req: Request) {
 
   if (sessionResult.error) {
     return NextResponse.json({ error: sessionResult.error.message }, { status: 500 })
+  }
+
+  // Fire follow-up event if advocate opted in (fire-and-forget; client DPDP consent checked in the function)
+  if (sendFollowup && sessionResult.data?.id) {
+    void inngest.send({
+      name: CONSULTATION_LOGGED_EVENT,
+      data: { providerId, studentId, sessionId: sessionResult.data.id },
+    })
   }
 
   return NextResponse.json({ session: sessionResult.data })

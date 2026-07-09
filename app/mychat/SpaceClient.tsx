@@ -18,7 +18,7 @@ import SuggestionsTab from './SuggestionsTab'
 import ReferTab from './ReferTab'
 import AvailabilityTab from './AvailabilityTab'
 import HoursTab from './HoursTab'
-import PersonaTab from './PersonaTab'
+import PersonaTab, { type DraftSeed } from './PersonaTab'
 import ReviewsTab from './ReviewsTab'
 import StatsTab from './StatsTab'
 import ResearchChat from './ResearchChat'
@@ -229,6 +229,8 @@ export default function SpaceClient({
   const [researchOpen, setResearchOpen]     = useState(false)
   const [researchQuery, setResearchQuery]   = useState<string | undefined>(undefined)
   const [draftOpen, setDraftOpen]           = useState(false)
+  // Phase 5: seed DraftingStudio from a client/matter card
+  const [draftSeed, setDraftSeed]           = useState<DraftSeed | null>(null)
 
   // ── Billing return toast ─────────────────────────────────────────────────────
   const router = useRouter()
@@ -487,7 +489,11 @@ export default function SpaceClient({
         <DraftingStudio
           providerId={providerId}
           open={draftOpen}
-          onClose={() => setDraftOpen(false)}
+          onClose={() => { setDraftOpen(false); setDraftSeed(null) }}
+          seedStudentId={draftSeed?.studentId}
+          seedClientName={draftSeed?.clientName}
+          seedMatterType={draftSeed?.matterType}
+          seedDocType={draftSeed?.matterType ? 'legal_notice' : undefined}
         />
       )}
 
@@ -926,6 +932,10 @@ export default function SpaceClient({
               currentProfile.persona === 'advocate'  ? 'Court / Stage' :
               'Notes label'
             }
+            onDraftFromMatter={currentProfile.persona === 'advocate' ? seed => {
+              setDraftSeed(seed)
+              setDraftOpen(true)
+            } : undefined}
           />
         </div>
       )}

@@ -25,7 +25,7 @@ export async function GET(req: Request) {
 
   const { data, error } = await supabaseAdmin
     .from('students')
-    .select('id, name, label_1, label_2, sessions, next_session, notes, avatar_color, created_at, booking_id, parent_name, parent_email, parent_phone')
+    .select('id, name, label_1, label_2, sessions, next_session, notes, avatar_color, created_at, booking_id, parent_name, parent_email, parent_phone, next_hearing_date, next_hearing_note, whatsapp_consent, remind_client')
     .eq('provider_id', providerId)
     .order('created_at', { ascending: false })
 
@@ -35,7 +35,11 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const body = await req.json()
-  const { providerId, name, label1, label2, notes, nextSession, avatarColor, parentName, parentEmail, parentPhone } = body
+  const {
+    providerId, name, label1, label2, notes, nextSession, avatarColor,
+    parentName, parentEmail, parentPhone,
+    nextHearingDate, nextHearingNote, whatsappConsent, remindClient,
+  } = body
 
   if (!providerId || !name) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -47,17 +51,21 @@ export async function POST(req: Request) {
   const { data, error } = await supabaseAdmin
     .from('students')
     .insert({
-      provider_id:  providerId,
+      provider_id:      providerId,
       name,
-      label_1:      label1       ?? null,
-      label_2:      label2       ?? null,
-      notes:        notes        ?? null,
-      next_session: nextSession  ?? null,
-      avatar_color: avatarColor  ?? '#6366F1',
-      sessions:     0,
-      parent_name:  parentName   ?? null,
-      parent_email: parentEmail  ?? null,
-      parent_phone: parentPhone  ?? null,
+      label_1:          label1           ?? null,
+      label_2:          label2           ?? null,
+      notes:            notes            ?? null,
+      next_session:     nextSession      ?? null,
+      avatar_color:     avatarColor      ?? '#6366F1',
+      sessions:         0,
+      parent_name:      parentName       ?? null,
+      parent_email:     parentEmail      ?? null,
+      parent_phone:     parentPhone      ?? null,
+      next_hearing_date: nextHearingDate ?? null,
+      next_hearing_note: nextHearingNote ?? null,
+      whatsapp_consent: whatsappConsent  ?? false,
+      remind_client:    remindClient     ?? true,
     })
     .select()
     .single()
@@ -112,15 +120,20 @@ export async function PATCH(req: Request) {
 
   // General update
   const update: Record<string, unknown> = { updated_at: new Date().toISOString() }
-  if ('name' in fields)        update.name         = fields.name
-  if ('label1' in fields)      update.label_1      = fields.label1
-  if ('label2' in fields)      update.label_2      = fields.label2
-  if ('notes' in fields)       update.notes        = fields.notes
-  if ('nextSession' in fields) update.next_session = fields.nextSession
-  if ('avatarColor' in fields) update.avatar_color = fields.avatarColor
-  if ('parentName'  in fields) update.parent_name  = fields.parentName
-  if ('parentEmail' in fields) update.parent_email = fields.parentEmail
-  if ('parentPhone' in fields) update.parent_phone = fields.parentPhone
+  if ('name'            in fields) update.name              = fields.name
+  if ('label1'          in fields) update.label_1           = fields.label1
+  if ('label2'          in fields) update.label_2           = fields.label2
+  if ('notes'           in fields) update.notes             = fields.notes
+  if ('nextSession'     in fields) update.next_session      = fields.nextSession
+  if ('avatarColor'     in fields) update.avatar_color      = fields.avatarColor
+  if ('parentName'      in fields) update.parent_name       = fields.parentName
+  if ('parentEmail'     in fields) update.parent_email      = fields.parentEmail
+  if ('parentPhone'     in fields) update.parent_phone      = fields.parentPhone
+  // Advocate automation fields
+  if ('nextHearingDate' in fields) update.next_hearing_date = fields.nextHearingDate ?? null
+  if ('nextHearingNote' in fields) update.next_hearing_note = fields.nextHearingNote ?? null
+  if ('whatsappConsent' in fields) update.whatsapp_consent  = fields.whatsappConsent
+  if ('remindClient'    in fields) update.remind_client     = fields.remindClient
 
   const { error } = await supabaseAdmin
     .from('students')
