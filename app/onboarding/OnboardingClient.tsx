@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toSlug, suggestSlug, validateSlug } from '@/lib/slug'
-import type { PlanDef } from '@/lib/plans'
+import type { PlanDef, PlanFeature } from '@/lib/plans'
 import type { OnboardingAnswers, Persona, Plan, Region } from '@/types/onboarding'
 
 type Step = 1 | 2 | 3 | 4 | 5
@@ -20,7 +20,13 @@ interface PersonaDef {
   label: string
 }
 
-export default function OnboardingClient({ plans, personas }: { plans: PlanDef[]; personas: PersonaDef[] }) {
+export default function OnboardingClient({
+  plans, personas, personaFeatureMap = {},
+}: {
+  plans: PlanDef[]
+  personas: PersonaDef[]
+  personaFeatureMap?: Record<string, Record<string, PlanFeature[]>>
+}) {
   const PERSONAS = personas
   const SELECTABLE_PLANS = plans.filter(p => !p.isQuote)
   const router       = useRouter()
@@ -321,23 +327,27 @@ export default function OnboardingClient({ plans, personas }: { plans: PlanDef[]
                   ))}
                 </div>
                 <div className="grid grid-cols-2 gap-2.5 mb-4">
-                  {SELECTABLE_PLANS.map((plan) => (
-                    <button key={plan.id} onClick={() => setAnswers((a) => ({ ...a, plan: plan.id as Plan }))}
-                      className={`relative border rounded-xl p-4 text-left transition-all ${answers.plan === plan.id ? 'border-[#F5A623] bg-[#FFFBF5] shadow-[0_0_0_3px_rgba(245,166,35,0.15)]' : 'border-[#E5E5E5] hover:border-[#F5A623] hover:bg-[#FFFBF5]'}`}>
-                      {plan.popular && (
+                  {SELECTABLE_PLANS.map((plan) => {
+                    const personaFeatures = personaFeatureMap[answers.persona ?? '']?.[plan.id]
+                    const displayPlan = personaFeatures ? { ...plan, features: personaFeatures } : plan
+                    return (
+                    <button key={displayPlan.id} onClick={() => setAnswers((a) => ({ ...a, plan: displayPlan.id as Plan }))}
+                      className={`relative border rounded-xl p-4 text-left transition-all ${answers.plan === displayPlan.id ? 'border-[#F5A623] bg-[#FFFBF5] shadow-[0_0_0_3px_rgba(245,166,35,0.15)]' : 'border-[#E5E5E5] hover:border-[#F5A623] hover:bg-[#FFFBF5]'}`}>
+                      {displayPlan.popular && (
                         <div className="absolute -top-px right-3 bg-[#F5A623] text-[#0D0D0D] text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-b-md">Most popular</div>
                       )}
-                      <div className="text-xs font-semibold text-[#0D0D0D] mb-0.5">{plan.emoji} {plan.name}</div>
-                      <div className="text-lg font-bold text-[#0D0D0D] mb-2">{answers.region === 'india' ? plan.indiaPrice : plan.usaPrice}</div>
+                      <div className="text-xs font-semibold text-[#0D0D0D] mb-0.5">{displayPlan.emoji} {displayPlan.name}</div>
+                      <div className="text-lg font-bold text-[#0D0D0D] mb-2">{answers.region === 'india' ? displayPlan.indiaPrice : displayPlan.usaPrice}</div>
                       <ul className="space-y-1">
-                        {plan.features.map((f, i) => (
+                        {displayPlan.features.map((f, i) => (
                           <li key={i} className="text-[11px] text-[#444] flex items-start gap-1.5">
                             <span className="text-[#22C55E] font-bold flex-shrink-0">✓</span>{f.label}
                           </li>
                         ))}
                       </ul>
                     </button>
-                  ))}
+                    )
+                  })}
                 </div>
                 <div className="rounded-xl border border-[#E5E5E5] bg-[#FAFAFA] px-4 py-3 mb-5 flex items-center justify-between gap-3">
                   <div>

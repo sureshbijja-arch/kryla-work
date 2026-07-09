@@ -74,6 +74,7 @@ interface Props {
   customName: string | null
   referralCode: string | null
   plans: import('@/lib/plans').PlanDef[]
+  personaPlans: import('@/lib/plans').PlanDef[]
   planOrder: string[]
   canAds: boolean
   canCustomName: boolean
@@ -195,7 +196,7 @@ export default function SpaceClient({
   providerId, slug, firstName,
   plan, planStatus, trialEndsAt, billingStatus,
   region, pageLanguage, customName, referralCode, currentProfile, onRefresh,
-  plans, planOrder, canAds, canCustomName,
+  plans, personaPlans, planOrder, canAds, canCustomName,
 }: Props) {
   const defaultSections: SectionEntry[] = currentProfile.sections ?? [
     { sectionKey: 'hero',       variant: 'auto',      order: 1 },
@@ -935,7 +936,7 @@ export default function SpaceClient({
           <PlanSection
             currentPlan={plan}
             region={region}
-            plans={plans}
+            plans={personaPlans}
             planOrder={planOrder}
             planStatus={planStatus}
             trialEndsAt={trialEndsAt}

@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json() as {
     plan_id: string; label: string; description?: string | null
-    feature_key?: string | null; sort_order?: number
+    feature_key?: string | null; sort_order?: number; persona?: string | null
   }
 
   if (!body.plan_id?.trim() || !body.label?.trim())
@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
       description: body.description?.trim() ?? null,
       feature_key: body.feature_key?.trim() ?? null,
       sort_order:  body.sort_order ?? 0,
+      persona:     body.persona?.trim() || null,
     })
     .select()
     .single()

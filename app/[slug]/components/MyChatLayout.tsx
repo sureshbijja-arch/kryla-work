@@ -20,6 +20,7 @@ interface SpaceProps {
   customName: string | null
   referralCode: string | null
   plans: PlanDef[]
+  personaPlans: PlanDef[]
   planOrder: string[]
   canAds: boolean
   canCustomName: boolean

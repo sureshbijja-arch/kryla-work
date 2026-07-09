@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { getPlans, getPlanGate } from '@/lib/plans'
+import { getPlans, getPlanGate, getPersonaPlans } from '@/lib/plans'
 import MyChatLayout from '../components/MyChatLayout'
 import type { SectionEntry } from '@/app/mychat/SectionsTab'
 import type { ServiceItem } from '@/app/mychat/ServicesTab'
@@ -40,13 +40,14 @@ export default async function MyChatPage({ params, searchParams }: Props) {
 
   if (provider.slug !== params.slug) redirect(`/${provider.slug}/mychat`)
 
-  const [{ data: page }, plans, gate] = await Promise.all([
+  const [{ data: page }, plans, personaPlans, gate] = await Promise.all([
     supabaseAdmin
       .from('pages')
       .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, palette, font, template, show_sections, sections, design_mode')
       .eq('provider_id', provider.id)
       .single(),
     getPlans(),
+    getPersonaPlans(provider.persona),
     getPlanGate(),
   ])
 
@@ -80,6 +81,7 @@ export default async function MyChatPage({ params, searchParams }: Props) {
         customName: (provider.custom_domain as string | null) ?? null,
         referralCode: (provider.referral_code as string | null) ?? null,
         plans,
+        personaPlans,
         planOrder,
         canAds,
         canCustomName,

@@ -11,6 +11,7 @@ interface Feature {
   description: string | null
   feature_key: string | null
   sort_order:  number
+  persona:     string | null
 }
 
 interface Plan {
@@ -44,6 +45,7 @@ interface FeatureForm {
   description: string
   feature_key: string
   sort_order:  string
+  persona:     string
 }
 
 const BLANK_PLAN: PlanForm = {
@@ -53,8 +55,13 @@ const BLANK_PLAN: PlanForm = {
 }
 
 const BLANK_FEATURE: FeatureForm = {
-  label: '', description: '', feature_key: '', sort_order: '0',
+  label: '', description: '', feature_key: '', sort_order: '0', persona: '',
 }
+
+const PERSONAS = [
+  'tutor', 'trainer', 'baker', 'photographer', 'salon',
+  'chef', 'doctor', 'musician', 'advocate', 'retailer', 'other',
+]
 
 // ── Main page ──────────────────────────────────────────────────────────────
 
@@ -165,6 +172,7 @@ export default function AdminPlansPage() {
         description: featureForm.description || null,
         feature_key: featureForm.feature_key || null,
         sort_order:  Number(featureForm.sort_order),
+        persona:     featureForm.persona || null,
       }),
     })
     const data = await res.json()
@@ -187,6 +195,7 @@ export default function AdminPlansPage() {
         description: editFeatureForm.description || null,
         feature_key: editFeatureForm.feature_key || null,
         sort_order:  Number(editFeatureForm.sort_order),
+        persona:     editFeatureForm.persona || null,
       }),
     })
     const data = await res.json()
@@ -365,6 +374,11 @@ export default function AdminPlansPage() {
                                 key: {feature.feature_key}
                               </span>
                             )}
+                            {feature.persona && (
+                              <span className="text-[10px] font-mono bg-[#FFF7ED] text-[#C17A3A] px-1.5 py-0.5 rounded">
+                                {feature.persona}
+                              </span>
+                            )}
                             <span className="text-[10px] text-[#bbb]">order {feature.sort_order}</span>
                           </div>
                           {feature.description && (
@@ -377,6 +391,7 @@ export default function AdminPlansPage() {
                             setEditFeatureForm({
                               label: feature.label, description: feature.description ?? '',
                               feature_key: feature.feature_key ?? '', sort_order: String(feature.sort_order),
+                              persona: feature.persona ?? '',
                             })
                           }}
                             className="text-xs text-[#999] hover:text-[#0D0D0D] px-2 py-1 rounded hover:bg-[#F5F5F5]">
@@ -496,10 +511,19 @@ function FeatureFormUI({ form, onChange }: { form: FeatureForm; onChange: (f: Fe
             onChange={e => field('sort_order')(e.target.value)} className="field-input" />
         </div>
       </div>
-      <div>
-        <label className="field-label">Description (optional)</label>
-        <input value={form.description} onChange={e => field('description')(e.target.value)}
-          placeholder="Connect your own domain to your Kryla page" className="field-input" />
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label className="field-label">Persona (optional — leave blank for all)</label>
+          <select value={form.persona} onChange={e => field('persona')(e.target.value)} className="field-input">
+            <option value="">All personas (generic)</option>
+            {PERSONAS.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="field-label">Description (optional)</label>
+          <input value={form.description} onChange={e => field('description')(e.target.value)}
+            placeholder="Connect your own domain to your Kryla page" className="field-input" />
+        </div>
       </div>
     </div>
   )

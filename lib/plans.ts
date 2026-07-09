@@ -66,6 +66,7 @@ interface FeatureRow {
   description: string | null
   feature_key: string | null
   sort_order:  number
+  persona?:    string | null
 }
 
 // ── Loader ───────────────────────────────────────────────────────────────────
@@ -84,6 +85,7 @@ export const getPlans = cache(async (): Promise<PlanDef[]> => {
     supabaseAdmin
       .from('plan_features')
       .select('plan_id, label, description, feature_key, sort_order')
+      .is('persona', null)
       .order('sort_order', { ascending: true }),
   ])
 
@@ -112,6 +114,61 @@ export const getPlans = cache(async (): Promise<PlanDef[]> => {
     popular:    p.popular,
     sortOrder:  p.sort_order,
     features:   featuresByPlan.get(p.id) ?? [],
+  }))
+})
+
+/**
+ * Returns all persona-specific feature labels grouped by persona → plan_id.
+ * Used in the onboarding server page to pass the full map to the client so
+ * step 4 can show persona-relevant features without an extra API call.
+ * Rows with persona IS NULL are excluded (those come from getPlans).
+ */
+export const getPersonaFeatureMap = cache(async (): Promise<
+  Record<string, Record<string, PlanFeature[]>>
+> => {
+  const { data } = await supabaseAdmin
+    .from('plan_features')
+    .select('plan_id, label, description, feature_key, sort_order, persona')
+    .not('persona', 'is', null)
+    .order('sort_order', { ascending: true })
+
+  const map: Record<string, Record<string, PlanFeature[]>> = {}
+  for (const f of (data ?? []) as FeatureRow[]) {
+    const p = f.persona!
+    if (!map[p]) map[p] = {}
+    if (!map[p][f.plan_id]) map[p][f.plan_id] = []
+    map[p][f.plan_id].push({ label: f.label, description: f.description, key: f.feature_key })
+  }
+  return map
+})
+
+/**
+ * Returns plans with persona-specific feature labels where configured,
+ * falling back to generic features for any plan that has no persona overrides.
+ * Used in the mychat server route so PlanSection shows relevant copy.
+ */
+export const getPersonaPlans = cache(async (persona: string): Promise<PlanDef[]> => {
+  const [genericPlans, specificRes] = await Promise.all([
+    getPlans(),
+    supabaseAdmin
+      .from('plan_features')
+      .select('plan_id, label, description, feature_key, sort_order')
+      .eq('persona', persona)
+      .order('sort_order', { ascending: true }),
+  ])
+
+  const specific = (specificRes.data ?? []) as FeatureRow[]
+  if (!specific.length) return genericPlans
+
+  const specificByPlan = new Map<string, PlanFeature[]>()
+  for (const f of specific) {
+    if (!specificByPlan.has(f.plan_id)) specificByPlan.set(f.plan_id, [])
+    specificByPlan.get(f.plan_id)!.push({ label: f.label, description: f.description, key: f.feature_key })
+  }
+
+  return genericPlans.map(plan => ({
+    ...plan,
+    features: specificByPlan.get(plan.id) ?? plan.features,
   }))
 })
 
