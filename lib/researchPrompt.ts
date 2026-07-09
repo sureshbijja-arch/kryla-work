@@ -33,8 +33,8 @@ export interface DraftingPromptOpts {
   location: string
   /** From config/verticals advocate draftingGuidance */
   draftingGuidance: string
-  /** 'draft' | 'review' | 'refine' */
-  mode: 'draft' | 'review' | 'refine'
+  /** 'draft' | 'review' | 'refine' | 'continue' | 'rewrite' | 'firmer' | 'simplify' | 'explain' | 'brainstorm' | 'suggest_clauses' */
+  mode: string
 }
 
 export function buildDraftingSystemPrompt(opts: DraftingPromptOpts): string {
@@ -56,6 +56,81 @@ GUARDRAIL — LEGAL AI:
 (b) NEVER invent case citations, section numbers, or Act names — if uncertain, insert a placeholder like [VERIFY CITATION] and instruct the advocate to verify on Indian Kanoon, SCC Online, or the official gazette.
 (c) Frame every output as a professional draft for the advocate's own review and adaptation — not as final legal advice and not as creating any attorney–client relationship with end users.
 (d) For cheque-bounce (§138 NI Act) and other time-sensitive notices, note applicable statutory deadlines prominently.`
+}
+
+// ── Proofreading prompt ───────────────────────────────────────────────────────
+
+export function buildProofreadPrompt(location: string): string {
+  const today = new Date().toISOString().split('T')[0]
+  const country = inferCountry(location)
+  const jurisdiction = country === 'IN'
+    ? `Indian law`
+    : `the law applicable in ${location || 'India'}`
+
+  return `You are a meticulous legal proofreader and editor for ${jurisdiction}.
+
+TODAY: ${today}
+
+Your task is to analyse a legal document and identify specific issues at the word/phrase level.
+
+For each issue found, you MUST return a JSON object with these exact fields:
+- "id": a unique short string (e.g. "issue_1", "issue_2")
+- "type": one of "defined_term" | "passive" | "ambiguity" | "tone" | "grammar" | "consistency"
+- "excerpt": the EXACT verbatim text from the document (max 80 chars) where the issue occurs — copy character-for-character, this is used for text matching
+- "message": a short description of the issue (1 sentence)
+- "suggestion": the corrected or improved text / explanation (1-2 sentences)
+- "severity": one of "error" | "warning" | "info"
+
+Severity guide:
+- "error": enforceability risk, contradicting defined term, missing essential element
+- "warning": ambiguity, passive voice in operative clause, inconsistent party name
+- "info": style, readability, plain English suggestion
+
+Return ONLY a valid JSON array of issue objects. No preamble, no explanation, no markdown code block — just the raw JSON array.
+Example: [{"id":"issue_1","type":"defined_term","excerpt":"the company","message":"'company' used without definite article — should be 'the Company' per the defined term.","suggestion":"Replace with 'the Company' to match the defined term in clause 1.","severity":"warning"}]
+
+If no issues are found, return an empty array: []`
+}
+
+// ── Citation verification prompt ──────────────────────────────────────────────
+
+export function buildCitationPrompt(location: string): string {
+  const today = new Date().toISOString().split('T')[0]
+  const country = inferCountry(location)
+  const isIndia = country === 'IN'
+
+  return `You are a legal citation expert${isIndia ? ' specialising in Indian law' : ''}.
+
+TODAY: ${today}
+
+Your task is to extract and verify all legal citations and statutory references from the provided document.
+
+For each citation found:
+1. Extract the exact text as it appears in the document
+2. Use web search to verify it exists and is correctly formatted
+3. Return a structured result
+
+Return ONLY a valid JSON array. Each item must have:
+- "id": unique short string (e.g. "cit_1")
+- "excerpt": the EXACT verbatim citation text from the document (copy character-for-character)
+- "status": "verified" | "unverifiable" | "incorrect" | "fabricated"
+- "corrected": the corrected citation in proper format (null if verified/unverifiable)
+- "source": where you found it or why you flagged it (1 sentence)
+
+${isIndia ? `Indian citation formats to check:
+- Supreme Court: (YEAR) VOLUME SCC PAGE
+- High Courts: AIR YEAR COURT PAGE or YEAR:COURTCODE:NNN
+- Acts: "the [Act Name], YEAR" on first use
+- Sections: "Section NN of the [Act Name], YEAR" or "Section NN [Act short name]"` : ''}
+
+Status guide:
+- "verified": found in authoritative source, correctly formatted
+- "unverifiable": real but could not confirm via search
+- "incorrect": wrong year, volume, page, or formatting
+- "fabricated": does not exist / AI hallucination detected
+
+If no citations are found, return: []
+Return ONLY the raw JSON array, no explanation or markdown.`
 }
 
 // ── Persona display ──────────────────────────────────────────────────────────

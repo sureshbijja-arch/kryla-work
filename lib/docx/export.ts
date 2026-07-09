@@ -1,0 +1,192 @@
+/**
+ * TipTap JSON → real .docx export using the `docx` library.
+ *
+ * Converts TipTap's ProseMirror JSON output to a properly structured
+ * Word document with headings, paragraphs, and formatted text runs.
+ * Returns a Buffer suitable for streaming to the client.
+ */
+
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  HeadingLevel,
+  AlignmentType,
+  UnderlineType,
+  convertInchesToTwip,
+} from 'docx'
+
+// ── TipTap JSON types ─────────────────────────────────────────────────────────
+
+interface TipTapMark {
+  type: string
+  attrs?: Record<string, unknown>
+}
+
+interface TipTapNode {
+  type: string
+  text?: string
+  marks?: TipTapMark[]
+  attrs?: Record<string, unknown>
+  content?: TipTapNode[]
+}
+
+// ── Convert a TipTap text node to docx TextRun ───────────────────────────────
+
+function textNodeToRun(node: TipTapNode): TextRun {
+  const marks = node.marks ?? []
+  const bold      = marks.some(m => m.type === 'bold')
+  const italic    = marks.some(m => m.type === 'italic')
+  const underline = marks.some(m => m.type === 'underline')
+  const strike    = marks.some(m => m.type === 'strike')
+
+  return new TextRun({
+    text:      node.text ?? '',
+    bold,
+    italics:   italic,
+    underline: underline ? { type: UnderlineType.SINGLE } : undefined,
+    strike,
+  })
+}
+
+// ── Convert a TipTap content node to array of TextRun ───────────────────────
+
+function contentToRuns(nodes: TipTapNode[] = []): TextRun[] {
+  return nodes.flatMap(node => {
+    if (node.type === 'text') return [textNodeToRun(node)]
+    if (node.type === 'hardBreak') return [new TextRun({ break: 1 })]
+    return []
+  })
+}
+
+// ── Heading level map ─────────────────────────────────────────────────────────
+
+const HEADING_LEVEL: Record<number, (typeof HeadingLevel)[keyof typeof HeadingLevel]> = {
+  1: HeadingLevel.HEADING_1,
+  2: HeadingLevel.HEADING_2,
+  3: HeadingLevel.HEADING_3,
+  4: HeadingLevel.HEADING_4,
+}
+
+// ── Convert a TipTap doc node to docx Paragraph array ────────────────────────
+
+function nodeToParagraphs(node: TipTapNode): Paragraph[] {
+  switch (node.type) {
+
+    case 'heading': {
+      const level = (node.attrs?.level as number) ?? 1
+      return [new Paragraph({
+        heading: HEADING_LEVEL[level] ?? HeadingLevel.HEADING_1,
+        children: contentToRuns(node.content),
+      })]
+    }
+
+    case 'paragraph': {
+      const runs = contentToRuns(node.content)
+      return [new Paragraph({
+        children: runs.length > 0 ? runs : [new TextRun('')],
+        spacing: { after: convertInchesToTwip(0.08) },
+      })]
+    }
+
+    case 'blockquote': {
+      // Wrap inner paragraph text with indent — re-extract runs from content
+      return (node.content ?? []).flatMap(inner => {
+        const runs = contentToRuns(inner.content)
+        return [new Paragraph({
+          children: runs.length > 0 ? runs : [new TextRun('')],
+          indent: { left: convertInchesToTwip(0.5) },
+          spacing: { after: convertInchesToTwip(0.05) },
+        })]
+      })
+    }
+
+    case 'bulletList': {
+      return (node.content ?? []).flatMap(listItem => {
+        const innerContent = (listItem.content ?? []).flatMap(n => contentToRuns(n.content))
+        return [new Paragraph({
+          children: [new TextRun('• '), ...innerContent],
+          indent: { left: convertInchesToTwip(0.5) },
+          spacing: { after: convertInchesToTwip(0.04) },
+        })]
+      })
+    }
+
+    case 'orderedList': {
+      let counter = (node.attrs?.start as number) ?? 1
+      return (node.content ?? []).flatMap(listItem => {
+        const innerContent = (listItem.content ?? []).flatMap(n => contentToRuns(n.content))
+        const para = new Paragraph({
+          children: [new TextRun(`${counter}. `), ...innerContent],
+          indent: { left: convertInchesToTwip(0.5) },
+          spacing: { after: convertInchesToTwip(0.04) },
+        })
+        counter++
+        return [para]
+      })
+    }
+
+    case 'codeBlock': {
+      const text = (node.content ?? []).map(n => n.text ?? '').join('')
+      return [new Paragraph({
+        children: [new TextRun({ text, font: 'Courier New', size: 18 })],
+        spacing: { after: convertInchesToTwip(0.08) },
+      })]
+    }
+
+    case 'horizontalRule': {
+      return [new Paragraph({
+        children: [new TextRun({ text: '─────────────────────────────────────────', size: 18 })],
+        alignment: AlignmentType.CENTER,
+        spacing: { after: convertInchesToTwip(0.08) },
+      })]
+    }
+
+    default:
+      // Unknown node — recurse into content if any
+      return (node.content ?? []).flatMap(nodeToParagraphs)
+  }
+}
+
+// ── Main export function ──────────────────────────────────────────────────────
+
+export async function tiptapJsonToDocx(
+  json: TipTapNode,
+  title = 'Legal Document',
+): Promise<Buffer> {
+  const paragraphs = (json.content ?? []).flatMap(nodeToParagraphs)
+
+  const doc = new Document({
+    creator:     'Kryla Drafting Studio',
+    title,
+    description: 'Generated by Kryla Drafting Studio',
+    styles: {
+      paragraphStyles: [
+        {
+          id: 'Normal',
+          name: 'Normal',
+          run: { font: 'Times New Roman', size: 24 },
+          paragraph: { spacing: { line: 360 } },  // 1.5 line spacing
+        },
+      ],
+    },
+    sections: [
+      {
+        properties: {
+          page: {
+            margin: {
+              top:    convertInchesToTwip(1),
+              right:  convertInchesToTwip(1.25),
+              bottom: convertInchesToTwip(1),
+              left:   convertInchesToTwip(1.25),
+            },
+          },
+        },
+        children: paragraphs,
+      },
+    ],
+  })
+
+  return Packer.toBuffer(doc)
+}

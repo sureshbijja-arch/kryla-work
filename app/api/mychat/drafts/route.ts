@@ -38,7 +38,7 @@ export async function GET(req: Request) {
 
   let query = supabaseAdmin
     .from('drafts')
-    .select('id, student_id, doc_type, title, body, status, share_token, created_at, updated_at')
+    .select('id, student_id, doc_type, title, body, format, status, share_token, created_at, updated_at')
     .eq('provider_id', providerId)
     .order('updated_at', { ascending: false })
     .limit(100)
