@@ -922,11 +922,10 @@ export default function HomeClient({ plans, enabledPersonaIds = [] }: { plans: P
         <div className="hero-content">
           <p className="hero-eyebrow">INVITE-ONLY COMMUNITY · FOR SKILLED PROFESSIONALS</p>
           <h1 className="hero-h1">
-            <span className="h1-l1">Your craft deserves</span>
-            <span className="h1-l2">a name online.</span>
-            <span className="h1-l3">Give your business its own identity.</span>
+            <span className="h1-l1">One platform,</span>
+            <span className="h1-l2">built around your craft.</span>
+            <span className="h1-l3">Run it, grow it — your way.</span>
           </h1>
-          <p className="hero-sub">Join by invitation. Your name, your work, your spot online — live in 15 minutes.</p>
           <div className="hero-btns">
             <a href="/join" className="btn-primary">I have an invite code →</a>
             <a href="#slider" className="btn-secondary">See how it works ↓</a>
