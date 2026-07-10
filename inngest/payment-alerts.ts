@@ -15,6 +15,7 @@
 
 import { inngest, BILLING_PAYMENT_FAILED_EVENT } from '@/lib/inngest'
 import type { BillingPaymentFailedPayload } from '@/lib/inngest'
+import { sendEmail } from '@/lib/email'
 
 export const paymentAlertsFunction = inngest.createFunction(
   { id: 'payment-alerts', name: 'Payment failure alerts' },
@@ -42,26 +43,31 @@ export const paymentAlertsFunction = inngest.createFunction(
 
     if (failureCount === 1) {
       // First missed month — friendly reminder
-      console.log(
-        `[payment-alerts] REMINDER → ${slug} (${email}): first payment missed. ` +
-        `Period ends ${periodEndStr}.`
-      )
-      // TODO: send email via lib/email.ts when RESEND_API_KEY is configured
-      // Subject: "Your Kryla payment didn't go through"
-      // Body: Hey {name}, your {plan} subscription payment didn't go through.
-      //       Please update your payment method at kryla.work/{slug}/mychat.
-      //       You still have full access — just make sure to pay before {periodEndStr}.
+      console.log(`[payment-alerts] REMINDER → ${slug} (${email}): first payment missed. Period ends ${periodEndStr}.`)
+      await sendEmail({
+        to: email,
+        subject: `Your Kryla payment didn't go through`,
+        html: `<div style="font-family:sans-serif;max-width:600px">
+          <h2>Hi ${name},</h2>
+          <p>Your Kryla subscription payment didn't go through. No worries — you still have full access for now.</p>
+          <p>Please update your payment method before <strong>${periodEndStr}</strong> to avoid any interruption.</p>
+          <a href="https://kryla.work/${slug}/mychat" style="display:inline-block;background:#0D0D0D;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Update payment method →</a>
+          <p style="color:#999;font-size:12px;margin-top:24px">kryla.work · <a href="mailto:hello@kryla.work">hello@kryla.work</a></p>
+        </div>`,
+      })
     } else if (failureCount >= 2) {
       // Second consecutive missed month — urgent: pay by period end or lose access
-      console.log(
-        `[payment-alerts] URGENT ALERT → ${slug} (${email}): 2nd consecutive payment missed. ` +
-        `Access will be restricted at ${periodEndStr}.`
-      )
-      // TODO: send email via lib/email.ts when RESEND_API_KEY is configured
-      // Subject: "Action required: pay by {periodEndStr} to keep your Kryla access"
-      // Body: Hey {name}, this is your second missed payment.
-      //       Your access will be restricted on {periodEndStr} unless you pay now.
-      //       Update your payment method: kryla.work/{slug}/mychat → My plan.
+      console.log(`[payment-alerts] URGENT → ${slug} (${email}): 2nd payment missed. Access restricted at ${periodEndStr}.`)
+      await sendEmail({
+        to: email,
+        subject: `Action required: pay by ${periodEndStr} to keep your Kryla access`,
+        html: `<div style="font-family:sans-serif;max-width:600px">
+          <h2>Hi ${name},</h2>
+          <p>This is your second missed payment. Your access to your Kryla page will be restricted on <strong>${periodEndStr}</strong> unless you pay now.</p>
+          <a href="https://kryla.work/${slug}/mychat" style="display:inline-block;background:#DC2626;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Pay now — keep my access →</a>
+          <p style="color:#999;font-size:12px;margin-top:24px">Questions? Reply to this email or contact <a href="mailto:hello@kryla.work">hello@kryla.work</a></p>
+        </div>`,
+      })
     }
 
     return { failureCount, slug, email }

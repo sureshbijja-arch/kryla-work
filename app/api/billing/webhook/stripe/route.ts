@@ -30,6 +30,8 @@ import {
   handleInvoicePaymentFailed,
 } from '@/lib/payments/webhook-handlers'
 import type { NormalizedEventType } from '@/lib/payments/types'
+import { alertAdmin, escHtml } from '@/lib/alertAdmin'
+import { captureServerException } from '@/lib/observability'
 
 const GATEWAY = 'stripe' as const
 
@@ -102,6 +104,15 @@ export async function POST(req: NextRequest) {
     }
   } catch (err) {
     console.error('[webhook/stripe] handler error:', err)
+    captureServerException(err, { route: '/api/billing/webhook/stripe', eventType: type })
+    const errMsg = err instanceof Error ? err.message : String(err)
+    await alertAdmin(
+      `Stripe webhook handler failed (${escHtml(type)})`,
+      `<p><strong>Event type:</strong> ${escHtml(type)}</p>
+       <p><strong>Event ID:</strong> ${escHtml(parsed.eventId)}</p>
+       <p><strong>Error:</strong> ${escHtml(errMsg)}</p>
+       <p>Stripe will retry — check Inngest/Stripe dashboards.</p>`,
+    )
     // Return 500 so Stripe retries — the idempotency key is already set so
     // we won't double-process once the handler succeeds on retry.
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

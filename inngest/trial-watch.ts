@@ -14,6 +14,7 @@
 
 import { inngest } from '@/lib/inngest'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { sendEmail } from '@/lib/email'
 
 // Days-remaining thresholds for trial reminders
 const REMINDER_THRESHOLD_DAYS = 7   // 7 days left → reminder email
@@ -69,14 +70,25 @@ export const trialWatchFunction = inngest.createFunction(
 
       if (!critical?.length) return 0
 
-      // TODO: send urgent alert email via lib/email.ts when RESEND_API_KEY is configured
-      // Subject: "3 days left — add your card to keep access"
-      console.log(`[trial-watch] urgent alert needed for ${critical.length} provider(s):`,
-        critical.map((p: { slug: string; trial_ends_at: string }) => ({
-          slug: p.slug, trial_ends_at: p.trial_ends_at,
-        }))
-      )
-      return critical.length
+      // Send urgent alert to providers with ≤ 3 days left
+      let sent = 0
+      for (const p of critical as { id: string; email: string | null; first_name: string; slug: string; trial_ends_at: string }[]) {
+        if (!p.email) { console.log(`[trial-watch] no email for ${p.slug}, skipping`); continue }
+        const daysLeft = Math.ceil((new Date(p.trial_ends_at).getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+        await sendEmail({
+          to: p.email,
+          subject: `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left — add your card to keep your Kryla page`,
+          html: `<div style="font-family:sans-serif;max-width:600px">
+            <h2>Hi ${p.first_name},</h2>
+            <p>Your free trial ends in <strong>${daysLeft} day${daysLeft !== 1 ? 's' : ''}</strong>. Add a payment method to keep your Kryla page live at kryla.work/${p.slug}.</p>
+            <a href="https://kryla.work/${p.slug}/mychat" style="display:inline-block;background:#0D0D0D;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Add payment method →</a>
+            <p style="color:#999;font-size:12px;margin-top:24px">kryla.work · <a href="mailto:hello@kryla.work">hello@kryla.work</a></p>
+          </div>`,
+        })
+        sent++
+        console.log(`[trial-watch] urgent alert sent to ${p.slug} (${daysLeft} days left)`)
+      }
+      return sent
     })
 
     // ── Step 3: Send reminder (trial ends in 4–7 days) ───────────────────────
@@ -91,14 +103,26 @@ export const trialWatchFunction = inngest.createFunction(
 
       if (!reminders?.length) return 0
 
-      // TODO: send reminder email via lib/email.ts when RESEND_API_KEY is configured
-      // Subject: "Your free trial ends in X days — add a card to continue"
-      console.log(`[trial-watch] reminder needed for ${reminders.length} provider(s):`,
-        reminders.map((p: { slug: string; trial_ends_at: string }) => ({
-          slug: p.slug, trial_ends_at: p.trial_ends_at,
-        }))
-      )
-      return reminders.length
+      // Send reminder to providers with 4–7 days left
+      let sent = 0
+      for (const p of reminders as { id: string; email: string | null; first_name: string; slug: string; trial_ends_at: string }[]) {
+        if (!p.email) { console.log(`[trial-watch] no email for ${p.slug}, skipping`); continue }
+        const daysLeft = Math.ceil((new Date(p.trial_ends_at).getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+        await sendEmail({
+          to: p.email,
+          subject: `Your Kryla free trial ends in ${daysLeft} days — add a card to continue`,
+          html: `<div style="font-family:sans-serif;max-width:600px">
+            <h2>Hi ${p.first_name},</h2>
+            <p>Your free trial ends in <strong>${daysLeft} days</strong>. Add a payment method now to keep your Kryla page live at kryla.work/${p.slug}.</p>
+            <p>You can upgrade anytime from your dashboard — you'll only be charged at the end of the trial.</p>
+            <a href="https://kryla.work/${p.slug}/mychat" style="display:inline-block;background:#0D0D0D;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Go to My Space →</a>
+            <p style="color:#999;font-size:12px;margin-top:24px">kryla.work · <a href="mailto:hello@kryla.work">hello@kryla.work</a></p>
+          </div>`,
+        })
+        sent++
+        console.log(`[trial-watch] reminder sent to ${p.slug} (${daysLeft} days left)`)
+      }
+      return sent
     })
 
     return { expiredCount, alertedCount, remindedCount }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import posthog from 'posthog-js'
 
 export default function JoinPage() {
   const router = useRouter()
@@ -28,6 +29,7 @@ export default function JoinPage() {
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Invalid code — check and try again'); return }
+      posthog.capture('invite_code_accepted', { ref: data.code })
       router.push(`/onboarding?ref=${encodeURIComponent(data.code)}`)
     } catch {
       setError('Something went wrong — please try again')

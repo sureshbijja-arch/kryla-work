@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { toSlug, suggestSlug, validateSlug } from '@/lib/slug'
 import type { PlanDef, PlanFeature } from '@/lib/plans'
 import type { OnboardingAnswers, Persona, Plan, Region } from '@/types/onboarding'
+import posthog from 'posthog-js'
 
 type Step = 1 | 2 | 3 | 4 | 5
 
@@ -77,6 +78,8 @@ export default function OnboardingClient({
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step])
+
+  useEffect(() => { posthog.capture('onboarding_started') }, [])
 
   useEffect(() => { slugRef.current = slug }, [slug])
 
