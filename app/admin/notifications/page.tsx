@@ -22,14 +22,14 @@ interface Config {
 
 const TYPES = [
   {
-    key:         'hearing_reminder_7d',
-    label:       'Hearing Reminder — 7 days',
-    description: 'Daily cron (08:00 IST) — WhatsApp alert to advocate + client 7 days before a hearing.',
+    key:         'client_intake',
+    label:       'AI Client Intake',
+    description: 'Shows the intake chat widget on advocate public pages. Turning off blocks new enquiries immediately (API-level gate).',
   },
   {
-    key:         'hearing_reminder_1d',
-    label:       'Hearing Reminder — 1 day',
-    description: 'Daily cron (08:00 IST) — WhatsApp alert to advocate + client the day before a hearing.',
+    key:         'hearing_reminders',
+    label:       'Hearing Reminders',
+    description: 'Daily cron (08:00 IST) — WhatsApp alerts to advocate + client 7 days and 1 day before a hearing.',
   },
   {
     key:         'consultation_followup',
@@ -39,11 +39,12 @@ const TYPES = [
 ]
 
 const TYPE_LABELS: Record<string, string> = {
-  hearing_reminder_7d:        '7-day reminder',
-  hearing_reminder_1d:        '1-day reminder',
-  hearing_reminder_7d_client: '7-day client',
-  hearing_reminder_1d_client: '1-day client',
+  hearing_reminder_7d:        'Reminder 7d',
+  hearing_reminder_1d:        'Reminder 1d',
+  hearing_reminder_7d_client: 'Client 7d',
+  hearing_reminder_1d_client: 'Client 1d',
   consultation_followup:      'Follow-up',
+  intake:                     'Intake',
 }
 
 function formatDate(iso: string) {

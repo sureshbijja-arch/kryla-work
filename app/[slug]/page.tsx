@@ -151,6 +151,15 @@ export default async function MemberProfilePage({ params }: Props) {
   const translations  = (page.translations ?? {}) as Record<string, Record<string, unknown>>
   const accentColor   = ACCENT[(page.palette as PaletteKey)] ?? '#F5A623'
 
+  // Check global client_intake kill-switch — defaults to enabled when row is absent
+  const { data: cfgRow } = await supabaseAdmin
+    .from('system_config')
+    .select('value')
+    .eq('key', 'notification_types_enabled')
+    .single()
+  const notifCfg      = (cfgRow?.value ?? {}) as Record<string, boolean>
+  const intakeEnabled = notifCfg['client_intake'] !== false
+
   const jsonLd = page.schema_type
     ? {
         '@context': 'https://schema.org',
@@ -185,8 +194,8 @@ export default async function MemberProfilePage({ params }: Props) {
         isTutor={isTutor}
       />
       <AdsScroller slug={params.slug} />
-      {/* Advocate persona: AI intake chat widget (Phase 2) */}
-      {provider.persona === 'advocate' && (
+      {/* Advocate persona: AI intake chat widget (Phase 2) — hidden when admin disables client_intake */}
+      {provider.persona === 'advocate' && intakeEnabled && (
         <AdvocateIntakeChat
           slug={params.slug}
           advocateName={`${provider.first_name} ${provider.last_name}`}

@@ -84,12 +84,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: sessionResult.error.message }, { status: 500 })
   }
 
-  // Fire follow-up event if advocate opted in (fire-and-forget; client DPDP consent checked in the function)
+  // Fire follow-up event if advocate opted in — awaited so Vercel doesn't freeze before the send
+  // (DPDP consent + config kill-switch are checked inside the Inngest function)
   if (sendFollowup && sessionResult.data?.id) {
-    void inngest.send({
-      name: CONSULTATION_LOGGED_EVENT,
-      data: { providerId, studentId, sessionId: sessionResult.data.id },
-    })
+    try {
+      await inngest.send({
+        name: CONSULTATION_LOGGED_EVENT,
+        data: { providerId, studentId, sessionId: sessionResult.data.id },
+      })
+    } catch (err) {
+      console.error('[student-sessions] Failed to send consultation.logged event:', err)
+      // Non-fatal — session was saved successfully; event failure just means no WhatsApp follow-up
+    }
   }
 
   return NextResponse.json({ session: sessionResult.data })

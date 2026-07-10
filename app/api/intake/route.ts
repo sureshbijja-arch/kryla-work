@@ -18,7 +18,7 @@
  *   - This endpoint is deliberately unauthenticated (public page) — it creates records as the
  *     provider's intake queue, not as a signed-in session.
  *
- * Rate limit: 20 intake messages/day per slug (simple DB counter, same key as research_usage).
+ * Rate limit: 30 intake messages/day per slug (simple DB counter, same key as research_usage).
  */
 
 import Anthropic       from '@anthropic-ai/sdk'
@@ -62,6 +62,21 @@ export async function POST(req: Request) {
 
   if (!provider) {
     return NextResponse.json({ error: 'Advocate not found' }, { status: 404 })
+  }
+
+  // ── Check global client_intake kill-switch ───────────────────────────────────
+  const { data: cfgRow } = await supabaseAdmin
+    .from('system_config')
+    .select('value')
+    .eq('key', 'notification_types_enabled')
+    .single()
+
+  const cfg = (cfgRow?.value ?? {}) as Record<string, boolean>
+  if (cfg['client_intake'] === false) {
+    return NextResponse.json({
+      message: 'Online enquiries are currently paused — please contact the office directly.',
+      done:    false,
+    })
   }
 
   // Load practice areas from page services
@@ -141,11 +156,10 @@ Only output this marker once, when you have all required information. Do NOT out
     return NextResponse.json({ error: 'AI error' }, { status: 500 })
   }
 
-  // Increment usage counter (fire-and-forget; silent if function doesn't exist)
-  void (async () => {
-    try { await supabaseAdmin.rpc('upsert_research_usage', { p_provider_id: provider.id, p_day_key: dayKey }) }
-    catch { /* silent */ }
-  })()
+  // Increment usage counter — awaited so it completes before the function is torn down
+  try {
+    await supabaseAdmin.rpc('upsert_research_usage', { p_provider_id: provider.id, p_day_key: dayKey })
+  } catch { /* silent — rpc may not exist */ }
 
   // ── Check for intake complete signal ────────────────────────────────────────
   const match = INTAKE_COMPLETE_RE.exec(claudeText)
@@ -161,41 +175,40 @@ Only output this marker once, when you have all required information. Do NOT out
     }
 
     if (intakeData) {
-      // Create student + booking rows (fire-and-forget; don't block the response)
-      void (async () => {
-        try {
-          const { data: student } = await supabaseAdmin
-            .from('students')
-            .insert({
-              provider_id:     provider.id,
-              name:            intakeData!.name,
-              parent_phone:    intakeData!.phone,
-              label_1:         intakeData!.matter_type,
-              notes:           `Urgency: ${intakeData!.urgency}. Via AI intake.`,
-              avatar_color:    '#6366F1',
-              sessions:        0,
-              whatsapp_consent: intakeData!.consent,
-              remind_client:   intakeData!.consent,
-            })
-            .select('id')
-            .single()
+      // Persist student + booking rows synchronously so Vercel doesn't freeze us mid-insert
+      try {
+        const { data: student } = await supabaseAdmin
+          .from('students')
+          .insert({
+            provider_id:      provider.id,
+            name:             intakeData.name,
+            parent_phone:     intakeData.phone,
+            label_1:          intakeData.matter_type,
+            notes:            `Urgency: ${intakeData.urgency}. Via AI intake.`,
+            avatar_color:     '#6366F1',
+            sessions:         0,
+            whatsapp_consent: intakeData.consent,
+            remind_client:    intakeData.consent,
+          })
+          .select('id')
+          .single()
 
-          if (student?.id) {
-            await supabaseAdmin
-              .from('bookings')
-              .insert({
-                provider_id:   provider.id,
-                customer_name: intakeData!.name,
-                customer_phone: intakeData!.phone,
-                service:       intakeData!.matter_type,
-                message:       `Urgency: ${intakeData!.urgency}. Consent: ${intakeData!.consent}. Via AI intake.`,
-                status:        'pending',
-              })
-          }
-        } catch (err) {
-          console.error('[intake] Failed to create student/booking:', err)
+        if (student?.id) {
+          await supabaseAdmin
+            .from('bookings')
+            .insert({
+              provider_id:    provider.id,
+              customer_name:  intakeData.name,
+              customer_phone: intakeData.phone,
+              service:        intakeData.matter_type,
+              message:        `Urgency: ${intakeData.urgency}. Consent: ${intakeData.consent}. Via AI intake.`,
+              status:         'pending',
+            })
         }
-      })()
+      } catch (err) {
+        console.error('[intake] Failed to create student/booking:', err)
+        // Don't fail the user's completed enquiry — the widget should still show done
+      }
     }
 
     return NextResponse.json({ message: userMessage, done: true })

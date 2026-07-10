@@ -127,13 +127,16 @@ export const hearingRemindersFunction = inngest.createFunction(
       return (data?.value ?? {}) as Record<string, boolean>
     })
 
-    const sent7d = cfg['hearing_reminder_7d'] !== false
-      ? await step.run('send-7-day-reminders', () => sendRemindersForWindow(7, 'reminder_7d_sent_for'))
-      : (console.log('[hearing-reminders] 7d reminders disabled via admin config'), 0)
+    // Single "hearing_reminders" toggle controls both windows
+    const remindersEnabled = cfg['hearing_reminders'] !== false
 
-    const sent1d = cfg['hearing_reminder_1d'] !== false
+    const sent7d = remindersEnabled
+      ? await step.run('send-7-day-reminders', () => sendRemindersForWindow(7, 'reminder_7d_sent_for'))
+      : (console.log('[hearing-reminders] hearing reminders disabled via admin config'), 0)
+
+    const sent1d = remindersEnabled
       ? await step.run('send-1-day-reminders', () => sendRemindersForWindow(1, 'reminder_1d_sent_for'))
-      : (console.log('[hearing-reminders] 1d reminders disabled via admin config'), 0)
+      : 0
 
     return { sent7d, sent1d }
   },
