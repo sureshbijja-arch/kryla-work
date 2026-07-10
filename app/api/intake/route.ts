@@ -24,6 +24,7 @@
 import Anthropic       from '@anthropic-ai/sdk'
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { logConsentEvent } from '@/lib/consent'
 
 const anthropic  = new Anthropic({ maxRetries: 2 })
 const DAILY_LIMIT = 30  // per-slug intake messages per day
@@ -122,7 +123,7 @@ INTAKE STEPS (conduct conversationally, one or two questions at a time):
 3. Ask them to briefly describe the nature of their legal matter in one or two sentences.
 4. Classify the matter type (e.g. property dispute, cheque bounce, family, criminal, employment, etc.).
 5. Ask about urgency: is there a court date or deadline approaching?
-6. Inform them that if they consent, the advocate's office will reach out on WhatsApp, and ask for their consent (DPDP Act requirement).
+6. Inform them that all communications are confidential and protected by attorney-client privilege, and that if they consent, the advocate's office will reach out on WhatsApp. Ask for their consent (DPDP Act requirement).
 7. Once you have all the above, thank them warmly and let them know the advocate will be in touch shortly.
 
 STRICT RULES — do NOT violate under any circumstances:
@@ -177,6 +178,7 @@ Only output this marker once, when you have all required information. Do NOT out
     if (intakeData) {
       // Persist student + booking rows synchronously so Vercel doesn't freeze us mid-insert
       try {
+        const consentToken = intakeData.consent ? crypto.randomUUID() : null
         const { data: student } = await supabaseAdmin
           .from('students')
           .insert({
@@ -189,6 +191,7 @@ Only output this marker once, when you have all required information. Do NOT out
             sessions:         0,
             whatsapp_consent: intakeData.consent,
             remind_client:    intakeData.consent,
+            consent_token:    consentToken,
           })
           .select('id')
           .single()
@@ -204,6 +207,17 @@ Only output this marker once, when you have all required information. Do NOT out
               message:        `Urgency: ${intakeData.urgency}. Consent: ${intakeData.consent}. Via AI intake.`,
               status:         'pending',
             })
+
+          if (intakeData.consent) {
+            void logConsentEvent(supabaseAdmin, {
+              providerId: provider.id,
+              studentId:  student.id,
+              event:      'granted',
+              source:     'ai_intake',
+              purpose:    'WhatsApp case updates & hearing reminders',
+              actor:      'ai_intake',
+            })
+          }
         }
       } catch (err) {
         console.error('[intake] Failed to create student/booking:', err)

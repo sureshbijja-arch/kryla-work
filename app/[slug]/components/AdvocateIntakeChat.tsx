@@ -20,14 +20,16 @@ interface Message {
 }
 
 interface Props {
-  slug:          string
-  advocateName:  string
-  accentColor?:  string
+  slug:             string
+  advocateName:     string
+  accentColor?:     string
+  ctaLabel?:        string
+  privilegeNotice?: string
 }
 
 const DISCLAIMER = 'AI assistant — not legal advice'
 
-export default function AdvocateIntakeChat({ slug, advocateName, accentColor = '#F5A623' }: Props) {
+export default function AdvocateIntakeChat({ slug, advocateName, accentColor = '#F5A623', ctaLabel = 'Contact the office', privilegeNotice = '' }: Props) {
   const [open, setOpen]           = useState(false)
   const [messages, setMessages]   = useState<Message[]>([])
   const [input, setInput]         = useState('')
@@ -100,7 +102,7 @@ export default function AdvocateIntakeChat({ slug, advocateName, accentColor = '
           onClick={handleOpen}
           style={{ background: accentColor }}
           className="fixed bottom-20 right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-full text-white text-sm font-semibold shadow-lg hover:opacity-90 transition-opacity">
-          ⚖️ Start enquiry
+          ⚖️ {ctaLabel}
         </button>
       )}
 
@@ -179,10 +181,11 @@ export default function AdvocateIntakeChat({ slug, advocateName, accentColor = '
             </div>
           )}
 
-          {/* Persistent disclaimer */}
-          <p className="text-[9px] text-[#bbb] text-center pb-2 px-4">
-            This AI assistant is for intake only. Nothing here constitutes legal advice.
-          </p>
+          {/* Persistent disclaimer + privilege notice */}
+          <div className="text-[9px] text-[#bbb] text-center pb-2 px-4 space-y-0.5">
+            <p>This AI assistant is for intake only. Nothing here constitutes legal advice.</p>
+            {privilegeNotice && <p>{privilegeNotice}</p>}
+          </div>
         </div>
       )}
     </>

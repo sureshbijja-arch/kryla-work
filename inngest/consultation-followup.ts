@@ -56,7 +56,7 @@ export const consultationFollowupFunction = inngest.createFunction(
           .single(),
         supabaseAdmin
           .from('students')
-          .select('name, parent_phone, whatsapp_consent')
+          .select('name, parent_phone, whatsapp_consent, consent_token')
           .eq('id', studentId)
           .eq('provider_id', providerId)
           .single(),
@@ -81,10 +81,13 @@ export const consultationFollowupFunction = inngest.createFunction(
       }
 
       // Build message
+      const withdrawalLine = (client as Record<string, unknown>).consent_token
+        ? `\n\nTo stop these messages: https://kryla.work/consent/${(client as Record<string, unknown>).consent_token}`
+        : ''
       const parts: string[] = [`Hi *${client.name}*, thank you for your consultation.`]
       if (session.topic)    parts.push(`\n*Matter discussed:* ${session.topic}`)
       if (session.homework) parts.push(`\n*Next steps / action items:*\n${session.homework}`)
-      parts.push('\n\nPlease reach out if you have any questions.')
+      parts.push(`\n\nPlease reach out if you have any questions.${withdrawalLine}`)
 
       const body   = parts.join('')
       const result = await sendWhatsAppMessage({ to: client.parent_phone, text: body })

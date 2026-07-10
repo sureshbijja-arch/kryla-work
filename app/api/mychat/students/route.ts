@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
+import { logConsentEvent } from '@/lib/consent'
 
 async function getAuthedProvider(providerId: string) {
   const supabase = createClient()
@@ -48,6 +49,7 @@ export async function POST(req: Request) {
   const provider = await getAuthedProvider(providerId)
   if (!provider) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const consentToken = (whatsappConsent ?? false) ? crypto.randomUUID() : null
   const { data, error } = await supabaseAdmin
     .from('students')
     .insert({
@@ -66,11 +68,25 @@ export async function POST(req: Request) {
       next_hearing_note: nextHearingNote ?? null,
       whatsapp_consent: whatsappConsent  ?? false,
       remind_client:    remindClient     ?? true,
+      consent_token:    consentToken,
     })
     .select()
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  if (data && (whatsappConsent ?? false)) {
+    const { data: { user } } = await createClient().auth.getUser()
+    void logConsentEvent(supabaseAdmin, {
+      providerId,
+      studentId: data.id,
+      event:     'granted',
+      source:    'manual',
+      purpose:   'WhatsApp case updates & hearing reminders',
+      actor:     user?.email ?? 'advocate',
+    })
+  }
+
   return NextResponse.json({ student: data })
 }
 
@@ -135,6 +151,21 @@ export async function PATCH(req: Request) {
   if ('whatsappConsent' in fields) update.whatsapp_consent  = fields.whatsappConsent
   if ('remindClient'    in fields) update.remind_client     = fields.remindClient
 
+  // Fetch prior consent to detect change and set token if newly granted
+  let priorConsent: boolean | null = null
+  if ('whatsappConsent' in fields) {
+    const { data: prior } = await supabaseAdmin
+      .from('students')
+      .select('whatsapp_consent, consent_token')
+      .eq('id', studentId)
+      .eq('provider_id', providerId)
+      .single()
+    priorConsent = prior?.whatsapp_consent ?? null
+    if (fields.whatsappConsent && !prior?.consent_token) {
+      update.consent_token = crypto.randomUUID()
+    }
+  }
+
   const { error } = await supabaseAdmin
     .from('students')
     .update(update)
@@ -142,6 +173,21 @@ export async function PATCH(req: Request) {
     .eq('provider_id', providerId)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Log consent change if whatsappConsent changed
+  if ('whatsappConsent' in fields && fields.whatsappConsent !== priorConsent) {
+    const { data: { user } } = await createClient().auth.getUser()
+    const consentEvent = fields.whatsappConsent ? 'granted' : 'withdrawn'
+    void logConsentEvent(supabaseAdmin, {
+      providerId,
+      studentId,
+      event:   consentEvent,
+      source:  'manual',
+      purpose: 'WhatsApp case updates & hearing reminders',
+      actor:   user?.email ?? 'advocate',
+    })
+  }
+
   return NextResponse.json({ success: true })
 }
 

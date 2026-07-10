@@ -30,6 +30,12 @@ export default function AdminDashboard() {
       title:       'Notifications',
       description: 'Toggle automated WhatsApp notifications on/off and view the send history log.',
     },
+    {
+      href:        '/admin/verifications',
+      emoji:       '⚖️',
+      title:       'Verifications',
+      description: 'Review and verify advocate Bar Council enrolment submissions.',
+    },
   ]
 
   return (

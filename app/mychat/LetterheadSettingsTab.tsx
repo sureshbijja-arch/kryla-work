@@ -3,6 +3,14 @@
 import { useState, useEffect } from 'react'
 import type { Letterhead } from '@/lib/print/template'
 
+interface VerificationData {
+  enrolment_no: string | null
+  bar_council:  string | null
+  state:        string | null
+  status:       string
+  submitted_at: string | null
+}
+
 interface Props {
   providerId: string
 }
@@ -26,12 +34,33 @@ export default function LetterheadSettingsTab({ providerId }: Props) {
   const [saved, setSaved]     = useState(false)
   const [error, setError]     = useState('')
 
+  // Verification state
+  const [verification, setVerification] = useState<VerificationData | null>(null)
+  const [vForm, setVForm]               = useState({ enrolmentNo: '', barCouncil: '', state: '' })
+  const [vSaving, setVSaving]           = useState(false)
+  const [vSaved, setVSaved]             = useState(false)
+  const [vError, setVError]             = useState('')
+
   useEffect(() => {
     fetch(`/api/mychat/letterhead?providerId=${providerId}`)
       .then(r => r.json())
       .then(d => { if (d.letterhead) setForm({ ...EMPTY, ...d.letterhead }) })
       .catch(() => setError('Failed to load letterhead settings'))
       .finally(() => setLoading(false))
+
+    fetch(`/api/mychat/verification?providerId=${providerId}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.verification && Object.keys(d.verification).length > 0) {
+          setVerification(d.verification as VerificationData)
+          setVForm({
+            enrolmentNo: d.verification.enrolment_no ?? '',
+            barCouncil:  d.verification.bar_council  ?? '',
+            state:       d.verification.state        ?? '',
+          })
+        }
+      })
+      .catch(() => {/* silent */})
   }, [providerId])
 
   function set(key: keyof Letterhead, value: string) {
@@ -55,6 +84,30 @@ export default function LetterheadSettingsTab({ providerId }: Props) {
       setError('Save failed')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function submitVerification() {
+    if (!vForm.enrolmentNo.trim() || !vForm.barCouncil.trim()) {
+      setVError('Enrolment number and Bar Council are required')
+      return
+    }
+    setVSaving(true)
+    setVError('')
+    try {
+      const res = await fetch('/api/mychat/verification', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ providerId, ...vForm }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setVError(data.error ?? 'Submission failed'); return }
+      setVerification(data.verification)
+      setVSaved(true)
+    } catch {
+      setVError('Submission failed')
+    } finally {
+      setVSaving(false)
     }
   }
 
@@ -114,6 +167,50 @@ export default function LetterheadSettingsTab({ providerId }: Props) {
         className="w-full py-2.5 rounded-xl bg-[#0D0D0D] text-white text-sm font-semibold disabled:opacity-60 transition-opacity">
         {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save letterhead'}
       </button>
+
+      {/* Bar Council verification */}
+      <div className="pt-4 border-t border-[#F0F0F0]">
+        <h3 className="text-sm font-semibold text-[#0D0D0D] mb-1">Advocate verification</h3>
+        <p className="text-xs text-[#888] mb-4">Submit your Bar Council enrolment details for verification. A verified badge will appear on your public page.</p>
+
+        {verification?.status === 'verified' && (
+          <div className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-xl px-4 py-3 mb-4">
+            <p className="text-xs font-semibold text-[#16A34A]">✓ Verified advocate</p>
+            <p className="text-[11px] text-[#555] mt-0.5">{verification.enrolment_no} · {verification.bar_council}</p>
+          </div>
+        )}
+
+        {verification?.status === 'pending' && (
+          <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-xl px-4 py-3 mb-4">
+            <p className="text-xs font-semibold text-[#92400E]">Verification pending review</p>
+            <p className="text-[11px] text-[#78350F] mt-0.5">Submitted {verification.submitted_at ? new Date(verification.submitted_at).toLocaleDateString('en-IN') : ''}. We will review and update shortly.</p>
+          </div>
+        )}
+
+        {verification?.status === 'rejected' && (
+          <div className="bg-[#FEF2F2] border border-[#FECACA] rounded-xl px-4 py-3 mb-4">
+            <p className="text-xs font-semibold text-red-500">Verification rejected</p>
+            <p className="text-[11px] text-red-400 mt-0.5">Please resubmit with correct details.</p>
+          </div>
+        )}
+
+        {vError && (
+          <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-xl px-3 py-2 mb-3">{vError}</p>
+        )}
+
+        <div className="space-y-3">
+          <Field label="Enrolment number" value={vForm.enrolmentNo} onChange={v => setVForm(f => ({ ...f, enrolmentNo: v }))} placeholder="e.g. AP/1234/2018" />
+          <Field label="Bar Council"      value={vForm.barCouncil}  onChange={v => setVForm(f => ({ ...f, barCouncil: v }))}  placeholder="e.g. Bar Council of Andhra Pradesh" />
+          <Field label="State"            value={vForm.state}       onChange={v => setVForm(f => ({ ...f, state: v }))}       placeholder="e.g. Andhra Pradesh" />
+        </div>
+
+        <button
+          onClick={submitVerification}
+          disabled={vSaving || verification?.status === 'verified'}
+          className="w-full mt-3 py-2.5 rounded-xl bg-[#0D0D0D] text-white text-sm font-semibold disabled:opacity-60 transition-opacity">
+          {vSaving ? 'Submitting…' : vSaved ? 'Submitted ✓' : verification?.status === 'pending' ? 'Resubmit for verification' : 'Submit for verification'}
+        </button>
+      </div>
     </div>
   )
 }

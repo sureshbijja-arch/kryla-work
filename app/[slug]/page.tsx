@@ -8,6 +8,8 @@ import LanguagePage from './components/LanguagePage'
 import PageTracker from './components/PageTracker'
 import LikeButton from './components/LikeButton'
 import AdvocateIntakeChat from './components/AdvocateIntakeChat'
+import AdvocateComplianceFooter from './components/AdvocateComplianceFooter'
+import { getComplianceCopy } from '@/lib/compliance'
 import type { SectionEntry } from './components/LayoutRenderer'
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'kryla.work'
@@ -70,8 +72,9 @@ export default async function MemberProfilePage({ params }: Props) {
     id: string; first_name: string; last_name: string; persona: string
     location: string; whatsapp_number: string | null; whatsapp_public: boolean | null
     email: string | null; plan: string; page_language: string | null
+    verified: boolean | null; compliance: Record<string, unknown> | null
   }>(
-    'id, first_name, last_name, persona, location, whatsapp_number, whatsapp_public, email, plan, page_language',
+    'id, first_name, last_name, persona, location, whatsapp_number, whatsapp_public, email, plan, page_language, verified, compliance',
     params.slug
   )
 
@@ -160,6 +163,14 @@ export default async function MemberProfilePage({ params }: Props) {
   const notifCfg      = (cfgRow?.value ?? {}) as Record<string, boolean>
   const intakeEnabled = notifCfg['client_intake'] !== false
 
+  // Load advocate compliance copy (BCI Rule 36 / DPDP)
+  const complianceCopy = provider.persona === 'advocate'
+    ? await getComplianceCopy(supabaseAdmin)
+    : null
+
+  const advocateCompliance = (provider.compliance ?? {}) as Record<string, unknown>
+  const intakeWidgetEnabled = advocateCompliance['intake_widget_enabled'] !== false
+
   const jsonLd = page.schema_type
     ? {
         '@context': 'https://schema.org',
@@ -194,12 +205,21 @@ export default async function MemberProfilePage({ params }: Props) {
         isTutor={isTutor}
       />
       <AdsScroller slug={params.slug} />
-      {/* Advocate persona: AI intake chat widget (Phase 2) — hidden when admin disables client_intake */}
-      {provider.persona === 'advocate' && intakeEnabled && (
+      {/* Advocate persona: BCI Rule 36 compliance disclaimer + verified badge */}
+      {provider.persona === 'advocate' && complianceCopy && (
+        <AdvocateComplianceFooter
+          disclaimer={complianceCopy.bci_disclaimer}
+          verified={provider.verified === true}
+        />
+      )}
+      {/* Advocate persona: AI intake chat widget — hidden when admin disables client_intake or advocate disables widget */}
+      {provider.persona === 'advocate' && intakeEnabled && intakeWidgetEnabled && (
         <AdvocateIntakeChat
           slug={params.slug}
           advocateName={`${provider.first_name} ${provider.last_name}`}
           accentColor={accentColor}
+          ctaLabel={complianceCopy?.intake_cta_label ?? 'Contact the office'}
+          privilegeNotice={complianceCopy?.privilege_notice ?? ''}
         />
       )}
       <div className="fixed bottom-6 right-6 z-50">

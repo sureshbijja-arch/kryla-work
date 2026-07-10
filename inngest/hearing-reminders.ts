@@ -42,7 +42,7 @@ async function sendRemindersForWindow(
   const { data: clients, error } = await supabaseAdmin
     .from('students')
     .select(`
-      id, name, next_hearing_date, next_hearing_note, whatsapp_consent, remind_client, parent_phone,
+      id, name, next_hearing_date, next_hearing_note, whatsapp_consent, remind_client, parent_phone, consent_token,
       provider:providers!provider_id ( id, first_name, whatsapp_number )
     `)
     .eq('next_hearing_date', hearingDate)
@@ -63,14 +63,17 @@ async function sendRemindersForWindow(
     const provider = client.provider as unknown as { id: string; first_name: string; whatsapp_number: string | null } | null
     if (!provider) continue
 
-    const noteStr      = client.next_hearing_note ? ` (${client.next_hearing_note})` : ''
+    const noteStr        = client.next_hearing_note ? ` (${client.next_hearing_note})` : ''
+    const withdrawalLine = (client as Record<string, unknown>).consent_token
+      ? `\n\nTo stop these messages: https://kryla.work/consent/${(client as Record<string, unknown>).consent_token}`
+      : ''
     const advocateBody = (
       `📅 Hearing reminder: *${client.name}* has a hearing in *${windowLabel}* on ${hearingDate}${noteStr}.\n\n` +
       `Manage in My Chat: https://kryla.work/mychat`
     )
     const clientBody   = (
       `📅 Reminder from your advocate: Your hearing is *${windowLabel}* on ${hearingDate}${noteStr}.\n\n` +
-      `Please confirm with your advocate if you have questions.`
+      `Please confirm with your advocate if you have questions.${withdrawalLine}`
     )
 
     // ── Send to advocate ────────────────────────────────────────────────────

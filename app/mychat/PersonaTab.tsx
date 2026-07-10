@@ -135,6 +135,7 @@ export default function PersonaTab({
   const [saving, setSaving]       = useState(false)
   const [logging, setLogging]     = useState<string | null>(null)
   const [deleting, setDeleting]   = useState<string | null>(null)
+  const [erasing, setErasing]     = useState<string | null>(null)
 
   // session timeline state
   const [expanded, setExpanded]               = useState<string | null>(null)
@@ -313,6 +314,29 @@ export default function PersonaTab({
     }
   }
 
+  function exportClientData(id: string) {
+    window.open(`/api/mychat/clients/${id}/export?providerId=${providerId}`, '_blank')
+  }
+
+  async function eraseClientPii(id: string, name: string) {
+    if (!confirm(`Erase all PII for "${name}"? This is irreversible — name, phone, email, and notes will be redacted.`)) return
+    setErasing(id)
+    try {
+      const res = await fetch(`/api/mychat/clients/${id}/erase`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ providerId }),
+      })
+      if (res.ok) {
+        setStudents(prev => prev.map(s =>
+          s.id === id ? { ...s, name: 'Redacted client', parent_phone: null, parent_email: null, parent_name: null, notes: null } : s
+        ))
+      }
+    } finally {
+      setErasing(null)
+    }
+  }
+
   if (loading) {
     return <div className="flex items-center justify-center py-20 text-[#bbb] text-sm">Loading {copy.plural}…</div>
   }
@@ -449,7 +473,7 @@ export default function PersonaTab({
                           ✍️ Draft
                         </button>
                       )}
-                      {/* Advocate: Print case sheet */}
+                      {/* Advocate: Print case sheet + DPDP data rights */}
                       {isAdvocate && (
                         <>
                           <button
@@ -463,6 +487,19 @@ export default function PersonaTab({
                             title="Download case sheet PDF"
                             className="text-xs font-semibold text-[#666] bg-[#F5F5F5] hover:bg-[#E5E5E5] px-2.5 py-1.5 rounded-lg transition-colors">
                             PDF
+                          </button>
+                          <button
+                            onClick={() => exportClientData(s.id)}
+                            title="Export client data (DPDP Act)"
+                            className="text-xs font-semibold text-[#3B82F6] bg-[#EFF6FF] hover:bg-[#DBEAFE] px-2.5 py-1.5 rounded-lg transition-colors">
+                            Export
+                          </button>
+                          <button
+                            onClick={() => eraseClientPii(s.id, s.name)}
+                            disabled={erasing === s.id}
+                            title="Erase PII (DPDP Act right to erasure)"
+                            className="text-xs font-semibold text-red-400 bg-[#FEF2F2] hover:bg-[#FEE2E2] px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50">
+                            {erasing === s.id ? '…' : 'Erase PII'}
                           </button>
                         </>
                       )}
