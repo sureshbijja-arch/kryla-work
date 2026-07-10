@@ -14,7 +14,7 @@ export async function middleware(req: NextRequest) {
     hostname === 'www.' + APP_DOMAIN ||
     hostname === 'localhost'
   ) {
-    if (url.pathname.startsWith('/mychat') || /^\/[^/]+\/mychat(\/|$)/.test(url.pathname)) {
+    if (url.pathname.startsWith('/mychat') || url.pathname.startsWith('/print') || /^\/[^/]+\/mychat(\/|$)/.test(url.pathname)) {
       let response = NextResponse.next({ request: { headers: req.headers } })
 
       const supabase = createServerClient(

@@ -325,11 +325,29 @@ export default function PersonaTab({
         <p className="text-xs text-[#999] font-semibold uppercase tracking-wide">
           {students.length} {students.length !== 1 ? copy.plural : copy.singular}
         </p>
-        <button
-          onClick={openAdd}
-          className="text-xs font-semibold bg-[#0D0D0D] text-white px-3 py-1.5 rounded-lg hover:opacity-80 transition-opacity">
-          {copy.addLabel}
-        </button>
+        <div className="flex items-center gap-2">
+          {isAdvocate && (
+            <>
+              <button
+                onClick={() => window.open(`/print/hearings?providerId=${providerId}&auto=1`, '_blank')}
+                title="Print hearing list"
+                className="text-xs font-semibold text-[#666] bg-[#F5F5F5] hover:bg-[#E5E5E5] px-2.5 py-1.5 rounded-lg transition-colors">
+                Print hearings
+              </button>
+              <button
+                onClick={() => window.open(`/api/print/hearings/pdf?providerId=${providerId}`, '_blank')}
+                title="Download hearing list PDF"
+                className="text-xs font-semibold text-[#666] bg-[#F5F5F5] hover:bg-[#E5E5E5] px-2.5 py-1.5 rounded-lg transition-colors">
+                PDF
+              </button>
+            </>
+          )}
+          <button
+            onClick={openAdd}
+            className="text-xs font-semibold bg-[#0D0D0D] text-white px-3 py-1.5 rounded-lg hover:opacity-80 transition-opacity">
+            {copy.addLabel}
+          </button>
+        </div>
       </div>
 
       {students.length === 0 && (
@@ -431,6 +449,23 @@ export default function PersonaTab({
                           ✍️ Draft
                         </button>
                       )}
+                      {/* Advocate: Print case sheet */}
+                      {isAdvocate && (
+                        <>
+                          <button
+                            onClick={() => window.open(`/print/case-sheet/${s.id}?providerId=${providerId}&auto=1`, '_blank')}
+                            title="Print case sheet"
+                            className="text-xs font-semibold text-[#666] bg-[#F5F5F5] hover:bg-[#E5E5E5] px-2.5 py-1.5 rounded-lg transition-colors">
+                            Print
+                          </button>
+                          <button
+                            onClick={() => window.open(`/api/print/case-sheet/${s.id}/pdf?providerId=${providerId}`, '_blank')}
+                            title="Download case sheet PDF"
+                            className="text-xs font-semibold text-[#666] bg-[#F5F5F5] hover:bg-[#E5E5E5] px-2.5 py-1.5 rounded-lg transition-colors">
+                            PDF
+                          </button>
+                        </>
+                      )}
                       <button
                         onClick={() => openEdit(s)}
                         className="text-xs font-semibold text-[#666] bg-[#F5F5F5] hover:bg-[#E5E5E5] px-2.5 py-1.5 rounded-lg transition-colors">
@@ -529,12 +564,22 @@ export default function PersonaTab({
                         <div key={sess.id} className="bg-white border border-[#E5E5E5] rounded-xl px-3 py-2.5 relative group">
                           <div className="flex items-start justify-between gap-2">
                             <p className="text-[10px] font-semibold text-[#999]">{formatDate(sess.session_date)}</p>
-                            <button
-                              onClick={() => deleteSession(s.id, sess.id)}
-                              disabled={deletingSession === sess.id}
-                              className="text-[10px] text-[#ccc] hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0">
-                              {deletingSession === sess.id ? '…' : 'Remove'}
-                            </button>
+                            <div className="flex items-center gap-1">
+                              {isAdvocate && (
+                                <button
+                                  onClick={() => window.open(`/print/consultation/${sess.id}?providerId=${providerId}&auto=1`, '_blank')}
+                                  title="Print consultation record"
+                                  className="text-[10px] text-[#bbb] hover:text-[#0D0D0D] transition-colors opacity-0 group-hover:opacity-100 shrink-0">
+                                  Print
+                                </button>
+                              )}
+                              <button
+                                onClick={() => deleteSession(s.id, sess.id)}
+                                disabled={deletingSession === sess.id}
+                                className="text-[10px] text-[#ccc] hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0">
+                                {deletingSession === sess.id ? '…' : 'Remove'}
+                              </button>
+                            </div>
                           </div>
                           {sess.topic && <p className="text-xs text-[#0D0D0D] mt-0.5">{sess.topic}</p>}
                           {sess.homework && (

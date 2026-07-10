@@ -963,6 +963,42 @@ export default function DraftingStudio({
                     .docx
                   </button>
 
+                  {/* Print */}
+                  <button
+                    onClick={async () => {
+                      let id = activeDraftId
+                      if (!id) { await saveDraft(); id = activeDraftId }
+                      if (!id) return
+                      window.open(`/print/document/${id}?providerId=${providerId}&auto=1`, '_blank')
+                    }}
+                    title="Print"
+                    className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-[#666] hover:text-[#0D0D0D] border border-[#E5E5E5] rounded-lg hover:border-[#0D0D0D] transition-colors">
+                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                      <path d="M3 3V1.5h5V3" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
+                      <rect x="1" y="3" width="9" height="5" rx="1" stroke="currentColor" strokeWidth="1.1"/>
+                      <path d="M3 6h5M3 8h5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
+                      <path d="M3 5.5V9.5h5V5.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    Print
+                  </button>
+
+                  {/* Download PDF */}
+                  <button
+                    onClick={async () => {
+                      let id = activeDraftId
+                      if (!id) { await saveDraft(); id = activeDraftId }
+                      if (!id) return
+                      window.open(`/api/print/document/${id}/pdf?providerId=${providerId}`, '_blank')
+                    }}
+                    title="Download PDF"
+                    className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-[#666] hover:text-[#0D0D0D] border border-[#E5E5E5] rounded-lg hover:border-[#0D0D0D] transition-colors">
+                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                      <path d="M5.5 1v6M3 4.5l2.5 2.5 2.5-2.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M1 8.5v1a.5.5 0 00.5.5h8a.5.5 0 00.5-.5v-1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                    </svg>
+                    PDF
+                  </button>
+
                   {/* Share link */}
                   {activeDraftId && (
                     <div className="flex items-center gap-1">

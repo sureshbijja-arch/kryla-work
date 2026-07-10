@@ -23,6 +23,7 @@ import ReviewsTab from './ReviewsTab'
 import StatsTab from './StatsTab'
 import ResearchChat from './ResearchChat'
 import DraftingStudio from './DraftingStudio'
+import LetterheadSettingsTab from './LetterheadSettingsTab'
 import { getPersonaConfig, getRosterConfig } from '@/app/[slug]/personaConfig'
 
 interface Message {
@@ -177,7 +178,7 @@ function getGreeting(lang: string, name: string): string {
 }
 
 type MainTab     = 'chat' | 'design' | 'messages' | 'schedule' | 'plan'
-type DesignTab   = 'services' | 'sections' | 'layouts' | 'ads' | 'media' | 'language'
+type DesignTab   = 'services' | 'sections' | 'layouts' | 'ads' | 'media' | 'language' | 'letterhead'
 type MessagesTab = 'inbox' | 'consultations' | 'clients'
 type PlanTab     = 'plan' | 'reviews' | 'suggestions' | 'stats' | 'refer'
 
@@ -559,12 +560,15 @@ export default function SpaceClient({
         {tab === 'design' && (
           <div className="px-4 flex items-center gap-1 border-t border-[#F0F0F0] bg-[#FAFAFA] overflow-x-auto scrollbar-none">
             {([
-              { key: 'services',  label: t.sub.services },
-              { key: 'sections',  label: t.sub.sections },
-              { key: 'layouts',   label: t.sub.layouts },
-              { key: 'ads',       label: t.sub.ads },
-              { key: 'media',     label: t.sub.media },
-              { key: 'language',  label: t.sub.language },
+              { key: 'services',   label: t.sub.services },
+              { key: 'sections',   label: t.sub.sections },
+              { key: 'layouts',    label: t.sub.layouts },
+              { key: 'ads',        label: t.sub.ads },
+              { key: 'media',      label: t.sub.media },
+              { key: 'language',   label: t.sub.language },
+              ...(currentProfile.persona === 'advocate'
+                ? [{ key: 'letterhead' as DesignTab, label: 'Letterhead' }]
+                : []),
             ] as { key: DesignTab; label: string }[]).map(({ key, label }) => (
               <button
                 key={key}
@@ -889,6 +893,13 @@ export default function SpaceClient({
           providerId={providerId}
           currentLanguage={pageLanguage}
         />
+      )}
+
+      {/* ── Design: Letterhead (advocate only) ── */}
+      {tab === 'design' && designTab === 'letterhead' && currentProfile.persona === 'advocate' && (
+        <div className="flex-1 overflow-y-auto px-4 py-6 max-w-2xl mx-auto w-full">
+          <LetterheadSettingsTab providerId={providerId} />
+        </div>
       )}
 
       {/* ── Schedule ── */}
