@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     ? customPersonaName.slice(0, 60).toLowerCase()
     : undefined
 
-  if (!persona || !firstName || !slug || !plan) {
+  if (!persona || !firstName || !slug || !plan || !email?.trim()) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
       location: location?.trim() || '',
       whatsapp_number: whatsapp,
       whatsapp_public: whatsappPublic !== false,
-      email: email?.trim() || null,
+      email: email?.trim().toLowerCase() || null,
       plan,
       plan_status: 'trialing',
       // First charge deferred to end of 3-month trial. Card can be added anytime
@@ -125,6 +125,7 @@ export async function POST(req: NextRequest) {
       location: location?.trim() || '',
       slug,
       whatsapp_number: whatsapp,
+      email: email?.trim().toLowerCase() || null,
       plan,
       region,
     })

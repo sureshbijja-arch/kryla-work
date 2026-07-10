@@ -151,7 +151,8 @@ export default function OnboardingClient({
 
   const canProceed1 = !!answers.persona && (answers.persona !== 'other' || customPersonaName.trim().length >= 2)
   const canProceed2 = !!(answers.firstName?.trim() && answers.tagline?.trim())
-  const canProceed3 = slugStatus.available === true
+  const emailValid = !!(answers.email?.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(answers.email.trim()))
+  const canProceed3 = slugStatus.available === true && emailValid
   const canProceed4 = answers.plan === 'grow' || answers.plan === 'thrive'
   const progressPercent = step === 5 ? 95 : (step / 5) * 100
 
@@ -298,10 +299,13 @@ export default function OnboardingClient({
                   </button>
                 </div>
                 <div className="mb-6">
-                  <label className="block text-xs font-medium text-[#444] mb-1.5">Your email <span className="font-normal text-[#999]">optional</span></label>
+                  <label className="block text-xs font-medium text-[#444] mb-1.5">Your email</label>
                   <input type="email" placeholder="priya@gmail.com" value={answers.email ?? ''} onChange={(e) => setAnswers((a) => ({ ...a, email: e.target.value }))}
-                    className="w-full border border-[#E5E5E5] rounded-lg px-3.5 py-2.5 text-sm text-[#0D0D0D] placeholder:text-[#999] focus:outline-none focus:border-[#F5A623] focus:shadow-[0_0_0_3px_rgba(245,166,35,0.1)] transition-all" />
-                  <p className="text-xs text-[#999] mt-1.5">We'll use this if we can't reach you on WhatsApp.</p>
+                    className={`w-full border rounded-lg px-3.5 py-2.5 text-sm text-[#0D0D0D] placeholder:text-[#999] focus:outline-none focus:border-[#F5A623] focus:shadow-[0_0_0_3px_rgba(245,166,35,0.1)] transition-all ${answers.email && !emailValid ? 'border-red-300' : 'border-[#E5E5E5]'}`} />
+                  <p className="text-xs text-[#999] mt-1.5">You'll use this email to log in and manage your page.</p>
+                  {answers.email && !emailValid && (
+                    <p className="text-xs text-red-500 mt-1">Please enter a valid email address.</p>
+                  )}
                 </div>
                 <div className="flex justify-between items-center">
                   <button onClick={goBack} className="text-sm text-[#999] hover:text-[#0D0D0D] transition-colors">← Back</button>
