@@ -677,12 +677,12 @@ function AlexCard({ loc }: { loc: Loc }) {
   );
 }
 
-function HorizontalSlider({ loc, plans }: { loc: Loc; plans: PlanDef[] }) {
+function HorizontalSlider({ loc }: { loc: Loc }) {
   const [current, setCurrent] = useState(0);
   const [width, setWidth] = useState(0);
   const outerRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const total = 4;
+  const total = 3;
 
   useEffect(() => {
     const measure = () => {
@@ -731,7 +731,7 @@ function HorizontalSlider({ loc, plans }: { loc: Loc; plans: PlanDef[] }) {
               <div className="text-col">
                 <p className="sec-eyebrow">STEP 1 · GET INVITED</p>
                 <h2 className="sec-h2 dark">Kryla is invite-only.<br />Apply for your<br />spot today.</h2>
-                <p className="sec-body on-light">We&apos;re a curated community of skilled professionals and businesses. Your application takes under a minute — we review every request and get back to you quickly.</p>
+                <p className="sec-body on-light">We&apos;re a curated community of skilled professionals and businesses. Get a referral code from an existing member — or reach us at hello@kryla.work to request one.</p>
                 <p className="sec-warm">Because quality matters more than quantity.</p>
               </div>
               <div className="card-col"><PriyaCard loc={loc} /></div>
@@ -741,9 +741,9 @@ function HorizontalSlider({ loc, plans }: { loc: Loc; plans: PlanDef[] }) {
           <div className="slider-slide">
             <div className="sec-inner card-right">
               <div className="text-col">
-                <p className="sec-eyebrow">STEP 2 · BUILD YOUR PAGE</p>
-                <h2 className="sec-h2 dark">Answer 5 questions.<br />Your page is live<br />in 15 minutes.</h2>
-                <p className="sec-body on-light">Tell us your name, what you do, where you&apos;re based, and what you charge. Kryla builds your professional page automatically — no design skills needed.</p>
+                <p className="sec-eyebrow">STEP 2 · BUILD YOUR BUSINESS PROFILE</p>
+                <h2 className="sec-h2 dark">Answer 5 questions.<br />Your business profile<br />is live in 15 minutes.</h2>
+                <p className="sec-body on-light">Tell us your name, what you do, where you&apos;re based, and what you charge. Kryla builds your professional business profile automatically — no design skills needed.</p>
                 <p className="sec-warm">Most members are live before their next session starts.</p>
               </div>
               <div className="card-col"><RajCard loc={loc} /></div>
@@ -753,39 +753,14 @@ function HorizontalSlider({ loc, plans }: { loc: Loc; plans: PlanDef[] }) {
           <div className="slider-slide">
             <div className="sec-inner card-right">
               <div className="text-col">
-                <p className="sec-eyebrow">STEP 3 · PICK YOUR PLAN</p>
-                <h2 className="sec-h2 dark">Start simple.<br />Grow when<br />you&apos;re ready.</h2>
-                <p className="sec-body on-light">Choose the plan that fits you today — upgrade anytime from MyChat. No lock-ins, no surprises.</p>
-              </div>
-              <div className="card-col">
-                <div className="step-plans">
-                  {plans.filter(p => !p.isQuote).map(p => (
-                    <div key={p.id} className={`step-plan${p.popular ? ' step-plan-pop' : ''}`}>
-                      <span className="step-plan-emoji">{p.emoji}</span>
-                      <span className="step-plan-name">{p.name}{p.popular ? ' ★' : ''}</span>
-                      <span className="step-plan-price">{loc === 'india' ? (p.indiaPrice || '').replace('₹', 'Rs ') : p.usaPrice} per month</span>
-                      <span className="step-plan-tag">{p.tagline}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="slider-slide">
-            <div className="sec-inner card-right">
-              <div className="text-col">
-                <p className="sec-eyebrow">STEP 4 · SHARE &amp; GET BOOKINGS</p>
+                <p className="sec-eyebrow">STEP 3 · SHARE &amp; GET BOOKINGS</p>
                 <h2 className="sec-h2 dark">Share your link.<br />Everything your<br />business needs.</h2>
-                <p className="sec-body on-light">Your Kryla page comes with everything built in — just share it and grow.</p>
+                <p className="sec-body on-light">Your Kryla business profile comes with everything built in — just share it and grow.</p>
                 <div className="feature-list">
-                  <div className="feature-item"><span className="feature-check">✓</span><strong>MyChat</strong> — type or speak to update your page, instantly</div>
-                  <div className="feature-item"><span className="feature-check">✓</span><strong>Design tabs</strong> — layouts, section styles, gallery, moving frames &amp; profile photo</div>
-                  <div className="feature-item"><span className="feature-check">✓</span><strong>WhatsApp inbox</strong> — receive &amp; reply to client messages in one place</div>
-                  <div className="feature-item"><span className="feature-check">✓</span><strong>Booking management</strong> — accept, track and follow up on every booking</div>
-                  <div className="feature-item"><span className="feature-check">✓</span><strong>Service &amp; menu editor</strong> — update offerings, pricing &amp; photos via chat</div>
-                  <div className="feature-item"><span className="feature-check">✓</span><strong>Share</strong> — Instagram, Nextdoor &amp; WhatsApp — fully integrated</div>
-                  <div className="feature-item"><span className="feature-check">✓</span><strong>Multilanguage</strong> — your page, your clients, in the language that feels like home</div>
+                  <div className="feature-item"><span className="feature-check">✓</span><strong>Chat &amp; voice</strong> — drive business updates by typing or speaking</div>
+                  <div className="feature-item"><span className="feature-check">✓</span><strong>Multilanguage</strong> — reach clients in the language that feels like home</div>
+                  <div className="feature-item"><span className="feature-check">✓</span><strong>WhatsApp integration</strong> — messages and booking alerts in one place</div>
+                  <div className="feature-item"><span className="feature-check">✓</span><strong>Share anywhere</strong> — Instagram &amp; Nextdoor, fully integrated</div>
                 </div>
               </div>
               <div className="card-col"><PriyaCard loc={loc} /></div>
@@ -945,7 +920,7 @@ export default function HomeClient({ plans, enabledPersonaIds = [] }: { plans: P
       </section>
 
       <div id="slider">
-        <HorizontalSlider loc={loc} plans={plans} />
+        <HorizontalSlider loc={loc} />
       </div>
 
       {/* ── COMMUNITY — dark #0D0D0D ── */}

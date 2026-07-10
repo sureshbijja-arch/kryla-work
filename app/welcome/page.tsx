@@ -53,7 +53,7 @@ function WelcomeContent() {
           </a>
 
           {/* Share options */}
-          <p className="text-xs font-semibold text-[#999] uppercase tracking-wide mb-3">Share your page</p>
+          <p className="text-xs font-semibold text-[#999] uppercase tracking-wide mb-3">Share your business profile</p>
           <div className="flex flex-col gap-2">
             <Link
               href={`/${slug}/mychat`}

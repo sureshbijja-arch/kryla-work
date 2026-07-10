@@ -201,7 +201,7 @@ export default function OnboardingClient({
                 </div>
                 {answers.persona === 'other' && (
                   <div className="mb-4">
-                    <label className="block text-xs font-medium text-[#444] mb-1.5">What do you do? <span className="font-normal text-[#999]">we&apos;ll build a page just for you</span></label>
+                    <label className="block text-xs font-medium text-[#444] mb-1.5">What do you do? <span className="font-normal text-[#999]">we&apos;ll build a business profile just for you</span></label>
                     <input
                       type="text"
                       placeholder="e.g. car detailer, crystal healer, immigration consultant"
@@ -294,7 +294,7 @@ export default function OnboardingClient({
                     <div className={`w-9 h-5 rounded-full transition-colors relative ${(answers.whatsappPublic ?? true) ? 'bg-[#22C55E]' : 'bg-[#E5E5E5]'}`}>
                       <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${(answers.whatsappPublic ?? true) ? 'translate-x-4' : 'translate-x-0.5'}`} />
                     </div>
-                    <span className="text-xs text-[#444]">Show my WhatsApp number on my page</span>
+                    <span className="text-xs text-[#444]">Show my WhatsApp number on my business profile</span>
                   </button>
                 </div>
                 <div className="mb-6">
