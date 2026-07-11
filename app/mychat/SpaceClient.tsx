@@ -22,7 +22,6 @@ import PersonaTab, { type DraftSeed } from './PersonaTab'
 import ReviewsTab from './ReviewsTab'
 import StatsTab from './StatsTab'
 import ResearchChat from './ResearchChat'
-import LegalNewsTicker from './LegalNewsTicker'
 import DraftingStudio from './DraftingStudio'
 import LetterheadSettingsTab from './LetterheadSettingsTab'
 import { getPersonaConfig, getRosterConfig } from '@/app/[slug]/personaConfig'
@@ -648,11 +647,6 @@ export default function SpaceClient({
       {/* ── Chat ── */}
       {tab === 'chat' && (
         <>
-          {/* LiveLaw ticker — India-region advocates only */}
-          {currentProfile.persona === 'advocate' && region === 'india' && (
-            <LegalNewsTicker providerId={providerId} />
-          )}
-
           {/* Style info strip */}
           <div className="bg-white border-b border-[#F0F0F0] px-4 py-2 flex items-center gap-2 flex-wrap shrink-0">
             <span className="text-[10px] font-semibold text-[#999] uppercase tracking-wide">Style</span>

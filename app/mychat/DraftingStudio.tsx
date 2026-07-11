@@ -13,6 +13,7 @@ import type { Editor } from '@tiptap/react'
 import type { ProofreadFinding, Citation, ClauseSuggestion } from './editor/types'
 import ClausePanel  from './editor/ClausePanel'
 import OutlinePanel from './editor/OutlinePanel'
+import LegalNewsTicker from './LegalNewsTicker'
 import {
   computeRedlineOps,
   buildRedlineHtml,
@@ -691,6 +692,9 @@ export default function DraftingStudio({
           </button>
         </div>
       </header>
+
+      {/* LiveLaw ticker — India advocates only (API gates by persona+region) */}
+      <LegalNewsTicker providerId={providerId} />
 
       {/* ── Body ── */}
       <div className="flex-1 flex overflow-hidden">
