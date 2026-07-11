@@ -648,6 +648,11 @@ export default function SpaceClient({
       {/* ── Chat ── */}
       {tab === 'chat' && (
         <>
+          {/* LiveLaw ticker — India-region advocates only */}
+          {currentProfile.persona === 'advocate' && region === 'india' && (
+            <LegalNewsTicker providerId={providerId} />
+          )}
+
           {/* Style info strip */}
           <div className="bg-white border-b border-[#F0F0F0] px-4 py-2 flex items-center gap-2 flex-wrap shrink-0">
             <span className="text-[10px] font-semibold text-[#999] uppercase tracking-wide">Style</span>
@@ -841,10 +846,6 @@ export default function SpaceClient({
             </div>
           </div>
 
-          {/* LiveLaw ticker — India-region advocates only */}
-          {currentProfile.persona === 'advocate' && region === 'india' && (
-            <LegalNewsTicker providerId={providerId} />
-          )}
         </>
       )}
 
