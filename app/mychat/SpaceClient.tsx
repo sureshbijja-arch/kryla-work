@@ -558,30 +558,43 @@ export default function SpaceClient({
 
         {/* Design sub-tab bar */}
         {tab === 'design' && (
-          <div className="px-4 flex items-center gap-1 border-t border-[#F0F0F0] bg-[#FAFAFA] overflow-x-auto scrollbar-none">
-            {([
-              { key: 'services',   label: t.sub.services },
-              { key: 'sections',   label: t.sub.sections },
-              { key: 'layouts',    label: t.sub.layouts },
-              { key: 'ads',        label: t.sub.ads },
-              { key: 'media',      label: t.sub.media },
-              { key: 'language',   label: t.sub.language },
-              ...(currentProfile.persona === 'advocate'
-                ? [{ key: 'letterhead' as DesignTab, label: 'Letterhead' }]
-                : []),
-            ] as { key: DesignTab; label: string }[]).map(({ key, label }) => (
-              <button
-                key={key}
-                onClick={() => setDesignTab(key)}
-                className={`py-2 px-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
-                  designTab === key
-                    ? 'border-[#0D0D0D] text-[#0D0D0D]'
-                    : 'border-transparent text-[#999] hover:text-[#0D0D0D]'
-                }`}>
-                {label}
-              </button>
-            ))}
-          </div>
+          <>
+            <div className="px-4 flex items-center gap-1 border-t border-[#F0F0F0] bg-[#FAFAFA] overflow-x-auto scrollbar-none">
+              {([
+                { key: 'services',   label: t.sub.services },
+                { key: 'sections',   label: t.sub.sections },
+                { key: 'layouts',    label: t.sub.layouts },
+                { key: 'ads',        label: t.sub.ads },
+                { key: 'media',      label: t.sub.media },
+                { key: 'language',   label: t.sub.language },
+              ] as { key: DesignTab; label: string }[]).map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setDesignTab(key)}
+                  className={`py-2 px-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
+                    designTab === key
+                      ? 'border-[#0D0D0D] text-[#0D0D0D]'
+                      : 'border-transparent text-[#999] hover:text-[#0D0D0D]'
+                  }`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            {/* Letterhead tab on its own row so it's always visible (advocate only) */}
+            {currentProfile.persona === 'advocate' && (
+              <div className="px-4 flex items-center border-t border-[#F0F0F0] bg-[#FAFAFA]">
+                <button
+                  onClick={() => setDesignTab('letterhead')}
+                  className={`py-2 px-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
+                    designTab === 'letterhead'
+                      ? 'border-[#0D0D0D] text-[#0D0D0D]'
+                      : 'border-transparent text-[#999] hover:text-[#0D0D0D]'
+                  }`}>
+                  Letterhead
+                </button>
+              </div>
+            )}
+          </>
         )}
 
         {/* Messages sub-tab bar */}
@@ -965,6 +978,7 @@ export default function SpaceClient({
             slug={slug}
             onGoToMessages={() => goTo('messages')}
           />
+          <DisplayNameCard providerId={providerId} initialFirstName={currentProfile.firstName} initialLastName={currentProfile.lastName} onSaved={() => router.refresh()} />
           <CustomNameCard providerId={providerId} slug={slug} canUse={canCustomName} initialDomain={customName} />
         </div>
       )}
@@ -1002,6 +1016,65 @@ function Tag({ label }: { label: string }) {
     <span className="text-[10px] font-semibold text-[#666] bg-[#F5F5F5] rounded px-2 py-0.5 uppercase tracking-wide">
       {label}
     </span>
+  )
+}
+
+function DisplayNameCard({ providerId, initialFirstName, initialLastName, onSaved }: { providerId: string; initialFirstName: string; initialLastName: string; onSaved: () => void }) {
+  const initial = [initialFirstName, initialLastName].filter(Boolean).join(' ')
+  const [value, setValue]   = useState(initial)
+  const [saving, setSaving] = useState(false)
+  const [error, setError]   = useState('')
+  const [saved, setSaved]   = useState(false)
+
+  async function save() {
+    const trimmed = value.trim()
+    if (!trimmed) return
+    setSaving(true)
+    setError('')
+    setSaved(false)
+    try {
+      const res = await fetch('/api/mychat/display-name', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ providerId, displayName: trimmed }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error ?? 'Failed to save'); return }
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+      onSaved()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="px-4 pb-6">
+      <p className="text-xs font-semibold text-[#999] uppercase tracking-widest mb-3">Display name</p>
+      <div className="rounded-2xl border border-[#E5E5E5] p-5 bg-white">
+        <div className="mb-4">
+          <p className="font-bold text-[#0D0D0D] text-sm mb-0.5">Name shown in your hero</p>
+          <p className="text-xs text-[#999]">This is the name that appears at the top of your public page.</p>
+        </div>
+        <div className="flex items-center gap-0 border border-[#E5E5E5] rounded-xl overflow-hidden focus-within:border-[#0D0D0D] transition-colors">
+          <input
+            type="text"
+            placeholder="Your display name"
+            value={value}
+            onChange={e => { setValue(e.target.value); setError(''); setSaved(false) }}
+            onKeyDown={e => { if (e.key === 'Enter') save() }}
+            className="flex-1 py-2.5 pl-3.5 pr-2 text-sm text-[#0D0D0D] placeholder:text-[#bbb] focus:outline-none bg-transparent"
+          />
+          <button
+            onClick={save}
+            disabled={saving || !value.trim() || value.trim() === initial}
+            className="shrink-0 text-sm font-semibold text-white bg-[#0D0D0D] px-4 py-2.5 disabled:opacity-40 hover:opacity-80 transition-opacity">
+            {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save'}
+          </button>
+        </div>
+        {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+      </div>
+    </div>
   )
 }
 

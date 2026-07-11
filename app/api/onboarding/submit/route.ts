@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase'
 import { inngest, BUILD_PAGE_EVENT, GENERATE_PERSONA_EVENT } from '@/lib/inngest'
 import { validateSlug, RESERVED_SLUGS } from '@/lib/slug'
+import { getPlans } from '@/lib/plans'
+import { inferCountry } from '@/lib/researchPrompt'
 import type { OnboardingAnswers } from '@/types/onboarding'
 
 export async function POST(req: NextRequest) {
@@ -31,6 +33,17 @@ export async function POST(req: NextRequest) {
   if (RESERVED_SLUGS.has(slug)) {
     return NextResponse.json({ error: 'That slug is reserved' }, { status: 400 })
   }
+
+  // Validate that the submitted plan is currently active
+  const activePlans = await getPlans()
+  const activePlanIds = activePlans.map(p => p.id)
+  if (!activePlanIds.includes(plan)) {
+    return NextResponse.json({ error: 'The selected plan is no longer available — please go back and choose an available plan' }, { status: 400 })
+  }
+
+  // Derive region from location if not explicitly set by the client
+  const derivedCountry = inferCountry(location?.trim() || '')
+  const effectiveRegion = region ?? (derivedCountry === 'IN' ? 'india' : 'usa')
 
   const supabase = createServerClient()
 
@@ -88,7 +101,7 @@ export async function POST(req: NextRequest) {
       // during the trial; the first charge will still land at trial_ends_at.
       trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       referred_by: referredBy || null,
-      region,
+      region: effectiveRegion,
       page_live: false,
       verified: false,
     })
@@ -127,7 +140,7 @@ export async function POST(req: NextRequest) {
       whatsapp_number: whatsapp,
       email: email?.trim().toLowerCase() || null,
       plan,
-      region,
+      region: effectiveRegion,
     })
     console.log('[submit] 5. answers saved')
   } catch (err) {

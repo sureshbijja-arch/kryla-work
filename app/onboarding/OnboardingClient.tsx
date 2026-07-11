@@ -36,8 +36,9 @@ export default function OnboardingClient({
 
   const [step, setStep] = useState<Step>(1)
   const [answers, setAnswers] = useState<Partial<OnboardingAnswers>>({
-    plan: 'grow', region: 'usa', whatsappCountryCode: '+1',
+    region: 'usa', whatsappCountryCode: '+1',
   })
+  const [regionTouched, setRegionTouched] = useState(false)
   const [customPersonaName, setCustomPersonaName] = useState('')
   const [slug, setSlug] = useState('')
   const [slugStatus, setSlugStatus] = useState<SlugStatus>({ checking: false, available: null, message: null })
@@ -159,7 +160,7 @@ export default function OnboardingClient({
   const canProceed2 = !!(answers.firstName?.trim() && answers.tagline?.trim())
   const emailValid = !!(answers.email?.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(answers.email.trim()))
   const canProceed3 = slugStatus.available === true && emailValid
-  const canProceed4 = answers.plan === 'grow' || answers.plan === 'thrive'
+  const canProceed4 = SELECTABLE_PLANS.some(p => p.id === answers.plan)
   const progressPercent = step === 5 ? 95 : (step / 5) * 100
 
   return (
@@ -251,7 +252,18 @@ export default function OnboardingClient({
                 </div>
                 <div className="mb-6">
                   <label className="block text-xs font-medium text-[#444] mb-1.5">Where are you based?</label>
-                  <input type="text" placeholder="e.g. Celina, TX or Pune, India" value={answers.location ?? ''} onChange={(e) => setAnswers((a) => ({ ...a, location: e.target.value }))}
+                  <input type="text" placeholder="e.g. Celina, TX or Pune, India" value={answers.location ?? ''} onChange={(e) => {
+                    const loc = e.target.value
+                    setAnswers((a) => {
+                      const update: Partial<OnboardingAnswers> = { ...a, location: loc }
+                      if (!regionTouched) {
+                        const l = loc.toLowerCase()
+                        const isIndia = l.includes('india') || /\b(delhi|mumbai|bangalore|bengaluru|chennai|hyderabad|kolkata|pune|ahmedabad|jaipur|surat)\b/.test(l)
+                        update.region = isIndia ? 'india' : 'usa'
+                      }
+                      return update
+                    })
+                  }}
                     className="w-full border border-[#E5E5E5] rounded-lg px-3.5 py-2.5 text-sm text-[#0D0D0D] placeholder:text-[#999] focus:outline-none focus:border-[#F5A623] focus:shadow-[0_0_0_3px_rgba(245,166,35,0.1)] transition-all" />
                 </div>
                 {submitError && <p className="text-sm text-red-500 mb-4">{submitError}</p>}
@@ -330,7 +342,7 @@ export default function OnboardingClient({
                 <p className="text-sm text-[#666] mb-5 leading-relaxed">Pick the plan that fits where you are today. You can upgrade anytime.</p>
                 <div className="flex bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg p-1 w-fit gap-1 mb-5">
                   {(['usa', 'india'] as Region[]).map((r) => (
-                    <button key={r} onClick={() => setAnswers((a) => ({ ...a, region: r }))}
+                    <button key={r} onClick={() => { setRegionTouched(true); setAnswers((a) => ({ ...a, region: r })) }}
                       className={`px-4 py-1.5 rounded-md text-xs font-semibold transition-all ${answers.region === r ? 'bg-[#F5A623] text-[#0D0D0D]' : 'text-[#999] hover:text-[#444]'}`}>
                       {r === 'usa' ? '🇺🇸 USA' : '🇮🇳 India'}
                     </button>
