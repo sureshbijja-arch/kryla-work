@@ -31,6 +31,7 @@ export default function AdsTab({ providerId, slug, canAds, onUpgrade }: Props) {
   const [adSubmitting, setAdSubmitting] = useState(false)
   const [adError, setAdError]       = useState('')
   const [adSuccess, setAdSuccess]   = useState(false)
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set())
 
   const supabase = createClient()
   // canAds is computed server-side and passed as a prop
@@ -75,6 +76,23 @@ export default function AdsTab({ providerId, slug, canAds, onUpgrade }: Props) {
     } finally {
       setAdImageUploading(false)
       e.target.value = ''
+    }
+  }
+
+  async function handleAdDelete(id: string) {
+    if (deletingIds.has(id)) return
+    setDeletingIds(prev => new Set(prev).add(id))
+    try {
+      const res = await fetch('/api/ads/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adId: id }),
+      })
+      if (res.ok) {
+        setAds(prev => prev.filter(a => a.id !== id))
+      }
+    } finally {
+      setDeletingIds(prev => { const s = new Set(prev); s.delete(id); return s })
     }
   }
 
@@ -158,11 +176,28 @@ export default function AdsTab({ providerId, slug, canAds, onUpgrade }: Props) {
                 <div key={ad.id} className="border border-[#E5E5E5] rounded-xl p-3.5">
                   <div className="flex justify-between items-start gap-2">
                     <p className="text-sm font-semibold text-[#0D0D0D] flex-1 min-w-0 truncate">{ad.title}</p>
-                    <span className={`shrink-0 text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide ${
-                      ad.status === 'approved' ? 'bg-green-100 text-green-700' :
-                      ad.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                      'bg-yellow-100 text-yellow-700'
-                    }`}>{ad.status}</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide ${
+                        ad.status === 'approved' ? 'bg-green-100 text-green-700' :
+                        ad.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                        'bg-yellow-100 text-yellow-700'
+                      }`}>{ad.status}</span>
+                      <button
+                        onClick={() => handleAdDelete(ad.id)}
+                        disabled={deletingIds.has(ad.id)}
+                        className="text-[#999] hover:text-red-500 transition-colors disabled:opacity-40"
+                        title="Delete ad">
+                        {deletingIds.has(ad.id) ? (
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="animate-spin">
+                            <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20" strokeDashoffset="10"/>
+                          </svg>
+                        ) : (
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M2 3.5h10M5 3.5V2.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v1M5.5 6v4M8.5 6v4M3 3.5l.667 7.333A.5.5 0 0 0 4.163 11h5.674a.5.5 0 0 0 .496-.167L11 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
                   {ad.description && <p className="text-xs text-[#666] mt-1 leading-relaxed">{ad.description}</p>}
                 </div>

@@ -146,6 +146,7 @@ export default async function MemberProfilePage({ params }: Props) {
     instagramHandle,
     nextdoorUrl,
     businessHours,
+    verified: provider.verified === true,
   }
 
   const pageSections  = Array.isArray(page.sections) ? (page.sections as SectionEntry[]) : null

@@ -115,6 +115,7 @@ export interface ProfileData {
   menuFiles?: string[]
   ads?: Ad[]
   businessHours?: BusinessHours | null
+  verified?: boolean
 }
 
 export const ACCENT: Record<PaletteKey, string> = {

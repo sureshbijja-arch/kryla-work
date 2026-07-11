@@ -256,6 +256,23 @@ function CTAs({ wa, showBooking, showContact, ctaPrimary, ctaSecondary, ctaTarge
   )
 }
 
+/* ── VERIFIED CHIP ───────────────────────────────────────────────────────── */
+function VerifiedChip({ dark = false }: { dark?: boolean }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full"
+      style={{
+        verticalAlign: 'middle',
+        background: dark ? 'rgba(34,197,94,0.18)' : '#F0FDF4',
+        color:      dark ? '#86EFAC' : '#16A34A',
+        border:     `1px solid ${dark ? 'rgba(34,197,94,0.3)' : '#BBF7D0'}`,
+        lineHeight: '1',
+      }}>
+      ✓ Verified
+    </span>
+  )
+}
+
 /* ── PHOTO ───────────────────────────────────────────────────────────────────
    Full-bleed background image (gallery[0] or avatar), dark scrim, text bottom.
    Sticky blur-nav appears on scroll.
@@ -315,10 +332,13 @@ function HeroPhoto({ data }: { data: ProfileData }) {
               }} />
           </div>
         )}
-        <p className="h-up h-up-1 font-black uppercase tracking-[.22em] mb-4"
-          style={{ fontSize: 'var(--type-label)', color: 'var(--color-accent)' }}>
-          {fullName}
-        </p>
+        <div className="h-up h-up-1 flex items-center gap-2 flex-wrap mb-4">
+          <p className="font-black uppercase tracking-[.22em]"
+            style={{ fontSize: 'var(--type-label)', color: 'var(--color-accent)' }}>
+            {fullName}
+          </p>
+          {persona === 'advocate' && data.verified && <VerifiedChip dark />}
+        </div>
         <h1 className="h-up h-up-2 font-black text-white leading-[1.04] tracking-tight mb-5"
           style={{ fontSize: 'var(--type-display)' }}>
           {headline}
@@ -493,10 +513,13 @@ function HeroDark({ data, framesConfig, accent = '#F5A623' }: { data: ProfileDat
               }} />
           </div>
         )}
-        <p className="h-up h-up-1 font-black uppercase tracking-[.22em] mb-5"
-          style={{ fontSize: 'var(--type-label)', color: 'var(--color-accent)' }}>
-          {fullName}
-        </p>
+        <div className="h-up h-up-1 flex items-center gap-2 flex-wrap mb-5">
+          <p className="font-black uppercase tracking-[.22em]"
+            style={{ fontSize: 'var(--type-label)', color: 'var(--color-accent)' }}>
+            {fullName}
+          </p>
+          {persona === 'advocate' && data.verified && <VerifiedChip dark />}
+        </div>
         <h1 className="h-up h-up-2 font-black text-white leading-[1.04] tracking-tight mb-5"
           style={{ fontSize: 'var(--type-display)' }}>
           {headline}
@@ -551,14 +574,17 @@ function HeroGradient({ data }: { data: ProfileData }) {
               }} />
           </div>
         )}
-        <div className="h-up h-up-1 inline-flex items-center gap-2 mb-5 px-4 py-2 text-xs font-black uppercase tracking-widest"
-          style={{
-            borderRadius: 'var(--radius-btn)',
-            background: 'var(--color-accent-surface)',
-            color: 'var(--color-accent)',
-            border: '1px solid var(--color-accent-border)',
-          }}>
-          {fullName}
+        <div className="h-up h-up-1 flex items-center gap-2 flex-wrap mb-5">
+          <div className="inline-flex items-center gap-2 px-4 py-2 text-xs font-black uppercase tracking-widest"
+            style={{
+              borderRadius: 'var(--radius-btn)',
+              background: 'var(--color-accent-surface)',
+              color: 'var(--color-accent)',
+              border: '1px solid var(--color-accent-border)',
+            }}>
+            {fullName}
+          </div>
+          {persona === 'advocate' && data.verified && <VerifiedChip />}
         </div>
         <h1 className="h-up h-up-2 font-black text-[#0D0D0D] leading-[1.04] tracking-tight mb-5"
           style={{ fontSize: 'var(--type-display)' }}>
@@ -605,13 +631,16 @@ function HeroSplit({ data }: { data: ProfileData }) {
       <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row gap-12 items-center"
         style={{ paddingTop: 'calc(var(--space-section) * .7)', paddingBottom: 'var(--space-section)' }}>
         <div className="flex-1 order-2 sm:order-1">
-          <div className="h-up h-up-1 inline-flex items-center gap-2 mb-6 px-3 py-1.5 text-xs font-black uppercase tracking-widest"
-            style={{
-              borderRadius: 'var(--radius-btn)',
-              background: 'var(--color-accent-surface)',
-              color: 'var(--color-accent)',
-            }}>
-            {fullName}
+          <div className="h-up h-up-1 flex items-center gap-2 flex-wrap mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-black uppercase tracking-widest"
+              style={{
+                borderRadius: 'var(--radius-btn)',
+                background: 'var(--color-accent-surface)',
+                color: 'var(--color-accent)',
+              }}>
+              {fullName}
+            </div>
+            {persona === 'advocate' && data.verified && <VerifiedChip />}
           </div>
           <h1 className="h-up h-up-2 font-black text-[#0D0D0D] leading-[1.04] tracking-tight mb-5"
             style={{ fontSize: 'var(--type-display)' }}>
@@ -671,9 +700,12 @@ function HeroBanner({ data }: { data: ProfileData }) {
           style={{ backgroundImage: 'radial-gradient(circle at 70% 30%, rgba(255,255,255,.18) 0%, transparent 60%)' }} />
         <div className="relative max-w-2xl mx-auto px-6 pt-5 flex justify-between items-start">
           <div>
-            <p className="text-white/60 font-black uppercase tracking-widest" style={{ fontSize: 'var(--type-label)' }}>
-              {fullName}
-            </p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="text-white/60 font-black uppercase tracking-widest" style={{ fontSize: 'var(--type-label)' }}>
+                {fullName}
+              </p>
+              {persona === 'advocate' && data.verified && <VerifiedChip dark />}
+            </div>
             {location && <LocationLink location={location} dark />}
           </div>
           <KLogo dark />
@@ -765,13 +797,16 @@ function HeroCentered({ data, framesConfig }: { data: ProfileData; framesConfig?
               }} />
           </div>
         )}
-        <div className="h-up h-up-1 inline-flex items-center gap-2 mb-5 px-4 py-2 text-xs font-black uppercase tracking-widest"
-          style={{
-            borderRadius: 'var(--radius-btn)',
-            background: 'var(--color-accent-surface)',
-            color: 'var(--color-accent)',
-          }}>
-          {fullName}
+        <div className="h-up h-up-1 flex items-center justify-center gap-2 flex-wrap mb-5">
+          <div className="inline-flex items-center gap-2 px-4 py-2 text-xs font-black uppercase tracking-widest"
+            style={{
+              borderRadius: 'var(--radius-btn)',
+              background: 'var(--color-accent-surface)',
+              color: 'var(--color-accent)',
+            }}>
+            {fullName}
+          </div>
+          {persona === 'advocate' && data.verified && <VerifiedChip />}
         </div>
         <h1 className="h-up h-up-2 font-black text-[#0D0D0D] leading-[1.04] tracking-tight mb-5 max-w-xl"
           style={{ fontSize: 'var(--type-display)' }}>
@@ -828,13 +863,16 @@ function HeroMinimal({ data }: { data: ProfileData }) {
               outlineOffset: 2,
             }} />
         )}
-        <div className="h-up h-up-1 inline-flex items-center gap-2 mb-5 px-3 py-1 text-xs font-black uppercase tracking-widest"
-          style={{
-            borderRadius: 'var(--radius-btn)',
-            background: 'var(--color-accent-surface)',
-            color: 'var(--color-accent)',
-          }}>
-          {fullName}
+        <div className="h-up h-up-1 flex items-center gap-2 flex-wrap mb-5">
+          <div className="inline-flex items-center gap-2 px-3 py-1 text-xs font-black uppercase tracking-widest"
+            style={{
+              borderRadius: 'var(--radius-btn)',
+              background: 'var(--color-accent-surface)',
+              color: 'var(--color-accent)',
+            }}>
+            {fullName}
+          </div>
+          {persona === 'advocate' && data.verified && <VerifiedChip />}
         </div>
         <h1 className="h-up h-up-2 font-black text-[#0D0D0D] leading-[1.04] tracking-tight mb-5"
           style={{ fontSize: 'var(--type-display)' }}>
