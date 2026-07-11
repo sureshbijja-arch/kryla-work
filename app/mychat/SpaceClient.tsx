@@ -483,6 +483,8 @@ export default function SpaceClient({
         open={researchOpen}
         onClose={() => { setResearchOpen(false); setResearchQuery(undefined) }}
         initialQuery={researchQuery}
+        persona={currentProfile.persona}
+        region={region}
       />
 
       {/* ── Advocate-only Drafting Studio overlay ── */}
