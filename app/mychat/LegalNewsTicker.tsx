@@ -111,7 +111,7 @@ export default function LegalNewsTicker({ providerId }: Props) {
           Duration scales loosely with item count so reading speed is consistent. */}
       <style>{`
         .ticker-scroll {
-          animation: ticker-move ${Math.max(40, items.length * 8)}s linear infinite;
+          animation: ticker-move ${Math.max(80, items.length * 16)}s linear infinite;
         }
         @keyframes ticker-move {
           from { transform: translateX(0); }
