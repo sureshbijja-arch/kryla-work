@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import LegalNewsTicker from './LegalNewsTicker'
 
 interface ResearchMessage {
   role: 'user' | 'assistant'
@@ -15,10 +14,6 @@ interface Props {
   onClose: () => void
   /** Optional: pre-fill the input (from the suggest_research nudge) */
   initialQuery?: string
-  /** Persona of the member — used to gate the LiveLaw ticker (advocate only) */
-  persona?: string
-  /** Region of the member — used to gate the LiveLaw ticker (india only) */
-  region?: string
 }
 
 const GREETING: ResearchMessage = {
@@ -26,7 +21,7 @@ const GREETING: ResearchMessage = {
   content: "Hi! I'm your Research co-pilot. Ask me anything — solve a problem step by step, generate practice questions, plan a lesson, look up competitor pricing, explore marketing ideas. What would you like to dig into?",
 }
 
-export default function ResearchChat({ providerId, open, onClose, initialQuery, persona, region }: Props) {
+export default function ResearchChat({ providerId, open, onClose, initialQuery }: Props) {
   const [messages, setMessages]   = useState<ResearchMessage[]>([GREETING])
   const [input, setInput]         = useState('')
   const [loading, setLoading]     = useState(false)
@@ -126,11 +121,6 @@ export default function ResearchChat({ providerId, open, onClose, initialQuery, 
           </svg>
         </button>
       </header>
-
-      {/* LiveLaw ticker — India-region advocates only */}
-      {persona === 'advocate' && region === 'india' && (
-        <LegalNewsTicker providerId={providerId} />
-      )}
 
       {/* Messages */}
       <main className="flex-1 overflow-y-auto px-4 py-6">

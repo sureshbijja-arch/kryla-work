@@ -22,6 +22,7 @@ import PersonaTab, { type DraftSeed } from './PersonaTab'
 import ReviewsTab from './ReviewsTab'
 import StatsTab from './StatsTab'
 import ResearchChat from './ResearchChat'
+import LegalNewsTicker from './LegalNewsTicker'
 import DraftingStudio from './DraftingStudio'
 import LetterheadSettingsTab from './LetterheadSettingsTab'
 import { getPersonaConfig, getRosterConfig } from '@/app/[slug]/personaConfig'
@@ -483,8 +484,6 @@ export default function SpaceClient({
         open={researchOpen}
         onClose={() => { setResearchOpen(false); setResearchQuery(undefined) }}
         initialQuery={researchQuery}
-        persona={currentProfile.persona}
-        region={region}
       />
 
       {/* ── Advocate-only Drafting Studio overlay ── */}
@@ -841,6 +840,11 @@ export default function SpaceClient({
               </button>
             </div>
           </div>
+
+          {/* LiveLaw ticker — India-region advocates only */}
+          {currentProfile.persona === 'advocate' && region === 'india' && (
+            <LegalNewsTicker providerId={providerId} />
+          )}
         </>
       )}
 
