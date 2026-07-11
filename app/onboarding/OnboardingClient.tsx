@@ -103,6 +103,7 @@ export default function OnboardingClient({
         if (data.ready) {
           clearInterval(pollRef.current!)
           clearTimeout(timeoutRef.current!)
+          posthog.capture('page_built')
           setBuildStep(5)
           setTimeout(() => router.push(`/welcome?slug=${data.slug}`), 1500)
         }
@@ -143,6 +144,8 @@ export default function OnboardingClient({
         setSubmitting(false)
         return
       }
+      posthog.identify(answers.email!)
+      posthog.capture('onboarding_submitted')
       setProviderId(data.providerId)
       setStep(5)
     } catch (err) {

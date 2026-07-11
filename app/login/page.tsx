@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import posthog from 'posthog-js'
 
 type Step = 'email' | 'otp' | 'error'
 
@@ -27,6 +28,7 @@ export default function LoginPage() {
       setErrorMsg(error.message || 'Something went wrong — please try again')
       return
     }
+    posthog.capture('login_otp_requested', { email })
     setStep('otp')
   }
 
@@ -47,6 +49,8 @@ export default function LoginPage() {
       setErrorMsg('Incorrect code — check your email and try again')
       return
     }
+    posthog.identify(email, { email })
+    posthog.capture('login_completed')
     router.push('/mychat')
   }
 

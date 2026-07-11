@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { getPlans, getPlanGate, getPersonaPlans } from '@/lib/plans'
+import { captureServerEvent } from '@/lib/observability'
 import MyChatLayout from '../components/MyChatLayout'
 import type { SectionEntry } from '@/app/mychat/SectionsTab'
 import type { ServiceItem } from '@/app/mychat/ServicesTab'
@@ -39,6 +40,8 @@ export default async function MyChatPage({ params, searchParams }: Props) {
   }
 
   if (provider.slug !== params.slug) redirect(`/${provider.slug}/mychat`)
+
+  captureServerEvent('dashboard_viewed', { slug: provider.slug, providerId: provider.id })
 
   const [{ data: page }, plans, personaPlans, gate] = await Promise.all([
     supabaseAdmin
