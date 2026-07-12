@@ -71,12 +71,18 @@ export async function POST(req: NextRequest) {
   const data = event.data as Record<string, unknown>
 
   // ── 3. Parse inbound metadata ─────────────────────────────────────────────
-  const emailId      = data.email_id as string
-  const toAddress    = ((data.to as string[] | undefined)?.[0] ?? '').toLowerCase()
-  const fromRaw      = (data.from as string | undefined) ?? ''
-  const subject      = (data.subject as string | undefined) ?? '(no subject)'
-  const messageId    = (data.message_id as string | undefined) ?? emailId
-  const inReplyTo    = (data.in_reply_to as string | undefined) ?? null
+  // Resend includes text/html body directly in the webhook payload for inbound emails.
+  const emailId   = data.email_id as string
+  const fromRaw   = (data.from as string | undefined) ?? ''
+  const subject   = (data.subject as string | undefined) ?? '(no subject)'
+  const messageId = (data.message_id as string | undefined) ?? emailId
+  const inReplyTo = (data.in_reply_to as string | undefined) ?? null
+  const bodyText  = (data.text as string | undefined) ?? ''
+  const bodyHtml  = (data.html as string | undefined) ?? ''
+
+  // `to` can be a plain email or "Name <email>" — parse out just the address
+  const toRaw     = ((data.to as string[] | undefined)?.[0] ?? '')
+  const toAddress = parseSender(toRaw).email   // normalised lowercase email only
 
   // Skip reserved addresses
   if (!toAddress || isReserved(toAddress)) {
@@ -99,36 +105,15 @@ export async function POST(req: NextRequest) {
   const providerId = providerEmail.provider_id as string
   const sender     = parseSender(fromRaw)
 
-  // ── 5. Fetch full email body from Resend Received-Emails API ──────────────
-  // The webhook payload only carries metadata; body + attachments need a
-  // separate API call.
-  let bodyText = ''
-  let bodyHtml = ''
-  let rawAttachments: { filename: string; size: number; id: string }[] = []
-
-  try {
-    const apiKey = process.env.RESEND_API_KEY!
-    const emailRes = await fetch(`https://api.resend.com/emails/${emailId}`, {
-      headers: { Authorization: `Bearer ${apiKey}` },
-    })
-    if (emailRes.ok) {
-      const emailData = await emailRes.json() as Record<string, unknown>
-      bodyText = (emailData.text as string | undefined) ?? ''
-      bodyHtml = (emailData.html as string | undefined) ?? ''
-      rawAttachments = (emailData.attachments as typeof rawAttachments | undefined) ?? []
-    }
-  } catch (err) {
-    console.error('[resend-inbound] failed to fetch email body:', err)
-    // Proceed without body — row will still be stored for realtime notification
-  }
+  // ── 5. Attachments from webhook payload ───────────────────────────────────
+  // Resend inbound webhook includes attachment metadata directly in the payload.
+  type ResendAttachment = { filename?: string; name?: string; size?: number; content?: string }
+  const rawAttachments = (data.attachments as ResendAttachment[] | undefined) ?? []
 
   // ── 6. Upload attachments to Supabase Storage ─────────────────────────────
-  // Attachments are small files (usually < 10 MB for advocate use: signed docs).
-  // We store them in email-attachments/{providerId}/{emailId}/{filename}.
   const storedAttachments: { name: string; size: number; url: string }[] = []
 
   if (rawAttachments.length > 0) {
-    // Use a storage-only admin client (same credentials, different client)
     const storageClient = createStorageClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -136,15 +121,13 @@ export async function POST(req: NextRequest) {
 
     for (const att of rawAttachments) {
       try {
-        const apiKey = process.env.RESEND_API_KEY!
-        const attRes = await fetch(
-          `https://api.resend.com/emails/${emailId}/attachments/${att.id}`,
-          { headers: { Authorization: `Bearer ${apiKey}` } }
-        )
-        if (!attRes.ok) continue
+        const filename = att.filename ?? att.name ?? 'attachment'
+        const size     = att.size ?? 0
+        // Resend inbound attachments include base64-encoded content in `content`
+        if (!att.content) continue
+        const buffer = Buffer.from(att.content, 'base64')
+        const path   = `${providerId}/${emailId}/${filename}`
 
-        const buffer  = await attRes.arrayBuffer()
-        const path    = `${providerId}/${emailId}/${att.filename}`
         const { error: uploadErr } = await storageClient.storage
           .from('email-attachments')
           .upload(path, buffer, { upsert: true })
@@ -154,16 +137,11 @@ export async function POST(req: NextRequest) {
           continue
         }
 
-        // Create a long-lived signed URL (7 days — re-sign on demand in v2)
         const { data: signed } = await storageClient.storage
           .from('email-attachments')
           .createSignedUrl(path, 60 * 60 * 24 * 7)
 
-        storedAttachments.push({
-          name: att.filename,
-          size: att.size,
-          url:  signed?.signedUrl ?? '',
-        })
+        storedAttachments.push({ name: filename, size, url: signed?.signedUrl ?? '' })
       } catch (err) {
         console.error('[resend-inbound] attachment processing error:', err)
       }
