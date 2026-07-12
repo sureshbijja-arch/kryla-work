@@ -18,7 +18,7 @@ interface Props {
 
 export default function EmailSettingsTab({ providerId, slug, onBack }: Props) {
   const [address, setAddress]   = useState<string | null>(null)
-  const [enabled, setEnabled]   = useState(true)
+  const [enabled, setEnabled]   = useState(false)
   const [loading, setLoading]   = useState(true)
   const [toggling, setToggling] = useState(false)
   const [copied, setCopied]     = useState(false)
