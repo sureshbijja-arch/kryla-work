@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getPlans } from '@/lib/plans'
 import { getEnabledPersonas } from '@/lib/personas'
 import HomeClient from './HomeClient'

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { Suspense } from 'react'
 import { getPlans, getPersonaFeatureMap } from '@/lib/plans'
 import { getEnabledPersonas } from '@/lib/personas'
