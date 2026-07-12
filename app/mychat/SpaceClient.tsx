@@ -30,6 +30,7 @@ import MarkdownMessage from './chat/MarkdownMessage'
 import SourceCards from './chat/SourceCards'
 import MessageActions from './chat/MessageActions'
 import { getChatPromptChips } from '@/config/verticals'
+import LegalNewsTicker from './LegalNewsTicker'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -819,7 +820,7 @@ export default function SpaceClient({
             </div>
           </main>
 
-          <div className="bg-white border-t border-[#E5E5E5] px-4 py-4 shrink-0">
+          <div className="bg-white border-t border-[#E5E5E5] px-4 pt-3 pb-4 shrink-0">
             {/* Quick-action prompt chips — shown only when chat is empty (just the greeting) */}
             {messages.length === 1 && !loading && (
               <div className="flex flex-wrap gap-1.5 mb-3">
@@ -835,36 +836,41 @@ export default function SpaceClient({
               </div>
             )}
 
-            <div className="flex gap-2 items-end">
-              {/* Research button — opens full-screen Research chat */}
+            {/* Tool buttons row — above textarea; Research + Draft disabled in full-screen */}
+            <div className="flex items-center gap-1.5 mb-2">
+              {/* Research Chat */}
               <button
                 onClick={() => { setResearchQuery(undefined); setResearchOpen(true) }}
-                title="Open Research — solve problems, plan lessons, market smarter"
-                className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-[#F5F5F5] text-[#666] hover:bg-[#E5E5E5]">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                disabled={chatExpanded}
+                title={chatExpanded ? 'Exit full-screen to open Research' : 'Research Chat'}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-[#F5F5F5] text-[#666] hover:bg-[#E5E5E5] transition-colors disabled:opacity-30 disabled:pointer-events-none">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
                   <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
                   <path d="M10 10l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                 </svg>
+                Research
               </button>
 
-              {/* Advocate-only: Drafting Studio button */}
+              {/* Advocate-only: Drafting Studio */}
               {currentProfile.persona === 'advocate' && (
                 <button
                   onClick={() => setDraftOpen(true)}
-                  title="Open Drafting Studio — draft, review, and save legal documents"
-                  className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-[#F5F5F5] text-[#666] hover:bg-[#E5E5E5]">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  disabled={chatExpanded}
+                  title={chatExpanded ? 'Exit full-screen to open Drafting Studio' : 'Drafting Studio'}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-[#F5F5F5] text-[#666] hover:bg-[#E5E5E5] transition-colors disabled:opacity-30 disabled:pointer-events-none">
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
                     <path d="M8 1v14M1 13h14M4 13V9L1 5M12 13V9l3-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
+                  Draft
                 </button>
               )}
 
-              {/* Mic button */}
+              {/* Mic — always available */}
               <button
                 onClick={toggleMic}
                 disabled={transcribing}
                 title={listening ? 'Stop recording' : transcribing ? 'Transcribing…' : 'Speak your message'}
-                className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${
                   listening
                     ? 'bg-red-500 text-white animate-pulse'
                     : transcribing
@@ -872,18 +878,22 @@ export default function SpaceClient({
                     : 'bg-[#F5F5F5] text-[#666] hover:bg-[#E5E5E5]'
                 }`}>
                 {transcribing ? (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="animate-spin">
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" className="animate-spin">
                     <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" strokeDasharray="28" strokeDashoffset="10"/>
                   </svg>
                 ) : (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
                     <rect x="5" y="1" width="6" height="9" rx="3" stroke="currentColor" strokeWidth="1.5"/>
                     <path d="M2 8c0 3.314 2.686 6 6 6s6-2.686 6-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                     <line x1="8" y1="14" x2="8" y2="16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
                 )}
+                {transcribing ? 'Transcribing…' : listening ? 'Stop' : 'Speak'}
               </button>
+            </div>
 
+            {/* Textarea + send row */}
+            <div className="flex gap-2 items-end">
               <textarea
                 ref={inputRef}
                 rows={1}
@@ -930,6 +940,13 @@ export default function SpaceClient({
               </button>
             </div>
           </div>
+
+          {/* LiveLaw ticker — advocate only, below the input area */}
+          {currentProfile.persona === 'advocate' && (
+            <div className="shrink-0">
+              <LegalNewsTicker providerId={providerId} />
+            </div>
+          )}
 
         </div>
       )}

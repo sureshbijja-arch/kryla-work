@@ -15,7 +15,6 @@ import ClausePanel     from './editor/ClausePanel'
 import OutlinePanel    from './editor/OutlinePanel'
 import RibbonToolbar   from './editor/RibbonToolbar'
 import StatusBar       from './editor/StatusBar'
-import LegalNewsTicker from './LegalNewsTicker'
 import type { MarginPreset } from './editor/LegalEditor'
 import {
   computeRedlineOps,
@@ -703,9 +702,6 @@ export default function DraftingStudio({
           </button>
         </div>
       </header>
-
-      {/* LiveLaw ticker — India advocates only (API gates by persona+region) */}
-      <LegalNewsTicker providerId={providerId} />
 
       {/* ── Body ── */}
       <div className="flex-1 flex overflow-hidden">
