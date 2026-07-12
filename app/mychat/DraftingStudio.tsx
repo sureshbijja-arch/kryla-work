@@ -160,6 +160,9 @@ export default function DraftingStudio({
   const [margin, setMargin]       = useState<MarginPreset>('normal')
   const [lineHeight, setLineHeight] = useState('1.5')
 
+  // Focus mode — hides control panel so editor fills full height
+  const [focusMode, setFocusMode] = useState(false)
+
   // ── Data loading ─────────────────────────────────────────────────────────
 
   const loadTemplates = useCallback(async () => {
@@ -213,7 +216,7 @@ export default function DraftingStudio({
       setMode('draft'); setSelectedTemplate(null); setFacts({})
       setDraftHtml(''); setReviewText(''); setReviewOutput(''); setInstruction('')
       setDraftTitle(''); setActiveDraftId(''); setAttachedClientId(''); setShareToken(null)
-      setShowSidebar(false); setShowRightPanel(false)
+      setShowSidebar(false); setShowRightPanel(false); setFocusMode(false)
       setProofState({ loading: false, findings: [] })
       setCitationState({ loading: false, citations: [] })
       setClauseSuggestions([]); setShowRedline(false)
@@ -749,8 +752,8 @@ export default function DraftingStudio({
         {/* ── Center: control forms + editor ── */}
         <main className="flex-1 flex flex-col overflow-hidden min-w-0">
 
-          {/* Control forms — shrinks when editor is visible */}
-          <div
+          {/* Control forms — hidden in focus mode, shrinks when editor is visible */}
+          {!focusMode && <div
             className="shrink-0 overflow-y-auto border-b border-[#F0F0F0]"
             style={{ maxHeight: hasEditor ? '260px' : undefined }}>
             <div className="max-w-3xl mx-auto px-4 py-5 space-y-4">
@@ -899,7 +902,7 @@ export default function DraftingStudio({
               )}
 
             </div>
-          </div>
+          </div>}
 
           {/* ── Rich editor area ── */}
           {hasEditor && (
@@ -914,6 +917,23 @@ export default function DraftingStudio({
                   placeholder="Document title…"
                   className="flex-1 text-xs font-semibold text-[#0D0D0D] bg-transparent border-none outline-none placeholder:text-[#bbb]"
                 />
+                {/* Focus mode toggle — expand/collapse the control panel above */}
+                <button
+                  onClick={() => setFocusMode(f => !f)}
+                  title={focusMode ? 'Show controls' : 'Full-screen editor'}
+                  className="w-6 h-6 rounded flex items-center justify-center text-[#bbb] hover:text-[#0D0D0D] transition-colors shrink-0">
+                  {focusMode ? (
+                    /* Collapse / exit full-screen icon */
+                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                      <path d="M1 4h3V1M10 4H7V1M1 7h3v3M10 7H7v3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  ) : (
+                    /* Expand / full-screen icon */
+                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                      <path d="M1 4V1h3M7 1h3v3M10 7v3H7M4 10H1V7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                </button>
               </div>
 
               {/* Word-style ribbon toolbar */}
