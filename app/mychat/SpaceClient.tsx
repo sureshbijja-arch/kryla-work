@@ -25,6 +25,10 @@ import ResearchChat from './ResearchChat'
 import DraftingStudio from './DraftingStudio'
 import LetterheadSettingsTab from './LetterheadSettingsTab'
 import { getPersonaConfig, getRosterConfig } from '@/app/[slug]/personaConfig'
+import MarkdownMessage from './chat/MarkdownMessage'
+import SourceCards from './chat/SourceCards'
+import MessageActions from './chat/MessageActions'
+import { getChatPromptChips } from '@/config/verticals'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -232,6 +236,8 @@ export default function SpaceClient({
   const [draftOpen, setDraftOpen]           = useState(false)
   // Phase 5: seed DraftingStudio from a client/matter card
   const [draftSeed, setDraftSeed]           = useState<DraftSeed | null>(null)
+  // Chat expand / full-screen toggle
+  const [chatExpanded, setChatExpanded]     = useState(false)
 
   // ── Billing return toast ─────────────────────────────────────────────────────
   const router = useRouter()
@@ -257,6 +263,14 @@ export default function SpaceClient({
   useEffect(() => {
     if (tab === 'chat') bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, tab])
+
+  // Auto-resize textarea as input grows (handles chips, voice, and keyboard input)
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto'
+      inputRef.current.style.height = Math.min(inputRef.current.scrollHeight, 128) + 'px'
+    }
+  }, [input])
 
   // Stop speaking when user switches away from chat tab
   useEffect(() => {
@@ -646,28 +660,78 @@ export default function SpaceClient({
 
       {/* ── Chat ── */}
       {tab === 'chat' && (
-        <>
-          {/* Style info strip */}
+        <div className={chatExpanded ? 'fixed inset-0 z-50 bg-white flex flex-col' : 'contents'}>
+          {/* Style info strip + expand toggle */}
           <div className="bg-white border-b border-[#F0F0F0] px-4 py-2 flex items-center gap-2 flex-wrap shrink-0">
             <span className="text-[10px] font-semibold text-[#999] uppercase tracking-wide">Style</span>
             <Tag label={TEMPLATE_LABELS[currentProfile.template] ?? currentProfile.template} />
             <Tag label={PALETTE_LABELS[currentProfile.palette] ?? currentProfile.palette} />
             <Tag label={FONT_LABELS[currentProfile.font] ?? currentProfile.font} />
+            <div className="ml-auto flex items-center gap-0.5">
+              {/* Clear conversation — only when there are messages beyond the greeting */}
+              {messages.length > 1 && (
+                <button
+                  onClick={() => setMessages(prev => [prev[0]])}
+                  title="New conversation"
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-[#bbb] hover:text-[#666] hover:bg-[#F5F5F5] transition-colors">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                  </svg>
+                </button>
+              )}
+              <button
+                onClick={() => setChatExpanded(v => !v)}
+                title={chatExpanded ? 'Collapse chat' : 'Expand chat'}
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-[#999] hover:text-[#0D0D0D] hover:bg-[#F5F5F5] transition-colors"
+              >
+                {chatExpanded ? (
+                  /* compress icon */
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                    <path d="M1 5h4V1M12 5H8V1M1 8h4v4M12 8H8v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                ) : (
+                  /* expand icon */
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                    <path d="M1 5V1h4M12 5V1H8M1 8v4h4M12 8v4H8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
-          <main className="flex-1 overflow-y-auto px-4 py-6">
+          <main className={`flex-1 overflow-y-auto px-4 py-6 ${chatExpanded ? 'max-w-3xl mx-auto w-full' : ''}`}>
             <div className="space-y-4">
-              {messages.map((msg, i) => (
+              {messages.map((msg, i) => {
+                // Empty state: render greeting as centered welcome card instead of a bubble
+                if (i === 0 && messages.length === 1) {
+                  return (
+                    <div key={i} className="flex flex-col items-center text-center py-8">
+                      <div className="w-11 h-11 rounded-2xl bg-[#F5F5F5] flex items-center justify-center mb-3">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                          <path d="M9 1.5l2.2 6H17l-5 3.6 1.9 6L9 13.4l-4.9 3.2 1.9-6-5-3.6h5.8z" stroke="#0D0D0D" strokeWidth="1.3" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                      <p className="text-sm text-[#666] leading-relaxed max-w-[240px]">{msg.content}</p>
+                    </div>
+                  )
+                }
+                return (
                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className="max-w-[85%]">
+                  <div className={`group ${msg.role === 'user' ? 'max-w-[85%]' : 'max-w-[92%] w-full'}`}>
                     <div
                       className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                         msg.role === 'user'
                           ? 'bg-[#0D0D0D] text-white rounded-br-sm'
                           : 'bg-white border border-[#E5E5E5] text-[#0D0D0D] rounded-bl-sm'
                       }`}>
-                      {msg.content}
+                      {msg.role === 'user' ? (
+                        <span className="whitespace-pre-wrap">{msg.content}</span>
+                      ) : (
+                        <MarkdownMessage content={msg.content} />
+                      )}
                     </div>
+
+                    {/* Draft-saved indicator */}
                     {msg.changed && (
                       <div className="flex items-center gap-1 mt-1.5 ml-1">
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -676,25 +740,13 @@ export default function SpaceClient({
                         <span className="text-[10px] text-[#22C55E] font-semibold">Draft saved · publish when ready</span>
                       </div>
                     )}
+
+                    {/* Source cards (rich) */}
                     {msg.sources && msg.sources.length > 0 && (
-                      <div className="mt-2.5 flex flex-col gap-1 border-t border-[#F0F0F0] pt-2">
-                        <p className="text-[10px] font-semibold text-[#bbb] uppercase tracking-wide mb-0.5">Sources</p>
-                        {msg.sources.map((s, i) => (
-                          <a
-                            key={i}
-                            href={s.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[11px] text-[#666] hover:text-[#0D0D0D] truncate flex items-center gap-1.5 transition-colors">
-                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="shrink-0">
-                              <path d="M4 1.5H2A.5.5 0 001.5 2v6a.5.5 0 00.5.5h6A.5.5 0 008.5 8V6M6 1.5h2.5V4M5 5l3.5-3.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                            {s.title || s.url}
-                          </a>
-                        ))}
-                      </div>
+                      <SourceCards sources={msg.sources} />
                     )}
 
+                    {/* Tab-nav suggestion */}
                     {msg.suggestTab && (
                       <button
                         onClick={() => goTo(msg.suggestTab!, msg.suggestDesignTab)}
@@ -706,6 +758,7 @@ export default function SpaceClient({
                       </button>
                     )}
 
+                    {/* Research handoff suggestion */}
                     {msg.suggestResearch && (
                       <button
                         onClick={() => {
@@ -719,14 +772,32 @@ export default function SpaceClient({
                         </svg>
                       </button>
                     )}
+
+                    {/* Message actions (copy / retry) — assistant messages only */}
+                    {msg.role === 'assistant' && i > 0 && (
+                      <MessageActions
+                        content={msg.content}
+                        showRetry={i === messages.length - 1 && !loading}
+                        onRetry={() => {
+                          // Re-send the last user message
+                          const lastUser = [...messages].reverse().find(m => m.role === 'user')
+                          if (lastUser) {
+                            setMessages(prev => prev.slice(0, -1))
+                            setInput(lastUser.content)
+                            setTimeout(() => send(), 50)
+                          }
+                        }}
+                      />
+                    )}
                   </div>
                 </div>
-              ))}
+              )
+              })}
 
               {loading && (
                 <div className="flex justify-start">
                   <div className="bg-white border border-[#E5E5E5] rounded-2xl rounded-bl-sm px-4 py-3">
-                    <div className="flex gap-1 items-center h-4">
+                    <div className="flex gap-1.5 items-center">
                       {[0, 150, 300].map(delay => (
                         <div
                           key={delay}
@@ -734,6 +805,7 @@ export default function SpaceClient({
                           style={{ animationDelay: `${delay}ms` }}
                         />
                       ))}
+                      <span className="text-[11px] text-[#bbb] ml-1">Thinking…</span>
                     </div>
                   </div>
                 </div>
@@ -744,6 +816,21 @@ export default function SpaceClient({
           </main>
 
           <div className="bg-white border-t border-[#E5E5E5] px-4 py-4 shrink-0">
+            {/* Quick-action prompt chips — shown only when chat is empty (just the greeting) */}
+            {messages.length === 1 && !loading && (
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {getChatPromptChips(currentProfile.persona).map(chip => (
+                  <button
+                    key={chip}
+                    onClick={() => { setInput(chip); setTimeout(() => inputRef.current?.focus(), 50) }}
+                    className="px-3 py-1.5 rounded-xl border border-[#E5E5E5] text-[11px] font-medium text-[#444] hover:border-[#0D0D0D] hover:text-[#0D0D0D] transition-colors bg-white"
+                  >
+                    {chip}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <div className="flex gap-2 items-end">
               {/* Research button — opens full-screen Research chat */}
               <button
@@ -840,7 +927,7 @@ export default function SpaceClient({
             </div>
           </div>
 
-        </>
+        </div>
       )}
 
       {/* ── Design: Services ── */}

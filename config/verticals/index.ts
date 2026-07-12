@@ -367,3 +367,25 @@ export function getAllVerticals(): VerticalConfig[] {
 export function getPhase1Verticals(): VerticalConfig[] {
   return getAllVerticals().filter((v) => v.phase === 1)
 }
+
+// ── Chat prompt chips ──────────────────────────────────────────
+// Quick-action starter prompts shown under the My Chat input box.
+// Persona-specific so each member sees suggestions relevant to their work.
+
+const PERSONA_CHIPS: Record<string, string[]> = {
+  tutor:        ['Add a new student',        'Update my headline',       'Log a session',          'What should my page highlight?'],
+  trainer:      ['Update my services',        'Add a highlight',          'Change my booking text',  'Improve my bio'],
+  baker:        ['Add a new product',         'Update my bio',            'Draft an order FAQ',      'Improve my headline'],
+  photographer: ['Update my packages',        'Add a gallery section',    'Improve my bio',          'Change my palette'],
+  salon:        ['Add a new service',         'Update my bio',            'Change my booking text',  'Add an FAQ'],
+  chef:         ['Add a menu item',           'Update my delivery info',  'Improve my bio',          'Add a highlight'],
+  doctor:       ['Update my FAQ',             'Add a service',            'Update consultation info','Improve my bio'],
+  musician:     ['Add a new student',         'Log a session',            'Update my pricing',       'Improve my bio'],
+  advocate:     ['Add a new client',          'Update my practice areas', 'Improve my bio',          'Add a consultation FAQ'],
+  retailer:     ['Add a new product',         'Update my bio',            'Improve my headline',     'Add a highlight'],
+  other:        ['Improve my headline',       'Update my bio',            'Add a service',           'Update my location'],
+}
+
+export function getChatPromptChips(persona: string): string[] {
+  return PERSONA_CHIPS[persona] ?? PERSONA_CHIPS.other
+}
