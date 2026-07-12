@@ -47,7 +47,6 @@ export async function sendEmail({
   if (!res.ok) {
     const text = await res.text().catch(() => '')
     console.error(`[email] Resend ${res.status} sending to ${to}:`, text)
-  } else {
-    console.log(`[email] Sent "${subject}" to ${to}`)
+    throw new Error(`Resend ${res.status}: ${text}`)
   }
 }
