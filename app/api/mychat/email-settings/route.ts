@@ -34,12 +34,15 @@ export async function POST(req: NextRequest) {
   // Verify caller owns this provider and get the slug
   const { data: provider } = await supabaseAdmin
     .from('providers')
-    .select('id, slug')
+    .select('id, slug, email')
     .eq('id', parsed.providerId)
-    .eq('email', user.email)
     .maybeSingle()
 
-  if (!provider) {
+  if (!provider) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  if (provider.email === null) {
+    await supabaseAdmin.from('providers').update({ email: user.email }).eq('id', provider.id)
+  } else if (provider.email !== user.email) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

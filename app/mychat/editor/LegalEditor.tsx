@@ -461,7 +461,7 @@ export default function LegalEditor({
   if (!editor) return null
 
   return (
-    <div className="relative flex-1 flex flex-col legal-editor-root" onClick={() => setPopover(null)}>
+    <div className="relative flex-1 flex flex-col legal-editor-root min-h-0" onClick={() => setPopover(null)}>
 
       {/* ── Bubble menu — shown when text is selected ── */}
       {bubbleMenu && (

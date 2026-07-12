@@ -39,12 +39,17 @@ export async function POST(req: NextRequest) {
 
   const { data: provider } = await supabaseAdmin
     .from('providers')
-    .select('id, plan')
+    .select('id, plan, email')
     .eq('slug', slug)
-    .eq('email', user.email)
-    .single()
+    .maybeSingle()
 
   if (!provider) return NextResponse.json({ error: 'Not your page' }, { status: 403 })
+
+  if (provider.email === null) {
+    await supabaseAdmin.from('providers').update({ email: user.email }).eq('id', provider.id)
+  } else if (provider.email !== user.email) {
+    return NextResponse.json({ error: 'Not your page' }, { status: 403 })
+  }
 
   // All plans (Grow+) include photo & gallery upload — no gating needed
 

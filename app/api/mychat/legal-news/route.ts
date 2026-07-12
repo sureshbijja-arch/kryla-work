@@ -42,10 +42,16 @@ export async function GET(req: Request) {
     .from('providers')
     .select('id, email, persona, region')
     .eq('id', providerId)
-    .eq('email', user.email)
-    .single()
+    .maybeSingle()
 
   if (!provider) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+
+  if (provider.email === null) {
+    // Auto-link: member registered without email; claim with current auth email
+    await supabaseAdmin.from('providers').update({ email: user.email }).eq('id', provider.id)
+  } else if (provider.email !== user.email) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  }
 
   // ── Load config ──────────────────────────────────────────────────────────────
   const { data: cfgRow } = await supabaseAdmin
