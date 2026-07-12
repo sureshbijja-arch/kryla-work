@@ -21,6 +21,12 @@ import { useEditor, EditorContent, Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import Highlight from '@tiptap/extension-highlight'
+import Underline from '@tiptap/extension-underline'
+import TextAlign from '@tiptap/extension-text-align'
+import FontFamily from '@tiptap/extension-font-family'
+import { TextStyle, Color, FontSize, LineHeight } from '@tiptap/extension-text-style'
+import { Table, TableRow, TableCell, TableHeader } from '@tiptap/extension-table'
+import Image from '@tiptap/extension-image'
 import { Extension, Mark, mergeAttributes } from '@tiptap/core'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
@@ -195,6 +201,14 @@ const DeletionMark = Mark.create({
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
+export type MarginPreset = 'normal' | 'narrow' | 'wide'
+
+const MARGIN_PADDING: Record<MarginPreset, string> = {
+  normal: '72px 96px',
+  narrow: '36px 48px',
+  wide:   '96px 144px',
+}
+
 export interface LegalEditorProps {
   /** Initial HTML content */
   initialHtml:     string
@@ -218,6 +232,10 @@ export interface LegalEditorProps {
   onBubbleAction:  (action: string, selectedText: string, from: number, to: number) => Promise<void>
   /** Clause insert callback — asks the parent to open the clause panel */
   onOpenClausePanel: () => void
+  /** Zoom level: 1 = 100%. Default 1. */
+  zoom?:    number
+  /** Page margin preset. Default 'normal'. */
+  margin?:  MarginPreset
 }
 
 // ── Slash menu state ──────────────────────────────────────────────────────────
@@ -240,6 +258,8 @@ export default function LegalEditor({
   readOnly = false,
   onBubbleAction,
   onOpenClausePanel,
+  zoom   = 1,
+  margin = 'normal',
 }: LegalEditorProps) {
 
   // Refs so decoration plugins always see latest values without re-creating
@@ -283,6 +303,18 @@ export default function LegalEditor({
       }),
       Highlight.configure({ multicolor: true }),
       Placeholder.configure({ placeholder }),
+      Underline,
+      TextStyle,
+      FontFamily,
+      FontSize,
+      Color,
+      LineHeight.configure({ types: ['heading', 'paragraph'] }),
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      Table.configure({ resizable: true }),
+      TableRow,
+      TableCell,
+      TableHeader,
+      Image.configure({ inline: false, allowBase64: false }),
       InsertionMark,
       DeletionMark,
       createProofreadExtension(findingsRef),
@@ -482,11 +514,34 @@ export default function LegalEditor({
         </div>
       )}
 
-      {/* ── Editor content ── */}
-      <EditorContent
-        editor={editor}
-        className="flex-1 overflow-y-auto legal-editor-content px-8 py-6 prose prose-sm max-w-none"
-      />
+      {/* ── Paper-page canvas ── */}
+      <div className="flex-1 overflow-y-auto bg-[#EBEBEB] flex justify-center py-8 px-4 legal-canvas-scroll">
+        {/* Zoom wrapper — transforms the paper sheet; outer div stays scrollable */}
+        <div
+          style={{
+            transformOrigin: 'top center',
+            transform:       `scale(${zoom})`,
+            width:           '816px',
+            flexShrink:      0,
+          }}
+        >
+          <div
+            className="bg-white shadow-[0_2px_16px_rgba(0,0,0,0.12)] legal-paper-page"
+            style={{
+              minHeight: '1056px',
+              padding:   MARGIN_PADDING[margin],
+              // Repeating dashed rule every 1056px = page-break guide
+              backgroundImage: 'linear-gradient(to bottom, transparent calc(1056px - 1px), #D1D5DB calc(1056px - 1px), #D1D5DB 1056px)',
+              backgroundSize:  '100% 1056px',
+            }}
+          >
+            <EditorContent
+              editor={editor}
+              className="legal-editor-content prose prose-sm max-w-none"
+            />
+          </div>
+        </div>
+      </div>
 
       {/* ── Finding / citation popover ── */}
       {popover && (

@@ -159,6 +159,18 @@ body {
 .citation-warn     { background: #fef3c7; color: #92400e; }
 .citation-error    { background: #fee2e2; color: #991b1b; }
 
+/* ── Zoom canvas — outer scroll container stays natural size ── */
+.legal-canvas-scroll {
+  overflow-y: auto;
+}
+
+/* Ensure font-size / color / line-height inline styles from TipTap render */
+.legal-editor-content .ProseMirror [style*="font-size"],
+.legal-editor-content .ProseMirror [style*="color"],
+.legal-editor-content .ProseMirror [style*="line-height"] {
+  /* let TipTap inline styles pass through — no override */
+}
+
 /* ── Redline track-changes ── */
 .legal-editor-content ins.redline-ins {
   background: #dcfce7;

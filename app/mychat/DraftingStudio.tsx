@@ -11,9 +11,12 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import type { Editor } from '@tiptap/react'
 import type { ProofreadFinding, Citation, ClauseSuggestion } from './editor/types'
-import ClausePanel  from './editor/ClausePanel'
-import OutlinePanel from './editor/OutlinePanel'
+import ClausePanel     from './editor/ClausePanel'
+import OutlinePanel    from './editor/OutlinePanel'
+import RibbonToolbar   from './editor/RibbonToolbar'
+import StatusBar       from './editor/StatusBar'
 import LegalNewsTicker from './LegalNewsTicker'
+import type { MarginPreset } from './editor/LegalEditor'
 import {
   computeRedlineOps,
   buildRedlineHtml,
@@ -151,6 +154,11 @@ export default function DraftingStudio({
   // Import
   const importInputRef                              = useRef<HTMLInputElement>(null)
   const [importing, setImporting]                   = useState(false)
+
+  // Word-style layout controls
+  const [zoom, setZoom]           = useState(1)
+  const [margin, setMargin]       = useState<MarginPreset>('normal')
+  const [lineHeight, setLineHeight] = useState('1.5')
 
   // ── Data loading ─────────────────────────────────────────────────────────
 
@@ -897,8 +905,8 @@ export default function DraftingStudio({
           {hasEditor && (
             <div className="flex-1 flex flex-col overflow-hidden">
 
-              {/* Title bar + redline controls */}
-              <div className="flex items-center gap-2 px-4 py-1.5 bg-[#FAFAFA] border-b border-[#F0F0F0] shrink-0">
+              {/* Document title bar */}
+              <div className="flex items-center gap-2 px-4 py-1.5 bg-white border-b border-[#F0F0F0] shrink-0">
                 <input
                   type="text"
                   value={draftTitle}
@@ -906,16 +914,26 @@ export default function DraftingStudio({
                   placeholder="Document title…"
                   className="flex-1 text-xs font-semibold text-[#0D0D0D] bg-transparent border-none outline-none placeholder:text-[#bbb]"
                 />
-                {showRedline && (
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-[10px] text-[#999]">Showing changes</span>
-                    <button onClick={acceptRedline} className="px-2 py-0.5 text-[10px] font-semibold text-white bg-[#22C55E] rounded-lg">Accept all</button>
-                    <button onClick={rejectRedline} className="px-2 py-0.5 text-[10px] font-semibold text-[#666] bg-[#E5E5E5] rounded-lg hover:bg-[#d5d5d5]">Reject all</button>
-                  </div>
-                )}
               </div>
 
-              {/* TipTap LegalEditor */}
+              {/* Word-style ribbon toolbar */}
+              <RibbonToolbar
+                editor={editorInstance}
+                onInsertClause={() => { setRightTab('clauses'); setShowRightPanel(true) }}
+                onProofread={runProofread}
+                onCitations={runCitations}
+                onAcceptRedline={acceptRedline}
+                onRejectRedline={rejectRedline}
+                margin={margin}
+                onMarginChange={setMargin}
+                lineHeight={lineHeight}
+                onLineHeightChange={setLineHeight}
+                showRedline={showRedline}
+                proofFindingCount={proofState.findings.length}
+                citationCount={citationState.citations.length}
+              />
+
+              {/* TipTap LegalEditor (now includes paper-page canvas) */}
               <LegalEditor
                 initialHtml={draftHtml}
                 onChange={html => setDraftHtml(html)}
@@ -924,6 +942,15 @@ export default function DraftingStudio({
                 citations={citationState.citations}
                 onBubbleAction={handleBubbleAction}
                 onOpenClausePanel={() => { setRightTab('clauses'); setShowRightPanel(true) }}
+                zoom={zoom}
+                margin={margin}
+              />
+
+              {/* Status bar — word/char/page count + zoom stepper */}
+              <StatusBar
+                editor={editorInstance}
+                zoom={zoom}
+                onZoom={setZoom}
               />
 
               {/* Action bar */}
