@@ -98,6 +98,12 @@ export interface DraftSeed {
   matterType: string | null
 }
 
+/** Seed context passed to WorkingStudio when opened from a patient card */
+export interface WorkingSeed {
+  studentId:   string
+  patientName: string
+}
+
 const EMPTY_FORM: AddEditForm = {
   name: '', label1: '', label2: '', notes: '', nextSession: '',
   avatarColor:     COLORS[0],
@@ -118,15 +124,18 @@ export default function PersonaTab({
   label1Label = 'Grade',
   label2Label = 'Subject',
   onDraftFromMatter,
+  onWorkFromPatient,
 }: {
-  providerId:          string
-  persona?:            string
-  label1Label?:        string
-  label2Label?:        string
-  onDraftFromMatter?:  (seed: DraftSeed) => void
+  providerId:           string
+  persona?:             string
+  label1Label?:         string
+  label2Label?:         string
+  onDraftFromMatter?:   (seed: DraftSeed) => void
+  onWorkFromPatient?:   (seed: WorkingSeed) => void
 }) {
   const copy: RosterCopy   = getRosterConfig(persona)
   const isAdvocate         = persona === 'advocate'
+  const isPhysio           = persona === 'physio'
 
   const [students, setStudents]   = useState<Student[]>([])
   const [loading, setLoading]     = useState(true)
@@ -471,6 +480,14 @@ export default function PersonaTab({
                           onClick={() => onDraftFromMatter({ studentId: s.id, clientName: s.name, matterType: s.label_1 })}
                           className="flex items-center gap-1 text-xs font-semibold bg-[#FFF7ED] text-[#C2410C] hover:bg-[#FFEDD5] px-2.5 py-1.5 rounded-lg transition-colors">
                           ✍️ Draft
+                        </button>
+                      )}
+                      {/* Physio: Open in Working Studio button */}
+                      {isPhysio && onWorkFromPatient && (
+                        <button
+                          onClick={() => onWorkFromPatient({ studentId: s.id, patientName: s.name })}
+                          className="flex items-center gap-1 text-xs font-semibold bg-[#EFF6FF] text-[#1D4ED8] hover:bg-[#DBEAFE] px-2.5 py-1.5 rounded-lg transition-colors">
+                          🧑‍⚕️ Work
                         </button>
                       )}
                       {/* Advocate: Print case sheet + DPDP data rights */}

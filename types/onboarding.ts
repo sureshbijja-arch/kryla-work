@@ -1,4 +1,4 @@
-export type Persona = 'tutor' | 'trainer' | 'baker' | 'photographer' | 'salon' | 'chef' | 'doctor' | 'musician' | 'advocate' | 'retailer' | 'other'
+export type Persona = 'tutor' | 'trainer' | 'baker' | 'photographer' | 'salon' | 'chef' | 'doctor' | 'musician' | 'advocate' | 'physio' | 'retailer' | 'other'
 export type Plan = 'grow' | 'thrive' | 'elevate'
 export type Region = 'usa' | 'india'
 
@@ -21,7 +21,7 @@ export const PERSONA_LABELS: Record<Persona, string> = {
   tutor: 'Tutor', trainer: 'Fitness trainer', baker: 'Baker',
   photographer: 'Photographer', salon: 'Salon / stylist', chef: 'Chef',
   doctor: 'Doctor', musician: 'Music teacher',
-  advocate: 'Advocate', retailer: 'Retailer',
+  advocate: 'Advocate', physio: 'Physiotherapist', retailer: 'Retailer',
   other: 'Professional',
 }
 

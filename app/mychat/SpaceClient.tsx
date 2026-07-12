@@ -18,11 +18,12 @@ import SuggestionsTab from './SuggestionsTab'
 import ReferTab from './ReferTab'
 import AvailabilityTab from './AvailabilityTab'
 import HoursTab from './HoursTab'
-import PersonaTab, { type DraftSeed } from './PersonaTab'
+import PersonaTab, { type DraftSeed, type WorkingSeed } from './PersonaTab'
 import ReviewsTab from './ReviewsTab'
 import StatsTab from './StatsTab'
 import ResearchChat from './ResearchChat'
 import DraftingStudio from './DraftingStudio'
+import WorkingStudio from './WorkingStudio'
 import EmailTab from './EmailTab'
 import LetterheadSettingsTab from './LetterheadSettingsTab'
 import { getPersonaConfig, getRosterConfig } from '@/app/[slug]/personaConfig'
@@ -238,6 +239,9 @@ export default function SpaceClient({
   const [draftOpen, setDraftOpen]           = useState(false)
   // Phase 5: seed DraftingStudio from a client/matter card
   const [draftSeed, setDraftSeed]           = useState<DraftSeed | null>(null)
+  // Phase 4 (physio): WorkingStudio
+  const [workingOpen, setWorkingOpen]       = useState(false)
+  const [workingSeed, setWorkingSeed]       = useState<WorkingSeed | null>(null)
   // Chat expand / full-screen toggle
   const [chatExpanded, setChatExpanded]     = useState(false)
 
@@ -511,6 +515,17 @@ export default function SpaceClient({
           seedClientName={draftSeed?.clientName}
           seedMatterType={draftSeed?.matterType}
           seedDocType={draftSeed?.matterType ? 'legal_notice' : undefined}
+        />
+      )}
+
+      {/* ── Physio-only Working Studio overlay ── */}
+      {currentProfile.persona === 'physio' && (
+        <WorkingStudio
+          providerId={providerId}
+          open={workingOpen}
+          onClose={() => { setWorkingOpen(false); setWorkingSeed(null) }}
+          seedStudentId={workingSeed?.studentId}
+          seedPatientName={workingSeed?.patientName}
         />
       )}
 
@@ -865,6 +880,20 @@ export default function SpaceClient({
                 </button>
               )}
 
+              {/* Physio-only: Working Studio */}
+              {currentProfile.persona === 'physio' && (
+                <button
+                  onClick={() => setWorkingOpen(true)}
+                  disabled={chatExpanded}
+                  title={chatExpanded ? 'Exit full-screen to open Working Studio' : 'Working Studio'}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-[#EFF6FF] text-[#1D4ED8] hover:bg-[#DBEAFE] transition-colors disabled:opacity-30 disabled:pointer-events-none">
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 13V5l5-4 5 4v8M6 13V9h4v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Work
+                </button>
+              )}
+
               {/* Mic — always available */}
               <button
                 onClick={toggleMic}
@@ -1075,6 +1104,10 @@ export default function SpaceClient({
             onDraftFromMatter={currentProfile.persona === 'advocate' ? seed => {
               setDraftSeed(seed)
               setDraftOpen(true)
+            } : undefined}
+            onWorkFromPatient={currentProfile.persona === 'physio' ? seed => {
+              setWorkingSeed(seed)
+              setWorkingOpen(true)
             } : undefined}
           />
         </div>

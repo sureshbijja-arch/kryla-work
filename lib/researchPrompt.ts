@@ -133,6 +133,62 @@ If no citations are found, return: []
 Return ONLY the raw JSON array, no explanation or markdown.`
 }
 
+// ── Working Studio (physio) system prompt ────────────────────────────────────
+
+export interface ClinicalPromptOpts {
+  name: string
+  persona: string
+  location: string
+  /** From config/verticals physio workingGuidance */
+  workingGuidance: string
+  /** Mode: 'assess' | 'note' | 'plan' | 'hep' | 'report' | 'review' | 'refine' | 'continue' | 'rewrite' | 'simplify' | 'explain' | 'brainstorm' | 'suggest_exercises' | 'completeness_check' */
+  mode: string
+}
+
+export function buildClinicalSystemPrompt(opts: ClinicalPromptOpts): string {
+  const today = new Date().toISOString().split('T')[0]
+  const country = inferCountry(opts.location)
+  const region = country === 'IN'
+    ? `India (location: ${opts.location || 'India'})`
+    : `${opts.location || 'their practice location'}`
+
+  return `You are Kryla's Working Studio — a clinical documentation assistant for ${opts.name}, a practising physiotherapist based in ${region}.
+
+TODAY: ${today}
+PRACTICE LOCATION: ${region}
+
+${opts.workingGuidance}
+
+GUARDRAIL — CLINICAL AI DOCUMENTATION AID:
+(a) You are a documentation support tool. All output is a draft for the clinician's review, adaptation, and sign-off. It does not constitute clinical advice, diagnosis, or a treatment prescription.
+(b) NEVER invent research citations, clinical guidelines, or drug names. If evidence is mentioned, describe it in general terms (e.g. "evidence supports…") rather than citing a specific paper unless you are certain. If specific citations are needed, insert [VERIFY CITATION] and advise the clinician to check the relevant source.
+(c) Red-flag conditions (cauda equina syndrome, suspected fracture, malignancy, stroke, infection/sepsis, abdominal aortic aneurysm, etc.) MUST be flagged with [RED FLAG — ASSESS URGENTLY] and the clinician must be advised to escalate immediately.
+(d) Frame every document as a professional clinical record drafted for the physiotherapist's own review — not as autonomous medical advice to the patient.
+(e) Respect patient privacy: do not request or reproduce information beyond what is needed for the documentation task.`
+}
+
+export function buildCompletenessCheckPrompt(): string {
+  return `You are a clinical documentation auditor specialising in physiotherapy records.
+
+Your task is to analyse a physiotherapy clinical document and identify completeness issues.
+
+For each issue found, return a JSON object with these exact fields:
+- "id": unique short string (e.g. "issue_1")
+- "type": one of "missing_element" | "incomplete_assessment" | "unaddressed_goal" | "inconsistency" | "medico_legal_risk" | "red_flag"
+- "excerpt": the EXACT verbatim text where the issue occurs (max 80 chars) — or "" if the issue is about a missing element
+- "message": a short description of the issue (1 sentence)
+- "suggestion": what should be added or corrected (1–2 sentences)
+- "severity": one of "critical" | "caution" | "suggestion"
+
+Severity guide:
+- "critical": red-flag not documented, missing mandatory element (patient ID, date, clinician signature block), medico-legal risk
+- "caution": incomplete objective findings, unaddressed treatment goal, inconsistent pain scores
+- "suggestion": optional but best-practice element missing (e.g. outcome measure not yet recorded)
+
+Return ONLY a valid JSON array of issue objects. No preamble, no explanation, no markdown.
+If no issues found, return: []`
+}
+
 // ── Persona display ──────────────────────────────────────────────────────────
 const PERSONA_LABEL: Record<string, string> = {
   tutor:        'tutor',
@@ -142,6 +198,7 @@ const PERSONA_LABEL: Record<string, string> = {
   salon:        'salon/beauty professional',
   chef:         'private chef',
   doctor:       'healthcare professional',
+  physio:       'physiotherapist',
   musician:     'musician/music teacher',
   advocate:     'advocate/lawyer',
   retailer:     'retailer',
@@ -176,8 +233,10 @@ export function buildResearchSystemPrompt(opts: ResearchPromptOpts): string {
   const today    = new Date().toISOString().split('T')[0]
   const guidance = opts.guidance?.trim() || GENERIC_PROFESSIONAL_GUIDANCE
 
-  const doctorGuardrail = opts.persona === 'doctor'
-    ? '\n\nIMPORTANT: This is a healthcare professional. NEVER give medical advice, diagnoses, or treatment recommendations. Limit to business topics (marketing, pricing, patient experience, practice management).'
+  // physio uses the Working Studio for clinical documentation; the research co-pilot
+  // is the business/education assistant only — same guardrail as doctor.
+  const doctorGuardrail = (opts.persona === 'doctor' || opts.persona === 'physio')
+    ? '\n\nIMPORTANT: This is a healthcare professional. NEVER give specific patient-facing medical diagnoses or treatment prescriptions via this co-pilot. For clinical documentation assistance, direct them to the Working Studio. This co-pilot focuses on education, business topics, and non-patient-specific professional questions.'
     : ''
 
   const advocateGuardrail = opts.persona === 'advocate'

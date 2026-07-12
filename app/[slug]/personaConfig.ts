@@ -134,6 +134,21 @@ export const PERSONA_CONFIG = {
     hasCustomOrder:    false,
     leadTimeNotice:    null,
   },
+  physio: {
+    tabLabel:          'Appointments',
+    heroCtaTarget:     '#book',
+    servicesLabel:     'Treatments & Services',
+    bioLabel:          'About the Physiotherapist',
+    highlightsLabel:   'Our Approach',
+    contactLabel:      'Book an Appointment',
+    contactVariant:    'both' as const,
+    serviceCardAction: 'book' as const,
+    orderLabel:        'Book',
+    hasQuantity:       false,
+    hasNotes:          false,
+    hasCustomOrder:    false,
+    leadTimeNotice:    null,
+  },
   other: {
     tabLabel:          'Inquiries',
     heroCtaTarget:     '#book',
@@ -258,9 +273,35 @@ const ADVOCATE_ROSTER: RosterCopy = {
   removeConfirm:       'Remove this client?',
 }
 
+const PHYSIO_ROSTER: RosterCopy = {
+  singular:            'patient',
+  plural:              'patients',
+  tabLabel:            'Patients',
+  emoji:               '🧑‍⚕️',
+  emptyHeading:        'No patients yet',
+  emptySubtext:        'Patients appear here automatically when you accept a booking.',
+  addLabel:            '+ Add patient',
+  lessonsBtnLabel:     '📋 Sessions',
+  logTitle:            'Log a treatment session',
+  topicLabel:          'Area treated / techniques',
+  topicPlaceholder:    'e.g. Lumbar mobilisation, dry needling L4/L5',
+  homeworkLabel:       'Home exercises assigned',
+  homeworkPlaceholder: 'HEP assigned (e.g. Pelvic tilts ×10 ×3/day, gentle walks 20 min)',
+  notesPlaceholder:    'Private clinical notes (not shared with patient)',
+  nextLabel:           'Next appointment',
+  nextPlaceholder:     'e.g. Thursday 10 AM',
+  historyLabel:        'Session history',
+  sessionNoun:         'session',
+  contactSectionLabel: 'Emergency contact / guardian (optional)',
+  contactRowLabel:     'Contact',
+  quickLogLabel:       '✓ Quick log',
+  removeConfirm:       'Remove this patient?',
+}
+
 const ROSTER_COPY: Record<string, RosterCopy> = {
   tutor:    TUTOR_ROSTER,
   advocate: ADVOCATE_ROSTER,
+  physio:   PHYSIO_ROSTER,
 }
 
 /** Returns persona-appropriate roster copy; falls back to tutor defaults for all other personas. */
