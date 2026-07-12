@@ -154,6 +154,10 @@ export default function EmailTab({ providerId, slug }: Props) {
   }
 
   function mergeMessage(prev: Thread[], msg: EmailMessage): Thread[] {
+    // Deduplicate by message_id (optimistic insert + realtime both fire)
+    const allMsgs = prev.flatMap(t => t.messages)
+    if (allMsgs.some(m => m.message_id === msg.message_id)) return prev
+
     const existing = prev.find(t => t.customerEmail === msg.customer_email)
     if (existing) {
       return prev.map(t =>
@@ -208,6 +212,9 @@ export default function EmailTab({ providerId, slug }: Props) {
     // Find the last inbound message to thread against
     const lastInbound = [...thread.messages].reverse().find(m => m.direction === 'inbound')
 
+    const subject = thread.subject.startsWith('Re:') ? thread.subject : `Re: ${thread.subject}`
+    const body    = replyText.trim()
+
     try {
       const res = await fetch('/api/mychat/email-reply', {
         method: 'POST',
@@ -215,8 +222,8 @@ export default function EmailTab({ providerId, slug }: Props) {
         body: JSON.stringify({
           providerId,
           toEmail: activeEmail,
-          subject: thread.subject.startsWith('Re:') ? thread.subject : `Re: ${thread.subject}`,
-          body: replyText.trim(),
+          subject,
+          body,
           inReplyTo: lastInbound?.message_id,
           references: lastInbound?.message_id,
         }),
@@ -226,7 +233,23 @@ export default function EmailTab({ providerId, slug }: Props) {
         setReplyError(d.error ?? 'Failed to send')
         return
       }
+      const { messageId } = await res.json()
       setReplyText('')
+      // Optimistically add outbound message — deduped if Realtime also fires
+      setThreads(prev => mergeMessage(prev, {
+        id: messageId,
+        customer_email: activeEmail,
+        customer_name: null,
+        direction: 'outbound',
+        subject,
+        body_text: body,
+        body_html: '',
+        message_id: messageId,
+        in_reply_to: lastInbound?.message_id ?? null,
+        attachments: [],
+        read: true,
+        created_at: new Date().toISOString(),
+      }))
     } catch {
       setReplyError('Something went wrong — try again.')
     } finally {
@@ -238,22 +261,37 @@ export default function EmailTab({ providerId, slug }: Props) {
     if (!composeTo.trim() || !composeSub.trim() || !composeBody.trim() || composing) return
     setComposing(true)
     setComposeError('')
+    const to      = composeTo.trim()
+    const subject = composeSub.trim()
+    const body    = composeBody.trim()
+
     try {
       const res = await fetch('/api/mychat/email-reply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          providerId,
-          toEmail: composeTo.trim(),
-          subject: composeSub.trim(),
-          body: composeBody.trim(),
-        }),
+        body: JSON.stringify({ providerId, toEmail: to, subject, body }),
       })
       if (!res.ok) {
         const d = await res.json()
         setComposeError(d.error ?? 'Failed to send')
         return
       }
+      const { messageId } = await res.json()
+      // Optimistically add outbound message — deduped if Realtime also fires
+      setThreads(prev => mergeMessage(prev, {
+        id: messageId,
+        customer_email: to,
+        customer_name: null,
+        direction: 'outbound',
+        subject,
+        body_text: body,
+        body_html: '',
+        message_id: messageId,
+        in_reply_to: null,
+        attachments: [],
+        read: true,
+        created_at: new Date().toISOString(),
+      }))
       setComposeTo('')
       setComposeSub('')
       setComposeBody('')
