@@ -23,6 +23,7 @@ import ReviewsTab from './ReviewsTab'
 import StatsTab from './StatsTab'
 import ResearchChat from './ResearchChat'
 import DraftingStudio from './DraftingStudio'
+import EmailTab from './EmailTab'
 import LetterheadSettingsTab from './LetterheadSettingsTab'
 import { getPersonaConfig, getRosterConfig } from '@/app/[slug]/personaConfig'
 import MarkdownMessage from './chat/MarkdownMessage'
@@ -183,7 +184,7 @@ function getGreeting(lang: string, name: string): string {
 
 type MainTab     = 'chat' | 'design' | 'messages' | 'schedule' | 'plan'
 type DesignTab   = 'services' | 'sections' | 'layouts' | 'ads' | 'media' | 'language' | 'letterhead'
-type MessagesTab = 'inbox' | 'consultations' | 'clients'
+type MessagesTab = 'inbox' | 'consultations' | 'clients' | 'email'
 type PlanTab     = 'plan' | 'reviews' | 'suggestions' | 'stats' | 'refer'
 
 const PALETTE_LABELS: Record<string, string> = {
@@ -618,6 +619,9 @@ export default function SpaceClient({
               { key: 'inbox',         label: t.tabs.inbox },
               { key: 'consultations', label: bookingsTabLabel },
               { key: 'clients',       label: studentsTabLabel },
+              ...(currentProfile.persona === 'advocate'
+                ? [{ key: 'email' as MessagesTab, label: 'Email' }]
+                : []),
             ] as { key: MessagesTab; label: string }[]).map(({ key, label }) => (
               <button
                 key={key}
@@ -1009,6 +1013,13 @@ export default function SpaceClient({
           <AvailabilityTab providerId={providerId} />
           <div className="border-t border-[#F0F0F0]" />
           <HoursTab providerId={providerId} />
+        </div>
+      )}
+
+      {/* ── Messages: Email (advocates only) ── */}
+      {tab === 'messages' && messagesTab === 'email' && currentProfile.persona === 'advocate' && (
+        <div className="flex-1 flex flex-col min-h-0">
+          <EmailTab providerId={providerId} slug={slug} />
         </div>
       )}
 
