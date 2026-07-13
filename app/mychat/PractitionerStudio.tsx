@@ -690,10 +690,12 @@ export default function PractitionerStudio({
             initialHtml={editorHtml}
             onChange={html => setEditorHtml(html)}
             onEditorReady={e => setEditorInstance(e)}
+            findings={[]}
+            citations={[]}
+            onBubbleAction={async () => {}}
+            onOpenClausePanel={() => { setRightPanel('library'); setRightOpen(true) }}
             zoom={zoom}
             margin={margin}
-            lineHeight={lineHeight}
-            onEditorAction={handleEditorAction}
           />
 
           {/* Completeness findings overlay */}
