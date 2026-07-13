@@ -709,6 +709,236 @@ CLINICAL: Explain breastfeeding physiology, latch assessment and scoring (LATCH,
 BUSINESS: IBCLC credential value, hospital vs. private practice, insurance billing (US), NDIS (Australia), fee benchmarks, telehealth lactation consulting growth, and referral network with midwives, OBs, and paediatricians.`,
 }
 
+// ── Commerce / storefront expansion (9 new personas) ─────────────────────────
+// Studio guidance lives in DB (studio_guidance + studio_config on personas table).
+// workingGuidance is intentionally absent — these personas use the
+// config-driven PractitionerStudio engine, not the legacy WorkingStudio.
+
+const tiffin: VerticalConfig = {
+  id: 'tiffin',
+  label: 'Tiffin Service',
+  emoji: '🍱',
+  phase: 1,
+  defaultTemplate: 'storefront',
+  defaultPalette: 'warm',
+  defaultFont: 'inter',
+  bookingLabel: 'Start tiffin',
+  ctaLabel: 'WhatsApp to subscribe',
+  sections: ['about', 'services', 'gallery', 'highlights', 'booking', 'contact'],
+  onboardingQuestions: [
+    { id: 'menu',      question: 'What meals or cuisines do you offer?',                 placeholder: 'e.g. South Indian veg tiffin, North Indian thali, multi-cuisine meal prep' },
+    { id: 'audience',  question: 'Who are your typical subscribers?',                    placeholder: 'e.g. Working professionals, students, office groups, PG residents' },
+    { id: 'approach',  question: 'What makes your tiffin special?',                     placeholder: 'e.g. Fresh daily cooking, no preservatives, home-style flavours, on-time delivery' },
+    { id: 'location',  question: 'Where do you deliver? What is your delivery radius?', placeholder: 'e.g. Indiranagar, Bengaluru — delivery within 5 km' },
+    { id: 'pricing',   question: 'What are your subscription rates? (optional)',         placeholder: 'e.g. Monthly veg tiffin ₹2,500 / ₹100 per day' },
+  ],
+  chatGuidance: `PERSONA: TIFFIN SERVICE
+Speak in tiffin language: say "subscribers", "tiffin orders", "daily menu", "meal plans", "delivery area" — never "clients", "students", or "appointments".
+Help update the provider's page: meal plan listings (as services), delivery area, subscription pricing, bio, and CTAs. Offer to add new menu items or update delivery info. Remind them they can generate catalog content, draft subscriber replies, and plan festive specials from the Studio.`,
+  researchGuidance: `You are a business advisor for a home tiffin service provider.
+BUSINESS: Local tiffin pricing benchmarks, subscription model best practices, how to grow a WhatsApp subscriber base, seasonal demand (college academic year, Diwali, Onam specials), FSSAI licensing basics for home kitchen operators, and positioning against aggregator apps like Swiggy/Zomato.`,
+}
+
+const homefoods: VerticalConfig = {
+  id: 'homefoods',
+  label: 'Home Food Brand',
+  emoji: '🫙',
+  phase: 1,
+  defaultTemplate: 'storefront',
+  defaultPalette: 'warm',
+  defaultFont: 'inter',
+  bookingLabel: 'Order now',
+  ctaLabel: 'WhatsApp to order',
+  sections: ['about', 'services', 'gallery', 'highlights', 'contact'],
+  onboardingQuestions: [
+    { id: 'products',   question: 'What homemade food products do you sell?',           placeholder: 'e.g. Mango pickles, podi, masala powders, murukku, traditional sweets' },
+    { id: 'experience', question: 'How long have you been making and selling these?',   placeholder: 'e.g. 4 years' },
+    { id: 'approach',   question: 'What makes your products special?',                  placeholder: "e.g. My grandmother's recipes, stone-ground spices, no preservatives, FSSAI certified" },
+    { id: 'location',   question: 'Where are you based? Do you ship across India?',     placeholder: 'e.g. Chennai — ship pan-India via courier, 3–5 days' },
+    { id: 'pricing',    question: 'What is your price range? (optional)',               placeholder: 'e.g. Products from ₹120, Diwali hampers from ₹499' },
+  ],
+  chatGuidance: `PERSONA: HOME FOOD BRAND
+Speak in food-brand language: say "customers", "orders", "products", "batch", "shelf life" — never "students" or "appointments".
+Help update the provider's page: product listings (as services), shipping info, bio, and CTAs. Offer to add new products or update seasonal festive packs. Remind them they can build a full product catalog, draft order reply messages, and plan Diwali/Rakhi campaigns from the Studio.`,
+  researchGuidance: `You are a business advisor for a home food brand seller.
+BUSINESS: D2C food brand pricing, FSSAI home kitchen registration basics, Instagram vs WhatsApp Business selling strategies, packaging and labelling requirements, festive gifting demand (Diwali, Rakhi, Pongal), courier partners for food shipments, and how to differentiate from supermarket alternatives.`,
+}
+
+const makeup: VerticalConfig = {
+  id: 'makeup',
+  label: 'Makeup Artist',
+  emoji: '💄',
+  phase: 1,
+  defaultTemplate: 'storefront',
+  defaultPalette: 'creative',
+  defaultFont: 'trebuchet',
+  bookingLabel: 'Book a trial',
+  ctaLabel: 'WhatsApp to book',
+  sections: ['about', 'services', 'gallery', 'highlights', 'booking', 'contact'],
+  onboardingQuestions: [
+    { id: 'speciality', question: 'What makeup services do you offer?',                placeholder: 'e.g. Bridal makeup, party makeup, HD airbrush, editorial, pre-bridal skincare' },
+    { id: 'experience', question: 'How long have you been working as a makeup artist?', placeholder: 'e.g. 6 years' },
+    { id: 'approach',   question: 'What do clients love about your work?',             placeholder: 'e.g. Long-lasting finish, skin-friendly products, personalised look, on-time every time' },
+    { id: 'location',   question: 'Where are you based? Do you travel to clients?',   placeholder: 'e.g. Hyderabad — travel within city and outstation for bridal' },
+    { id: 'pricing',    question: 'What are your starting package prices? (optional)', placeholder: 'e.g. Bridal from ₹8,000, party from ₹3,000' },
+  ],
+  chatGuidance: `PERSONA: MAKEUP ARTIST (MUA)
+Speak in MUA language: say "clients", "bridal bookings", "packages", "trial session", "touch-up kit" — never "students" or "customers" in a clinical sense.
+Help update the provider's page: service/package listings, pricing, booking info, bio, and CTAs. Offer to add new packages or update availability notes. Remind them they can draft full package listings, reply to client enquiries, and plan wedding-season campaigns from the Studio.`,
+  researchGuidance: `You are a business advisor for a freelance makeup artist.
+BUSINESS: MUA package pricing benchmarks, bridal booking lead times, how to build a portfolio on Instagram, pricing for travel and outstation bridal bookings, pre-bridal skincare packages as an upsell, wedding season availability management, and growing referral networks with bridal photographers and wedding planners.`,
+}
+
+const tailor: VerticalConfig = {
+  id: 'tailor',
+  label: 'Tailor & Boutique',
+  emoji: '✂️',
+  phase: 1,
+  defaultTemplate: 'storefront',
+  defaultPalette: 'minimal',
+  defaultFont: 'inter',
+  bookingLabel: 'Book a fitting',
+  ctaLabel: 'WhatsApp to order',
+  sections: ['about', 'services', 'gallery', 'highlights', 'booking', 'contact'],
+  onboardingQuestions: [
+    { id: 'speciality', question: 'What stitching services do you offer?',             placeholder: 'e.g. Blouses, salwar suits, lehengas, bridal wear, western outfits, alterations' },
+    { id: 'experience', question: 'How long have you been tailoring?',                 placeholder: 'e.g. 12 years' },
+    { id: 'approach',   question: 'What do customers love about your work?',           placeholder: 'e.g. Perfect fit guaranteed, on-time delivery, attention to embroidery detail' },
+    { id: 'location',   question: 'Where is your shop or studio?',                    placeholder: 'e.g. Banjara Hills, Hyderabad' },
+    { id: 'pricing',    question: 'What are your starting prices? (optional)',         placeholder: 'e.g. Blouses from ₹350, salwar suits from ₹600' },
+  ],
+  chatGuidance: `PERSONA: TAILOR & BOUTIQUE
+Speak in tailoring language: say "customers", "stitching orders", "measurements", "fitting", "delivery date", "fabric" — never "students" or "patients".
+Help update the provider's page: service/price listings, delivery time info, bio, and CTAs. Offer to add new stitching services or update festival-season messaging. Remind them they can build full price lists, draft order reply messages, and plan wedding-season campaigns from the Studio.`,
+  researchGuidance: `You are a business advisor for a tailor or boutique owner.
+BUSINESS: Stitching rate benchmarks by garment type, how to attract bridal orders, WhatsApp measurement-sharing workflows, pricing bridal and designer wear, running a waiting list during peak season, and growing an Instagram portfolio of completed garments.`,
+}
+
+const mehndi: VerticalConfig = {
+  id: 'mehndi',
+  label: 'Mehndi Artist',
+  emoji: '🌿',
+  phase: 1,
+  defaultTemplate: 'storefront',
+  defaultPalette: 'fresh',
+  defaultFont: 'trebuchet',
+  bookingLabel: 'Book mehndi',
+  ctaLabel: 'WhatsApp to book',
+  sections: ['about', 'services', 'gallery', 'highlights', 'booking', 'contact'],
+  onboardingQuestions: [
+    { id: 'speciality', question: 'What mehndi styles do you specialise in?',          placeholder: 'e.g. Bridal Arabic, Rajasthani, Indo-Arabic, traditional, minimalist' },
+    { id: 'experience', question: 'How long have you been applying mehndi?',           placeholder: 'e.g. 8 years' },
+    { id: 'approach',   question: 'What do clients love about your work?',             placeholder: 'e.g. Deep dark colour, intricate bridal designs, quick drying, I travel to the venue' },
+    { id: 'location',   question: 'Where are you based? Do you travel to events?',    placeholder: 'e.g. Pune — available for events across Maharashtra' },
+    { id: 'pricing',    question: 'What are your rates? (optional)',                   placeholder: 'e.g. Bridal mehndi from ₹2,500, party mehndi ₹80 per hand' },
+  ],
+  chatGuidance: `PERSONA: MEHNDI ARTIST
+Speak in mehndi language: say "clients", "bridal booking", "design style", "per-hand rate", "event mehndi" — never "students" or "customers" in a clinical sense.
+Help update the provider's page: service/package listings, design styles, pricing, bio, and CTAs. Offer to add new mehndi styles or update availability for wedding season. Remind them they can draft full package listings, reply to client booking enquiries, and plan wedding-season campaigns from the Studio.`,
+  researchGuidance: `You are a business advisor for a mehndi/henna artist.
+BUSINESS: Mehndi rate benchmarks (bridal vs party vs corporate events), wedding season availability planning, how to build an Instagram portfolio of designs, pricing for travel and outstation bookings, running group ladies-sangeet bookings, and growing referral networks with wedding planners and bridal MUAs.`,
+}
+
+const maker: VerticalConfig = {
+  id: 'maker',
+  label: 'Handmade Maker',
+  emoji: '🕯️',
+  phase: 1,
+  defaultTemplate: 'storefront',
+  defaultPalette: 'creative',
+  defaultFont: 'inter',
+  bookingLabel: 'Shop handmade',
+  ctaLabel: 'WhatsApp to order',
+  sections: ['about', 'services', 'gallery', 'highlights', 'contact'],
+  onboardingQuestions: [
+    { id: 'products',   question: 'What handmade products do you create?',             placeholder: 'e.g. Soy candles, cold-process soaps, resin art, macramé, terracotta decor' },
+    { id: 'experience', question: 'How long have you been making and selling?',        placeholder: 'e.g. 3 years' },
+    { id: 'approach',   question: 'What makes your creations special?',               placeholder: 'e.g. Natural materials, every piece is unique, made-to-order, safe for kids' },
+    { id: 'location',   question: 'Where are you based? Do you ship?',                placeholder: 'e.g. Bengaluru — ship across India' },
+    { id: 'pricing',    question: 'What is your price range? (optional)',              placeholder: 'e.g. Candles from ₹299, resin art from ₹599' },
+  ],
+  chatGuidance: `PERSONA: HANDMADE MAKER
+Speak in maker language: say "customers", "handmade orders", "products", "made-to-order", "batch", "custom design" — never "students" or "clients" in a clinical sense.
+Help update the provider's page: product listings, custom order info, shipping info, bio, and CTAs. Offer to add new products or update festive collection messaging. Remind them they can build full product catalog content, draft order enquiry replies, and plan Diwali/Christmas campaigns from the Studio.`,
+  researchGuidance: `You are a business advisor for a handmade product maker.
+BUSINESS: Handmade product pricing strategy (costing materials plus time plus overhead), Instagram vs WhatsApp selling for Indian makers, how to build festive gifting demand, packaging and branding for small batches, shipping partners for fragile handmade items, and growing a loyal repeat-customer base.`,
+}
+
+const gifting: VerticalConfig = {
+  id: 'gifting',
+  label: 'Gifting & Hampers',
+  emoji: '🎁',
+  phase: 1,
+  defaultTemplate: 'storefront',
+  defaultPalette: 'warm',
+  defaultFont: 'trebuchet',
+  bookingLabel: 'Order hampers',
+  ctaLabel: 'WhatsApp to order',
+  sections: ['about', 'services', 'gallery', 'highlights', 'contact'],
+  onboardingQuestions: [
+    { id: 'products',   question: 'What type of hampers and gifts do you create?',     placeholder: 'e.g. Diwali corporate hampers, Rakhi gift boxes, bridal return gifts, baby shower hampers' },
+    { id: 'experience', question: 'How long have you been in gifting?',                placeholder: 'e.g. 5 years' },
+    { id: 'approach',   question: 'What makes your hampers special?',                  placeholder: 'e.g. Premium packaging, custom branding for corporates, personalised notes, curated selections' },
+    { id: 'location',   question: 'Where are you based? Do you deliver?',              placeholder: 'e.g. Mumbai — city delivery and pan-India shipping for bulk orders' },
+    { id: 'pricing',    question: 'What is your pricing? (optional)',                  placeholder: 'e.g. Hampers from ₹499, corporate bulk from ₹350 per box (minimum 25 pieces)' },
+  ],
+  chatGuidance: `PERSONA: GIFTING & HAMPERS
+Speak in gifting language: say "customers", "hamper orders", "collections", "bulk orders", "minimum order", "personalised" — never "students" or "patients".
+Help update the provider's page: hamper collection listings, minimum order info, delivery area, bio, and CTAs. Offer to add new collections or update Diwali/Rakhi messaging. Remind them they can build full catalog content, draft bulk-order replies, and plan festive campaigns from the Studio.`,
+  researchGuidance: `You are a business advisor for a custom gifting and hampers business.
+BUSINESS: Gifting hamper pricing and minimum order strategies, corporate gifting sales approach, how to build festive demand (Diwali, Rakhi, New Year), packaging suppliers, bulk production logistics, online presence for gifting businesses, and Instagram content ideas for showcasing hamper collections.`,
+}
+
+const florist: VerticalConfig = {
+  id: 'florist',
+  label: 'Florist & Decor',
+  emoji: '💐',
+  phase: 1,
+  defaultTemplate: 'storefront',
+  defaultPalette: 'fresh',
+  defaultFont: 'georgia',
+  bookingLabel: 'Order flowers',
+  ctaLabel: 'WhatsApp to order',
+  sections: ['about', 'services', 'gallery', 'highlights', 'contact'],
+  onboardingQuestions: [
+    { id: 'services',   question: 'What flower and decoration services do you offer?', placeholder: 'e.g. Bouquets, event decor, wedding venue decoration, balloon setups, daily fresh flowers' },
+    { id: 'experience', question: 'How long have you been in floristry?',              placeholder: 'e.g. 7 years' },
+    { id: 'approach',   question: 'What do clients love about your work?',             placeholder: 'e.g. Fresh flowers daily, creative seasonal arrangements, on-time event setup' },
+    { id: 'location',   question: 'Where are you based? Do you deliver?',             placeholder: 'e.g. Chennai — delivery within 15 km, outstation for weddings' },
+    { id: 'pricing',    question: 'What is your pricing? (optional)',                  placeholder: 'e.g. Bouquets from ₹299, event decor packages from ₹5,000' },
+  ],
+  chatGuidance: `PERSONA: FLORIST & EVENT DECOR
+Speak in florist language: say "customers", "flower orders", "arrangements", "event bookings", "advance order" — never "students" or "clients" in a clinical sense.
+Help update the provider's page: flower arrangement and decor listings, ordering info, delivery area, bio, and CTAs. Offer to add new arrangements or update anniversary/wedding season messaging. Remind them they can build catalog listings, draft event enquiry replies, and plan season campaigns from the Studio.`,
+  researchGuidance: `You are a business advisor for a florist or event decorator.
+BUSINESS: Flower arrangement pricing, seasonal flower availability and sourcing, how to grow wedding and event bookings, WhatsApp order management for daily deliveries, Instagram showcasing for floral arrangements, and pricing for large event decoration vs individual bouquets.`,
+}
+
+const jeweller: VerticalConfig = {
+  id: 'jeweller',
+  label: 'Jewellery Seller',
+  emoji: '💍',
+  phase: 1,
+  defaultTemplate: 'storefront',
+  defaultPalette: 'minimal',
+  defaultFont: 'georgia',
+  bookingLabel: 'Shop collection',
+  ctaLabel: 'WhatsApp to enquire',
+  sections: ['about', 'services', 'gallery', 'highlights', 'contact'],
+  onboardingQuestions: [
+    { id: 'products',   question: 'What type of jewellery do you sell or create?',    placeholder: 'e.g. Custom silver jewellery, imitation bridal sets, oxidised everyday wear, kundan' },
+    { id: 'experience', question: 'How long have you been in jewellery?',              placeholder: 'e.g. 10 years' },
+    { id: 'approach',   question: 'What makes your collection special?',               placeholder: 'e.g. Handcrafted by artisans, custom design to your brief, affordable bridal alternatives' },
+    { id: 'location',   question: 'Where are you based? Do you ship?',                placeholder: 'e.g. Jaipur — ship across India, COD available' },
+    { id: 'pricing',    question: 'What is your price range? (optional)',              placeholder: 'e.g. Earrings from ₹299, bridal sets from ₹2,500' },
+  ],
+  chatGuidance: `PERSONA: JEWELLERY SELLER
+Speak in jewellery language: say "customers", "collections", "custom orders", "enquiries", "bridal sets", "everyday wear" — never "students" or "patients".
+Help update the provider's page: collection listings, custom order info, shipping details, bio, and CTAs. Offer to add new collections or update festive/bridal season messaging. Remind them they can build full catalog content, draft custom-order enquiry replies, and plan festive campaigns from the Studio.`,
+  researchGuidance: `You are a business advisor for a jewellery seller or designer.
+BUSINESS: Jewellery pricing strategy (imitation vs silver vs bridal), Instagram selling for jewellery, how to attract bridal enquiries, custom order workflow and deposit policies, packaging for shipping fragile jewellery, festive season demand planning (Dhanteras, Navratri, wedding season), and wholesale vs retail pricing.`,
+}
+
 // ── Registry ──────────────────────────────────────────────────
 // ADD NEW PERSONAS HERE ��� they will automatically appear in the onboarding grid,
 // template map, and palette map. No other files need to change.
@@ -734,6 +964,16 @@ export const VERTICALS: Record<string, VerticalConfig> = {
   homenurse,
   postnatal,
   lactation,
+  // Commerce / storefront expansion — all use PractitionerStudio (config-driven)
+  tiffin,
+  homefoods,
+  makeup,
+  tailor,
+  mehndi,
+  maker,
+  gifting,
+  florist,
+  jeweller,
   retailer,
   other,
 }
@@ -774,6 +1014,15 @@ const PERSONA_CHIPS: Record<string, string[]> = {
   homenurse:    ['Add a new client',          'Log a care visit',         'Update my services',      'Improve my bio'],
   postnatal:    ['Add a new mother',          'Log a postnatal visit',    'Update my services',      'Improve my bio'],
   lactation:    ['Add a new mother',          'Log a consultation',       'Update my services',      'Improve my bio'],
+  tiffin:       ['Add a meal plan',            'Update my delivery area',  'Add a menu item',         'Improve my bio'],
+  homefoods:    ['Add a new product',         'Update my bio',            'Add a festive pack',       'Improve my headline'],
+  makeup:       ['Add a bridal package',      'Update my services',       'Improve my bio',           'Change my booking CTA'],
+  tailor:       ['Add a new service',         'Update my pricing',        'Improve my bio',           'Add a stitching FAQ'],
+  mehndi:       ['Update my rates',           'Add a design style',       'Improve my bio',           'Add bridal packages'],
+  maker:        ['Add a new product',         'Update my bio',            'Add a festive collection', 'Improve my headline'],
+  gifting:      ['Add a hamper collection',   'Update my bio',            'Add a festive pack',       'Improve my headline'],
+  florist:      ['Add an arrangement',        'Update my delivery info',  'Improve my bio',           'Add an event decor package'],
+  jeweller:     ['Add a new collection',      'Update my bio',            'Improve my headline',      'Add a custom order FAQ'],
   retailer:     ['Add a new product',         'Update my bio',            'Improve my headline',     'Add a highlight'],
   other:        ['Improve my headline',       'Update my bio',            'Add a service',           'Update my location'],
 }

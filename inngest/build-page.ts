@@ -19,6 +19,9 @@ const DESIGN_MODE_MAP: Record<string, string> = {
   baker: 'craft', chef: 'craft', salon: 'craft', trainer: 'craft', other: 'craft',
   photographer: 'editorial', doctor: 'editorial', musician: 'editorial', tutor: 'editorial',
   advocate: 'editorial',
+  // Commerce / storefront expansion — all craft (warm, product-oriented)
+  tiffin: 'craft', homefoods: 'craft', makeup: 'craft', tailor: 'craft', mehndi: 'craft',
+  maker: 'craft', gifting: 'craft', florist: 'craft', jeweller: 'craft',
 }
 
 // Default hero background image per persona (public/images/* → served at /images/*)
@@ -125,6 +128,90 @@ const PERSONA_SECTIONS: Record<string, Section[]> = {
     { sectionKey: 'bio',        variant: 'paragraph', order: 4 },
     { sectionKey: 'faq',        variant: 'accordion', order: 5 },
     { sectionKey: 'contact',    variant: 'both',      order: 6 },
+  ],
+  // ── Commerce / storefront expansion ──────────────────────────────────────
+  // Service/booking personas (pricing layout + booking section)
+  tiffin: [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'services',   variant: 'pricing',   order: 2 },
+    { sectionKey: 'gallery',    variant: 'grid',      order: 3 },
+    { sectionKey: 'bio',        variant: 'callout',   order: 4 },
+    { sectionKey: 'highlights', variant: 'icons',     order: 5 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 6 },
+    { sectionKey: 'contact',    variant: 'both',      order: 7 },
+  ],
+  makeup: [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'services',   variant: 'pricing',   order: 2 },
+    { sectionKey: 'gallery',    variant: 'scroll',    order: 3 },
+    { sectionKey: 'highlights', variant: 'icons',     order: 4 },
+    { sectionKey: 'bio',        variant: 'paragraph', order: 5 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 6 },
+    { sectionKey: 'contact',    variant: 'both',      order: 7 },
+  ],
+  tailor: [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'services',   variant: 'pricing',   order: 2 },
+    { sectionKey: 'gallery',    variant: 'scroll',    order: 3 },
+    { sectionKey: 'highlights', variant: 'icons',     order: 4 },
+    { sectionKey: 'bio',        variant: 'paragraph', order: 5 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 6 },
+    { sectionKey: 'contact',    variant: 'both',      order: 7 },
+  ],
+  mehndi: [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'services',   variant: 'pricing',   order: 2 },
+    { sectionKey: 'gallery',    variant: 'scroll',    order: 3 },
+    { sectionKey: 'highlights', variant: 'icons',     order: 4 },
+    { sectionKey: 'bio',        variant: 'paragraph', order: 5 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 6 },
+    { sectionKey: 'contact',    variant: 'both',      order: 7 },
+  ],
+  // Product seller personas (menu/catalog layout, enquiry contact)
+  homefoods: [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'services',   variant: 'menu',      order: 2 },
+    { sectionKey: 'gallery',    variant: 'grid',      order: 3 },
+    { sectionKey: 'bio',        variant: 'callout',   order: 4 },
+    { sectionKey: 'highlights', variant: 'icons',     order: 5 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 6 },
+    { sectionKey: 'contact',    variant: 'enquiry',   order: 7 },
+  ],
+  maker: [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'services',   variant: 'menu',      order: 2 },
+    { sectionKey: 'gallery',    variant: 'grid',      order: 3 },
+    { sectionKey: 'bio',        variant: 'callout',   order: 4 },
+    { sectionKey: 'highlights', variant: 'icons',     order: 5 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 6 },
+    { sectionKey: 'contact',    variant: 'enquiry',   order: 7 },
+  ],
+  gifting: [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'services',   variant: 'menu',      order: 2 },
+    { sectionKey: 'gallery',    variant: 'grid',      order: 3 },
+    { sectionKey: 'highlights', variant: 'icons',     order: 4 },
+    { sectionKey: 'bio',        variant: 'paragraph', order: 5 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 6 },
+    { sectionKey: 'contact',    variant: 'enquiry',   order: 7 },
+  ],
+  florist: [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'services',   variant: 'menu',      order: 2 },
+    { sectionKey: 'gallery',    variant: 'grid',      order: 3 },
+    { sectionKey: 'highlights', variant: 'icons',     order: 4 },
+    { sectionKey: 'bio',        variant: 'paragraph', order: 5 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 6 },
+    { sectionKey: 'contact',    variant: 'both',      order: 7 },
+  ],
+  jeweller: [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'services',   variant: 'menu',      order: 2 },
+    { sectionKey: 'gallery',    variant: 'grid',      order: 3 },
+    { sectionKey: 'bio',        variant: 'callout',   order: 4 },
+    { sectionKey: 'highlights', variant: 'icons',     order: 5 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 6 },
+    { sectionKey: 'contact',    variant: 'enquiry',   order: 7 },
   ],
 }
 

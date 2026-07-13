@@ -596,9 +596,11 @@ export default function PractitionerStudio({
       )}
 
       {/* ── Disclaimer ── */}
-      <div className="shrink-0 px-4 py-1 text-[11px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-100 dark:border-amber-800/40">
-        {disclaimer}
-      </div>
+      {disclaimer && (
+        <div className="shrink-0 px-4 py-1 text-[11px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-100 dark:border-amber-800/40">
+          {disclaimer}
+        </div>
+      )}
 
       {/* ── Main area ── */}
       <div className="flex flex-1 min-h-0">
