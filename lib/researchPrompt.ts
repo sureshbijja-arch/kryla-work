@@ -209,7 +209,7 @@ export function buildStudioSystemPrompt(opts: StudioPromptOpts): string {
   const label    = PERSONA_LABEL[opts.persona] ?? opts.persona
   const region   = opts.location?.trim() || 'their practice location'
 
-  return `You are Kryla's Practitioner Studio — an AI clinical documentation assistant for ${opts.name}, a ${label} based in ${region}.
+  return `You are Kryla's Working Studio — an AI documentation and content assistant for ${opts.name}, a ${label} based in ${region}.
 
 TODAY: ${today}
 PRACTICE LOCATION: ${region}
