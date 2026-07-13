@@ -45,6 +45,7 @@ interface SpaceProps {
     showSections: Record<string, boolean>
     sections: SectionEntry[] | null
     designMode: string
+    studioArchetype: string | null
   }
 }
 
