@@ -18,12 +18,13 @@ import SuggestionsTab from './SuggestionsTab'
 import ReferTab from './ReferTab'
 import AvailabilityTab from './AvailabilityTab'
 import HoursTab from './HoursTab'
-import PersonaTab, { type DraftSeed, type WorkingSeed } from './PersonaTab'
+import PersonaTab, { type DraftSeed } from './PersonaTab'
 import ReviewsTab from './ReviewsTab'
 import StatsTab from './StatsTab'
 import ResearchChat from './ResearchChat'
 import DraftingStudio from './DraftingStudio'
-import WorkingStudio from './WorkingStudio'
+import PractitionerStudio from './PractitionerStudio'
+import type { StudioSeed } from './PractitionerStudio'
 import EmailTab from './EmailTab'
 import LetterheadSettingsTab from './LetterheadSettingsTab'
 import { getPersonaConfig, getRosterConfig } from '@/app/[slug]/personaConfig'
@@ -66,6 +67,8 @@ interface CurrentProfile {
   showSections: Record<string, boolean>
   sections: SectionEntry[] | null
   designMode: string
+  /** Archetype id if this persona has a Practitioner Studio configured; null otherwise. */
+  studioArchetype: string | null
 }
 
 interface Props {
@@ -239,9 +242,9 @@ export default function SpaceClient({
   const [draftOpen, setDraftOpen]           = useState(false)
   // Phase 5: seed DraftingStudio from a client/matter card
   const [draftSeed, setDraftSeed]           = useState<DraftSeed | null>(null)
-  // Phase 4 (physio): WorkingStudio
-  const [workingOpen, setWorkingOpen]       = useState(false)
-  const [workingSeed, setWorkingSeed]       = useState<WorkingSeed | null>(null)
+  // Practitioner Studio (all studio personas: physio, occtherapist, speech, chiro, counselor, etc.)
+  const [studioOpen, setStudioOpen]         = useState(false)
+  const [studioSeed, setStudioSeed]         = useState<StudioSeed | null>(null)
   // Chat expand / full-screen toggle
   const [chatExpanded, setChatExpanded]     = useState(false)
 
@@ -518,14 +521,16 @@ export default function SpaceClient({
         />
       )}
 
-      {/* ── Physio-only Working Studio overlay ── */}
-      {currentProfile.persona === 'physio' && (
-        <WorkingStudio
+      {/* ── Practitioner Studio overlay (all studio-enabled personas) ── */}
+      {currentProfile.studioArchetype && (
+        <PractitionerStudio
           providerId={providerId}
-          open={workingOpen}
-          onClose={() => { setWorkingOpen(false); setWorkingSeed(null) }}
-          seedStudentId={workingSeed?.studentId}
-          seedPatientName={workingSeed?.patientName}
+          persona={currentProfile.persona}
+          open={studioOpen}
+          onClose={() => { setStudioOpen(false); setStudioSeed(null) }}
+          seedStudentId={studioSeed?.studentId}
+          seedClientName={studioSeed?.clientName}
+          seedModeKey={studioSeed?.modeKey}
         />
       )}
 
@@ -880,17 +885,17 @@ export default function SpaceClient({
                 </button>
               )}
 
-              {/* Physio-only: Working Studio */}
-              {currentProfile.persona === 'physio' && (
+              {/* Practitioner Studio — all studio-enabled personas */}
+              {currentProfile.studioArchetype && (
                 <button
-                  onClick={() => setWorkingOpen(true)}
+                  onClick={() => setStudioOpen(true)}
                   disabled={chatExpanded}
-                  title={chatExpanded ? 'Exit full-screen to open Working Studio' : 'Working Studio'}
+                  title={chatExpanded ? 'Exit full-screen to open Studio' : 'Practitioner Studio'}
                   className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-[#EFF6FF] text-[#1D4ED8] hover:bg-[#DBEAFE] transition-colors disabled:opacity-30 disabled:pointer-events-none">
                   <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
                     <path d="M3 13V5l5-4 5 4v8M6 13V9h4v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  Work
+                  Studio
                 </button>
               )}
 
@@ -1105,9 +1110,9 @@ export default function SpaceClient({
               setDraftSeed(seed)
               setDraftOpen(true)
             } : undefined}
-            onWorkFromPatient={currentProfile.persona === 'physio' ? seed => {
-              setWorkingSeed(seed)
-              setWorkingOpen(true)
+            onOpenStudio={currentProfile.studioArchetype ? seed => {
+              setStudioSeed(seed)
+              setStudioOpen(true)
             } : undefined}
           />
         </div>

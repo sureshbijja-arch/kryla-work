@@ -98,10 +98,17 @@ export interface DraftSeed {
   matterType: string | null
 }
 
-/** Seed context passed to WorkingStudio when opened from a patient card */
+/** Seed context passed to PractitionerStudio when opened from a client/patient card */
 export interface WorkingSeed {
   studentId:   string
   patientName: string
+}
+
+/** New unified seed — use with PractitionerStudio */
+export interface StudioSeed {
+  studentId?:  string
+  clientName?: string
+  modeKey?:    string
 }
 
 const EMPTY_FORM: AddEditForm = {
@@ -125,17 +132,23 @@ export default function PersonaTab({
   label2Label = 'Subject',
   onDraftFromMatter,
   onWorkFromPatient,
+  onOpenStudio,
 }: {
   providerId:           string
   persona?:             string
   label1Label?:         string
   label2Label?:         string
   onDraftFromMatter?:   (seed: DraftSeed) => void
+  /** @deprecated use onOpenStudio */
   onWorkFromPatient?:   (seed: WorkingSeed) => void
+  /** Opens PractitionerStudio for any studio-enabled persona */
+  onOpenStudio?:        (seed: import('./PractitionerStudio').StudioSeed) => void
 }) {
   const copy: RosterCopy   = getRosterConfig(persona)
   const isAdvocate         = persona === 'advocate'
+  /** @deprecated kept for backward compat — use onOpenStudio instead */
   const isPhysio           = persona === 'physio'
+  const hasStudio          = !!onOpenStudio
 
   const [students, setStudents]   = useState<Student[]>([])
   const [loading, setLoading]     = useState(true)
@@ -482,12 +495,12 @@ export default function PersonaTab({
                           ✍️ Draft
                         </button>
                       )}
-                      {/* Physio: Open in Working Studio button */}
-                      {isPhysio && onWorkFromPatient && (
+                      {/* Practitioner Studio button (all studio personas) */}
+                      {hasStudio && onOpenStudio && (
                         <button
-                          onClick={() => onWorkFromPatient({ studentId: s.id, patientName: s.name })}
+                          onClick={() => onOpenStudio({ studentId: s.id, clientName: s.name })}
                           className="flex items-center gap-1 text-xs font-semibold bg-[#EFF6FF] text-[#1D4ED8] hover:bg-[#DBEAFE] px-2.5 py-1.5 rounded-lg transition-colors">
-                          🧑‍⚕️ Work
+                          🧑‍⚕️ Studio
                         </button>
                       )}
                       {/* Advocate: Print case sheet + DPDP data rights */}

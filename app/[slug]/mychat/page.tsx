@@ -43,7 +43,7 @@ export default async function MyChatPage({ params, searchParams }: Props) {
 
   captureServerEvent('dashboard_viewed', { slug: provider.slug, providerId: provider.id })
 
-  const [{ data: page }, plans, personaPlans, gate] = await Promise.all([
+  const [{ data: page }, plans, personaPlans, gate, { data: personaRow }] = await Promise.all([
     supabaseAdmin
       .from('pages')
       .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, palette, font, template, show_sections, sections, design_mode')
@@ -52,6 +52,11 @@ export default async function MyChatPage({ params, searchParams }: Props) {
     getPlans(),
     getPersonaPlans(provider.persona),
     getPlanGate(),
+    supabaseAdmin
+      .from('personas')
+      .select('studio_archetype')
+      .eq('id', provider.persona)
+      .maybeSingle(),
   ])
 
   const memberPlan  = provider.plan ?? 'grow'
@@ -108,7 +113,8 @@ export default async function MyChatPage({ params, searchParams }: Props) {
           template:     (page?.template   as string) ?? 'focus',
           showSections: ((page?.show_sections as ShowSections) ?? defaultShowSections) as unknown as Record<string, boolean>,
           sections:     (page?.sections   as SectionEntry[] | null) ?? null,
-          designMode:   (page?.design_mode as string) ?? 'craft',
+          designMode:      (page?.design_mode as string) ?? 'craft',
+          studioArchetype: (personaRow?.studio_archetype as string | null) ?? null,
         },
       }}
     />

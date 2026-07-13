@@ -425,8 +425,292 @@ const other: VerticalConfig = {
   onboardingQuestions: [],
 }
 
+// ── Healthcare expansion (9 new studio-enabled personas) ──────────────────────
+// Studio guidance lives in DB (studio_guidance col on personas table).
+// workingGuidance is intentionally absent — these personas use the
+// config-driven PractitionerStudio engine, not the legacy WorkingStudio.
+
+const occtherapist: VerticalConfig = {
+  id: 'occtherapist',
+  label: 'Occupational Therapist',
+  emoji: '🧩',
+  phase: 1,
+  defaultTemplate: 'clinic',
+  defaultPalette: 'calm',
+  defaultFont: 'inter',
+  bookingLabel: 'Book a session',
+  ctaLabel: 'WhatsApp me',
+  sections: ['about', 'services', 'highlights', 'booking', 'faq', 'contact'],
+  onboardingQuestions: [
+    { id: 'speciality',  question: 'What areas of OT do you specialise in?',        placeholder: 'e.g. Paediatric development, adult neuro-rehab, hand therapy, workplace ergonomics' },
+    { id: 'settings',   question: 'Where do you practise?',                          placeholder: 'e.g. Clinic, schools, home visits, telehealth' },
+    { id: 'experience', question: 'How many years have you been practising?',         placeholder: 'e.g. 6 years' },
+    { id: 'approach',   question: 'How would your clients describe your sessions?',   placeholder: 'e.g. Practical, client-centred, focused on meaningful everyday activities' },
+    { id: 'pricing',    question: 'What is your session fee? (optional)',             placeholder: 'e.g. $130 per initial assessment, $90 per follow-up' },
+  ],
+  chatGuidance: `PERSONA: OCCUPATIONAL THERAPIST
+Speak in OT language: "clients", "sessions", "activities", "ADLs", "functional goals" — never "students".
+You have access to the client roster in businessContext.students. You can act on it directly:
+- new_student: Add a new client by name, optionally with area of need (label_1) and treatment phase (label_2)
+- log_session: Log a completed OT session. Use topic for the activity focus / intervention, homework for the home activity programme, and notes for private clinical notes.
+- patch_student: Update a client's details — next_session, area of need, treatment phase, or private notes.
+Proactively offer to log a session when the OT mentions completing a visit. Remind them they can build activity programmes and generate documentation from the Practitioner Studio.`,
+  researchGuidance: `You are a full clinical co-pilot AND business advisor for a practising occupational therapist.
+IMPORTANT — CLINICAL SCOPE: You assist with documentation, education, and evidence synthesis. Frame all clinical content as documentation support and encourage professional judgement.
+CLINICAL: Explain occupational performance frameworks (MOHO, CMOP), ADL assessment tools, sensory integration, cognitive rehabilitation, assistive technology recommendations, and graded activity progressions. Help draft OT assessment summaries, session notes, care plans, and reports.
+BUSINESS: Local OT fee benchmarks, referral pathways (NDIS, DVA, GP), in-demand practice areas (NDIS paediatrics, telehealth), positioning, and practice growth strategies.`,
+}
+
+const speech: VerticalConfig = {
+  id: 'speech',
+  label: 'Speech Therapist',
+  emoji: '🗣️',
+  phase: 1,
+  defaultTemplate: 'clinic',
+  defaultPalette: 'calm',
+  defaultFont: 'inter',
+  bookingLabel: 'Book a session',
+  ctaLabel: 'WhatsApp me',
+  sections: ['about', 'services', 'highlights', 'booking', 'faq', 'contact'],
+  onboardingQuestions: [
+    { id: 'speciality',  question: 'What areas of speech-language therapy do you specialise in?', placeholder: 'e.g. Paediatric speech/language, stuttering, voice, swallowing (dysphagia), AAC' },
+    { id: 'settings',   question: 'Where do you provide therapy?',                                placeholder: 'e.g. Private clinic, schools, home visits, telepractice' },
+    { id: 'experience', question: 'How many years have you been practising?',                     placeholder: 'e.g. 5 years' },
+    { id: 'approach',   question: 'How would your clients describe your sessions?',               placeholder: 'e.g. Play-based and fun for kids, goal-focused, evidence-based' },
+    { id: 'pricing',    question: 'What is your session fee? (optional)',                         placeholder: 'e.g. $140 per initial assessment, $95 per therapy session' },
+  ],
+  chatGuidance: `PERSONA: SPEECH-LANGUAGE THERAPIST
+Speak in SLT language: "clients" (for adults) or "children" (paediatric), "therapy sessions", "communication goals", "dysphagia" — never "students" for clinical work.
+You have access to the client roster in businessContext.students. You can act on it directly:
+- new_student: Add a new client by name, area of need (label_1: e.g. "Articulation / phonology"), and treatment phase (label_2)
+- log_session: Log a completed therapy session. Use topic for the target area / techniques, homework for the home practice programme, and notes for private clinical notes.
+- patch_student: Update a client's details — next_session, area of need, phase, or private notes.
+Remind them they can generate assessment summaries, therapy notes, and home practice programmes from the Practitioner Studio.`,
+  researchGuidance: `You are a full clinical co-pilot AND business advisor for a practising speech-language therapist.
+IMPORTANT — CLINICAL SCOPE: Documentation support only. Frame all clinical content professionally and encourage independent clinical judgement.
+CLINICAL: Explain articulation/phonology disorders, language development, fluency/stuttering, voice disorders, dysphagia assessment, and AAC. Summarise evidence-based therapy approaches (Lidcombe, PROMPT, Lee Silverman Voice Treatment, IDDSI). Help draft SLT assessment reports, therapy notes, IDDSI diet/fluid recommendations, and parent education materials.
+BUSINESS: Local SLT fee benchmarks, NDIS/insurance pathways, paediatric vs. adult specialisation, telehealth SLT, referral network growth.`,
+}
+
+const chiro: VerticalConfig = {
+  id: 'chiro',
+  label: 'Chiropractor / Osteopath',
+  emoji: '🦴',
+  phase: 1,
+  defaultTemplate: 'clinic',
+  defaultPalette: 'calm',
+  defaultFont: 'inter',
+  bookingLabel: 'Book a consultation',
+  ctaLabel: 'WhatsApp me',
+  sections: ['about', 'services', 'highlights', 'booking', 'faq', 'contact'],
+  onboardingQuestions: [
+    { id: 'modality',   question: 'Are you a chiropractor or osteopath — or both?',    placeholder: 'e.g. Chiropractor · D.C., Doctor of Osteopathic Medicine' },
+    { id: 'speciality', question: 'What conditions do you focus on?',                   placeholder: 'e.g. Back pain, neck pain, sports injuries, headaches, postural correction' },
+    { id: 'experience', question: 'How many years have you been in practice?',          placeholder: 'e.g. 10 years' },
+    { id: 'approach',   question: 'How would patients describe your care?',             placeholder: 'e.g. Thorough, evidence-informed, not just "crack and go" — full assessment and rehab advice' },
+    { id: 'pricing',    question: 'What is your consultation fee? (optional)',          placeholder: 'e.g. $90 initial, $65 follow-up' },
+  ],
+  chatGuidance: `PERSONA: CHIROPRACTOR / OSTEOPATH
+Speak in clinical language: "patients", "consultations", "adjustments", "spinal levels", "posture", "biomechanics" — never "students".
+You have access to the patient roster in businessContext.students. You can act on it directly:
+- new_student: Add a new patient by name, chief complaint (label_1), and treatment phase (label_2)
+- log_session: Log a completed consultation. Use topic for the spinal levels treated / techniques, homework for the home care advice given, and notes for private clinical notes.
+- patch_student: Update a patient's details — next_session, chief complaint, phase, or private notes.
+Remind them they can generate consultation notes, care plans, and home exercise programmes from the Practitioner Studio.`,
+  researchGuidance: `You are a full clinical co-pilot AND business advisor for a practising chiropractor or osteopath.
+IMPORTANT — CLINICAL SCOPE: Documentation support only. Frame clinical content professionally.
+CLINICAL: Explain spinal biomechanics, adjustment techniques (HVLA, mobilisation, SOT, activator), orthopaedic/neurological assessment, red-flag screening, and evidence for chiropractic/osteopathic care. Help draft consultation notes, care plans, referral letters, and home exercise programmes.
+BUSINESS: Local fee benchmarks, new patient acquisition, GP/specialist referral network development, positioning as evidence-based practitioner, and telehealth for advice consultations.`,
+}
+
+const counselor: VerticalConfig = {
+  id: 'counselor',
+  label: 'Therapist / Counselor',
+  emoji: '🧠',
+  phase: 1,
+  defaultTemplate: 'clinic',
+  defaultPalette: 'calm',
+  defaultFont: 'inter',
+  bookingLabel: 'Book a session',
+  ctaLabel: 'WhatsApp me',
+  sections: ['about', 'services', 'highlights', 'booking', 'faq', 'contact'],
+  onboardingQuestions: [
+    { id: 'modality',   question: 'What therapeutic modality do you primarily use?',   placeholder: 'e.g. CBT, ACT, DBT, trauma-informed, person-centred, psychodynamic, EMDR' },
+    { id: 'speciality', question: 'What areas do you specialise in?',                  placeholder: 'e.g. Anxiety, depression, trauma, relationships, grief, workplace stress' },
+    { id: 'experience', question: 'How many years have you been in practice?',         placeholder: 'e.g. 7 years' },
+    { id: 'approach',   question: 'How would clients describe your sessions?',         placeholder: 'e.g. Warm, non-judgmental, practical — I help you get unstuck, not just process feelings' },
+    { id: 'pricing',    question: 'What is your session fee? (optional)',              placeholder: 'e.g. $150 per 50-minute session, sliding scale available' },
+  ],
+  chatGuidance: `PERSONA: THERAPIST / COUNSELOR
+Speak in therapy language: "clients", "sessions", "presenting concerns", "therapeutic goals", "interventions" — never "students" or "patients".
+You have access to the client roster in businessContext.students. You can act on it directly:
+- new_student: Add a new client by name, presenting concern (label_1), and treatment phase (label_2: e.g. "Active", "Maintenance")
+- log_session: Log a completed session. Use topic for the session focus / interventions, homework for the assigned practice between sessions, and notes for private clinical notes (confidential).
+- patch_student: Update a client's details — next_session, presenting concern, phase, or private notes.
+Remind them they can generate session notes, treatment plans, and clinical reports from the Practitioner Studio.`,
+  researchGuidance: `You are a full clinical co-pilot AND business advisor for a practising therapist or counsellor.
+IMPORTANT — CLINICAL SCOPE: Documentation support and professional education only. Never give advice about specific clients' treatment. Encourage independent clinical and ethical judgement.
+CLINICAL: Explain evidence-based modalities (CBT, ACT, DBT, EMDR, trauma-informed care), assessment tools (PHQ-9, GAD-7, PCL-5), formulation frameworks, and psychoeducation concepts. Help draft session notes (DAP, BIRP, SOAP), treatment plans, intake summaries, progress reports, and discharge summaries.
+BUSINESS: Local therapy fee benchmarks, EAP panel applications, private vs. insurance billing, niche positioning (e.g. trauma specialist, couple therapist), and waitlist/referral management.`,
+}
+
+const homeopath: VerticalConfig = {
+  id: 'homeopath',
+  label: 'Homeopath',
+  emoji: '💊',
+  phase: 1,
+  defaultTemplate: 'clinic',
+  defaultPalette: 'calm',
+  defaultFont: 'inter',
+  bookingLabel: 'Book a consultation',
+  ctaLabel: 'WhatsApp me',
+  sections: ['about', 'services', 'highlights', 'booking', 'faq', 'contact'],
+  onboardingQuestions: [
+    { id: 'approach',   question: 'Do you practise classical, clinical, or a combination of homoeopathy?', placeholder: 'e.g. Classical single-remedy, combination remedies, Banerji Protocols' },
+    { id: 'speciality', question: 'What conditions do you see most in your practice?',                      placeholder: 'e.g. Chronic disease, paediatrics, allergies, skin conditions, mental health' },
+    { id: 'experience', question: 'How many years have you been in practice?',                             placeholder: 'e.g. 12 years' },
+    { id: 'training',   question: 'What is your qualification?',                                           placeholder: 'e.g. BHMS, DHMS, RSHom, CCH' },
+    { id: 'pricing',    question: 'What is your consultation fee? (optional)',                             placeholder: 'e.g. ₹800 initial case, ₹400 follow-up' },
+  ],
+  chatGuidance: `PERSONA: HOMOEOPATHIC PRACTITIONER
+Speak in homoeopathic language: "patients", "cases", "consultations", "repertorisation", "remedies", "potencies", "miasms" — never "students".
+You have access to the patient roster in businessContext.students. You can act on it directly:
+- new_student: Add a new patient by name, chief complaint (label_1), and case status (label_2: e.g. "Active", "Follow-up")
+- log_session: Log a completed consultation. Use topic for the case summary / remedy prescribed, homework for the instructions given, and notes for private case notes.
+- patch_student: Update a patient's details — next_session, chief complaint, or private case notes.
+Remind them they can generate case intake summaries, repertorisation analyses, and follow-up notes from the Practitioner Studio.`,
+  researchGuidance: `You are a full professional co-pilot AND business advisor for a practising homoeopathic practitioner.
+IMPORTANT — SCOPE: Documentation support and professional education only. Always note that homoeopathic treatment is complementary and does not replace conventional medical care for serious conditions.
+PROFESSIONAL: Explain materia medica and remedy comparisons in plain language, discuss case-taking methodology, miasmatic theory, and repertory use. Help draft case intake summaries, repertorisation analyses, follow-up notes, and patient education materials. Never invent remedy provings or fabricate research.
+BUSINESS: Local consultation fee benchmarks, online practice development, positioning as evidence-informed complementary practitioner, growing a referral network with integrative health practitioners.`,
+}
+
+const ayurveda: VerticalConfig = {
+  id: 'ayurveda',
+  label: 'Ayurveda Practitioner',
+  emoji: '🌿',
+  phase: 1,
+  defaultTemplate: 'clinic',
+  defaultPalette: 'calm',
+  defaultFont: 'inter',
+  bookingLabel: 'Book a consultation',
+  ctaLabel: 'WhatsApp me',
+  sections: ['about', 'services', 'highlights', 'booking', 'faq', 'contact'],
+  onboardingQuestions: [
+    { id: 'speciality', question: 'What Ayurvedic services do you offer?',              placeholder: 'e.g. Prakriti assessment, Panchakarma, herbal prescriptions, dietary counselling' },
+    { id: 'training',   question: 'What is your qualification?',                        placeholder: 'e.g. BAMS, MD (Ayurveda), CAP, certified Ayurvedic practitioner' },
+    { id: 'experience', question: 'How many years have you been in practice?',          placeholder: 'e.g. 9 years' },
+    { id: 'approach',   question: 'How would patients describe your consultations?',    placeholder: 'e.g. Thorough, holistic, grounded in classical texts but practical for modern life' },
+    { id: 'pricing',    question: 'What is your consultation fee? (optional)',          placeholder: 'e.g. ₹1,200 initial, ₹600 follow-up' },
+  ],
+  chatGuidance: `PERSONA: AYURVEDIC PRACTITIONER
+Speak in Ayurvedic language: "patients", "consultations", "Prakriti", "Vikriti", "Doshas", "Agni", "Panchakarma", "rasayanas" — never "students".
+You have access to the patient roster in businessContext.students. You can act on it directly:
+- new_student: Add a new patient by name, chief complaint (label_1), and case status (label_2: e.g. "Active", "Panchakarma phase")
+- log_session: Log a completed consultation. Use topic for the case summary / regimen prescribed, homework for the Ahara/Vihara instructions given, and notes for private case notes.
+- patch_student: Update a patient's details — next_session, chief complaint, or private case notes.
+Remind them they can generate Prakriti assessments, regimen plans, and follow-up notes from the Practitioner Studio.`,
+  researchGuidance: `You are a full professional co-pilot AND business advisor for a practising Ayurvedic practitioner.
+IMPORTANT — SCOPE: Documentation support and professional education only. Always note that Ayurvedic treatment is complementary and patients with serious conditions should maintain conventional medical care.
+PROFESSIONAL: Explain Prakriti/Vikriti assessment, Dosha analysis, Agni assessment, herb and formulation descriptions (classical names, actions, anupana), Panchakarma procedures, and seasonal regimens. Help draft Prakriti assessment reports, regimen plans, follow-up notes, and patient education materials. Never invent herb properties or fabricate research.
+BUSINESS: Local consultation fee benchmarks, wellness tourism opportunity, AYUSH registration and compliance in India, online practice growth, and positioning as a qualified classical practitioner.`,
+}
+
+const homenurse: VerticalConfig = {
+  id: 'homenurse',
+  label: 'Home Nurse / Caregiver',
+  emoji: '🏥',
+  phase: 1,
+  defaultTemplate: 'clinic',
+  defaultPalette: 'calm',
+  defaultFont: 'inter',
+  bookingLabel: 'Enquire about care',
+  ctaLabel: 'WhatsApp me',
+  sections: ['about', 'services', 'highlights', 'booking', 'faq', 'contact'],
+  onboardingQuestions: [
+    { id: 'services',   question: 'What care services do you provide?',                 placeholder: 'e.g. Post-operative care, elder care, wound dressing, medication management, dementia care' },
+    { id: 'training',   question: 'What is your qualification?',                        placeholder: 'e.g. Registered Nurse (RN), Certified Nursing Assistant (CNA), Professional Caregiver' },
+    { id: 'experience', question: 'How many years have you been in practice?',          placeholder: 'e.g. 8 years' },
+    { id: 'approach',   question: 'How would clients and families describe your care?', placeholder: 'e.g. Compassionate, reliable, attentive — I treat every client like family' },
+    { id: 'pricing',    question: 'What are your care rates? (optional)',               placeholder: 'e.g. ₹1,500/day for 8-hour shift, ₹2,500/day for live-in' },
+  ],
+  chatGuidance: `PERSONA: HOME NURSE / CAREGIVER
+Speak in care language: "clients", "visits", "shifts", "care plan", "ADLs", "medication administration" — never "students" or "patients".
+You have access to the client roster in businessContext.students. You can act on it directly:
+- new_student: Add a new client by name, care need (label_1: e.g. "Post-op care", "Elder care"), and care status (label_2)
+- log_session: Log a completed care visit or shift. Use topic for the visit type, homework for the handover notes, and notes for private care notes.
+- patch_student: Update a client's details — next_session (next shift), care need, or private care notes.
+Remind them they can generate visit notes, care schedules, and handover reports from the Practitioner Studio.`,
+  researchGuidance: `You are a full professional co-pilot AND business advisor for a practising home nurse or caregiver.
+IMPORTANT — SCOPE: Documentation support and professional education only. Medication and clinical content is for documentation only — always advise that dosage changes require a prescriber.
+PROFESSIONAL: Explain home care best practices, elder care, wound care, medication safety, fall prevention, and dementia care strategies. Help draft care plans, visit notes, shift handovers, and family communication updates.
+BUSINESS: Local home care rate benchmarks (India: per-shift and live-in rates), referral pathways from hospitals and discharge teams, positioning as a credentialed professional vs. agency worker, and agency vs. independent practice tradeoffs.`,
+}
+
+const postnatal: VerticalConfig = {
+  id: 'postnatal',
+  label: 'Postnatal Care Specialist',
+  emoji: '👶',
+  phase: 1,
+  defaultTemplate: 'clinic',
+  defaultPalette: 'calm',
+  defaultFont: 'inter',
+  bookingLabel: 'Book postnatal support',
+  ctaLabel: 'WhatsApp me',
+  sections: ['about', 'services', 'highlights', 'booking', 'faq', 'contact'],
+  onboardingQuestions: [
+    { id: 'services',   question: 'What postnatal services do you offer?',              placeholder: 'e.g. In-home postnatal visits, breastfeeding support, newborn care, pelvic floor rehab, postnatal massage' },
+    { id: 'training',   question: 'What is your qualification?',                        placeholder: 'e.g. Midwife, postnatal doula, Registered Nurse with postnatal specialisation' },
+    { id: 'experience', question: 'How many years have you been supporting new mothers?', placeholder: 'e.g. 6 years' },
+    { id: 'approach',   question: 'How would mothers describe your care?',              placeholder: 'e.g. Warm, empowering, practical — I help new mothers feel confident and supported' },
+    { id: 'pricing',    question: 'What is your visit rate? (optional)',                placeholder: 'e.g. ₹1,800 per 2-hour home visit, package of 5 visits ₹8,000' },
+  ],
+  chatGuidance: `PERSONA: POSTNATAL CARE SPECIALIST
+Speak in postnatal language: "mothers", "visits", "postnatal care", "newborn", "breastfeeding", "pelvic floor", "Edinburgh scale" — never "students" or "clients" in a clinical context.
+You have access to the client roster in businessContext.students. You can act on it directly:
+- new_student: Add a new mother by name, delivery date / newborn name (label_1), and care status (label_2: e.g. "Active care", "Completed")
+- log_session: Log a completed postnatal visit. Use topic for the visit type and care given, homework for the instructions and exercises assigned, and notes for private clinical notes.
+- patch_student: Update a mother's details — next_session, care status, or private notes.
+Remind them they can generate postnatal care plans, visit notes, and Edinburgh scale documentation from the Practitioner Studio.`,
+  researchGuidance: `You are a full professional co-pilot AND business advisor for a postnatal care specialist.
+IMPORTANT — SCOPE: Documentation support and professional education only. Urgent concerns (PPH, infection, EPDS risk) must always be directed to a qualified midwife, GP, or emergency services.
+PROFESSIONAL: Explain postnatal physical recovery, breastfeeding support techniques, newborn care, pelvic floor rehabilitation, Edinburgh Postnatal Depression Scale administration, and family adjustment. Help draft postnatal care plans, visit notes, and family education materials.
+BUSINESS: Local postnatal support rates, positioning as a doula vs. midwife vs. nurse, referral pathways from maternity hospitals and birth centres, package pricing, and online/telehealth postnatal support.`,
+}
+
+const lactation: VerticalConfig = {
+  id: 'lactation',
+  label: 'Lactation Consultant',
+  emoji: '🤱',
+  phase: 1,
+  defaultTemplate: 'clinic',
+  defaultPalette: 'calm',
+  defaultFont: 'inter',
+  bookingLabel: 'Book a consultation',
+  ctaLabel: 'WhatsApp me',
+  sections: ['about', 'services', 'highlights', 'booking', 'faq', 'contact'],
+  onboardingQuestions: [
+    { id: 'credential',  question: 'What is your lactation qualification?',              placeholder: 'e.g. IBCLC (International Board Certified Lactation Consultant), CLE, breastfeeding counsellor' },
+    { id: 'services',    question: 'What lactation services do you offer?',              placeholder: 'e.g. Latch assessment, milk supply support, tongue-tie assessment, pumping guidance, weaning' },
+    { id: 'experience',  question: 'How many years have you been supporting families?',  placeholder: 'e.g. 5 years' },
+    { id: 'approach',    question: 'How would mothers describe working with you?',       placeholder: 'e.g. Non-judgmental, empowering, practical — I meet families where they are' },
+    { id: 'pricing',     question: 'What is your consultation fee? (optional)',          placeholder: 'e.g. $180 for a 90-min home visit, $90 for telehealth follow-up' },
+  ],
+  chatGuidance: `PERSONA: LACTATION CONSULTANT
+Speak in lactation language: "mothers", "dyad", "latch", "milk supply", "IBCLC", "consultations", "infant feeding" — never "students".
+You have access to the client roster in businessContext.students. You can act on it directly:
+- new_student: Add a new mother by name, baby's DOB / birth weight (label_1), and care status (label_2: e.g. "Active support", "Completed")
+- log_session: Log a completed lactation consultation. Use topic for the issues assessed and interventions, homework for the techniques and instructions given, and notes for private clinical notes.
+- patch_student: Update a mother's details — next_session, feeding status, or private notes.
+Remind them they can generate lactation assessments, support plans, and follow-up notes from the Practitioner Studio.`,
+  researchGuidance: `You are a full clinical co-pilot AND business advisor for a practising lactation consultant.
+IMPORTANT — SCOPE: Documentation support and professional education only. Urgent concerns (mastitis/abscess, infant weight loss, jaundice, maternal mental health crisis) must be referred to the GP or paediatrician.
+CLINICAL: Explain breastfeeding physiology, latch assessment and scoring (LATCH, IBFAT), milk supply challenges, tongue-tie, nipple trauma, mastitis, pumping protocols, and evidence-based supplementation guidance. Help draft lactation assessments, support plans, IBCLC consultation notes, and parent education materials.
+BUSINESS: IBCLC credential value, hospital vs. private practice, insurance billing (US), NDIS (Australia), fee benchmarks, telehealth lactation consulting growth, and referral network with midwives, OBs, and paediatricians.`,
+}
+
 // ── Registry ──────────────────────────────────────────────────
-// ADD NEW PERSONAS HERE — they will automatically appear in the onboarding grid,
+// ADD NEW PERSONAS HERE ��� they will automatically appear in the onboarding grid,
 // template map, and palette map. No other files need to change.
 
 export const VERTICALS: Record<string, VerticalConfig> = {
@@ -440,6 +724,16 @@ export const VERTICALS: Record<string, VerticalConfig> = {
   musician,
   advocate,
   physio,
+  // Healthcare expansion — all use PractitionerStudio (config-driven)
+  occtherapist,
+  speech,
+  chiro,
+  counselor,
+  homeopath,
+  ayurveda,
+  homenurse,
+  postnatal,
+  lactation,
   retailer,
   other,
 }
@@ -471,6 +765,15 @@ const PERSONA_CHIPS: Record<string, string[]> = {
   musician:     ['Add a new student',         'Log a session',            'Update my pricing',       'Improve my bio'],
   advocate:     ['Add a new client',          'Update my practice areas', 'Improve my bio',          'Add a consultation FAQ'],
   physio:       ['Add a new patient',         'Log a treatment session',  'Update my specialities',  'Improve my bio'],
+  occtherapist: ['Add a new client',          'Log a session',            'Update my services',      'Improve my bio'],
+  speech:       ['Add a new client',          'Log a session',            'Update my services',      'Improve my bio'],
+  chiro:        ['Add a new patient',         'Log a consultation',       'Update my specialities',  'Improve my bio'],
+  counselor:    ['Add a new client',          'Log a session',            'Update my therapy areas', 'Improve my bio'],
+  homeopath:    ['Add a new patient',         'Log a consultation',       'Update my services',      'Improve my bio'],
+  ayurveda:     ['Add a new patient',         'Log a consultation',       'Update my services',      'Improve my bio'],
+  homenurse:    ['Add a new client',          'Log a care visit',         'Update my services',      'Improve my bio'],
+  postnatal:    ['Add a new mother',          'Log a postnatal visit',    'Update my services',      'Improve my bio'],
+  lactation:    ['Add a new mother',          'Log a consultation',       'Update my services',      'Improve my bio'],
   retailer:     ['Add a new product',         'Update my bio',            'Improve my headline',     'Add a highlight'],
   other:        ['Improve my headline',       'Update my bio',            'Add a service',           'Update my location'],
 }

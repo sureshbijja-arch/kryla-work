@@ -189,6 +189,36 @@ Return ONLY a valid JSON array of issue objects. No preamble, no explanation, no
 If no issues found, return: []`
 }
 
+// ── Studio system prompt (config-driven, all healthcare archetypes) ───────────
+
+export interface StudioPromptOpts {
+  /** Provider's display name */
+  name:            string
+  /** Provider's persona id (e.g. 'physio', 'counselor', 'homeopath') */
+  persona:         string
+  /** Provider's practice location */
+  location:        string
+  /** From studio_archetypes.base_guidance */
+  baseGuidance:    string
+  /** From personas.studio_guidance (persona-specific layer, merged over base) */
+  studioGuidance:  string
+}
+
+export function buildStudioSystemPrompt(opts: StudioPromptOpts): string {
+  const today    = new Date().toISOString().split('T')[0]
+  const label    = PERSONA_LABEL[opts.persona] ?? opts.persona
+  const region   = opts.location?.trim() || 'their practice location'
+
+  return `You are Kryla's Practitioner Studio — an AI clinical documentation assistant for ${opts.name}, a ${label} based in ${region}.
+
+TODAY: ${today}
+PRACTICE LOCATION: ${region}
+
+${opts.studioGuidance}
+
+${opts.baseGuidance}`
+}
+
 // ── Persona display ──────────────────────────────────────────────────────────
 const PERSONA_LABEL: Record<string, string> = {
   tutor:        'tutor',
@@ -199,6 +229,15 @@ const PERSONA_LABEL: Record<string, string> = {
   chef:         'private chef',
   doctor:       'healthcare professional',
   physio:       'physiotherapist',
+  occtherapist: 'occupational therapist',
+  speech:       'speech-language therapist',
+  chiro:        'chiropractor/osteopath',
+  counselor:    'therapist/counsellor',
+  homeopath:    'homoeopathic practitioner',
+  ayurveda:     'Ayurvedic practitioner',
+  homenurse:    'home nurse/caregiver',
+  postnatal:    'postnatal care specialist',
+  lactation:    'lactation consultant',
   musician:     'musician/music teacher',
   advocate:     'advocate/lawyer',
   retailer:     'retailer',
@@ -233,10 +272,11 @@ export function buildResearchSystemPrompt(opts: ResearchPromptOpts): string {
   const today    = new Date().toISOString().split('T')[0]
   const guidance = opts.guidance?.trim() || GENERIC_PROFESSIONAL_GUIDANCE
 
-  // physio uses the Working Studio for clinical documentation; the research co-pilot
-  // is the business/education assistant only — same guardrail as doctor.
-  const doctorGuardrail = (opts.persona === 'doctor' || opts.persona === 'physio')
-    ? '\n\nIMPORTANT: This is a healthcare professional. NEVER give specific patient-facing medical diagnoses or treatment prescriptions via this co-pilot. For clinical documentation assistance, direct them to the Working Studio. This co-pilot focuses on education, business topics, and non-patient-specific professional questions.'
+  // All healthcare personas use the Practitioner Studio for clinical documentation.
+  // The research co-pilot is the business/education assistant only.
+  const studioPersonas = new Set(['doctor','physio','occtherapist','speech','chiro','counselor','homeopath','ayurveda','homenurse','postnatal','lactation'])
+  const doctorGuardrail = studioPersonas.has(opts.persona)
+    ? '\n\nIMPORTANT: This is a healthcare professional. NEVER give specific patient-facing medical diagnoses or treatment prescriptions via this co-pilot. For clinical documentation assistance, direct them to the Practitioner Studio. This co-pilot focuses on education, business topics, and non-patient-specific professional questions.'
     : ''
 
   const advocateGuardrail = opts.persona === 'advocate'
