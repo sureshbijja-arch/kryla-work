@@ -579,12 +579,18 @@ export default function PractitionerStudio({
         <div className="shrink-0">
           <RibbonToolbar
             editor={editorInstance}
-            zoom={zoom}
-            onZoomChange={setZoom}
+            onInsertClause={() => { setRightPanel('library'); setRightOpen(true) }}
+            onProofread={() => {}}
+            onCitations={() => {}}
+            onAcceptRedline={() => { const h = editorInstance?.getHTML() ?? editorHtml; setEditorHtml(h); setHasRedline(false) }}
+            onRejectRedline={() => { const h = editorInstance?.getHTML() ?? editorHtml; setEditorHtml(h); setHasRedline(false) }}
             margin={margin}
             onMarginChange={setMargin}
             lineHeight={lineHeight}
             onLineHeightChange={setLineHeight}
+            showRedline={hasRedline}
+            proofFindingCount={findings.length}
+            citationCount={0}
           />
         </div>
       )}
@@ -759,7 +765,7 @@ export default function PractitionerStudio({
       </div>
 
       {/* ── Status bar ── */}
-      <StatusBar editor={editorInstance} />
+      <StatusBar editor={editorInstance} zoom={zoom} onZoom={setZoom} />
     </div>
   )
 }
