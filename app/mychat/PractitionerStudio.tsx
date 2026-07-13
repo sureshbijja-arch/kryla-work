@@ -687,7 +687,7 @@ export default function PractitionerStudio({
         {/* ── Editor ── */}
         <div className="flex-1 min-w-0 flex flex-col overflow-hidden relative">
           <LegalEditor
-            content={editorHtml}
+            initialHtml={editorHtml}
             onChange={html => setEditorHtml(html)}
             onEditorReady={e => setEditorInstance(e)}
             zoom={zoom}
