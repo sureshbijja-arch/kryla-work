@@ -939,6 +939,186 @@ Help update the provider's page: collection listings, custom order info, shippin
 BUSINESS: Jewellery pricing strategy (imitation vs silver vs bridal), Instagram selling for jewellery, how to attract bridal enquiries, custom order workflow and deposit policies, packaging for shipping fragile jewellery, festive season demand planning (Dhanteras, Navratri, wedding season), and wholesale vs retail pricing.`,
 }
 
+// ── Distributor & Agency personas ─────────────────────────────────────────────
+// Studio guidance lives in DB (studio_guidance + studio_config on personas table).
+// workingGuidance and draftingGuidance intentionally absent — uses config-driven
+// PractitionerStudio engine (business_docs archetype), not legacy studios.
+
+const fmcgdist: VerticalConfig = {
+  id: 'fmcgdist',
+  label: 'FMCG / Grocery Distributor',
+  emoji: '🏪',
+  phase: 1,
+  defaultTemplate: 'storefront',
+  defaultPalette: 'warm',
+  defaultFont: 'inter',
+  bookingLabel: 'Request a quote',
+  ctaLabel: 'WhatsApp to enquire',
+  sections: ['about', 'services', 'gallery', 'highlights', 'contact'],
+  onboardingQuestions: [
+    { id: 'brands',    question: 'Which FMCG brands and product lines do you distribute?',    placeholder: 'e.g. Hindustan Unilever, ITC, Nestlé — personal care, staples, snacks' },
+    { id: 'territory', question: 'What territory or geography do you cover?',                 placeholder: 'e.g. Bengaluru urban — North and South zones, 450+ retail outlets' },
+    { id: 'buyers',    question: 'Who are your primary buyers?',                              placeholder: 'e.g. Kirana stores, supermarkets, modern trade, restaurants, institutions' },
+    { id: 'strengths', question: 'What makes you a reliable distribution partner?',           placeholder: 'e.g. 48-hour replenishment, ₹5L credit facility, cold-chain fleet' },
+    { id: 'moq',       question: 'What are your minimum order and pricing terms? (optional)', placeholder: 'e.g. Minimum order ₹5,000; monthly credit terms for established accounts' },
+  ],
+  chatGuidance: `PERSONA: FMCG / GROCERY DISTRIBUTOR
+Speak in distribution language: say "retailers", "stockists", "accounts", "product lines", "brands", "territory", "beat plan", "MOQ", "credit terms" — never "clients", "students", or "patients".
+Help update the provider's page: brand/product line listings (as services), territory highlights, reliability callouts, dealer enquiry CTA, bio. Remind them they can generate quotations, dealer agreements, price lists, appointment letters, and purchase orders from the Distribution Studio.`,
+  researchGuidance: `You are a business advisor for an FMCG / grocery distributor.
+BUSINESS: FMCG distribution margins (primary vs secondary), working capital cycles, GST for distributors, FSSAI requirements for food distributors, modern trade vs kirana channel dynamics, beat optimisation, credit management, and how to onboard new brands as a distributor.`,
+}
+
+const pharmadist: VerticalConfig = {
+  id: 'pharmadist',
+  label: 'Pharma / Medical Distributor',
+  emoji: '💊',
+  phase: 1,
+  defaultTemplate: 'storefront',
+  defaultPalette: 'calm',
+  defaultFont: 'inter',
+  bookingLabel: 'Enquire for supply',
+  ctaLabel: 'WhatsApp to enquire',
+  sections: ['about', 'services', 'gallery', 'highlights', 'contact'],
+  onboardingQuestions: [
+    { id: 'companies',   question: 'Which pharma companies or medical brands do you stock?',   placeholder: 'e.g. Sun Pharma, Cipla, Abbott, 3M Healthcare — OTC, Rx, medical devices' },
+    { id: 'territory',   question: 'What territory do you cover?',                            placeholder: 'e.g. Bengaluru city — all zones, licensed for Karnataka' },
+    { id: 'clients',     question: 'Who are your primary customers?',                         placeholder: 'e.g. Retail pharmacies, hospital pharmacies, diagnostic labs, clinics' },
+    { id: 'credentials', question: 'What licenses and capabilities do you have?',             placeholder: 'e.g. Drug license, GST, cold-chain storage, same-day delivery' },
+    { id: 'moq',         question: 'What are your minimum order and payment terms? (optional)', placeholder: 'e.g. Minimum order ₹3,000; 15-day credit for registered pharmacies' },
+  ],
+  chatGuidance: `PERSONA: PHARMA / MEDICAL DISTRIBUTOR
+Speak in pharma distribution language: say "pharmacies", "chemists", "stockists", "product range", "cold chain", "drug license", "Rx/OTC", "batch numbers", "expiry management" — never "students" or "patients" in a clinical context.
+Help update the provider's page: product category/brand listings, licensing credentials, territory, reliability highlights, supply enquiry CTA. Remind them they can generate supply quotations, distributor agreements, rate cards, appointment letters, and purchase orders from the Distribution Studio.`,
+  researchGuidance: `You are a business advisor for a pharma / medical distributor.
+BUSINESS: Drug license requirements (Schedule H, H1, X), CDSCO compliance, GST rates on pharma products, cold-chain storage norms, hospital vs retail pharmacy procurement, C&F agent vs distributor distinction, FIFO/FEFO stock management, and working capital for pharma distribution.`,
+}
+
+const electronicsdist: VerticalConfig = {
+  id: 'electronicsdist',
+  label: 'Electronics & Appliances Distributor',
+  emoji: '📱',
+  phase: 1,
+  defaultTemplate: 'storefront',
+  defaultPalette: 'professional',
+  defaultFont: 'inter',
+  bookingLabel: 'Request a quote',
+  ctaLabel: 'WhatsApp to enquire',
+  sections: ['about', 'services', 'gallery', 'highlights', 'contact'],
+  onboardingQuestions: [
+    { id: 'brands',    question: 'Which electronics or appliance brands do you distribute?',  placeholder: 'e.g. Samsung, LG, Bosch, OnePlus — smartphones, home appliances, AV' },
+    { id: 'territory', question: 'What territory or region do you cover?',                   placeholder: 'e.g. Hyderabad metro and Telangana — 300+ authorised retailers' },
+    { id: 'buyers',    question: 'Who are your primary buyers?',                             placeholder: 'e.g. Authorised retail stores, large-format retail, B2B corporate buyers' },
+    { id: 'strengths', question: 'What makes you a strong distribution partner?',            placeholder: 'e.g. Factory-authorised warranty support, demo units, quick restocking' },
+    { id: 'moq',       question: 'What are your minimum order or credit terms? (optional)',  placeholder: 'e.g. Minimum order ₹25,000; 30-day credit for authorised dealers' },
+  ],
+  chatGuidance: `PERSONA: ELECTRONICS & APPLIANCES DISTRIBUTOR
+Speak in electronics distribution language: say "authorised dealers", "retailers", "brands", "SKUs", "warranty", "service support", "demo stock", "channel pricing" — never "patients" or "students".
+Help update the provider's page: brand/category listings, territory coverage, dealer support highlights, enquiry CTA, bio. Remind them they can generate dealer quotations, distribution agreements, price lists, appointment letters, and purchase orders from the Distribution Studio.`,
+  researchGuidance: `You are a business advisor for an electronics & appliances distributor.
+BUSINESS: Electronics distribution margins by category (smartphones vs appliances), authorised dealer agreement structures, warranty management as a differentiator, modern trade vs independent retail channels, credit risk for high-value goods, BIS compliance, import regulations, and how to become an authorised brand distributor in India.`,
+}
+
+const autopartsdist: VerticalConfig = {
+  id: 'autopartsdist',
+  label: 'Auto Parts / Spares Distributor',
+  emoji: '🔧',
+  phase: 1,
+  defaultTemplate: 'storefront',
+  defaultPalette: 'professional',
+  defaultFont: 'inter',
+  bookingLabel: 'Request a quote',
+  ctaLabel: 'WhatsApp to enquire',
+  sections: ['about', 'services', 'highlights', 'contact'],
+  onboardingQuestions: [
+    { id: 'parts',     question: 'What auto parts categories and brands do you stock?',      placeholder: 'e.g. Bosch filters/batteries, TVS Lucas auto-electricals, Valeo clutch kits' },
+    { id: 'vehicle',   question: 'Which vehicle types do you cover?',                       placeholder: 'e.g. Passenger cars, SUVs, 2-wheelers, light commercial vehicles' },
+    { id: 'clients',   question: 'Who are your primary customers?',                         placeholder: 'e.g. Authorised workshops, independent garages, fleet operators' },
+    { id: 'territory', question: 'What territory do you cover?',                           placeholder: 'e.g. Pune city and Pune district — 200+ workshops on account' },
+    { id: 'moq',       question: 'What are your minimum order or credit terms? (optional)', placeholder: 'e.g. No minimum for registered workshops; 30-day credit for fleet accounts' },
+  ],
+  chatGuidance: `PERSONA: AUTO PARTS / SPARES DISTRIBUTOR
+Speak in auto-parts language: say "workshops", "garages", "fleet operators", "OEM parts", "aftermarket", "fitment range", "part numbers", "credit terms" — never "patients" or "students".
+Help update the provider's page: parts category listings, brands carried, vehicle coverage, workshop enquiry CTA, bio. Remind them they can generate supply quotations, workshop supply agreements, price lists, appointment letters, and purchase orders from the Distribution Studio.`,
+  researchGuidance: `You are a business advisor for an auto parts / spares distributor.
+BUSINESS: OEM vs aftermarket parts market in India, auto-parts distribution margins, workshop credit management, fleet operator procurement patterns, GST on auto parts (28%), counterfeit parts risk, and becoming an authorised OEM supplier distributor.`,
+}
+
+const buildingdist: VerticalConfig = {
+  id: 'buildingdist',
+  label: 'Building Materials / Hardware Distributor',
+  emoji: '🏗️',
+  phase: 1,
+  defaultTemplate: 'storefront',
+  defaultPalette: 'minimal',
+  defaultFont: 'inter',
+  bookingLabel: 'Request a quote',
+  ctaLabel: 'WhatsApp to enquire',
+  sections: ['about', 'services', 'highlights', 'contact'],
+  onboardingQuestions: [
+    { id: 'materials', question: 'What building material lines or brands do you stock?',      placeholder: 'e.g. Ultratech / ACC cement, Asian Paints, Hindware sanitaryware, Havells' },
+    { id: 'territory', question: 'What area or project types do you serve?',                 placeholder: 'e.g. Chennai metro — residential, commercial construction, government projects' },
+    { id: 'buyers',    question: 'Who are your primary customers?',                          placeholder: 'e.g. Contractors, builders, developers, retail hardware stores' },
+    { id: 'strengths', question: 'What makes you a strong supply partner?',                  placeholder: 'e.g. Same-day site delivery, credit facility, bulk pricing, technical advice' },
+    { id: 'moq',       question: 'What are your minimum order or credit terms? (optional)',  placeholder: 'e.g. Minimum ₹10,000 per order; 30-day credit for registered contractors' },
+  ],
+  chatGuidance: `PERSONA: BUILDING MATERIALS / HARDWARE DISTRIBUTOR
+Speak in construction supply language: say "contractors", "builders", "project accounts", "material lines", "site delivery", "bulk pricing", "credit terms" — never "patients" or "students".
+Help update the provider's page: material category listings, brands carried, project supply capability, enquiry CTA, bio. Remind them they can generate project quotations, supply agreements, material price lists, appointment letters, and purchase orders from the Distribution Studio.`,
+  researchGuidance: `You are a business advisor for a building materials / hardware distributor.
+BUSINESS: Construction materials distribution in India, cement and paint distribution margins, project procurement vs retail supply, credit risk in construction supply chains, GST on building materials, government project procurement norms, developing contractor accounts, and tender supply opportunities.`,
+}
+
+const agridist: VerticalConfig = {
+  id: 'agridist',
+  label: 'Agri-Inputs Distributor',
+  emoji: '🌾',
+  phase: 1,
+  defaultTemplate: 'storefront',
+  defaultPalette: 'fresh',
+  defaultFont: 'inter',
+  bookingLabel: 'Request supply',
+  ctaLabel: 'WhatsApp to enquire',
+  sections: ['about', 'services', 'highlights', 'contact'],
+  onboardingQuestions: [
+    { id: 'inputs',    question: 'What agri-input categories and brands do you stock?',      placeholder: 'e.g. Mahyco seeds, Coromandel fertilisers, Bayer crop protection' },
+    { id: 'territory', question: 'What area or districts do you cover?',                    placeholder: 'e.g. Nashik and surrounding districts — 150+ dealers and FPOs supplied' },
+    { id: 'buyers',    question: 'Who are your primary customers?',                         placeholder: 'e.g. Agri-dealers, FPOs, agricultural cooperatives, progressive farmers' },
+    { id: 'services',  question: 'What additional services do you offer beyond supply?',    placeholder: 'e.g. Field demonstration, technical advisory, crop-specific recommendations' },
+    { id: 'moq',       question: 'What are your minimum order or credit terms? (optional)', placeholder: 'e.g. Minimum order ₹5,000; seasonal credit during Kharif and Rabi' },
+  ],
+  chatGuidance: `PERSONA: AGRI-INPUTS DISTRIBUTOR
+Speak in agri-distribution language: say "dealers", "FPOs", "farmers", "crop protection", "seed varieties", "fertiliser grades", "Kharif season", "Rabi season", "package of practices" — never "patients" or "students".
+Help update the provider's page: product category listings, companies/brands carried, technical services, territory, dealer enquiry CTA. Remind them they can generate supply quotations, dealer agreements, season price lists, appointment letters, and purchase orders from the Distribution Studio.`,
+  researchGuidance: `You are a business advisor for an agri-inputs distributor.
+BUSINESS: Agri-input distribution structure in India (company → distributor → dealer → farmer), government subsidy schemes on fertilisers and seeds, CIB&RC registration for pesticides, Kharif and Rabi season demand cycles, FPO procurement and credit models, crop-specific recommendations, and seasonal working capital management.`,
+}
+
+const distributor: VerticalConfig = {
+  id: 'distributor',
+  label: 'Distributor',
+  emoji: '🚚',
+  phase: 1,
+  defaultTemplate: 'storefront',
+  defaultPalette: 'professional',
+  defaultFont: 'inter',
+  bookingLabel: 'Request a quote',
+  ctaLabel: 'WhatsApp to enquire',
+  sections: ['about', 'services', 'highlights', 'contact'],
+  onboardingQuestions: [
+    { id: 'products',  question: 'What products or categories do you distribute?',           placeholder: 'e.g. Packaged foods, industrial supplies, consumer goods, FMCG' },
+    { id: 'brands',    question: 'Which companies or brands do you represent?',             placeholder: 'e.g. 3 national brands + 5 regional brands across two categories' },
+    { id: 'territory', question: 'What territory or geography do you cover?',               placeholder: 'e.g. Bengaluru city and surrounding districts — 200+ active accounts' },
+    { id: 'buyers',    question: 'Who are your primary buyers?',                            placeholder: 'e.g. Retail shops, supermarkets, institutions, B2B buyers' },
+    { id: 'moq',       question: 'What are your minimum order or credit terms? (optional)', placeholder: 'e.g. Minimum order ₹5,000; 30-day credit for registered accounts' },
+  ],
+  chatGuidance: `PERSONA: DISTRIBUTOR
+Speak in distribution language: say "accounts", "retailers", "dealers", "stockists", "product lines", "brands", "territory", "credit terms", "MOQ" — never "students" or "patients".
+Help update the provider's page: product category listings, brands carried, territory, reliability highlights, dealer/account enquiry CTA, bio. Remind them they can generate quotations, dealer agreements, price lists, appointment letters, and purchase orders from the Distribution Studio.`,
+  researchGuidance: `You are a business advisor for a product distributor.
+BUSINESS: Distribution margins by product category, working capital management for distributors, GST implications for trading/distribution, credit risk and account management, channel conflict with direct sales, how to add new brands as a distributor, and freight and logistics optimisation.`,
+}
+
 // ── Registry ──────────────────────────────────────────────────
 // ADD NEW PERSONAS HERE ��� they will automatically appear in the onboarding grid,
 // template map, and palette map. No other files need to change.
@@ -975,6 +1155,8 @@ export const VERTICALS: Record<string, VerticalConfig> = {
   florist,
   jeweller,
   retailer,
+  // Distributor personas
+  fmcgdist, pharmadist, electronicsdist, autopartsdist, buildingdist, agridist, distributor,
   other,
 }
 
