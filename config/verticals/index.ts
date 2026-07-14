@@ -1119,6 +1119,233 @@ Help update the provider's page: product category listings, brands carried, terr
 BUSINESS: Distribution margins by product category, working capital management for distributors, GST implications for trading/distribution, credit risk and account management, channel conflict with direct sales, how to add new brands as a distributor, and freight and logistics optimisation.`,
 }
 
+// ── Distributor & Agency personas ────────────────────────────
+
+const travel: VerticalConfig = {
+  id: 'travel',
+  label: 'Travel Agency',
+  emoji: '✈️',
+  phase: 1,
+  defaultTemplate: 'portfolio',
+  defaultPalette: 'fresh',
+  defaultFont: 'inter',
+  bookingLabel: 'Book a trip',
+  ctaLabel: 'WhatsApp to plan',
+  sections: ['about', 'services', 'gallery', 'highlights', 'booking', 'contact'],
+  onboardingQuestions: [
+    { id: 'travel_types', question: 'What types of travel do you specialise in?',            placeholder: 'e.g. Leisure holidays, honeymoon packages, pilgrimage, corporate travel' },
+    { id: 'destinations', question: 'Which destinations or regions are you known for?',      placeholder: 'e.g. Southeast Asia, Europe, Rajasthan circuits, Char Dham, Bali' },
+    { id: 'services',     question: 'What services are included in your packages?',          placeholder: 'e.g. Flights, hotels, visa assistance, guided tours, travel insurance' },
+    { id: 'traveller',    question: 'Who is your typical traveller?',                        placeholder: 'e.g. Families, couples, solo travellers, senior citizen groups' },
+    { id: 'pricing',      question: 'What is your typical package price range? (optional)',  placeholder: 'e.g. Domestic from ₹15,000, international from ₹60,000 per person' },
+  ],
+  chatGuidance: `PERSONA: TRAVEL AGENCY
+Speak in travel language: say "travellers", "clients", "packages", "itinerary", "visa", "destination", "season", "booking" — never "students", "patients", or "retailers".
+Help update the provider's page: package/destination listings (as services), services overview, gallery, highlights (visa support, custom tours), booking CTA. Remind them they can generate itinerary proposals, booking agreements, package rate cards, supplier appointment letters, and group booking purchase orders from the Agency Studio.`,
+  researchGuidance: `You are a business advisor for a travel agency.
+BUSINESS: IATA vs non-IATA agent economics, OTA competition, niche travel positioning (pilgrimage, honeymoon, educational), peak season demand (summer, Diwali, December), visa facilitation as a revenue stream, travel insurance partnerships, group vs FIT package pricing, and GST on tour packages.`,
+}
+
+const realestate: VerticalConfig = {
+  id: 'realestate',
+  label: 'Real Estate Agency',
+  emoji: '🏠',
+  phase: 1,
+  defaultTemplate: 'portfolio',
+  defaultPalette: 'professional',
+  defaultFont: 'inter',
+  bookingLabel: 'Book a site visit',
+  ctaLabel: 'WhatsApp to enquire',
+  sections: ['about', 'services', 'gallery', 'highlights', 'booking', 'contact'],
+  onboardingQuestions: [
+    { id: 'property_types', question: 'What types of properties do you deal in?',            placeholder: 'e.g. Residential flats, villas, plots, commercial office space, retail shops' },
+    { id: 'locations',      question: 'Which localities or areas do you cover?',             placeholder: 'e.g. Whitefield, Sarjapur Road, Electronic City — Bengaluru East corridor' },
+    { id: 'services',       question: 'What real estate services do you offer?',             placeholder: 'e.g. Buy, sell, rent, investment advisory, NRI property management' },
+    { id: 'clients',        question: 'Who are your typical clients?',                       placeholder: 'e.g. First-time homebuyers, investors, NRIs, corporate tenants' },
+    { id: 'credentials',    question: 'Do you have RERA registration or credentials? (optional)', placeholder: 'e.g. RERA registered agent: KA-REA-00123456, 12 years in Bengaluru market' },
+  ],
+  chatGuidance: `PERSONA: REAL ESTATE AGENCY
+Speak in real estate language: say "buyers", "sellers", "tenants", "investors", "listings", "localities", "sqft", "possession date", "RERA", "commission" — never "students" or "patients".
+Help update the provider's page: property type/service listings, locality coverage, credentials, buyer/investor enquiry CTA, bio. Remind them they can generate property quotations, sale/rent agreements, property rate sheets, appointment letters, and client proposals from the Agency Studio.`,
+  researchGuidance: `You are a business advisor for a real estate agency.
+BUSINESS: RERA agent registration requirements, commission structures (1–2% of transaction value), buyer vs seller representation, lead generation on portals (MagicBricks, 99acres, Housing), NRI client service model, co-brokerage norms, rental vs sales income mix, and growing referral networks with builders and home loan advisors.`,
+}
+
+const insurance: VerticalConfig = {
+  id: 'insurance',
+  label: 'Insurance Agent / Agency',
+  emoji: '🛡️',
+  phase: 1,
+  defaultTemplate: 'focus',
+  defaultPalette: 'calm',
+  defaultFont: 'inter',
+  bookingLabel: 'Request a policy review',
+  ctaLabel: 'WhatsApp me',
+  sections: ['about', 'services', 'highlights', 'booking', 'faq', 'contact'],
+  onboardingQuestions: [
+    { id: 'insurance_types', question: 'What types of insurance do you advise on?',          placeholder: 'e.g. Term life, health, motor, home, business / commercial, group health' },
+    { id: 'insurers',        question: 'Which insurance companies do you represent?',        placeholder: 'e.g. LIC, HDFC Life, Star Health, ICICI Lombard, New India Assurance' },
+    { id: 'clients',         question: 'Who are your typical clients?',                     placeholder: 'e.g. Salaried families, business owners, MSMEs, NRIs, retired individuals' },
+    { id: 'services',        question: 'What do you offer beyond policy selection?',         placeholder: 'e.g. Claim support, annual policy review, portfolio planning, tax benefit advisory' },
+    { id: 'approach',        question: 'What makes your advisory different?',                placeholder: 'e.g. Needs-based approach, no pushy selling, advice across 10+ insurers' },
+  ],
+  chatGuidance: `PERSONA: INSURANCE AGENT / AGENCY
+Speak in insurance language: say "clients", "policyholders", "coverage", "premium", "claim", "sum assured", "renewal", "policy portfolio" — never "students", "patients", or "retailers".
+Help update the provider's page: insurance type/service listings, insurer partnerships, advisory differentiators, policy review CTA, FAQ. Remind them they can generate coverage proposals, agency appointment letters, commission rate cards, and client agreements from the Agency Studio.`,
+  researchGuidance: `You are a business advisor for an insurance agent or agency.
+BUSINESS: IRDAI agent licensing, POSPAgent vs general agent distinction, commission structures across life/health/general insurance, how to build referral networks (with CAs, doctors, real estate agents), claim servicing as retention strategy, GST on insurance premium, and group health insurance for MSMEs as a growth segment.`,
+}
+
+const staffing: VerticalConfig = {
+  id: 'staffing',
+  label: 'Staffing & Recruitment',
+  emoji: '👔',
+  phase: 1,
+  defaultTemplate: 'focus',
+  defaultPalette: 'professional',
+  defaultFont: 'inter',
+  bookingLabel: 'Discuss a requirement',
+  ctaLabel: 'WhatsApp me',
+  sections: ['about', 'services', 'highlights', 'booking', 'faq', 'contact'],
+  onboardingQuestions: [
+    { id: 'sectors',       question: 'Which industries or sectors do you recruit for?',      placeholder: 'e.g. IT / Tech, BFSI, manufacturing, healthcare, retail, logistics' },
+    { id: 'staffing_type', question: 'What type of staffing do you offer?',                 placeholder: 'e.g. Permanent placement, contract staffing, RPO, executive search, temp staffing' },
+    { id: 'candidates',    question: 'What level of candidates do you place?',              placeholder: 'e.g. Blue-collar to mid-management; or niche senior tech leaders' },
+    { id: 'clients',       question: 'Who are your typical client companies?',              placeholder: 'e.g. Startups to mid-size firms, MNCs, manufacturing plants, hospital groups' },
+    { id: 'sla',           question: 'What is your typical turnaround or success rate? (optional)', placeholder: 'e.g. CV submission within 48 hours; 90-day replacement guarantee' },
+  ],
+  chatGuidance: `PERSONA: STAFFING & RECRUITMENT
+Speak in recruitment language: say "clients", "candidates", "mandates", "placements", "JD", "shortlist", "replacement guarantee" — never "students", "patients", or "subscribers".
+Help update the provider's page: staffing service listings, sector expertise, SLA highlights, client enquiry CTA, FAQ. Remind them they can generate client proposals, staffing/recruitment agreements, fee structure letters, and appointment letters from the Agency Studio.`,
+  researchGuidance: `You are a business advisor for a staffing and recruitment agency.
+BUSINESS: Recruitment fee structures (% of CTC for permanent, margins for contract), RPO vs traditional staffing economics, retainer vs contingency mandates, labour law compliance for contract staffing (PF/ESI), background verification partnerships, niche sector specialisation as a differentiator, and digital sourcing (LinkedIn Recruiter, job portals).`,
+}
+
+const marketing: VerticalConfig = {
+  id: 'marketing',
+  label: 'Marketing & Digital Agency',
+  emoji: '📣',
+  phase: 1,
+  defaultTemplate: 'portfolio',
+  defaultPalette: 'creative',
+  defaultFont: 'inter',
+  bookingLabel: 'Request a proposal',
+  ctaLabel: 'WhatsApp me',
+  sections: ['about', 'services', 'gallery', 'highlights', 'booking', 'faq', 'contact'],
+  onboardingQuestions: [
+    { id: 'services',  question: 'What marketing services do you offer?',                   placeholder: 'e.g. SEO, social media management, Google / Meta Ads, branding, web design' },
+    { id: 'clients',   question: 'What types of businesses do you work with?',              placeholder: 'e.g. D2C brands, local businesses, startups, real estate, healthcare, education' },
+    { id: 'approach',  question: 'What makes your agency different?',                       placeholder: 'e.g. Data-driven results, dedicated account manager, monthly reporting' },
+    { id: 'portfolio', question: 'Any notable campaigns or client results you can share?',  placeholder: 'e.g. 3× ROAS for e-commerce client, 10K followers in 60 days for F&B brand' },
+    { id: 'pricing',   question: 'What are your engagement models or starting prices? (optional)', placeholder: 'e.g. Project-based from ₹25,000; monthly retainer from ₹15,000 / month' },
+  ],
+  chatGuidance: `PERSONA: MARKETING & DIGITAL AGENCY
+Speak in agency language: say "clients", "campaigns", "retainer", "scope of work", "deliverables", "ROAS", "engagement rate", "brief" — never "students", "patients", or "subscribers".
+Help update the provider's page: service listings, portfolio/case study highlights, expertise callouts, proposal request CTA, FAQ. Remind them they can generate service proposals, agency-client agreements, retainer rate cards, engagement letters, and campaign purchase orders from the Agency Studio.`,
+  researchGuidance: `You are a business advisor for a marketing and digital agency.
+BUSINESS: Agency pricing models (retainer vs project vs performance), client acquisition for agencies, how to pitch to SMBs vs enterprise clients, Meta/Google Ads reseller partnerships, white-labelling opportunities, managing scope creep with contracts, building a case study portfolio, and growing from a niche specialty to full-service.`,
+}
+
+const immigration: VerticalConfig = {
+  id: 'immigration',
+  label: 'Immigration & Study-Abroad',
+  emoji: '🌏',
+  phase: 1,
+  defaultTemplate: 'focus',
+  defaultPalette: 'fresh',
+  defaultFont: 'inter',
+  bookingLabel: 'Book a consultation',
+  ctaLabel: 'WhatsApp me',
+  sections: ['about', 'services', 'highlights', 'booking', 'faq', 'contact'],
+  onboardingQuestions: [
+    { id: 'countries',    question: 'Which countries do you specialise in?',                placeholder: 'e.g. Canada (PR / study), UK, Australia, Germany, USA, UAE' },
+    { id: 'visa_types',   question: 'What visa types or immigration pathways do you handle?', placeholder: 'e.g. Student visas, work permits, skilled migration, investor visa, PR' },
+    { id: 'services',     question: 'What services do you provide?',                       placeholder: 'e.g. Profile assessment, application filing, SOP writing, interview prep, admissions' },
+    { id: 'track_record', question: 'How many clients have you helped? Any highlights? (optional)', placeholder: 'e.g. 500+ successful student visas, 98% Canada PR approval rate over 3 years' },
+    { id: 'fees',         question: 'What are your fees or process? (optional)',            placeholder: 'e.g. Consultation ₹1,000; full PR package ₹60,000; university admissions from ₹25,000' },
+  ],
+  chatGuidance: `PERSONA: IMMIGRATION & STUDY-ABROAD CONSULTANT
+Speak in immigration language: say "clients", "applicants", "visa", "PR", "immigration pathway", "SOP", "eligibility", "profile assessment" — never "patients" or "retailers".
+Help update the provider's page: service listings by country/pathway, eligibility highlights, process steps, consultation CTA, FAQ. Remind them they can generate client proposals, service agreements, fee schedule letters, and engagement letters from the Agency Studio.`,
+  researchGuidance: `You are a business advisor for an immigration and study-abroad consultant.
+BUSINESS: ICCRC / MARN registration (Canada / Australia), OISC regulation (UK), STEM OPT and F-1 visa nuances, Germany job seeker visa growth, IELTS / PTE score thresholds, how to partner with universities for commission income, document fraud risks, digital marketing to study-abroad aspirants, and refund / service guarantee norms.`,
+}
+
+const events: VerticalConfig = {
+  id: 'events',
+  label: 'Event Management',
+  emoji: '🎉',
+  phase: 1,
+  defaultTemplate: 'portfolio',
+  defaultPalette: 'warm',
+  defaultFont: 'inter',
+  bookingLabel: 'Request a quote',
+  ctaLabel: 'WhatsApp to discuss',
+  sections: ['about', 'services', 'gallery', 'highlights', 'booking', 'contact'],
+  onboardingQuestions: [
+    { id: 'event_types', question: 'What types of events do you manage?',                   placeholder: 'e.g. Weddings, corporate events, product launches, conferences, birthday parties' },
+    { id: 'scale',       question: 'What scale of events do you handle?',                   placeholder: 'e.g. Intimate 50-person gatherings to 2,000-person corporate summits' },
+    { id: 'services',    question: 'What services are included in your event management?',  placeholder: 'e.g. Venue sourcing, decor, catering coordination, AV / lighting, entertainment' },
+    { id: 'locations',   question: 'Which cities or venues do you operate in?',             placeholder: 'e.g. Delhi NCR — Gurugram, Noida — and destination weddings across Rajasthan' },
+    { id: 'portfolio',   question: 'Any notable events or clients you can mention? (optional)', placeholder: 'e.g. 200+ weddings, annual conference for a 500-person IT company' },
+  ],
+  chatGuidance: `PERSONA: EVENT MANAGEMENT
+Speak in event language: say "clients", "events", "venue", "decor", "AV / lighting", "logistics", "vendor coordination", "quote", "guest count" — never "patients", "retailers", or "subscribers".
+Help update the provider's page: event type listings, capability highlights, portfolio callouts, quote request CTA. Remind them they can generate event proposals, event management agreements, vendor rate cards, vendor appointment letters, and purchase orders from the Agency Studio.`,
+  researchGuidance: `You are a business advisor for an event management company.
+BUSINESS: Event management pricing (% of event budget vs flat fee), vendor margin management, wedding vs corporate event economics, corporate retainer mandates, GST on event services (18%), entertainment tax, liability and cancellation clauses, social media portfolio building for weddings, and B2B corporate event sourcing.`,
+}
+
+const logistics: VerticalConfig = {
+  id: 'logistics',
+  label: 'Logistics & Freight Forwarding',
+  emoji: '🚢',
+  phase: 1,
+  defaultTemplate: 'focus',
+  defaultPalette: 'minimal',
+  defaultFont: 'inter',
+  bookingLabel: 'Request a freight quote',
+  ctaLabel: 'WhatsApp to enquire',
+  sections: ['about', 'services', 'highlights', 'booking', 'faq', 'contact'],
+  onboardingQuestions: [
+    { id: 'services',       question: 'What logistics and freight services do you offer?',   placeholder: 'e.g. Domestic road freight, air cargo, sea FCL / LCL, customs clearing, warehousing' },
+    { id: 'routes',         question: 'Which routes or corridors do you specialise in?',    placeholder: 'e.g. India–UAE air freight; Chennai–Mumbai–Delhi road express; pan-India FTL / LTL' },
+    { id: 'cargo',          question: 'What types of cargo or industries do you handle?',   placeholder: 'e.g. Garments, pharma cold chain, auto parts, perishables, B2B e-commerce' },
+    { id: 'clients',        question: 'Who are your typical clients?',                      placeholder: 'e.g. Exporters, importers, manufacturers, e-commerce brands, trading companies' },
+    { id: 'differentiator', question: 'What makes your logistics service stand out? (optional)', placeholder: 'e.g. Real-time tracking, dedicated account manager, IATA cargo certified' },
+  ],
+  chatGuidance: `PERSONA: LOGISTICS & FREIGHT FORWARDING
+Speak in logistics language: say "shippers", "clients", "consignees", "freight", "cargo", "route", "transit time", "FCL / LCL", "customs", "SLA" — never "students" or "patients".
+Help update the provider's page: service/route listings, cargo specialisations, reliability highlights, freight enquiry CTA, FAQ. Remind them they can generate freight quotations, logistics service agreements, route rate cards, partner appointment letters, and purchase orders from the Agency Studio.`,
+  researchGuidance: `You are a business advisor for a logistics and freight forwarding company.
+BUSINESS: IATA cargo agent accreditation, customs broker (CHA) licensing in India, ocean freight dynamics (FCL vs LCL), air cargo pricing, FTL vs LTL road freight economics, GST on logistics (5%), e-commerce logistics growth, and building anchor client relationships.`,
+}
+
+const agency: VerticalConfig = {
+  id: 'agency',
+  label: 'Agency',
+  emoji: '🏢',
+  phase: 1,
+  defaultTemplate: 'focus',
+  defaultPalette: 'professional',
+  defaultFont: 'inter',
+  bookingLabel: 'Request a quote',
+  ctaLabel: 'WhatsApp me',
+  sections: ['about', 'services', 'highlights', 'booking', 'faq', 'contact'],
+  onboardingQuestions: [
+    { id: 'services',  question: 'What services does your agency provide?',                 placeholder: 'e.g. Consulting, procurement, sourcing, representation, channel management' },
+    { id: 'sectors',   question: 'Which industries or sectors do you serve?',               placeholder: 'e.g. Healthcare, education, manufacturing, retail, government, real estate' },
+    { id: 'clients',   question: 'Who are your typical clients?',                          placeholder: 'e.g. Corporates, MSMEs, government bodies, international companies entering India' },
+    { id: 'geography', question: 'What is your geographic coverage?',                      placeholder: 'e.g. Pan-India, Maharashtra focus, South India, or cross-border India–Middle East' },
+    { id: 'approach',  question: 'What makes your agency the right partner? (optional)',    placeholder: 'e.g. 15 years in sector, established network, end-to-end project management' },
+  ],
+  chatGuidance: `PERSONA: AGENCY
+Speak in agency language: say "clients", "mandates", "scope of work", "deliverables", "retainer", "project", "network", "representation" — never "students" or "patients".
+Help update the provider's page: service listings, sector expertise, coverage highlights, enquiry CTA, FAQ. Remind them they can generate service proposals, agency-client agreements, fee schedules, and appointment letters from the Agency Studio.`,
+  researchGuidance: `You are a business advisor for a service agency.
+BUSINESS: Agency service pricing models (retainer, project, success fee), how to structure scope-of-work agreements, client acquisition for intermediary businesses, GST on agency services, principal-agent contract structures, how to grow from sole proprietorship to registered firm, and building referral and partnership networks.`,
+}
+
 // ── Registry ──────────────────────────────────────────────────
 // ADD NEW PERSONAS HERE ��� they will automatically appear in the onboarding grid,
 // template map, and palette map. No other files need to change.
@@ -1157,6 +1384,8 @@ export const VERTICALS: Record<string, VerticalConfig> = {
   retailer,
   // Distributor personas
   fmcgdist, pharmadist, electronicsdist, autopartsdist, buildingdist, agridist, distributor,
+  // Agency personas
+  travel, realestate, insurance, staffing, marketing, immigration, events, logistics, agency,
   other,
 }
 
