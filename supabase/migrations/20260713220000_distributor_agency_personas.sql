@@ -17,7 +17,7 @@ INSERT INTO studio_archetypes (id, label, base_guidance, disclaimer, has_library
 
 OUTPUT FORMAT: Return valid HTML suitable for a rich-text editor. Use <h1>–<h3> for headings, <p> for paragraphs, <strong> for bold, <ul>/<li> and <ol>/<li> for lists, <table> for financial tables and clause lists. Include [DATE], [COMPANY NAME], [RECIPIENT NAME] placeholders where needed. No markdown — HTML only.',
 '📋 AI-drafted document — review all figures, terms, and party details before signing or sending.',
-false, NULL, 'studio_business')
+false, '', 'studio_business')
 
 ON CONFLICT (id) DO NOTHING;
 
