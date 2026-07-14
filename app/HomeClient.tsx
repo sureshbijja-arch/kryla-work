@@ -837,7 +837,7 @@ export default function HomeClient({ plans, enabledPersonaIds = [] }: { plans: P
 
         {/* Flanking 2×2 bobbing card clusters */}
         <div className="hero-bg">
-          {/* Left cluster — Tutor, Baker, Chef, Retailer */}
+          {/* Left cluster — Tutor, Baker, Chef, Retailer, Distributor, Travel Agency */}
           <div className="hf-cluster left">
             {isEnabled('tutor') && (
               <div className="hf-wrap" style={{ '--rotation':'-5deg', animationDelay:'0s' } as React.CSSProperties}>
@@ -876,7 +876,7 @@ export default function HomeClient({ plans, enabledPersonaIds = [] }: { plans: P
               </div>
             )}
           </div>
-          {/* Right cluster — Music Teacher, Salon / Stylist, Advocate, Doctor */}
+          {/* Right cluster — Music Teacher, Salon / Stylist, Advocate, Doctor, Real Estate, Agency */}
           <div className="hf-cluster right">
             {isEnabled('musician') && (
               <div className="hf-wrap" style={{ '--rotation':'5deg', animationDelay:'0.3s' } as React.CSSProperties}>
