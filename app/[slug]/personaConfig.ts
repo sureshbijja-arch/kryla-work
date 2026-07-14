@@ -299,6 +299,104 @@ export const PERSONA_CONFIG = {
     hasCustomOrder:    false,
     leadTimeNotice:    null,
   },
+  // ── Distributor personas ───────────────────────────────────────────────────
+  fmcgdist: {
+    tabLabel: 'Supply', heroCtaTarget: '#products', servicesLabel: 'Product Lines',
+    bioLabel: 'About Us', highlightsLabel: 'Why Deal With Us', contactLabel: 'Trade Enquiries',
+    contactVariant: 'enquiry' as const, serviceCardAction: 'enquire' as const,
+    orderLabel: 'Enquire', hasQuantity: false, hasNotes: false, hasCustomOrder: false, leadTimeNotice: null,
+  },
+  pharmadist: {
+    tabLabel: 'Supply', heroCtaTarget: '#products', servicesLabel: 'Product Range',
+    bioLabel: 'About Us', highlightsLabel: 'Why Supply With Us', contactLabel: 'Supply Enquiries',
+    contactVariant: 'enquiry' as const, serviceCardAction: 'enquire' as const,
+    orderLabel: 'Enquire', hasQuantity: false, hasNotes: false, hasCustomOrder: false, leadTimeNotice: null,
+  },
+  electronicsdist: {
+    tabLabel: 'Supply', heroCtaTarget: '#brands', servicesLabel: 'Brands & Categories',
+    bioLabel: 'About Us', highlightsLabel: 'Why Deal With Us', contactLabel: 'Dealer Enquiries',
+    contactVariant: 'enquiry' as const, serviceCardAction: 'enquire' as const,
+    orderLabel: 'Enquire', hasQuantity: false, hasNotes: false, hasCustomOrder: false, leadTimeNotice: null,
+  },
+  autopartsdist: {
+    tabLabel: 'Supply', heroCtaTarget: '#parts', servicesLabel: 'Parts Categories',
+    bioLabel: 'About Us', highlightsLabel: 'Why Supply With Us', contactLabel: 'Workshop Enquiries',
+    contactVariant: 'enquiry' as const, serviceCardAction: 'enquire' as const,
+    orderLabel: 'Enquire', hasQuantity: false, hasNotes: false, hasCustomOrder: false, leadTimeNotice: null,
+  },
+  buildingdist: {
+    tabLabel: 'Supply', heroCtaTarget: '#materials', servicesLabel: 'Material Lines',
+    bioLabel: 'About Us', highlightsLabel: 'Why Supply With Us', contactLabel: 'Trade Enquiries',
+    contactVariant: 'enquiry' as const, serviceCardAction: 'enquire' as const,
+    orderLabel: 'Enquire', hasQuantity: false, hasNotes: false, hasCustomOrder: false, leadTimeNotice: null,
+  },
+  agridist: {
+    tabLabel: 'Supply', heroCtaTarget: '#products', servicesLabel: 'Product Categories',
+    bioLabel: 'About Us', highlightsLabel: 'Why Deal With Us', contactLabel: 'Dealer Enquiries',
+    contactVariant: 'enquiry' as const, serviceCardAction: 'enquire' as const,
+    orderLabel: 'Enquire', hasQuantity: false, hasNotes: false, hasCustomOrder: false, leadTimeNotice: null,
+  },
+  distributor: {
+    tabLabel: 'Supply', heroCtaTarget: '#products', servicesLabel: 'Product Lines',
+    bioLabel: 'About Us', highlightsLabel: 'Why Deal With Us', contactLabel: 'Trade Enquiries',
+    contactVariant: 'enquiry' as const, serviceCardAction: 'enquire' as const,
+    orderLabel: 'Enquire', hasQuantity: false, hasNotes: false, hasCustomOrder: false, leadTimeNotice: null,
+  },
+  // ── Agency personas ────────────────────────────────────────────────────────
+  travel: {
+    tabLabel: 'Bookings', heroCtaTarget: '#packages', servicesLabel: 'Tour Packages',
+    bioLabel: 'About Us', highlightsLabel: 'Why Travel With Us', contactLabel: 'Enquire / Book',
+    contactVariant: 'both' as const, serviceCardAction: 'book' as const,
+    orderLabel: 'Enquire', hasQuantity: false, hasNotes: true, hasCustomOrder: false, leadTimeNotice: null,
+  },
+  realestate: {
+    tabLabel: 'Enquiries', heroCtaTarget: '#properties', servicesLabel: 'Properties & Services',
+    bioLabel: 'About Us', highlightsLabel: 'Why Work With Us', contactLabel: 'Enquire About a Property',
+    contactVariant: 'both' as const, serviceCardAction: 'enquire' as const,
+    orderLabel: 'Enquire', hasQuantity: false, hasNotes: true, hasCustomOrder: false, leadTimeNotice: null,
+  },
+  insurance: {
+    tabLabel: 'Enquiries', heroCtaTarget: '#services', servicesLabel: 'Insurance Products',
+    bioLabel: 'About Me', highlightsLabel: 'Why Choose Us', contactLabel: 'Get in Touch',
+    contactVariant: 'both' as const, serviceCardAction: 'enquire' as const,
+    orderLabel: 'Enquire', hasQuantity: false, hasNotes: false, hasCustomOrder: false, leadTimeNotice: null,
+  },
+  staffing: {
+    tabLabel: 'Mandates', heroCtaTarget: '#services', servicesLabel: 'Staffing Services',
+    bioLabel: 'About Us', highlightsLabel: 'Why Partner With Us', contactLabel: 'Discuss a Requirement',
+    contactVariant: 'both' as const, serviceCardAction: 'enquire' as const,
+    orderLabel: 'Enquire', hasQuantity: false, hasNotes: false, hasCustomOrder: false, leadTimeNotice: null,
+  },
+  marketing: {
+    tabLabel: 'Enquiries', heroCtaTarget: '#services', servicesLabel: 'Services & Packages',
+    bioLabel: 'About Us', highlightsLabel: 'Why Work With Us', contactLabel: 'Request a Proposal',
+    contactVariant: 'both' as const, serviceCardAction: 'enquire' as const,
+    orderLabel: 'Enquire', hasQuantity: false, hasNotes: false, hasCustomOrder: false, leadTimeNotice: null,
+  },
+  immigration: {
+    tabLabel: 'Consultations', heroCtaTarget: '#services', servicesLabel: 'Services & Pathways',
+    bioLabel: 'About Us', highlightsLabel: 'Why Choose Us', contactLabel: 'Book a Consultation',
+    contactVariant: 'both' as const, serviceCardAction: 'book' as const,
+    orderLabel: 'Book', hasQuantity: false, hasNotes: false, hasCustomOrder: false, leadTimeNotice: null,
+  },
+  events: {
+    tabLabel: 'Enquiries', heroCtaTarget: '#events', servicesLabel: 'Events & Services',
+    bioLabel: 'About Us', highlightsLabel: 'Why Choose Us', contactLabel: 'Request a Quote',
+    contactVariant: 'both' as const, serviceCardAction: 'enquire' as const,
+    orderLabel: 'Enquire', hasQuantity: false, hasNotes: true, hasCustomOrder: false, leadTimeNotice: null,
+  },
+  logistics: {
+    tabLabel: 'Enquiries', heroCtaTarget: '#services', servicesLabel: 'Freight Services',
+    bioLabel: 'About Us', highlightsLabel: 'Why Ship With Us', contactLabel: 'Request a Freight Quote',
+    contactVariant: 'both' as const, serviceCardAction: 'enquire' as const,
+    orderLabel: 'Enquire', hasQuantity: false, hasNotes: true, hasCustomOrder: false, leadTimeNotice: null,
+  },
+  agency: {
+    tabLabel: 'Enquiries', heroCtaTarget: '#services', servicesLabel: 'Services',
+    bioLabel: 'About Us', highlightsLabel: 'Why Choose Us', contactLabel: 'Get in Touch',
+    contactVariant: 'both' as const, serviceCardAction: 'enquire' as const,
+    orderLabel: 'Enquire', hasQuantity: false, hasNotes: false, hasCustomOrder: false, leadTimeNotice: null,
+  },
 } as const
 
 export type PersonaKey = keyof typeof PERSONA_CONFIG
@@ -563,6 +661,56 @@ const POSTNATAL_ROSTER: RosterCopy = {
   removeConfirm:       'Remove this record?',
 }
 
+const DISTRIBUTOR_ROSTER: RosterCopy = {
+  singular:            'account',
+  plural:              'accounts',
+  tabLabel:            'Accounts',
+  emoji:               '🏪',
+  emptyHeading:        'No accounts yet',
+  emptySubtext:        'Add dealer and retailer accounts to track your relationships.',
+  addLabel:            '+ Add account',
+  lessonsBtnLabel:     '📋 Orders',
+  logTitle:            'Log an interaction',
+  topicLabel:          'Topic / Purpose',
+  topicPlaceholder:    'e.g. Monthly order, product demo, credit review',
+  homeworkLabel:       'Follow-up',
+  homeworkPlaceholder: 'Follow-up action (e.g. Send price list, confirm delivery date)',
+  notesPlaceholder:    'Private notes (not shared with account)',
+  nextLabel:           'Next follow-up',
+  nextPlaceholder:     'e.g. Call on Monday, visit next week',
+  historyLabel:        'History',
+  sessionNoun:         'interaction',
+  contactSectionLabel: 'Key contact at account (optional)',
+  contactRowLabel:     'Contact',
+  quickLogLabel:       '✓ Quick log',
+  removeConfirm:       'Remove this account?',
+}
+
+const AGENCY_ROSTER: RosterCopy = {
+  singular:            'client',
+  plural:              'clients',
+  tabLabel:            'Clients',
+  emoji:               '🏢',
+  emptyHeading:        'No clients yet',
+  emptySubtext:        'Add clients to track engagements and follow-ups.',
+  addLabel:            '+ Add client',
+  lessonsBtnLabel:     '📋 Engagements',
+  logTitle:            'Log an engagement',
+  topicLabel:          'Topic / Service',
+  topicPlaceholder:    'e.g. Initial consultation, proposal review, site visit',
+  homeworkLabel:       'Follow-up',
+  homeworkPlaceholder: 'Next step (e.g. Send proposal, share documents, confirm meeting)',
+  notesPlaceholder:    'Private notes (not shared with client)',
+  nextLabel:           'Next meeting / call',
+  nextPlaceholder:     'e.g. Thursday 3 PM, call next week',
+  historyLabel:        'History',
+  sessionNoun:         'engagement',
+  contactSectionLabel: 'Key contact (optional)',
+  contactRowLabel:     'Contact',
+  quickLogLabel:       '✓ Quick log',
+  removeConfirm:       'Remove this client?',
+}
+
 const ROSTER_COPY: Record<string, RosterCopy> = {
   tutor:        TUTOR_ROSTER,
   advocate:     ADVOCATE_ROSTER,
@@ -576,6 +724,15 @@ const ROSTER_COPY: Record<string, RosterCopy> = {
   homenurse:    CAREGIVER_ROSTER,
   postnatal:    POSTNATAL_ROSTER,
   lactation:    POSTNATAL_ROSTER,
+  // Distributor personas
+  fmcgdist: DISTRIBUTOR_ROSTER, pharmadist: DISTRIBUTOR_ROSTER,
+  electronicsdist: DISTRIBUTOR_ROSTER, autopartsdist: DISTRIBUTOR_ROSTER,
+  buildingdist: DISTRIBUTOR_ROSTER, agridist: DISTRIBUTOR_ROSTER,
+  distributor: DISTRIBUTOR_ROSTER,
+  // Agency personas
+  travel: AGENCY_ROSTER, realestate: AGENCY_ROSTER, insurance: AGENCY_ROSTER,
+  staffing: AGENCY_ROSTER, marketing: AGENCY_ROSTER, immigration: AGENCY_ROSTER,
+  events: AGENCY_ROSTER, logistics: AGENCY_ROSTER, agency: AGENCY_ROSTER,
 }
 
 /** Returns persona-appropriate roster copy; falls back to tutor defaults for all other personas. */
