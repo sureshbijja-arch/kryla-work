@@ -841,25 +841,25 @@ export default function HomeClient({ plans, enabledPersonaIds = [] }: { plans: P
           <div className="hf-cluster left">
             {isEnabled('tutor') && (
               <div className="hf-wrap" style={{ '--rotation':'-5deg', animationDelay:'0s' } as React.CSSProperties}>
-                <img className="hf-photo" src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=300&q=80" alt="Tutor" />
+                <img className="hf-photo" src="/images/Tutor1.jpg" alt="Tutor" />
                 <span className="hf-label">📚 Tutor</span>
               </div>
             )}
             {isEnabled('baker') && (
               <div className="hf-wrap" style={{ '--rotation':'4deg', animationDelay:'0.5s' } as React.CSSProperties}>
-                <img className="hf-photo" src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&q=80" alt="Baker" />
+                <img className="hf-photo" src="/images/Baker1.jpg" alt="Baker" />
                 <span className="hf-label">🎂 Baker</span>
               </div>
             )}
             {isEnabled('chef') && (
               <div className="hf-wrap" style={{ '--rotation':'3deg', animationDelay:'1s' } as React.CSSProperties}>
-                <img className="hf-photo" src="https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=300&q=80" alt="Chef" />
+                <img className="hf-photo" src="/images/HomeChef1.jpg" alt="Chef" />
                 <span className="hf-label">🍱 Chef</span>
               </div>
             )}
             {isEnabled('retailer') && (
               <div className="hf-wrap" style={{ '--rotation':'-4deg', animationDelay:'1.5s' } as React.CSSProperties}>
-                <img className="hf-photo" src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=300&q=80" alt="Retailer" />
+                <img className="hf-photo" src="/images/Retailer1.jpg" alt="Retailer" />
                 <span className="hf-label">🛍️ Retailer</span>
               </div>
             )}
@@ -868,25 +868,25 @@ export default function HomeClient({ plans, enabledPersonaIds = [] }: { plans: P
           <div className="hf-cluster right">
             {isEnabled('musician') && (
               <div className="hf-wrap" style={{ '--rotation':'5deg', animationDelay:'0.3s' } as React.CSSProperties}>
-                <img className="hf-photo" src="https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=300&q=80" alt="Music Teacher" />
+                <img className="hf-photo" src="/images/MusicTeacher1.jpg" alt="Music Teacher" />
                 <span className="hf-label">🎵 Music Teacher</span>
               </div>
             )}
             {isEnabled('salon') && (
               <div className="hf-wrap" style={{ '--rotation':'-3deg', animationDelay:'0.8s' } as React.CSSProperties}>
-                <img className="hf-photo" src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=300&q=80" alt="Salon / Stylist" />
+                <img className="hf-photo" src="/images/Salon1.jpg" alt="Salon / Stylist" />
                 <span className="hf-label">✂️ Salon / Stylist</span>
               </div>
             )}
             {isEnabled('advocate') && (
               <div className="hf-wrap" style={{ '--rotation':'-5deg', animationDelay:'1.3s' } as React.CSSProperties}>
-                <img className="hf-photo" src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=300&q=80" alt="Advocate" />
+                <img className="hf-photo" src="/images/Advocate1.jpg" alt="Advocate" />
                 <span className="hf-label">⚖️ Advocate</span>
               </div>
             )}
             {isEnabled('doctor') && (
               <div className="hf-wrap" style={{ '--rotation':'4deg', animationDelay:'1.8s' } as React.CSSProperties}>
-                <img className="hf-photo" src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&q=80" alt="Doctor" />
+                <img className="hf-photo" src="/images/Doctor1.jpg" alt="Doctor" />
                 <span className="hf-label">🩺 Doctor</span>
               </div>
             )}
