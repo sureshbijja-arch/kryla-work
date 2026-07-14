@@ -863,6 +863,18 @@ export default function HomeClient({ plans, enabledPersonaIds = [] }: { plans: P
                 <span className="hf-label">🛍️ Retailer</span>
               </div>
             )}
+            {isEnabled('distributor') && (
+              <div className="hf-wrap" style={{ '--rotation':'2deg', animationDelay:'2s' } as React.CSSProperties}>
+                <img className="hf-photo" src="https://images.unsplash.com/photo-1553413077-190dd305871c?w=300&q=80" alt="Distributor" />
+                <span className="hf-label">🚚 Distributor</span>
+              </div>
+            )}
+            {isEnabled('travel') && (
+              <div className="hf-wrap" style={{ '--rotation':'-3deg', animationDelay:'2.5s' } as React.CSSProperties}>
+                <img className="hf-photo" src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=300&q=80" alt="Travel Agency" />
+                <span className="hf-label">✈️ Travel Agency</span>
+              </div>
+            )}
           </div>
           {/* Right cluster — Music Teacher, Salon / Stylist, Advocate, Doctor */}
           <div className="hf-cluster right">
@@ -888,6 +900,18 @@ export default function HomeClient({ plans, enabledPersonaIds = [] }: { plans: P
               <div className="hf-wrap" style={{ '--rotation':'4deg', animationDelay:'1.8s' } as React.CSSProperties}>
                 <img className="hf-photo" src="/images/Doctor1.jpg" alt="Doctor" />
                 <span className="hf-label">🩺 Doctor</span>
+              </div>
+            )}
+            {isEnabled('realestate') && (
+              <div className="hf-wrap" style={{ '--rotation':'3deg', animationDelay:'2.3s' } as React.CSSProperties}>
+                <img className="hf-photo" src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=300&q=80" alt="Real Estate" />
+                <span className="hf-label">🏠 Real Estate</span>
+              </div>
+            )}
+            {isEnabled('agency') && (
+              <div className="hf-wrap" style={{ '--rotation':'-2deg', animationDelay:'2.8s' } as React.CSSProperties}>
+                <img className="hf-photo" src="https://images.unsplash.com/photo-1573497491208-6b1acb260507?w=300&q=80" alt="Agency" />
+                <span className="hf-label">💼 Agency</span>
               </div>
             )}
           </div>
