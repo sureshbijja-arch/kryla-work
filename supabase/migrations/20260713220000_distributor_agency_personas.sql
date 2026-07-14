@@ -278,18 +278,13 @@ CONTENT FOCUS: Service listings, client enquiry replies, capability and network 
 
 ON CONFLICT (id) DO NOTHING;
 
--- ── 5. Plan gating — studio_business ─────────────────────────────────────────
--- Copies studio_business to whichever plans already have studio_storefront.
--- If studio_storefront is not yet registered, use explicit plan_ids instead:
---   SELECT id, name, sort_order FROM plans WHERE active = true;
-
+-- ── 5. Plan gating — register studio_business for grow / thrive / elevate ────
 INSERT INTO plan_features (plan_id, label, description, feature_key, sort_order)
-SELECT
-  pf.plan_id,
-  'Business Documents Studio',
-  'AI-powered quotations, agreements, rate cards, and B2B document generator',
-  'studio_business',
-  (SELECT MAX(p2.sort_order) FROM plan_features p2 WHERE p2.plan_id = pf.plan_id) + 1
-FROM plan_features pf
-WHERE pf.feature_key = 'studio_storefront'
+SELECT p.id,
+       'Business Documents Studio',
+       'AI-powered quotations, agreements, rate cards, appointment letters, purchase orders, and B2B document generator',
+       'studio_business',
+       (SELECT COALESCE(MAX(pf.sort_order), 0) + 1 FROM plan_features pf WHERE pf.plan_id = p.id)
+FROM plans p
+WHERE p.id IN ('grow', 'thrive', 'elevate')
 ON CONFLICT DO NOTHING;
