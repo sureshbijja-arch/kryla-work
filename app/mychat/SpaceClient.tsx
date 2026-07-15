@@ -33,6 +33,7 @@ import SourceCards from './chat/SourceCards'
 import MessageActions from './chat/MessageActions'
 import { getChatPromptChips } from '@/config/verticals'
 import LegalNewsTicker from './LegalNewsTicker'
+import CourtToolsPanel from './CourtToolsPanel'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -44,6 +45,10 @@ interface Message {
   suggestResearch?: boolean
   /** The user's question, stored so the Research overlay can be pre-filled */
   researchQuery?: string
+  /** Advocate: suggest opening the Court Tools overlay */
+  suggestCourtTools?: boolean
+  /** Advocate: which Court Tools sub-tab + prefill value to open */
+  courtLookup?: { kind: string; cnr?: string | null; query?: string | null; state?: string | null } | null
 }
 
 interface CurrentProfile {
@@ -245,6 +250,8 @@ export default function SpaceClient({
   // Practitioner Studio (all studio personas: physio, occtherapist, speech, chiro, counselor, etc.)
   const [studioOpen, setStudioOpen]         = useState(false)
   const [studioSeed, setStudioSeed]         = useState<StudioSeed | null>(null)
+  // Court Tools overlay (advocate only)
+  const [courtToolsOpen, setCourtToolsOpen] = useState(false)
   // Chat expand / full-screen toggle
   const [chatExpanded, setChatExpanded]     = useState(false)
 
@@ -435,6 +442,8 @@ export default function SpaceClient({
           suggestDesignTab: data.suggestDesignTab,
           suggestResearch: data.suggestResearch || undefined,
           researchQuery: data.suggestResearch ? text : undefined,
+          suggestCourtTools: data.suggestCourtTools || undefined,
+          courtLookup: data.courtLookup ?? undefined,
         },
       ])
       if (data.changed) onRefresh()
@@ -507,6 +516,15 @@ export default function SpaceClient({
         onClose={() => { setResearchOpen(false); setResearchQuery(undefined) }}
         initialQuery={researchQuery}
       />
+
+      {/* ── Advocate-only Court Tools overlay ── */}
+      {currentProfile.persona === 'advocate' && (
+        <CourtToolsPanel
+          providerId={providerId}
+          open={courtToolsOpen}
+          onClose={() => setCourtToolsOpen(false)}
+        />
+      )}
 
       {/* ── Advocate-only Drafting Studio overlay ── */}
       {currentProfile.persona === 'advocate' && (
@@ -798,6 +816,18 @@ export default function SpaceClient({
                       </button>
                     )}
 
+                    {/* Court Tools handoff suggestion (advocate only) */}
+                    {msg.suggestCourtTools && currentProfile.persona === 'advocate' && (
+                      <button
+                        onClick={() => setCourtToolsOpen(true)}
+                        className="mt-2 ml-1 flex items-center gap-1.5 text-xs font-semibold text-[#92400E] bg-[#FEF3C7] hover:bg-[#FDE68A] rounded-xl px-3 py-1.5 transition-colors">
+                        Open Court Tools ⚖️
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                          <path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                    )}
+
                     {/* Message actions (copy / retry) — assistant messages only */}
                     {msg.role === 'assistant' && i > 0 && (
                       <MessageActions
@@ -882,6 +912,21 @@ export default function SpaceClient({
                     <path d="M8 1v14M1 13h14M4 13V9L1 5M12 13V9l3-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   Draft
+                </button>
+              )}
+
+              {/* Advocate-only: Court Tools */}
+              {currentProfile.persona === 'advocate' && (
+                <button
+                  onClick={() => setCourtToolsOpen(true)}
+                  disabled={chatExpanded}
+                  title={chatExpanded ? 'Exit full-screen to open Court Tools' : 'Court Tools — CNR, case status, cause list, orders, caveat, process, find court'}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-[#FEF3C7] text-[#92400E] hover:bg-[#FDE68A] transition-colors disabled:opacity-30 disabled:pointer-events-none">
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+                    <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/>
+                    <path d="M5 8l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Court Tools
                 </button>
               )}
 

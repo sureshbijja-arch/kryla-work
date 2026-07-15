@@ -119,6 +119,10 @@ Personas are **fully DB-driven** — not hardcoded. The `personas` table is the 
 | `/api/mychat/translate` | POST | Text translation |
 | `/api/mychat/scan-menu` | POST | Menu scanning (storefront personas) |
 | `/api/mychat/legal-news` | GET | Legal news feed (advocate) |
+| `/api/mychat/court/config` | GET | Court tools config + portal URLs (advocate, india) |
+| `/api/mychat/court/locator` | GET | Court complex search — in-app seeded data (advocate, india) |
+| `/api/mychat/court/watched` | GET/POST | List / save watched cases (advocate, india) |
+| `/api/mychat/court/watched/[id]` | PATCH/DELETE | Update hearing date / archive watched case (advocate, india) |
 
 ### My Chat — Studio (Business Documents)
 
