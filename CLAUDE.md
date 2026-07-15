@@ -123,6 +123,8 @@ Personas are **fully DB-driven** — not hardcoded. The `personas` table is the 
 | `/api/mychat/court/locator` | GET | Court complex search — in-app seeded data (advocate, india) |
 | `/api/mychat/court/watched` | GET/POST | List / save watched cases (advocate, india) |
 | `/api/mychat/court/watched/[id]` | PATCH/DELETE | Update hearing date / archive watched case (advocate, india) |
+| `/api/mychat/court/tribunals` | GET | Tribunal directory search (`q`, `category` filter) (advocate, india) |
+| `/api/mychat/court/settings` | GET/PATCH | Read / flip `cause_list_alerts_enabled` per advocate (advocate, india) |
 
 ### My Chat — Studio (Business Documents)
 
@@ -207,6 +209,20 @@ Personas are **fully DB-driven** — not hardcoded. The `personas` table is the 
 - `PALETTE_MAP` — persona id → palette. Falls back to `VerticalConfig.defaultPalette`.
 - `DESIGN_MODE_MAP` — persona id → 'craft' | 'editorial' | 'product'. Covers all 46 personas.
 - `PERSONA_SECTIONS` — persona id → `SectionEntry[]` default layout. Covers all 46 personas. Hero always uses `variant: 'auto'` — resolved at render time by `resolveVariant()`.
+
+### Other Inngest Functions (crons + events)
+
+| File | ID / Cron | Purpose |
+|---|---|---|
+| `inngest/trial-watch.ts` | event-driven | Trial expiry checks |
+| `inngest/payment-alerts.ts` | event-driven | Payment event alerts |
+| `inngest/hearing-reminders.ts` | cron `0 1 * * *` (01:00 UTC) | WhatsApp hearing reminders 1d/7d before; reads `watched_cases.next_hearing_date`; deduped via `providers.reminder_1d_sent_for` |
+| `inngest/consultation-followup.ts` | event-driven | Post-consultation follow-up messages |
+| `inngest/livelaw-sync.ts` | cron | LiveLaw legal news sync |
+| `inngest/generate-persona-template.ts` | event-driven | AI persona template generation |
+| `inngest/personal-cause-list.ts` | cron `30 12 * * *` (18:00 IST) | Daily WhatsApp digest of tomorrow's watched matters; only for advocates with `cause_list_alerts_enabled=true`; deduped via `providers.cause_list_alert_sent_for`; global kill-switch: `system_config.notification_types_enabled.cause_list_digest` |
+
+All crons + event functions registered in `app/api/inngest/route.ts`.
 
 ---
 
