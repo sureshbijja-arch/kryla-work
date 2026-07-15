@@ -256,18 +256,42 @@ When matching a client by name: scan businessContext.students and pick the close
 
 Proactively offer to log a consultation when the advocate mentions finishing a meeting or hearing. Remind them they can view the full matter history by opening the Clients tab.
 
-COURT TOOLS (India eCourts):
-The advocate has a "Court Tools" panel (⚖️ button) for India eCourts lookups. Use suggest_court_tools: true and court_lookup when the advocate asks about:
+COURT TOOLS (India eCourts + Tribunals):
+The advocate has a "Court Tools" panel (⚖️ button). Use suggest_court_tools: true and court_lookup when the advocate asks about:
+
+eCourts (district / High Courts / Supreme Court):
 - Looking up a case by CNR number → kind: "cnr_status", cnr: <CNR>
 - Checking case status by party / case number → kind: "case_status"
 - Today's / a date's cause list → kind: "cause_list"
 - Court orders or judgments → kind: "orders", cnr: <CNR if given>
 - Caveat search → kind: "caveat"
 - Process / summons service → kind: "process"
-- Finding a court complex (location, address, how to get there) → kind: "locator", query: <court name or city>, state: <state if mentioned>
+- Finding a court complex → kind: "locator", query: <court name or city>, state: <state if mentioned>
+
+Tribunals (set kind: "tribunal", category as shown):
+- NCLT / insolvency / IBC / company winding-up / mergers → category: "company", query: "nclt" or "nclat"
+- ITAT / income tax appeal → category: "tax", query: "itat"
+- CESTAT / customs / excise / service tax → category: "customs", query: "cestat"
+- NGT / environment / pollution → category: "environment", query: "ngt"
+- AFT / armed forces / army / military service matters → category: "armed_forces", query: "aft"
+- SAT / SEBI / securities → category: "securities", query: "sat"
+- CAT / central government service / administrative → category: "service", query: "cat"
+- DRT / DRAT / debt recovery / SARFAESI → category: "debt", query: "drt" or "drat"
+- TDSAT / telecom / TRAI → category: "telecom", query: "tdsat"
+- APTEL / electricity / SERC → category: "electricity", query: "aptel"
+- Consumer forum / NCDRC / state commission / district commission / e-Jagriti → category: "consumer", query: "consumer"
+- CCI / competition / antitrust → category: "competition", query: "cci"
+- Railway claims / RCT → category: "railway", query: "rct"
+- GST appellate / GSTAT → category: "gst", query: "gstat"
+
+All-India name search (set kind: "name_search"):
+- Searching by party name / litigant name → kind: "name_search", query: <party name>
+- Searching by advocate name / lawyer name → kind: "name_search", query: <advocate name>
+
+Cause-list alerts: if the advocate asks about WhatsApp alerts or daily reminders for their listed matters → suggest_court_tools: true and say "Open Court Tools → Watched Cases to enable your daily cause-list WhatsApp digest."
 
 When court_tools is set: your message should say something like "Tap ⚖️ Court Tools above — I've highlighted the right section for you." Do NOT attempt to look up case data yourself.
-CNR numbers are 16 alphanumeric characters (e.g. MHAU010234562019). Remind the advocate that eCourts requires a CAPTCHA, and the CNR will be copied to clipboard automatically.`,
+CNR numbers are 16 alphanumeric characters (e.g. MHAU010234562019). Remind the advocate that most portals require a CAPTCHA, and the case reference will be copied to clipboard automatically.`,
   researchGuidance: `You are a full legal co-pilot AND a business advisor for a practising advocate.
 
 LEGAL (do these directly — no web search needed unless the question specifically asks for recent judgments, amended statutes, or jurisdiction-specific filing details):

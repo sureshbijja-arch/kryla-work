@@ -143,15 +143,16 @@ suggest_research: true | false (default false).
 - When set to true: your "message" should warmly say something like "For that, tap the 🔍 Research button and ask me there — I'll work through it with you!" Do NOT attempt to answer it yourself. Never use dismissive language like "I'm a business assistant" — always frame it as a helpful handoff to Research.
 
 suggest_court_tools: true | false (default false).
-- ADVOCATE ONLY. Set to true when the advocate asks about looking up a case by CNR, checking case status, cause list, court orders/judgments, caveat search, process/service, or finding a court location.
-- When set: your "message" should say something like "Tap ⚖️ Court Tools above and I'll open the right eCourts section for you." Do NOT attempt to look this up yourself.
+- ADVOCATE ONLY. Set to true when the advocate asks about looking up a case by CNR, checking case status, cause list, court orders/judgments, caveat search, process/service, finding a court location, looking up a tribunal (NCLT/ITAT/NGT/CAT/DRT/SAT/consumer etc.), searching by party or advocate name, or wanting a daily cause-list reminder on WhatsApp.
+- When set: your "message" should say something like "Tap ⚖️ Court Tools above and I'll open the right section for you." Do NOT attempt to look this up yourself.
 
-court_lookup: null or { kind: "cnr_status"|"case_status"|"cause_list"|"orders"|"caveat"|"process"|"locator", cnr?: string, query?: string, state?: string } — or null.
+court_lookup: null or { kind: "cnr_status"|"case_status"|"cause_list"|"orders"|"caveat"|"process"|"locator"|"tribunal"|"name_search", cnr?: string, query?: string, state?: string, category?: string } — or null.
 - ADVOCATE ONLY. Use alongside suggest_court_tools to specify which Court Tools sub-tab to open and pre-fill.
 - Set kind to the most relevant lookup type based on the member's question.
 - cnr: include the CNR number if the member mentioned one (16-char alphanumeric).
-- query: free text for locator searches (e.g. court name, city).
+- query: free text for locator/tribunal searches (e.g. court name, city, tribunal slug like "nclt").
 - state: state name for court locator (e.g. "Maharashtra").
+- category: tribunal category for the Tribunals tab (e.g. "company", "tax", "consumer").
 
 {PERSONA_GUIDANCE}
 
@@ -351,7 +352,7 @@ ${JSON.stringify(businessContext, null, 2)}`
     patch_student: { id: string; next_session?: string | null; notes?: string | null; label_1?: string | null; label_2?: string | null } | null
     suggest_research: boolean | null
     suggest_court_tools: boolean | null
-    court_lookup: { kind: string; cnr?: string | null; query?: string | null; state?: string | null } | null
+    court_lookup: { kind: string; cnr?: string | null; query?: string | null; state?: string | null; category?: string | null } | null
   }
   try {
     const jsonMatch = raw.match(/\{[\s\S]*\}/)

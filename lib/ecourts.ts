@@ -17,6 +17,11 @@ export type PortalKind =
   | 'orders'
   | 'caveat'
   | 'process'
+  // Name search portals (all-India search by party/advocate name)
+  | 'party_search'
+  | 'advocate_search'
+  | 'hc_services'
+  | 'sci_status'
 
 export interface CourtToolsConfig {
   enabled: boolean
@@ -113,10 +118,80 @@ export function courtTypeLabel(type: CourtDirectoryEntry['court_type']): string 
  * Portal label shown in the UI for each lookup kind.
  */
 export const PORTAL_LABELS: Record<PortalKind, string> = {
-  cnr_status:  'CNR Status',
-  case_status: 'Case Status',
-  cause_list:  'Cause List',
-  orders:      'Orders / Judgments',
-  caveat:      'Caveat Search',
-  process:     'Process / Service',
+  cnr_status:      'CNR Status',
+  case_status:     'Case Status',
+  cause_list:      'Cause List',
+  orders:          'Orders / Judgments',
+  caveat:          'Caveat Search',
+  process:         'Process / Service',
+  party_search:    'Party / Litigant Name',
+  advocate_search: 'Advocate / Lawyer Name',
+  hc_services:     'High Court Services',
+  sci_status:      'Supreme Court Status',
+}
+
+// ── Tribunal helpers ──────────────────────────────────────────────────────────
+
+export type TribunalCategory =
+  | 'company'
+  | 'tax'
+  | 'customs'
+  | 'environment'
+  | 'armed_forces'
+  | 'securities'
+  | 'service'
+  | 'debt'
+  | 'telecom'
+  | 'electricity'
+  | 'consumer'
+  | 'competition'
+  | 'railway'
+  | 'gst'
+
+export const TRIBUNAL_CATEGORY_LABELS: Record<TribunalCategory, string> = {
+  company:      'Company / Insolvency',
+  tax:          'Income Tax',
+  customs:      'Customs / Excise / Service Tax',
+  environment:  'Environment',
+  armed_forces: 'Armed Forces',
+  securities:   'Securities',
+  service:      'Service / Administrative',
+  debt:         'Debt Recovery',
+  telecom:      'Telecom',
+  electricity:  'Electricity',
+  consumer:     'Consumer',
+  competition:  'Competition',
+  railway:      'Railway Claims',
+  gst:          'GST',
+}
+
+export interface TribunalBench {
+  name:    string
+  city:    string
+  address: string
+  map_url: string | null
+}
+
+export interface TribunalEntry {
+  id:              string
+  slug:            string
+  short_name:      string
+  full_name:       string
+  category:        TribunalCategory
+  portal_url:      string
+  case_status_url: string | null
+  cause_list_url:  string | null
+  orders_url:      string | null
+  benches:         TribunalBench[]
+  notes:           string | null
+}
+
+/**
+ * Build a Google Maps link for a tribunal bench.
+ * Prefers map_url from the DB; falls back to a search-by-name URL.
+ */
+export function benchMapUrl(bench: TribunalBench): string {
+  if (bench.map_url) return bench.map_url
+  const q = encodeURIComponent(`${bench.name}, ${bench.city}`)
+  return `https://maps.google.com/maps/search/?api=1&query=${q}`
 }

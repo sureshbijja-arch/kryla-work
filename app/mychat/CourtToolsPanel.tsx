@@ -20,13 +20,14 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import type { CourtDirectoryEntry } from '@/lib/ecourts'
-import { validateCnr, normalizeCnr, courtMapUrl, courtTypeLabel, PORTAL_LABELS } from '@/lib/ecourts'
+import type { CourtDirectoryEntry, TribunalEntry, TribunalCategory } from '@/lib/ecourts'
+import { validateCnr, normalizeCnr, courtMapUrl, courtTypeLabel, PORTAL_LABELS,
+         benchMapUrl, TRIBUNAL_CATEGORY_LABELS } from '@/lib/ecourts'
 import type { PortalKind } from '@/lib/ecourts'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type PanelTab = 'cnr' | 'watched' | 'cause_list' | 'orders' | 'caveat' | 'process' | 'locator'
+type PanelTab = 'cnr' | 'watched' | 'cause_list' | 'orders' | 'caveat' | 'process' | 'locator' | 'tribunals' | 'name_search'
 
 interface WatchedCase {
   id:                string
@@ -60,13 +61,15 @@ interface Props {
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const TABS: { key: PanelTab; label: string }[] = [
-  { key: 'cnr',        label: 'Case / CNR' },
-  { key: 'watched',    label: 'Watched Cases' },
-  { key: 'cause_list', label: 'Cause List' },
-  { key: 'orders',     label: 'Orders' },
-  { key: 'caveat',     label: 'Caveat' },
-  { key: 'process',    label: 'Process' },
-  { key: 'locator',    label: 'Find Court' },
+  { key: 'cnr',         label: 'Case / CNR' },
+  { key: 'watched',     label: 'Watched Cases' },
+  { key: 'cause_list',  label: 'Cause List' },
+  { key: 'orders',      label: 'Orders' },
+  { key: 'caveat',      label: 'Caveat' },
+  { key: 'process',     label: 'Process' },
+  { key: 'locator',     label: 'Find Court' },
+  { key: 'tribunals',   label: 'Tribunals' },
+  { key: 'name_search', label: 'Search by Name' },
 ]
 
 const CAPTCHA_NOTE = 'eCourts requires a CAPTCHA — your value has been copied to clipboard. Paste it on the portal page.'
@@ -127,6 +130,26 @@ export default function CourtToolsPanel({ providerId, open, onClose }: Props) {
   const [locResults, setLocResults]       = useState<CourtDirectoryEntry[]>([])
   const [locLoading, setLocLoading]       = useState(false)
 
+  // ── Tribunals tab state ───────────────────────────────────────────────────────
+  const [tribQuery, setTribQuery]         = useState('')
+  const [tribCategory, setTribCategory]   = useState('')
+  const [tribResults, setTribResults]     = useState<TribunalEntry[]>([])
+  const [tribLoading, setTribLoading]     = useState(false)
+  const [expandedTrib, setExpandedTrib]   = useState<string | null>(null)
+  const [tribRef, setTribRef]             = useState('')     // shared case-ref input
+
+  // ── Name search tab state ─────────────────────────────────────────────────────
+  const [nameQuery, setNameQuery]         = useState('')
+  const [nameMode, setNameMode]           = useState<'party' | 'advocate'>('party')
+  const [nameLevel, setNameLevel]         = useState<'district' | 'high' | 'supreme'>('district')
+  const [nameCopied, setNameCopied]       = useState(false)
+
+  // ── Cause-list alert settings ─────────────────────────────────────────────────
+  const [alertEnabled, setAlertEnabled]   = useState(false)
+  const [alertHasWa, setAlertHasWa]       = useState(false)
+  const [alertLoading, setAlertLoading]   = useState(false)
+  const [alertSaving, setAlertSaving]     = useState(false)
+
   // ── Client roster (for linking watched cases) ────────────────────────────────
   const [students, setStudents]           = useState<Student[]>([])
 
@@ -153,6 +176,21 @@ export default function CourtToolsPanel({ providerId, open, onClose }: Props) {
           if (!cancelled) setStudents((data.students ?? []).map((s: { id: string; name: string }) => ({ id: s.id, name: s.name })))
         }
       } catch { /* ignore */ }
+
+      // Load cause-list alert settings
+      try {
+        setAlertLoading(true)
+        const res = await fetch(`/api/mychat/court/settings?providerId=${encodeURIComponent(providerId)}`)
+        if (res.ok) {
+          const data = await res.json()
+          if (!cancelled && data.enabled) {
+            setAlertEnabled(data.cause_list_alerts_enabled ?? false)
+            setAlertHasWa(data.has_whatsapp ?? false)
+          }
+        }
+      } catch { /* ignore */ } finally {
+        if (!cancelled) setAlertLoading(false)
+      }
     }
     load()
     return () => { cancelled = true }
@@ -197,6 +235,42 @@ export default function CourtToolsPanel({ providerId, open, onClose }: Props) {
   useEffect(() => {
     if (open && activeTab === 'locator') searchCourts()
   }, [open, activeTab, searchCourts])
+
+  // ── Tribunals search ──────────────────────────────────────────────────────────
+  const searchTribunals = useCallback(async () => {
+    setTribLoading(true)
+    try {
+      const params = new URLSearchParams({ providerId })
+      if (tribQuery)    params.set('q', tribQuery)
+      if (tribCategory) params.set('category', tribCategory)
+      const res = await fetch(`/api/mychat/court/tribunals?${params.toString()}`)
+      if (res.ok) {
+        const data = await res.json()
+        setTribResults(data.tribunals ?? [])
+      }
+    } catch { /* ignore */ } finally {
+      setTribLoading(false)
+    }
+  }, [providerId, tribQuery, tribCategory])
+
+  useEffect(() => {
+    if (open && activeTab === 'tribunals') searchTribunals()
+  }, [open, activeTab, searchTribunals])
+
+  // ── Toggle cause-list alert ───────────────────────────────────────────────────
+  async function toggleAlert(newValue: boolean) {
+    setAlertSaving(true)
+    try {
+      const res = await fetch('/api/mychat/court/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ providerId, cause_list_alerts_enabled: newValue }),
+      })
+      if (res.ok) setAlertEnabled(newValue)
+    } catch { /* ignore */ } finally {
+      setAlertSaving(false)
+    }
+  }
 
   // ── Watch a case ──────────────────────────────────────────────────────────────
   async function handleWatchCase() {
@@ -437,14 +511,44 @@ export default function CourtToolsPanel({ providerId, open, onClose }: Props) {
         {/* ══ Watched Cases ═══════════════════════════════════════════════════ */}
         {activeTab === 'watched' && (
           <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <h2 className="text-[13px] font-semibold text-[#0D0D0D]">Watched Cases</h2>
-              <button
-                onClick={loadWatchedCases}
-                className="text-[11px] text-[#666] hover:text-[#0D0D0D] transition-colors">
-                Refresh
-              </button>
+              <div className="flex items-center gap-3">
+                {/* Cause-list WhatsApp digest toggle */}
+                {!alertLoading && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-[#666]">Daily WhatsApp digest</span>
+                    {alertHasWa ? (
+                      <button
+                        onClick={() => toggleAlert(!alertEnabled)}
+                        disabled={alertSaving}
+                        title={alertEnabled ? 'Disable cause-list digest' : 'Enable cause-list digest'}
+                        className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
+                          alertEnabled ? 'bg-[#059669]' : 'bg-[#D1D5DB]'
+                        }`}>
+                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+                          alertEnabled ? 'translate-x-4' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    ) : (
+                      <span className="text-[11px] text-[#999]" title="Add your WhatsApp number in Settings to enable">
+                        (add WhatsApp number first)
+                      </span>
+                    )}
+                  </div>
+                )}
+                <button
+                  onClick={loadWatchedCases}
+                  className="text-[11px] text-[#666] hover:text-[#0D0D0D] transition-colors">
+                  Refresh
+                </button>
+              </div>
             </div>
+            {alertEnabled && (
+              <p className="text-[11px] text-[#059669] leading-relaxed">
+                ✓ You'll get a WhatsApp digest at ~6 pm every evening listing tomorrow's watched matters.
+              </p>
+            )}
 
             {watchedLoading && (
               <div className="space-y-2">
@@ -772,6 +876,266 @@ export default function CourtToolsPanel({ providerId, open, onClose }: Props) {
             })}
           </div>
         )}
+        {/* ══ Tribunals ═══════════════════════════════════════════════════════ */}
+        {activeTab === 'tribunals' && (
+          <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+            <p className="text-[12px] text-[#666] leading-relaxed">
+              India's major quasi-judicial bodies — NCLT, ITAT, CESTAT, NGT, consumer commissions and more. Each portal opens in a new tab with your case reference copied to clipboard.
+            </p>
+
+            {/* Search + category filter */}
+            <div className="flex gap-2 flex-wrap">
+              <input
+                type="text"
+                value={tribQuery}
+                onChange={e => setTribQuery(e.target.value)}
+                placeholder="Search tribunals…"
+                className="flex-1 min-w-[150px] px-3 py-2.5 rounded-xl border border-[#E5E5E5] text-[13px] text-[#0D0D0D] placeholder-[#ccc] focus:outline-none focus:border-[#0D0D0D] bg-white"
+              />
+              <select
+                value={tribCategory}
+                onChange={e => setTribCategory(e.target.value)}
+                className="px-3 py-2.5 rounded-xl border border-[#E5E5E5] text-[13px] text-[#0D0D0D] focus:outline-none focus:border-[#0D0D0D] bg-white">
+                <option value="">All categories</option>
+                {(Object.entries(TRIBUNAL_CATEGORY_LABELS) as [TribunalCategory, string][]).map(([k, v]) => (
+                  <option key={k} value={k}>{v}</option>
+                ))}
+              </select>
+              <button
+                onClick={searchTribunals}
+                disabled={tribLoading}
+                className="px-4 py-2.5 rounded-xl bg-[#0D0D0D] text-white text-[12px] font-semibold hover:bg-[#222] transition-colors disabled:opacity-50">
+                {tribLoading ? 'Searching…' : 'Search'}
+              </button>
+            </div>
+
+            {/* Shared case-reference input */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-[#666] uppercase tracking-wide">Case / Matter Reference (copied to clipboard on open)</label>
+              <input
+                type="text"
+                value={tribRef}
+                onChange={e => setTribRef(e.target.value)}
+                placeholder="e.g. ITA/123/2024/Del or CP(IB)-123/ND/2024"
+                className="w-full px-3 py-2.5 rounded-xl border border-[#E5E5E5] text-[13px] font-mono text-[#0D0D0D] placeholder-[#ccc] focus:outline-none focus:border-[#0D0D0D] bg-white"
+              />
+            </div>
+
+            {tribLoading && (
+              <div className="space-y-2">
+                {[1,2,3].map(i => <div key={i} className="h-24 rounded-xl bg-[#F5F5F5] animate-pulse" />)}
+              </div>
+            )}
+
+            {!tribLoading && tribResults.length === 0 && (
+              <p className="text-center text-[#999] text-[13px] py-8">
+                No tribunals found. Try a different search or category.
+              </p>
+            )}
+
+            {!tribLoading && tribResults.map(trib => {
+              const isExpanded = expandedTrib === trib.id
+              return (
+                <div key={trib.id} className="border border-[#E5E5E5] rounded-xl overflow-hidden hover:border-[#BBBBBB] transition-colors">
+                  {/* Card header */}
+                  <div className="p-4 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#92400E]">
+                            {TRIBUNAL_CATEGORY_LABELS[trib.category]}
+                          </span>
+                        </div>
+                        <p className="text-[14px] font-semibold text-[#0D0D0D] mt-1">{trib.short_name}</p>
+                        <p className="text-[12px] text-[#666]">{trib.full_name}</p>
+                        {trib.notes && (
+                          <p className="text-[11px] text-[#888] mt-1 leading-relaxed">{trib.notes}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Portal deep-link buttons */}
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      <button
+                        onClick={() => openPortal(trib.portal_url, tribRef.trim() || undefined)}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#0D0D0D] text-white text-[11px] font-medium hover:bg-[#222] transition-colors">
+                        <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                          <path d="M2 2h8v8M10 2L2 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                        </svg>
+                        Open Portal
+                      </button>
+                      {trib.case_status_url && (
+                        <button
+                          onClick={() => openPortal(trib.case_status_url!, tribRef.trim() || undefined)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#F5F5F5] text-[#444] text-[11px] font-medium hover:bg-[#E5E5E5] transition-colors">
+                          Case Status
+                        </button>
+                      )}
+                      {trib.cause_list_url && (
+                        <button
+                          onClick={() => openPortal(trib.cause_list_url!, tribRef.trim() || undefined)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#F5F5F5] text-[#444] text-[11px] font-medium hover:bg-[#E5E5E5] transition-colors">
+                          Cause List
+                        </button>
+                      )}
+                      {trib.orders_url && (
+                        <button
+                          onClick={() => openPortal(trib.orders_url!, tribRef.trim() || undefined)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#F5F5F5] text-[#444] text-[11px] font-medium hover:bg-[#E5E5E5] transition-colors">
+                          Orders
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          setActiveTab('cnr')
+                          setCnrCourt(trib.short_name)
+                        }}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#ECFDF5] text-[#065F46] text-[11px] font-medium hover:bg-[#D1FAE5] transition-colors">
+                        ⊕ Watch a matter
+                      </button>
+                    </div>
+
+                    {tribRef.trim() && (
+                      <p className="text-[11px] text-[#999]">Your reference is copied to clipboard when you open a portal. Paste it on the portal page.</p>
+                    )}
+
+                    {/* Benches toggle */}
+                    {trib.benches.length > 0 && (
+                      <button
+                        onClick={() => setExpandedTrib(isExpanded ? null : trib.id)}
+                        className="text-[11px] text-[#666] hover:text-[#0D0D0D] transition-colors underline">
+                        {isExpanded ? 'Hide benches' : `${trib.benches.length} bench${trib.benches.length > 1 ? 'es' : ''} — show locations`}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Bench list */}
+                  {isExpanded && trib.benches.length > 0 && (
+                    <div className="border-t border-[#E5E5E5] bg-[#FAFAFA] px-4 py-3 space-y-2">
+                      {trib.benches.map((bench, i) => (
+                        <div key={i} className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-[12px] font-medium text-[#0D0D0D]">{bench.name}</p>
+                            <p className="text-[11px] text-[#666]">{bench.address}</p>
+                          </div>
+                          <a
+                            href={benchMapUrl(bench)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-white border border-[#E5E5E5] text-[11px] font-medium text-[#444] hover:bg-[#F5F5F5] transition-colors whitespace-nowrap">
+                            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                              <circle cx="5" cy="4.5" r="2.5" stroke="currentColor" strokeWidth="1.3"/>
+                              <path d="M5 7.5C5 7.5 2 10 5 11.5S8 7.5 8 7.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                            </svg>
+                            Maps
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* ══ Search by Name ═══════════════════════════════════════════════════ */}
+        {activeTab === 'name_search' && (
+          <div className="max-w-xl mx-auto px-4 py-6 space-y-5">
+            <div className="rounded-xl bg-[#FFFBEB] border border-[#FDE68A] px-4 py-3 text-[12px] text-[#92400E] leading-relaxed">
+              <strong>How it works:</strong> Enter the name below. We'll copy it to your clipboard and open the correct official portal — select the right court and paste the name to search.
+            </div>
+
+            {/* Mode: party vs advocate */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-[#666] uppercase tracking-wide">Search by</label>
+              <div className="flex gap-2">
+                {(['party', 'advocate'] as const).map(m => (
+                  <button
+                    key={m}
+                    onClick={() => setNameMode(m)}
+                    className={`flex-1 py-2 rounded-xl text-[12px] font-medium border transition-colors ${
+                      nameMode === m
+                        ? 'bg-[#0D0D0D] text-white border-[#0D0D0D]'
+                        : 'bg-white text-[#666] border-[#E5E5E5] hover:border-[#BBBBBB]'
+                    }`}>
+                    {m === 'party' ? 'Party / Litigant name' : 'Advocate / Lawyer name'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Court level */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-[#666] uppercase tracking-wide">Court level</label>
+              <div className="flex gap-2">
+                {([
+                  { key: 'district', label: 'District Courts' },
+                  { key: 'high',     label: 'High Courts' },
+                  { key: 'supreme',  label: 'Supreme Court' },
+                ] as const).map(lvl => (
+                  <button
+                    key={lvl.key}
+                    onClick={() => setNameLevel(lvl.key)}
+                    className={`flex-1 py-2 rounded-xl text-[12px] font-medium border transition-colors ${
+                      nameLevel === lvl.key
+                        ? 'bg-[#0D0D0D] text-white border-[#0D0D0D]'
+                        : 'bg-white text-[#666] border-[#E5E5E5] hover:border-[#BBBBBB]'
+                    }`}>
+                    {lvl.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Name input */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-[#666] uppercase tracking-wide">
+                {nameMode === 'party' ? 'Party / Litigant Name' : 'Advocate / Lawyer Name'}
+              </label>
+              <input
+                type="text"
+                value={nameQuery}
+                onChange={e => { setNameQuery(e.target.value); setNameCopied(false) }}
+                placeholder={nameMode === 'party' ? 'e.g. Sharma Constructions Pvt Ltd' : 'e.g. Adv. Ramesh Kumar'}
+                className="w-full px-3 py-2.5 rounded-xl border border-[#E5E5E5] text-[13px] text-[#0D0D0D] placeholder-[#ccc] focus:outline-none focus:border-[#0D0D0D] bg-white"
+              />
+            </div>
+
+            {/* Open portal */}
+            <button
+              onClick={() => {
+                if (!nameQuery.trim()) return
+                const portalKey: PortalKind = nameMode === 'advocate'
+                  ? (nameLevel === 'supreme' ? 'sci_status' : nameLevel === 'high' ? 'hc_services' : 'advocate_search')
+                  : (nameLevel === 'supreme' ? 'sci_status' : nameLevel === 'high' ? 'hc_services' : 'party_search')
+                openPortal(portalUrl(portalKey), nameQuery.trim())
+                setNameCopied(true)
+                setTimeout(() => setNameCopied(false), 3000)
+              }}
+              disabled={!nameQuery.trim()}
+              className="w-full py-2.5 rounded-xl bg-[#0D0D0D] text-white text-[13px] font-semibold hover:bg-[#222] transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2 2h8v8M10 2L2 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+              Open {nameLevel === 'supreme' ? 'Supreme Court' : nameLevel === 'high' ? 'High Court' : 'District Court'} search
+            </button>
+
+            {nameCopied && (
+              <p className="text-[11px] text-[#059669]">
+                ✓ Name copied to clipboard. On the portal: select the{' '}
+                <strong>{nameMode === 'party' ? 'Party Name' : 'Advocate Name'}</strong> tab and paste it.
+              </p>
+            )}
+
+            <div className="rounded-xl bg-[#F5F5F5] px-4 py-3 text-[11px] text-[#666] leading-relaxed space-y-1">
+              <p><strong>District / High Courts</strong> — use the eCourts national portal. Select your specific court on the portal page after it opens.</p>
+              <p><strong>Supreme Court</strong> — goes to sci.gov.in case-status search.</p>
+              <p className="text-[#999]">For tribunal-level searches (NCLT, ITAT, CAT, etc.), use the <strong>Tribunals</strong> tab.</p>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   )
