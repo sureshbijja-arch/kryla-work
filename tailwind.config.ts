@@ -46,13 +46,29 @@ const config: Config = {
         'section': 'var(--space-section)',
         'card':    'var(--space-card)',
       },
+      padding: {
+        'safe-top':    'env(safe-area-inset-top, 0px)',
+        'safe-bottom': 'env(safe-area-inset-bottom, 0px)',
+        'safe-left':   'env(safe-area-inset-left, 0px)',
+        'safe-right':  'env(safe-area-inset-right, 0px)',
+      },
       borderRadius: {
         'card': 'var(--radius-card)',
         'btn':  'var(--radius-btn)',
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // Adds pt-safe, pb-safe, px-safe utilities
+    function ({ addUtilities }: { addUtilities: (u: Record<string, Record<string, string>>) => void }) {
+      addUtilities({
+        '.pt-safe': { 'padding-top':    'env(safe-area-inset-top, 0px)' },
+        '.pb-safe': { 'padding-bottom': 'env(safe-area-inset-bottom, 0px)' },
+        '.px-safe': { 'padding-left': 'env(safe-area-inset-left, 0px)', 'padding-right': 'env(safe-area-inset-right, 0px)' },
+        '.h-safe-bottom': { height: 'env(safe-area-inset-bottom, 0px)' },
+      })
+    },
+  ],
 }
 
 export default config
