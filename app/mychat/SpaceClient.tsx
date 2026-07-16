@@ -598,9 +598,10 @@ export default function SpaceClient({
         </button>
       </header>
 
-      {/* Tab bar — desktop only; mobile uses bottom MyChatTabBar */}
-      {!isMobile && (
+      {/* Tab bar — desktop: main tabs + sub-tabs; mobile: sub-tabs only (main tabs via bottom MyChatTabBar) */}
+      {(!isMobile || tab === 'design' || tab === 'messages' || tab === 'plan') && (
       <div className="bg-white border-b border-[#E5E5E5] shrink-0">
+        {!isMobile && (
         <div className="flex border-b border-[#F0F0F0]">
           {([
             { key: 'chat',     label: t.tabs.chat },
@@ -621,6 +622,7 @@ export default function SpaceClient({
             </button>
           ))}
         </div>
+        )}
 
         {/* Design sub-tab bar */}
         {tab === 'design' && (
