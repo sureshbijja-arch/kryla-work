@@ -192,7 +192,7 @@ function getGreeting(lang: string, name: string): string {
   return `Hi ${name}! Ask me anything about your page — change your headline, bio, services, colours, layout, or anything else.`
 }
 
-type MainTab     = 'chat' | 'design' | 'messages' | 'schedule' | 'plan'
+export type MainTab     = 'chat' | 'design' | 'messages' | 'schedule' | 'plan'
 type DesignTab   = 'services' | 'sections' | 'layouts' | 'ads' | 'media' | 'language' | 'letterhead'
 type MessagesTab = 'inbox' | 'consultations' | 'clients' | 'email'
 type PlanTab     = 'plan' | 'reviews' | 'suggestions' | 'stats' | 'refer'
