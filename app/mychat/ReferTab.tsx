@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useState, useEffect } from 'react'
+import ShareAppCard from './components/ShareAppCard'
 
 interface Props {
   providerId: string
@@ -72,6 +73,8 @@ export default function ReferTab({ providerId, initialCode, slug }: Props) {
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="px-4 py-5 max-w-2xl mx-auto w-full space-y-6">
+
+        <ShareAppCard slug={slug} />
 
         {/* Header */}
         <div>
