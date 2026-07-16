@@ -8,7 +8,7 @@ type Platform = 'ios' | 'android' | 'desktop'
 
 function detectPlatform(): Platform {
   const ua = navigator.userAgent
-  if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return 'ios'
+  if (/iPad|iPhone|iPod/.test(ua) && !(window as Window & { MSStream?: unknown }).MSStream) return 'ios'
   if (/Android/.test(ua)) return 'android'
   return 'desktop'
 }

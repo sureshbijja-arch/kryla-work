@@ -79,6 +79,12 @@ export async function POST(req: NextRequest) {
   const result = await sendWhatsAppMessage({ to: normalised, text: msg })
 
   if (!result.success) {
+    // Roll back: mark the OTP as consumed so the 60s cooldown doesn't block retry
+    await supabaseAdmin
+      .from('wa_auth_otps')
+      .update({ consumed: true })
+      .eq('phone', normalised)
+      .eq('consumed', false)
     return NextResponse.json({ error: 'Failed to send WhatsApp message' }, { status: 500 })
   }
 
