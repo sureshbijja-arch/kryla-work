@@ -35,15 +35,21 @@ export function memberHost(slug: string): string {
   return `${slug}.${APP_DOMAIN}`
 }
 
-/** PNG badge image URL (~720×180, 2× crisp). Served on apex domain. */
-export function memberBadgeUrl(slug: string, theme: 'dark' | 'light' = 'dark'): string {
-  const q = theme === 'light' ? '?theme=light' : ''
+/** PNG badge image URL — horizontal 720×180 gradient (default) or legacy dark. */
+export function memberBadgeUrl(slug: string, theme: 'gradient' | 'dark' = 'gradient'): string {
+  // gradient is the default — no query param needed
+  const q = theme === 'dark' ? '?theme=dark' : ''
   return `${APP_URL}/api/badge/${slug}${q}`
 }
 
+/** PNG badge image URL — square 1080×1080 Instagram / social card. */
+export function memberBadgeSquareUrl(slug: string): string {
+  return `${APP_URL}/api/badge/${slug}?format=square`
+}
+
 /**
- * Inline-SVG HTML embed snippet for websites/blogs.
- * Renders without an external image request — crisp at any size.
+ * Inline-HTML embed snippet for websites/blogs.
+ * Amber gradient background with dark legible text — matches the new badge design.
  * Clicking opens the member's canonical page.
  * Optionally shows the member's display name and profession.
  */
@@ -53,43 +59,47 @@ export function badgeEmbedHtml(slug: string, opts?: { name?: string; persona?: s
   const name    = opts?.name
   const persona = opts?.persona
 
+  // Text block — dark text on the light-amber part of the gradient (high contrast)
   const nameHtml = name
-    ? `<span style="color:#FFFFFF;font-size:13px;font-weight:700;` +
-      `letter-spacing:0.01em;white-space:nowrap;line-height:1">${name}</span>` +
+    ? `<span style="color:#0D0D0D;font-size:13px;font-weight:800;` +
+      `letter-spacing:-0.2px;white-space:nowrap;line-height:1.1;display:block">${name}</span>` +
       (persona
-        ? `<span style="color:#AAAAAA;font-size:11px;font-weight:500;` +
-          `white-space:nowrap;line-height:1">${persona}</span>`
+        ? `<span style="color:#333333;font-size:11px;font-weight:500;` +
+          `white-space:nowrap;line-height:1.3;display:block">${persona}</span>`
         : '') +
-      `<span style="color:#666666;font-size:10px;white-space:nowrap;line-height:1">${host}</span>`
-    : `<span style="color:#FFFFFF;font-size:13px;font-weight:600;` +
-      `letter-spacing:0.01em;white-space:nowrap">${host}</span>`
+      `<span style="color:#555555;font-size:10px;white-space:nowrap;line-height:1.3;display:block">${host}</span>`
+    : `<span style="color:#0D0D0D;font-size:13px;font-weight:700;` +
+      `letter-spacing:0.01em;white-space:nowrap;display:block">${host}</span>`
 
   return (
     `<a href="${url}" target="_blank" rel="noopener noreferrer" ` +
-    `style="display:inline-flex;align-items:center;gap:8px;` +
-    `background:#0D0D0D;border-radius:8px;padding:8px 12px 8px 8px;` +
-    `text-decoration:none;font-family:sans-serif">` +
+    `style="display:inline-flex;align-items:center;gap:10px;` +
+    `background:linear-gradient(100deg,#FFF8E8 0%,#FFE4A0 55%,#F5A623 100%);` +
+    `border-radius:10px;padding:8px 14px 8px 8px;` +
+    `text-decoration:none;font-family:sans-serif;` +
+    `border:1px solid rgba(245,166,35,0.3)">` +
+    // K mark — dark square so it pops on the amber end
     `<span style="display:inline-flex;align-items:center;justify-content:center;` +
-    `width:28px;height:28px;background:#F5A623;border-radius:6px;` +
-    `font-size:16px;font-weight:900;color:#0D0D0D;flex-shrink:0">K</span>` +
-    `<span style="display:inline-flex;flex-direction:column;gap:2px">${nameHtml}</span>` +
+    `width:30px;height:30px;background:#0D0D0D;border-radius:7px;` +
+    `font-size:17px;font-weight:900;color:#F5A623;flex-shrink:0">K</span>` +
+    `<span style="display:inline-flex;flex-direction:column;gap:1px">${nameHtml}</span>` +
     `</a>`
   )
 }
 
 /**
  * Image-based HTML embed snippet for email signatures.
- * Uses the /api/badge PNG so it works in clients that strip inline SVG/flex.
+ * Uses the /api/badge PNG (gradient horizontal) — works in clients that strip CSS/flex.
  */
 export function badgeEmbedImgHtml(slug: string): string {
   const url    = memberUrl(slug)
-  const imgUrl = memberBadgeUrl(slug, 'dark')
+  const imgUrl = memberBadgeUrl(slug)   // gradient default
   const host   = memberHost(slug)
   return (
     `<a href="${url}" target="_blank" rel="noopener noreferrer" ` +
     `style="display:inline-block;text-decoration:none">` +
     `<img src="${imgUrl}" alt="${host}" width="180" height="45" ` +
-    `style="display:block;border:none" />` +
+    `style="display:block;border:none;border-radius:5px" />` +
     `</a>`
   )
 }

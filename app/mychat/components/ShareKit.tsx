@@ -106,7 +106,7 @@ export default function ShareKit({ slug, displayName, persona, avatarUrl }: Prop
     finally { setQrLoading(false) }
   }
 
-  // Badge PNG download — relative URL avoids cross-origin CORS on member subdomains
+  // Badge PNG download (horizontal) — relative URL avoids cross-origin CORS on member subdomains
   async function downloadBadgePng() {
     try {
       const res  = await fetch(`/api/badge/${slug}`)
@@ -118,14 +118,26 @@ export default function ShareKit({ slug, displayName, persona, avatarUrl }: Prop
     } catch (err) { console.error('[ShareKit] badge download failed:', err) }
   }
 
-  // Native share of the badge PNG image (mobile) — also uses relative URL for same-origin fetch
+  // Instagram square card download (1080×1080)
+  async function downloadInstagramCard() {
+    try {
+      const res  = await fetch(`/api/badge/${slug}?format=square`)
+      const blob = await res.blob()
+      const url  = URL.createObjectURL(blob)
+      const a    = Object.assign(document.createElement('a'), { href: url, download: `${slug}-instagram.png` })
+      document.body.appendChild(a); a.click(); document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err) { console.error('[ShareKit] Instagram card download failed:', err) }
+  }
+
+  // Native share of the badge PNG image (mobile) — shares the square card for IG stories
   async function shareBadgeImage() {
     if (!navigator.canShare) return
     setBadgeSharing(true)
     try {
-      const res  = await fetch(`/api/badge/${slug}`)
+      const res  = await fetch(`/api/badge/${slug}?format=square`)
       const blob = await res.blob()
-      const file = new File([blob], `${slug}-badge.png`, { type: 'image/png' })
+      const file = new File([blob], `${slug}-instagram.png`, { type: 'image/png' })
       if (navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file], title: `${displayName ?? slug} on Kryla`, url: pageUrl })
       } else {
@@ -148,11 +160,11 @@ export default function ShareKit({ slug, displayName, persona, avatarUrl }: Prop
       {/* Header */}
       <div className="flex items-center gap-2">
         <div className="w-8 h-8 rounded-lg bg-[#0D0D0D] flex items-center justify-center flex-shrink-0">
+          {/* Canonical Kryla K: spine left, two arms right, lower arm amber */}
           <svg width="14" height="14" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-            <line x1="11" y1="2"  x2="11" y2="20" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
-            <line x1="11" y1="11" x2="3"  y2="3"  stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
-            <line x1="11" y1="11" x2="19" y2="3"  stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
-            <line x1="11" y1="11" x2="19" y2="19" stroke="#F5A623" strokeWidth="3" strokeLinecap="round" />
+            <line x1="5" y1="2"  x2="5"  y2="20" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
+            <line x1="5" y1="11" x2="17" y2="2"  stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
+            <line x1="5" y1="11" x2="17" y2="20" stroke="#F5A623" strokeWidth="3" strokeLinecap="round" />
           </svg>
         </div>
         <div>
@@ -293,33 +305,42 @@ export default function ShareKit({ slug, displayName, persona, avatarUrl }: Prop
               Drop the K badge anywhere — website, blog, bio, or email. It links directly to your Kryla page.
             </p>
 
-            {/* Live badge preview */}
+            {/* Live badge preview — gradient card, clickable, links to member page */}
             <div className="bg-[#F5F5F5] border border-[#E5E5E5] rounded-xl px-4 py-5 flex items-center justify-center">
-              <div style={{
-                display:        'inline-flex',
-                alignItems:     'center',
-                gap:            '10px',
-                background:     '#0D0D0D',
-                borderRadius:   '10px',
-                padding:        '8px 14px 8px 10px',
-              }}>
-                {/* K mark */}
+              <a
+                href={pageUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Click to open your page"
+                style={{
+                  display:        'inline-flex',
+                  alignItems:     'center',
+                  gap:            '10px',
+                  background:     'linear-gradient(100deg, #FFF8E8 0%, #FFE4A0 55%, #F5A623 100%)',
+                  borderRadius:   '10px',
+                  padding:        '8px 14px 8px 10px',
+                  textDecoration: 'none',
+                  border:         '1px solid rgba(245,166,35,0.3)',
+                  boxShadow:      '0 2px 8px rgba(0,0,0,0.08)',
+                }}
+              >
+                {/* K mark — dark square on amber gradient */}
                 <span style={{
                   display:        'inline-flex',
                   alignItems:     'center',
                   justifyContent: 'center',
                   width:          '30px',
                   height:         '30px',
-                  background:     '#F5A623',
+                  background:     '#0D0D0D',
                   borderRadius:   '7px',
                   fontSize:       '17px',
                   fontWeight:     900,
-                  color:          '#0D0D0D',
+                  color:          '#F5A623',
                   flexShrink:     0,
                 }}>K</span>
 
                 {/* Thin divider */}
-                <span style={{ width: '1px', height: '28px', background: '#2A2A2A', flexShrink: 0 }} />
+                <span style={{ width: '1px', height: '28px', background: 'rgba(0,0,0,0.12)', flexShrink: 0 }} />
 
                 {/* Avatar */}
                 {avatarUrl ? (
@@ -327,7 +348,7 @@ export default function ShareKit({ slug, displayName, persona, avatarUrl }: Prop
                   <img
                     src={avatarUrl}
                     alt=""
-                    style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+                    style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid rgba(255,255,255,0.8)' }}
                   />
                 ) : (
                   <span style={{
@@ -337,32 +358,33 @@ export default function ShareKit({ slug, displayName, persona, avatarUrl }: Prop
                     width:          '30px',
                     height:         '30px',
                     borderRadius:   '50%',
-                    background:     '#1E1E1E',
+                    background:     'rgba(255,255,255,0.7)',
                     fontSize:       '14px',
                     fontWeight:     700,
-                    color:          '#888',
+                    color:          '#B87A10',
                     flexShrink:     0,
                   }}>{initial}</span>
                 )}
 
-                {/* Text */}
+                {/* Text — dark on light amber = high contrast */}
                 <span style={{ display: 'inline-flex', flexDirection: 'column', gap: '1px' }}>
                   {displayName && (
-                    <span style={{ color: '#FFFFFF', fontSize: '12px', fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap' }}>
+                    <span style={{ color: '#0D0D0D', fontSize: '12px', fontWeight: 800, lineHeight: 1.1, whiteSpace: 'nowrap' }}>
                       {displayName}
                     </span>
                   )}
                   {persona && (
-                    <span style={{ color: '#AAAAAA', fontSize: '10px', fontWeight: 500, lineHeight: 1.2, whiteSpace: 'nowrap' }}>
+                    <span style={{ color: '#333333', fontSize: '10px', fontWeight: 500, lineHeight: 1.3, whiteSpace: 'nowrap' }}>
                       {persona}
                     </span>
                   )}
-                  <span style={{ color: '#666666', fontSize: '10px', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
+                  <span style={{ color: '#555555', fontSize: '10px', lineHeight: 1.3, whiteSpace: 'nowrap' }}>
                     {host}
                   </span>
                 </span>
-              </div>
+              </a>
             </div>
+            <p className="text-[10px] text-[#999] text-center -mt-1">↑ Click to preview your live page</p>
 
             {/* Copy embed code (for websites — inline HTML, no external image) */}
             <button onClick={copyBadge}
@@ -386,29 +408,39 @@ export default function ShareKit({ slug, displayName, persona, avatarUrl }: Prop
               )}
             </button>
 
-            {/* Share or download badge PNG */}
-            <div className="flex gap-2">
-              {canShareFiles && (
+            {/* Instagram square card */}
+            <div className="rounded-lg border border-[#E8D5F0] bg-[#FCF5FF] px-3 py-2.5 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C026D3" strokeWidth="1.8">
+                  <rect x="2" y="2" width="20" height="20" rx="5"/>
+                  <circle cx="12" cy="12" r="4"/>
+                  <circle cx="17.5" cy="6.5" r="1" fill="#C026D3"/>
+                </svg>
+                <span className="text-xs text-[#86198F] font-medium truncate">Instagram / stories (1080×1080)</span>
+              </div>
+              {canShareFiles ? (
                 <button onClick={shareBadgeImage} disabled={badgeSharing}
-                  className="flex-1 py-2 rounded-xl bg-[#0D0D0D] text-white text-xs font-semibold hover:opacity-80 transition-opacity disabled:opacity-50 flex items-center justify-center gap-1.5">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
-                    <polyline points="16 6 12 2 8 6"/>
-                    <line x1="12" y1="2" x2="12" y2="15"/>
-                  </svg>
-                  {badgeSharing ? 'Preparing…' : 'Share badge'}
+                  className="flex-shrink-0 text-xs font-semibold px-3 py-1 rounded-lg bg-[#C026D3] text-white hover:opacity-80 transition-opacity disabled:opacity-50">
+                  {badgeSharing ? 'Preparing…' : 'Share'}
+                </button>
+              ) : (
+                <button onClick={downloadInstagramCard}
+                  className="flex-shrink-0 text-xs font-semibold px-3 py-1 rounded-lg bg-[#C026D3] text-white hover:opacity-80 transition-opacity">
+                  Download
                 </button>
               )}
-              <button onClick={downloadBadgePng}
-                className="flex-1 py-2 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors flex items-center justify-center gap-1.5">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                Download PNG
-              </button>
             </div>
+
+            {/* Horizontal badge download */}
+            <button onClick={downloadBadgePng}
+              className="w-full py-2 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors flex items-center justify-center gap-1.5">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Download badge PNG <span className="text-[#999] font-normal ml-1">for website / email</span>
+            </button>
           </div>
         )}
       </div>

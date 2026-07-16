@@ -44,11 +44,11 @@ export default function InstallBanner({ app, slug }: Props) {
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0D0D0D] border-t border-[#2A2A2A] px-4 py-3 pb-safe flex items-center gap-3">
       {/* K-mark icon */}
       <div className="w-10 h-10 rounded-xl bg-[#1A1A1A] flex items-center justify-center shrink-0">
+        {/* Canonical Kryla K: spine left, two arms right, lower arm amber */}
         <svg width="18" height="18" viewBox="0 0 22 22" fill="none" aria-hidden>
-          <line x1="11" y1="2"  x2="11" y2="20" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
-          <line x1="11" y1="11" x2="3"  y2="3"  stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
-          <line x1="11" y1="11" x2="19" y2="3"  stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
-          <line x1="11" y1="11" x2="19" y2="19" stroke="#F5A623" strokeWidth="3" strokeLinecap="round" />
+          <line x1="5" y1="2"  x2="5"  y2="20" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
+          <line x1="5" y1="11" x2="17" y2="2"  stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
+          <line x1="5" y1="11" x2="17" y2="20" stroke="#F5A623" strokeWidth="3" strokeLinecap="round" />
         </svg>
       </div>
       <div className="flex-1 min-w-0">
