@@ -4,7 +4,7 @@ import { getAllVerticals } from '@/config/verticals'
 import { fetchPersonaDefaults } from '@/lib/personas'
 import Anthropic from '@anthropic-ai/sdk'
 import type { BuildPageJobPayload } from '@/lib/inngest'
-import { sendWhatsAppMessage, buildPageLiveMessage } from '@/lib/whatsapp'
+import { sendWhatsAppMessage, buildPageLiveMessage, buildInstallLinksMessage } from '@/lib/whatsapp'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -488,8 +488,15 @@ export const buildPageFunction = inngest.createFunction(
         .eq('id', providerId)
         .single()
       if (!provider?.whatsapp_number) return
-      const msg = buildPageLiveMessage({ memberName: provider.first_name ?? 'there', slug })
-      await sendWhatsAppMessage({ to: provider.whatsapp_number, text: msg })
+
+      // First message: page is live
+      const liveMsg = buildPageLiveMessage({ memberName: provider.first_name ?? 'there', slug })
+      await sendWhatsAppMessage({ to: provider.whatsapp_number, text: liveMsg })
+
+      // Second message: install links (slight delay so they arrive as separate bubbles)
+      await new Promise(r => setTimeout(r, 2000))
+      const installMsg = buildInstallLinksMessage({ memberName: provider.first_name ?? 'there', slug })
+      await sendWhatsAppMessage({ to: provider.whatsapp_number, text: installMsg })
     })
 
     return { ok: true, providerId, slug }

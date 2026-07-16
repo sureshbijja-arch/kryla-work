@@ -162,6 +162,15 @@ export default function DraftingStudio({
   // Focus mode — hides control panel so editor fills full height
   const [focusMode, setFocusMode] = useState(false)
 
+  // Mobile detection — overlay fills full screen on narrow viewports
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    function check() { setIsMobile(window.innerWidth < 768) }
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
   // ── Data loading ─────────────────────────────────────────────────────────
 
   const loadTemplates = useCallback(async () => {
@@ -559,7 +568,7 @@ export default function DraftingStudio({
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col">
+    <div className={`fixed inset-y-0 right-0 ${isMobile ? 'inset-x-0 w-full' : 'inset-x-0 w-full'} bg-white z-50 flex flex-col`}>
 
       {/* ── Header ── */}
       <header className="bg-white border-b border-[#E5E5E5] px-4 py-2.5 flex items-center justify-between shrink-0">

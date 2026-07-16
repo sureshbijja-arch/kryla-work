@@ -9,9 +9,10 @@ interface Props {
   firstName: string
   plan: string
   onUpgrade: () => void
+  isMobile?: boolean
 }
 
-export default function MediaTab({ providerId, slug, firstName, plan: _plan, onUpgrade: _onUpgrade }: Props) {
+export default function MediaTab({ providerId, slug, firstName, plan: _plan, onUpgrade: _onUpgrade, isMobile = false }: Props) {
   const [avatarUrl, setAvatarUrl]             = useState<string | null>(null)
   const [gallery, setGallery]                 = useState<string[]>([])
   const [loading, setLoading]                 = useState(true)
@@ -122,7 +123,7 @@ export default function MediaTab({ providerId, slug, firstName, plan: _plan, onU
   }
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className={`flex-1 overflow-y-auto${isMobile ? ' pwa-bottom-nav-clearance' : ''}`}>
       <div className="px-4 py-5 max-w-2xl mx-auto w-full space-y-8">
 
         {/* ── Social links — available to all plans ── */}

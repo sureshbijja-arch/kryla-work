@@ -1,6 +1,14 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import "./globals.css"
 import { PHProvider } from "./providers"
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#0D0D0D',
+  userScalable: false,
+}
 
 export const metadata: Metadata = {
   title: "Kryla.work — One platform, built around your craft",

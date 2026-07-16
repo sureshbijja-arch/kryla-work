@@ -18,9 +18,10 @@ interface Props {
   plan: string
   canAds: boolean
   onUpgrade: () => void
+  isMobile?: boolean
 }
 
-export default function AdsTab({ providerId, slug, canAds, onUpgrade }: Props) {
+export default function AdsTab({ providerId, slug, canAds, onUpgrade, isMobile = false }: Props) {
   const [ads, setAds]               = useState<AdItem[]>([])
   const [loading, setLoading]       = useState(true)
   const [adTitle, setAdTitle]       = useState('')
@@ -163,7 +164,7 @@ export default function AdsTab({ providerId, slug, canAds, onUpgrade }: Props) {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className={`flex-1 overflow-y-auto${isMobile ? ' pwa-bottom-nav-clearance' : ''}`}>
       <div className="px-4 py-5 max-w-2xl mx-auto w-full space-y-8">
 
         <section>

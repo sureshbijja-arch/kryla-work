@@ -58,11 +58,16 @@ export async function middleware(req: NextRequest) {
 
     if (!slug) return NextResponse.next()
 
-    // API routes, Next.js internals, and public static files must not get the slug prefix
+    // API routes, Next.js internals, public static files, and PWA assets
+    // must not get the slug prefix injected
     if (
       url.pathname.startsWith('/api') ||
       url.pathname.startsWith('/_next') ||
-      url.pathname.startsWith('/images/')
+      url.pathname.startsWith('/images/') ||
+      url.pathname.startsWith('/icons/') ||
+      url.pathname.startsWith('/get-app') ||
+      url.pathname === '/sw.js' ||
+      url.pathname === '/sw-register.js'
     ) {
       return NextResponse.next()
     }

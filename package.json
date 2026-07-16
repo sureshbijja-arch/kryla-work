@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.3",
+    "@serwist/next": "^9.5.11",
     "@sparticuz/chromium": "^149.0.0",
     "@supabase/ssr": "^0.3",
     "@supabase/supabase-js": "^2",
@@ -41,12 +42,14 @@
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
     "resend": "^3",
+    "serwist": "^9.5.11",
     "stripe": "^15",
     "svix": "^1.96.1",
     "zod": "^3"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
+    "@resvg/resvg-js": "^2.6.2",
     "@types/diff": "^7.0.2",
     "@types/node": "^20",
     "@types/react": "^18",

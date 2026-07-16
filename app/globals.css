@@ -182,3 +182,28 @@ body {
   color: #991b1b;
   text-decoration: line-through;
 }
+
+/* ── PWA safe-area and standalone overrides ───────────────────────────── */
+
+/* Standalone-mode paddings (notched iPhones + Android) */
+@media (display-mode: standalone) {
+  .pwa-pt { padding-top: env(safe-area-inset-top, 0px); }
+  .pwa-pb { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+  /* Prevent content from sliding under iOS status bar */
+  body { padding-top: env(safe-area-inset-top, 0px); }
+}
+
+/* Bottom nav bar clearance — always reserve space when bar exists */
+.pwa-bottom-nav-clearance {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Smooth tab content transitions */
+.pwa-tab-fade {
+  animation: pwaFadeIn 0.15s ease-out;
+}
+@keyframes pwaFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

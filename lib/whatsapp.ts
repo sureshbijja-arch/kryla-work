@@ -118,3 +118,17 @@ export function buildPageLiveMessage(opts: {
     `Log in to manage your page: https://kryla.work/mychat`
   )
 }
+
+/** Install links message — sent to member when their page goes live */
+export function buildInstallLinksMessage(opts: {
+  memberName: string
+  slug:       string
+}) {
+  const base = `https://${opts.slug}.kryla.work`
+  return (
+    `Hi ${opts.memberName}! 🎉 Your Kryla apps are ready to install.\n\n` +
+    `📱 *My Chat* (your business dashboard):\n${base}/get-app?app=mychat\n\n` +
+    `🌐 *Your customer page app* (share this link with customers):\n${base}/get-app?app=customer\n\n` +
+    `Tap either link on your phone to install the app in one tap.`
+  )
+}

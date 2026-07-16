@@ -489,6 +489,15 @@ export default function PractitionerStudio({
       })
   }, [providerId, editorInstance])
 
+  // Mobile detection — overlay fills full screen on narrow viewports
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    function check() { setIsMobile(window.innerWidth < 768) }
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
   // ── Guard ─────────────────────────────────────────────────────────────────
   if (!open) return null
 
@@ -496,7 +505,7 @@ export default function PractitionerStudio({
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="fixed inset-0 z-50 bg-zinc-50 dark:bg-zinc-900 flex flex-col" aria-modal="true">
+    <div className={`fixed inset-y-0 right-0 ${isMobile ? 'inset-x-0 w-full' : 'inset-x-0 w-full'} bg-zinc-50 dark:bg-zinc-900 z-50 flex flex-col`} aria-modal="true">
 
       {/* ── Top bar ── */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shrink-0">
