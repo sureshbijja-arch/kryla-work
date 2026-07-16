@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 type BeforeInstallPromptEvent = Event & {
   prompt(): Promise<void>
@@ -44,13 +44,13 @@ export function useInstallPrompt(): InstallPromptResult {
     }
   }, [])
 
-  async function installApp() {
+  const installApp = useCallback(async () => {
     if (!promptEvent) return
     await promptEvent.prompt()
     const { outcome } = await promptEvent.userChoice
     if (outcome === 'accepted') setIsInstalled(true)
     setPromptEvent(null)
-  }
+  }, [promptEvent])
 
   return { canInstall: !!promptEvent, isInstalled, installApp }
 }
