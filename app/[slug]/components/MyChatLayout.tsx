@@ -29,6 +29,7 @@ interface SpaceProps {
     lastName: string
     persona: string
     location: string
+    avatarUrl: string | null
     whatsappNumber: string | null
     email: string | null
     headline: string

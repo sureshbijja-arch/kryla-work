@@ -3,8 +3,7 @@
 /**
  * ShareKit — multi-channel share panel for a member's public Kryla page.
  *
- * Surfaces the canonical {slug}.kryla.work URL (not the /get-app install link)
- * across every channel the user asked for:
+ * Surfaces the canonical {slug}.kryla.work URL across:
  *   • Native OS share sheet (mobile)     → WhatsApp / Instagram / SMS / email / anything
  *   • WhatsApp button                    → wa.me deep-link
  *   • SMS                                → sms: URI
@@ -13,144 +12,142 @@
  *   • QR code download                   → PNG for posters / packaging / storefront
  *   • Email-signature snippet            → copy-paste HTML with branded card image
  *   • Instagram / link-in-bio hint       → copy the canonical link
+ *   • Embed a badge                      → K badge with name+profession for websites/email/social
  */
 
 import { useState } from 'react'
-import { memberUrl, memberShareCardUrl, memberBadgeUrl, badgeEmbedHtml, badgeEmbedImgHtml } from '@/lib/links'
+import { memberUrl, memberShareCardUrl, memberBadgeUrl, badgeEmbedHtml, badgeEmbedImgHtml, memberHost } from '@/lib/links'
 
 interface Props {
   slug: string
   /** Member's display name — used in share text. Defaults to "my page" if omitted. */
   displayName?: string
+  /** Persona/profession label, e.g. "Advocate". */
+  persona?: string
+  /** Avatar image URL — shown in the badge preview and passed to badge PNG route. */
+  avatarUrl?: string
 }
 
-export default function ShareKit({ slug, displayName }: Props) {
-  const [linkCopied,    setLinkCopied]    = useState(false)
-  const [sigCopied,     setSigCopied]     = useState(false)
-  const [igCopied,      setIgCopied]      = useState(false)
-  const [showSig,       setShowSig]       = useState(false)
-  const [qrLoading,     setQrLoading]     = useState(false)
-  const [showBadge,     setShowBadge]     = useState(false)
-  const [badgeCopied,   setBadgeCopied]   = useState(false)
-  const [badgeSigCopied,setBadgeSigCopied]= useState(false)
+export default function ShareKit({ slug, displayName, persona, avatarUrl }: Props) {
+  const [linkCopied,     setLinkCopied]     = useState(false)
+  const [sigCopied,      setSigCopied]      = useState(false)
+  const [igCopied,       setIgCopied]       = useState(false)
+  const [showSig,        setShowSig]        = useState(false)
+  const [qrLoading,      setQrLoading]      = useState(false)
+  const [showBadge,      setShowBadge]      = useState(false)
+  const [badgeCopied,    setBadgeCopied]    = useState(false)
+  const [badgeSigCopied, setBadgeSigCopied] = useState(false)
+  const [badgeSharing,   setBadgeSharing]   = useState(false)
 
   const pageUrl  = memberUrl(slug)
   const cardUrl  = memberShareCardUrl(slug)
+  const host     = memberHost(slug)
   const name     = displayName || 'my page'
   const title    = displayName ? `${displayName} — on Kryla` : 'My Kryla page'
   const text     = `Check out ${name} on Kryla`
 
-  // ── Channel URLs ────────────────────────────────────────────────────────
+  // ── Channel URLs ─────────────────────────────────────────────────────────
   const waUrl    = `https://wa.me/?text=${encodeURIComponent(`${text}: ${pageUrl}`)}`
   const smsUrl   = `sms:?body=${encodeURIComponent(`${text}: ${pageUrl}`)}`
   const emailUrl = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${text}\n\n${pageUrl}`)}`
 
-  // Email-signature HTML block — paste into Gmail / Outlook signature
-  const sigHtml  = [
+  // Email-signature HTML — paste into Gmail / Outlook
+  const sigHtml = [
     `<a href="${pageUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;text-decoration:none">`,
     `<img src="${cardUrl}" alt="${displayName ?? 'My Kryla page'}" width="300" height="158" `,
     `style="display:block;border:none;border-radius:8px" />`,
     `</a>`,
   ].join('')
 
-  // Badge embed snippets (generated from lib/links helpers — consistent with server)
-  const badgeHtml    = badgeEmbedHtml(slug)
+  // Badge embed snippets
+  const badgeHtml    = badgeEmbedHtml(slug, { name: displayName, persona })
   const badgeSigHtml = badgeEmbedImgHtml(slug)
-  const badgePngUrl  = memberBadgeUrl(slug)
 
-  // ── Handlers ─────────────────────────────────────────────────────────────
-  async function nativeShare() {
-    try {
-      await navigator.share({ url: pageUrl, title, text })
-    } catch {
-      // User cancelled or not supported — handled below by showing channel buttons
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  // Robust clipboard copy: async API → execCommand fallback
+  function robustCopy(text: string, onSuccess: () => void) {
+    const fallback = () => {
+      const ta = document.createElement('textarea')
+      ta.value = text
+      Object.assign(ta.style, { position: 'fixed', top: '0', left: '0', opacity: '0' })
+      document.body.appendChild(ta)
+      ta.focus()
+      ta.select()
+      try { if (document.execCommand('copy')) onSuccess() } catch { /* ignore */ }
+      document.body.removeChild(ta)
+    }
+
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(onSuccess).catch(fallback)
+    } else {
+      fallback()
     }
   }
 
-  function copyLink() {
-    navigator.clipboard.writeText(pageUrl).then(() => {
-      setLinkCopied(true)
-      setTimeout(() => setLinkCopied(false), 2000)
-    }).catch(() => {})
+  // ── Handlers ──────────────────────────────────────────────────────────────
+  async function nativeShare() {
+    try { await navigator.share({ url: pageUrl, title, text }) } catch { /* cancelled */ }
   }
 
-  function copyIg() {
-    navigator.clipboard.writeText(pageUrl).then(() => {
-      setIgCopied(true)
-      setTimeout(() => setIgCopied(false), 2500)
-    }).catch(() => {})
-  }
-
-  function copySig() {
-    navigator.clipboard.writeText(sigHtml).then(() => {
-      setSigCopied(true)
-      setTimeout(() => setSigCopied(false), 2500)
-    }).catch(() => {})
-  }
+  function copyLink()    { robustCopy(pageUrl,  () => { setLinkCopied(true);     setTimeout(() => setLinkCopied(false),     2000) }) }
+  function copyIg()      { robustCopy(pageUrl,  () => { setIgCopied(true);       setTimeout(() => setIgCopied(false),       2500) }) }
+  function copySig()     { robustCopy(sigHtml,  () => { setSigCopied(true);      setTimeout(() => setSigCopied(false),      2500) }) }
+  function copyBadge()   { robustCopy(badgeHtml,() => { setBadgeCopied(true);    setTimeout(() => setBadgeCopied(false),    2500) }) }
+  function copyBadgeSig(){ robustCopy(badgeSigHtml,() => { setBadgeSigCopied(true); setTimeout(() => setBadgeSigCopied(false), 2500) }) }
 
   async function downloadQr() {
     setQrLoading(true)
     try {
-      const QRCode = (await import('qrcode')).default
-      const dataUrl = await QRCode.toDataURL(pageUrl, {
-        width:  400,
-        margin: 2,
-        color:  { dark: '#0D0D0D', light: '#FFFFFF' },
-      })
-      const a = document.createElement('a')
-      a.href     = dataUrl
-      a.download = `${slug}-qr.png`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-    } catch (err) {
-      console.error('[ShareKit] QR generation failed:', err)
-    } finally {
-      setQrLoading(false)
-    }
+      const QRCode  = (await import('qrcode')).default
+      const dataUrl = await QRCode.toDataURL(pageUrl, { width: 400, margin: 2, color: { dark: '#0D0D0D', light: '#FFFFFF' } })
+      const a = Object.assign(document.createElement('a'), { href: dataUrl, download: `${slug}-qr.png` })
+      document.body.appendChild(a); a.click(); document.body.removeChild(a)
+    } catch (err) { console.error('[ShareKit] QR failed:', err) }
+    finally { setQrLoading(false) }
   }
 
-  function copyBadge() {
-    navigator.clipboard.writeText(badgeHtml).then(() => {
-      setBadgeCopied(true)
-      setTimeout(() => setBadgeCopied(false), 2500)
-    }).catch(() => {})
-  }
-
-  function copyBadgeSig() {
-    navigator.clipboard.writeText(badgeSigHtml).then(() => {
-      setBadgeSigCopied(true)
-      setTimeout(() => setBadgeSigCopied(false), 2500)
-    }).catch(() => {})
-  }
-
+  // Badge PNG download — relative URL avoids cross-origin CORS on member subdomains
   async function downloadBadgePng() {
     try {
-      const res  = await fetch(badgePngUrl)
+      const res  = await fetch(`/api/badge/${slug}`)
       const blob = await res.blob()
       const url  = URL.createObjectURL(blob)
-      const a    = document.createElement('a')
-      a.href     = url
-      a.download = `${slug}-badge.png`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
+      const a    = Object.assign(document.createElement('a'), { href: url, download: `${slug}-badge.png` })
+      document.body.appendChild(a); a.click(); document.body.removeChild(a)
       URL.revokeObjectURL(url)
-    } catch (err) {
-      console.error('[ShareKit] Badge PNG download failed:', err)
-    }
+    } catch (err) { console.error('[ShareKit] badge download failed:', err) }
   }
 
-  const canNativeShare = typeof navigator !== 'undefined' && !!navigator?.share
+  // Native share of the badge PNG image (mobile) — also uses relative URL for same-origin fetch
+  async function shareBadgeImage() {
+    if (!navigator.canShare) return
+    setBadgeSharing(true)
+    try {
+      const res  = await fetch(`/api/badge/${slug}`)
+      const blob = await res.blob()
+      const file = new File([blob], `${slug}-badge.png`, { type: 'image/png' })
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: `${displayName ?? slug} on Kryla`, url: pageUrl })
+      } else {
+        await navigator.share({ url: pageUrl, title })
+      }
+    } catch { /* cancelled */ }
+    finally { setBadgeSharing(false) }
+  }
 
-  // ── UI ───────────────────────────────────────────────────────────────────
+  const canNativeShare   = typeof navigator !== 'undefined' && !!navigator?.share
+  const canShareFiles    = typeof navigator !== 'undefined' && !!navigator?.canShare
+
+  // Badge preview initial letter
+  const initial = displayName ? displayName[0].toUpperCase() : slug[0].toUpperCase()
+
+  // ── UI ────────────────────────────────────────────────────────────────────
   return (
     <div className="border border-[#E5E5E5] rounded-xl p-4 bg-white mb-4 space-y-3">
 
       {/* Header */}
       <div className="flex items-center gap-2">
         <div className="w-8 h-8 rounded-lg bg-[#0D0D0D] flex items-center justify-center flex-shrink-0">
-          {/* Kryla K mark (inline SVG arrow-up-and-branch) */}
           <svg width="14" height="14" viewBox="0 0 22 22" fill="none" aria-hidden="true">
             <line x1="11" y1="2"  x2="11" y2="20" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
             <line x1="11" y1="11" x2="3"  y2="3"  stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
@@ -186,34 +183,23 @@ export default function ShareKit({ slug, displayName }: Props) {
 
       {/* Channel grid */}
       <div className="grid grid-cols-2 gap-2">
-        {/* WhatsApp */}
-        <a
-          href={waUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+        <a href={waUrl} target="_blank" rel="noopener noreferrer"
           className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold text-white transition-opacity hover:opacity-80"
-          style={{ background: '#25D366' }}
-        >
+          style={{ background: '#25D366' }}>
           <WaIcon />
           WhatsApp
         </a>
 
-        {/* SMS */}
-        <a
-          href={smsUrl}
-          className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#333] hover:border-[#0D0D0D] transition-colors"
-        >
+        <a href={smsUrl}
+          className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#333] hover:border-[#0D0D0D] transition-colors">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
           </svg>
           SMS
         </a>
 
-        {/* Email */}
-        <a
-          href={emailUrl}
-          className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#333] hover:border-[#0D0D0D] transition-colors"
-        >
+        <a href={emailUrl}
+          className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#333] hover:border-[#0D0D0D] transition-colors">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
             <polyline points="22,6 12,13 2,6"/>
@@ -221,26 +207,12 @@ export default function ShareKit({ slug, displayName }: Props) {
           Email
         </a>
 
-        {/* Copy link */}
-        <button
-          onClick={copyLink}
-          className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#333] hover:border-[#0D0D0D] transition-colors"
-        >
+        <button onClick={copyLink}
+          className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#333] hover:border-[#0D0D0D] transition-colors">
           {linkCopied ? (
-            <>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-              Copied!
-            </>
+            <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Copied!</>
           ) : (
-            <>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
-                <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
-              </svg>
-              Copy link
-            </>
+            <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>Copy link</>
           )}
         </button>
       </div>
@@ -255,31 +227,21 @@ export default function ShareKit({ slug, displayName }: Props) {
           </svg>
           <span className="text-xs text-[#86198F] font-medium truncate">Instagram bio link</span>
         </div>
-        <button
-          onClick={copyIg}
-          className="flex-shrink-0 text-xs font-semibold px-3 py-1 rounded-lg bg-[#C026D3] text-white hover:opacity-80 transition-opacity"
-        >
+        <button onClick={copyIg}
+          className="flex-shrink-0 text-xs font-semibold px-3 py-1 rounded-lg bg-[#C026D3] text-white hover:opacity-80 transition-opacity">
           {igCopied ? '✓ Copied' : 'Copy'}
         </button>
       </div>
 
       {/* QR code download */}
-      <button
-        onClick={downloadQr}
-        disabled={qrLoading}
-        className="w-full py-2.5 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-      >
+      <button onClick={downloadQr} disabled={qrLoading}
+        className="w-full py-2.5 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-          <rect x="3" y="3" width="8" height="8" rx="1.5"/>
-          <rect x="5" y="5" width="4" height="4" fill="white"/>
-          <rect x="13" y="3" width="8" height="8" rx="1.5"/>
-          <rect x="15" y="5" width="4" height="4" fill="white"/>
-          <rect x="3" y="13" width="8" height="8" rx="1.5"/>
-          <rect x="5" y="15" width="4" height="4" fill="white"/>
-          <rect x="13" y="13" width="4" height="4" rx="1"/>
-          <rect x="19" y="13" width="2" height="2" rx="0.5"/>
-          <rect x="13" y="19" width="2" height="2" rx="0.5"/>
-          <rect x="17" y="17" width="4" height="4" rx="1"/>
+          <rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="5" y="5" width="4" height="4" fill="white"/>
+          <rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="15" y="5" width="4" height="4" fill="white"/>
+          <rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="5" y="15" width="4" height="4" fill="white"/>
+          <rect x="13" y="13" width="4" height="4" rx="1"/><rect x="19" y="13" width="2" height="2" rx="0.5"/>
+          <rect x="13" y="19" width="2" height="2" rx="0.5"/><rect x="17" y="17" width="4" height="4" rx="1"/>
         </svg>
         {qrLoading ? 'Generating…' : 'Download QR code'}
         <span className="text-[#999] font-normal">for posters &amp; packaging</span>
@@ -287,10 +249,8 @@ export default function ShareKit({ slug, displayName }: Props) {
 
       {/* Email signature */}
       <div>
-        <button
-          onClick={() => setShowSig(v => !v)}
-          className="w-full py-2.5 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors flex items-center justify-center gap-2"
-        >
+        <button onClick={() => setShowSig(v => !v)}
+          className="w-full py-2.5 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors flex items-center justify-center gap-2">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
             <polyline points="22,6 12,13 2,6"/>
@@ -300,7 +260,6 @@ export default function ShareKit({ slug, displayName }: Props) {
             <path d="M1 3l4 4 4-4"/>
           </svg>
         </button>
-
         {showSig && (
           <div className="mt-2 space-y-2">
             <p className="text-[11px] text-[#666] leading-relaxed">
@@ -309,10 +268,8 @@ export default function ShareKit({ slug, displayName }: Props) {
             <div className="bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg p-2.5 text-[10px] font-mono text-[#555] break-all leading-relaxed">
               {sigHtml}
             </div>
-            <button
-              onClick={copySig}
-              className="w-full py-2 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors"
-            >
+            <button onClick={copySig}
+              className="w-full py-2 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors">
               {sigCopied ? '✓ Copied HTML!' : 'Copy signature HTML'}
             </button>
           </div>
@@ -321,11 +278,8 @@ export default function ShareKit({ slug, displayName }: Props) {
 
       {/* Embed a badge */}
       <div>
-        <button
-          onClick={() => setShowBadge(v => !v)}
-          className="w-full py-2.5 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors flex items-center justify-center gap-2"
-        >
-          {/* K-mark mini icon */}
+        <button onClick={() => setShowBadge(v => !v)}
+          className="w-full py-2.5 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors flex items-center justify-center gap-2">
           <span className="inline-flex items-center justify-center w-4 h-4 rounded-[3px] text-[9px] font-black" style={{ background: '#F5A623', color: '#0D0D0D' }}>K</span>
           Embed a badge
           <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style={{ transform: showBadge ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
@@ -336,97 +290,125 @@ export default function ShareKit({ slug, displayName }: Props) {
         {showBadge && (
           <div className="mt-2 space-y-3">
             <p className="text-[11px] text-[#666] leading-relaxed">
-              A small K badge that links to your page. Drop the code on any website, blog, or WhatsApp status. Download the PNG for Instagram or stories.
+              Drop the K badge anywhere — website, blog, bio, or email. It links directly to your Kryla page.
             </p>
 
-            {/* Live preview */}
-            <div className="bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg px-4 py-4 flex items-center justify-center">
-              {/* Inline preview — mirrors badgeEmbedHtml output */}
-              <a
-                href={memberUrl(slug)}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={e => e.preventDefault()}
-                style={{
-                  display:        'inline-flex',
-                  alignItems:     'center',
-                  gap:            '8px',
-                  background:     '#0D0D0D',
-                  borderRadius:   '8px',
-                  padding:        '6px 12px 6px 8px',
-                  textDecoration: 'none',
-                }}
-              >
+            {/* Live badge preview */}
+            <div className="bg-[#F5F5F5] border border-[#E5E5E5] rounded-xl px-4 py-5 flex items-center justify-center">
+              <div style={{
+                display:        'inline-flex',
+                alignItems:     'center',
+                gap:            '10px',
+                background:     '#0D0D0D',
+                borderRadius:   '10px',
+                padding:        '8px 14px 8px 10px',
+              }}>
+                {/* K mark */}
                 <span style={{
                   display:        'inline-flex',
                   alignItems:     'center',
                   justifyContent: 'center',
-                  width:          '24px',
-                  height:         '24px',
+                  width:          '30px',
+                  height:         '30px',
                   background:     '#F5A623',
-                  borderRadius:   '5px',
-                  fontSize:       '14px',
+                  borderRadius:   '7px',
+                  fontSize:       '17px',
                   fontWeight:     900,
                   color:          '#0D0D0D',
                   flexShrink:     0,
                 }}>K</span>
-                <span style={{
-                  color:       '#FFFFFF',
-                  fontSize:    '13px',
-                  fontWeight:  600,
-                  whiteSpace:  'nowrap',
-                }}>{`${slug}.kryla.work`}</span>
-              </a>
+
+                {/* Thin divider */}
+                <span style={{ width: '1px', height: '28px', background: '#2A2A2A', flexShrink: 0 }} />
+
+                {/* Avatar */}
+                {avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={avatarUrl}
+                    alt=""
+                    style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+                  />
+                ) : (
+                  <span style={{
+                    display:        'inline-flex',
+                    alignItems:     'center',
+                    justifyContent: 'center',
+                    width:          '30px',
+                    height:         '30px',
+                    borderRadius:   '50%',
+                    background:     '#1E1E1E',
+                    fontSize:       '14px',
+                    fontWeight:     700,
+                    color:          '#888',
+                    flexShrink:     0,
+                  }}>{initial}</span>
+                )}
+
+                {/* Text */}
+                <span style={{ display: 'inline-flex', flexDirection: 'column', gap: '1px' }}>
+                  {displayName && (
+                    <span style={{ color: '#FFFFFF', fontSize: '12px', fontWeight: 700, lineHeight: 1, whiteSpace: 'nowrap' }}>
+                      {displayName}
+                    </span>
+                  )}
+                  {persona && (
+                    <span style={{ color: '#AAAAAA', fontSize: '10px', fontWeight: 500, lineHeight: 1.2, whiteSpace: 'nowrap' }}>
+                      {persona}
+                    </span>
+                  )}
+                  <span style={{ color: '#666666', fontSize: '10px', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
+                    {host}
+                  </span>
+                </span>
+              </div>
             </div>
 
-            {/* Copy embed HTML (SVG inline — for websites) */}
-            <button
-              onClick={copyBadge}
-              className="w-full py-2.5 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors flex items-center justify-center gap-1.5"
-            >
+            {/* Copy embed code (for websites — inline HTML, no external image) */}
+            <button onClick={copyBadge}
+              className="w-full py-2.5 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors flex items-center justify-center gap-1.5">
               {badgeCopied ? (
-                <>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  Copied!
-                </>
+                <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Copied!</>
               ) : (
-                <>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-                  Copy badge code <span className="text-[#999] font-normal ml-1">for website / blog</span>
-                </>
+                <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                  Copy badge code <span className="text-[#999] font-normal ml-1">for website / blog</span></>
               )}
             </button>
 
-            {/* Copy img-based HTML (for email signatures) */}
-            <button
-              onClick={copyBadgeSig}
-              className="w-full py-2 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors flex items-center justify-center gap-1.5"
-            >
+            {/* Copy image-based snippet (for email signatures) */}
+            <button onClick={copyBadgeSig}
+              className="w-full py-2 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors flex items-center justify-center gap-1.5">
               {badgeSigCopied ? (
-                <>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  Copied!
-                </>
+                <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Copied!</>
               ) : (
-                <>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                  Copy for email signature <span className="text-[#999] font-normal ml-1">image-based</span>
-                </>
+                <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  Copy for email signature <span className="text-[#999] font-normal ml-1">image-based</span></>
               )}
             </button>
 
-            {/* Download PNG for Instagram / stories */}
-            <button
-              onClick={downloadBadgePng}
-              className="w-full py-2 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors flex items-center justify-center gap-1.5"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              Download PNG <span className="text-[#999] font-normal ml-1">for Instagram &amp; stories</span>
-            </button>
+            {/* Share or download badge PNG */}
+            <div className="flex gap-2">
+              {canShareFiles && (
+                <button onClick={shareBadgeImage} disabled={badgeSharing}
+                  className="flex-1 py-2 rounded-xl bg-[#0D0D0D] text-white text-xs font-semibold hover:opacity-80 transition-opacity disabled:opacity-50 flex items-center justify-center gap-1.5">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+                    <polyline points="16 6 12 2 8 6"/>
+                    <line x1="12" y1="2" x2="12" y2="15"/>
+                  </svg>
+                  {badgeSharing ? 'Preparing…' : 'Share badge'}
+                </button>
+              )}
+              <button onClick={downloadBadgePng}
+                className="flex-1 py-2 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors flex items-center justify-center gap-1.5">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download PNG
+              </button>
+            </div>
           </div>
         )}
       </div>

@@ -25,7 +25,7 @@ export default async function MyChatPage({ params, searchParams }: Props) {
 
   const { data: provider } = await supabaseAdmin
     .from('providers')
-    .select('id, slug, first_name, last_name, persona, location, whatsapp_number, email, plan, plan_status, trial_ends_at, region, page_live, page_language, custom_domain, referral_code')
+    .select('id, slug, first_name, last_name, persona, location, whatsapp_number, email, plan, plan_status, trial_ends_at, region, page_live, page_language, custom_domain, referral_code, avatar_url')
     .eq('email', user.email)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -98,6 +98,7 @@ export default async function MyChatPage({ params, searchParams }: Props) {
           lastName:     provider.last_name,
           persona:      provider.persona,
           location:     provider.location,
+          avatarUrl:    (provider.avatar_url as string | null) ?? null,
           whatsappNumber: provider.whatsapp_number,
           email:        provider.email,
           headline:     page?.headline     ?? '',

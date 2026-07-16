@@ -58,6 +58,7 @@ interface CurrentProfile {
   lastName: string
   persona: string
   location: string
+  avatarUrl: string | null
   whatsappNumber: string | null
   email: string | null
   headline: string
@@ -1224,7 +1225,7 @@ export default function SpaceClient({
 
       {/* ── My plan: Refer ── */}
       {tab === 'plan' && planTab === 'refer' && (
-        <ReferTab providerId={providerId} slug={slug} initialCode={referralCode} isMobile={isMobile} displayName={customName ?? firstName} />
+        <ReferTab providerId={providerId} slug={slug} initialCode={referralCode} isMobile={isMobile} displayName={customName ?? firstName} persona={currentProfile.persona} avatarUrl={currentProfile.avatarUrl ?? undefined} />
       )}
 
       {/* Mobile bottom tab bar */}

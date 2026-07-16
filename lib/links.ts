@@ -45,20 +45,34 @@ export function memberBadgeUrl(slug: string, theme: 'dark' | 'light' = 'dark'): 
  * Inline-SVG HTML embed snippet for websites/blogs.
  * Renders without an external image request — crisp at any size.
  * Clicking opens the member's canonical page.
+ * Optionally shows the member's display name and profession.
  */
-export function badgeEmbedHtml(slug: string): string {
+export function badgeEmbedHtml(slug: string, opts?: { name?: string; persona?: string }): string {
   const url  = memberUrl(slug)
   const host = memberHost(slug)
+  const name    = opts?.name
+  const persona = opts?.persona
+
+  const nameHtml = name
+    ? `<span style="color:#FFFFFF;font-size:13px;font-weight:700;` +
+      `letter-spacing:0.01em;white-space:nowrap;line-height:1">${name}</span>` +
+      (persona
+        ? `<span style="color:#AAAAAA;font-size:11px;font-weight:500;` +
+          `white-space:nowrap;line-height:1">${persona}</span>`
+        : '') +
+      `<span style="color:#666666;font-size:10px;white-space:nowrap;line-height:1">${host}</span>`
+    : `<span style="color:#FFFFFF;font-size:13px;font-weight:600;` +
+      `letter-spacing:0.01em;white-space:nowrap">${host}</span>`
+
   return (
     `<a href="${url}" target="_blank" rel="noopener noreferrer" ` +
     `style="display:inline-flex;align-items:center;gap:8px;` +
-    `background:#0D0D0D;border-radius:8px;padding:6px 12px 6px 8px;` +
+    `background:#0D0D0D;border-radius:8px;padding:8px 12px 8px 8px;` +
     `text-decoration:none;font-family:sans-serif">` +
     `<span style="display:inline-flex;align-items:center;justify-content:center;` +
-    `width:24px;height:24px;background:#F5A623;border-radius:5px;` +
-    `font-size:14px;font-weight:900;color:#0D0D0D;flex-shrink:0">K</span>` +
-    `<span style="color:#FFFFFF;font-size:13px;font-weight:600;` +
-    `letter-spacing:0.01em;white-space:nowrap">${host}</span>` +
+    `width:28px;height:28px;background:#F5A623;border-radius:6px;` +
+    `font-size:16px;font-weight:900;color:#0D0D0D;flex-shrink:0">K</span>` +
+    `<span style="display:inline-flex;flex-direction:column;gap:2px">${nameHtml}</span>` +
     `</a>`
   )
 }
