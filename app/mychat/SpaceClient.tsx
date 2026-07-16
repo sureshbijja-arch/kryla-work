@@ -1051,6 +1051,7 @@ export default function SpaceClient({
           initialServices={currentProfile.services}
           plan={plan}
           onPreview={onRefresh}
+          isMobile={isMobile}
         />
       )}
 
@@ -1062,6 +1063,7 @@ export default function SpaceClient({
           initialSections={defaultSections}
           plan={plan}
           onPreview={onRefresh}
+          isMobile={isMobile}
         />
       )}
 
@@ -1076,6 +1078,7 @@ export default function SpaceClient({
           currentFont={currentProfile.font}
           onPreview={onRefresh}
           onUpgrade={() => goTo('plan')}
+          isMobile={isMobile}
         />
       )}
 
@@ -1087,6 +1090,7 @@ export default function SpaceClient({
           plan={plan}
           canAds={canAds}
           onUpgrade={() => goTo('plan')}
+          isMobile={isMobile}
         />
       )}
 
@@ -1098,6 +1102,7 @@ export default function SpaceClient({
           firstName={firstName}
           plan={plan}
           onUpgrade={() => goTo('plan')}
+          isMobile={isMobile}
         />
       )}
 
@@ -1106,6 +1111,7 @@ export default function SpaceClient({
         <LanguageTab
           providerId={providerId}
           currentLanguage={pageLanguage}
+          isMobile={isMobile}
         />
       )}
 
@@ -1204,7 +1210,7 @@ export default function SpaceClient({
 
       {/* ── My plan: Suggestions ── */}
       {tab === 'plan' && planTab === 'suggestions' && (
-        <SuggestionsTab providerId={providerId} />
+        <SuggestionsTab providerId={providerId} isMobile={isMobile} />
       )}
 
       {/* ── My plan: Stats ── */}
@@ -1216,7 +1222,7 @@ export default function SpaceClient({
 
       {/* ── My plan: Refer ── */}
       {tab === 'plan' && planTab === 'refer' && (
-        <ReferTab providerId={providerId} slug={slug} initialCode={referralCode} />
+        <ReferTab providerId={providerId} slug={slug} initialCode={referralCode} isMobile={isMobile} />
       )}
 
       {/* Mobile bottom tab bar */}

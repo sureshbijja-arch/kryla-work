@@ -7,9 +7,10 @@ interface Props {
   providerId: string
   initialCode: string | null
   slug: string
+  isMobile?: boolean
 }
 
-export default function ReferTab({ providerId, initialCode, slug }: Props) {
+export default function ReferTab({ providerId, initialCode, slug, isMobile = false }: Props) {
   const [code,           setCode]           = useState(initialCode ?? '')
   const [savedCode,      setSavedCode]      = useState(initialCode)
   const [saving,         setSaving]         = useState(false)
@@ -71,7 +72,7 @@ export default function ReferTab({ providerId, initialCode, slug }: Props) {
   const APP_URL = typeof window !== 'undefined' ? window.location.origin : 'https://kryla.work'
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className={`flex-1 overflow-y-auto${isMobile ? ' pwa-bottom-nav-clearance' : ''}`}>
       <div className="px-4 py-5 max-w-2xl mx-auto w-full space-y-6">
 
         <ShareAppCard slug={slug} />
