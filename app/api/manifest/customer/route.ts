@@ -14,15 +14,19 @@ export async function GET(req: NextRequest) {
   let shortName = 'Kryla'
 
   if (slug) {
-    const { data: provider } = await supabaseAdmin
-      .from('providers')
-      .select('first_name, display_name')
-      .eq('slug', slug)
-      .single()
+    try {
+      const { data: provider } = await supabaseAdmin
+        .from('providers')
+        .select('first_name, display_name')
+        .eq('slug', slug)
+        .single()
 
-    if (provider) {
-      name      = provider.display_name || `${provider.first_name} on Kryla`
-      shortName = provider.first_name   || 'Kryla'
+      if (provider) {
+        name      = provider.display_name || provider.first_name || 'Kryla'
+        shortName = provider.first_name   || 'Kryla'
+      }
+    } catch {
+      // DB error — fall back to generic Kryla branding
     }
   }
 
