@@ -9,6 +9,8 @@ import PageTracker from './components/PageTracker'
 import LikeButton from './components/LikeButton'
 import AdvocateIntakeChat from './components/AdvocateIntakeChat'
 import AdvocateComplianceFooter from './components/AdvocateComplianceFooter'
+import PwaActionBar from './components/PwaActionBar'
+import InstallBanner from '@/components/InstallBanner'
 import { getComplianceCopy } from '@/lib/compliance'
 import type { SectionEntry } from './components/LayoutRenderer'
 
@@ -226,6 +228,16 @@ export default async function MemberProfilePage({ params }: Props) {
       <div className="fixed bottom-6 right-6 z-50">
         <LikeButton providerId={provider.id} slug={params.slug} accentColor={accentColor} />
       </div>
+      {/* PWA: sticky action bar in standalone mode */}
+      <PwaActionBar
+        ctaPrimary={page.cta_primary ?? 'Book now'}
+        whatsappNumber={provider.whatsapp_number ?? null}
+        location={provider.location ?? ''}
+        slug={params.slug}
+        accentColor={accentColor}
+      />
+      {/* PWA: install banner (shows on 2nd visit, dismissible) */}
+      <InstallBanner app="customer" slug={params.slug} />
     </>
   )
 }
