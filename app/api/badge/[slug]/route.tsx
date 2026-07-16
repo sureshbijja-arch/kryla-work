@@ -27,6 +27,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 import { memberHost } from '@/lib/links'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 interface Props {
   params: { slug: string }
