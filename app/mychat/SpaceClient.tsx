@@ -26,6 +26,8 @@ import DraftingStudio from './DraftingStudio'
 import PractitionerStudio from './PractitionerStudio'
 import type { StudioSeed } from './PractitionerStudio'
 import EmailTab from './EmailTab'
+import MyChatTabBar from './components/MyChatTabBar'
+import InstallBanner from '@/components/InstallBanner'
 import LetterheadSettingsTab from './LetterheadSettingsTab'
 import { getPersonaConfig, getRosterConfig } from '@/app/[slug]/personaConfig'
 import MarkdownMessage from './chat/MarkdownMessage'
@@ -254,6 +256,15 @@ export default function SpaceClient({
   const [courtToolsOpen, setCourtToolsOpen] = useState(false)
   // Chat expand / full-screen toggle
   const [chatExpanded, setChatExpanded]     = useState(false)
+
+  // Mobile shell: bottom tabs at <768px, desktop split-view unchanged
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    function check() { setIsMobile(window.innerWidth < 768) }
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   // ── Billing return toast ─────────────────────────────────────────────────────
   const router = useRouter()
@@ -587,7 +598,8 @@ export default function SpaceClient({
         </button>
       </header>
 
-      {/* Tab bar */}
+      {/* Tab bar — desktop only; mobile uses bottom MyChatTabBar */}
+      {!isMobile && (
       <div className="bg-white border-b border-[#E5E5E5] shrink-0">
         <div className="flex border-b border-[#F0F0F0]">
           {([
@@ -700,6 +712,7 @@ export default function SpaceClient({
           </div>
         )}
       </div>
+      )}
 
       {/* ── Chat ── */}
       {tab === 'chat' && (
@@ -742,7 +755,7 @@ export default function SpaceClient({
             </div>
           </div>
 
-          <main className={`flex-1 overflow-y-auto px-4 py-6 ${chatExpanded ? 'max-w-3xl mx-auto w-full' : ''}`}>
+          <main className={`flex-1 overflow-y-auto px-4 py-6 ${chatExpanded ? 'max-w-3xl mx-auto w-full' : ''} ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
             <div className="space-y-4">
               {messages.map((msg, i) => {
                 // Empty state: render greeting as centered welcome card instead of a bubble
@@ -1098,14 +1111,14 @@ export default function SpaceClient({
 
       {/* ── Design: Letterhead (advocate only) ── */}
       {tab === 'design' && designTab === 'letterhead' && currentProfile.persona === 'advocate' && (
-        <div className="flex-1 overflow-y-auto px-4 py-6 max-w-2xl mx-auto w-full">
+        <div className={`flex-1 overflow-y-auto px-4 py-6 max-w-2xl mx-auto w-full ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
           <LetterheadSettingsTab providerId={providerId} />
         </div>
       )}
 
       {/* ── Schedule ── */}
       {tab === 'schedule' && (
-        <div className="flex-1 overflow-y-auto">
+        <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
           <AvailabilityTab providerId={providerId} />
           <div className="border-t border-[#F0F0F0]" />
           <HoursTab providerId={providerId} />
@@ -1128,14 +1141,14 @@ export default function SpaceClient({
 
       {/* ── Messages: Consultations / Bookings ── */}
       {tab === 'messages' && messagesTab === 'consultations' && (
-        <div className="flex-1 overflow-y-auto">
+        <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
           <BookingsTab providerId={providerId} />
         </div>
       )}
 
       {/* ── Messages: Clients / Students ── */}
       {tab === 'messages' && messagesTab === 'clients' && (
-        <div className="flex-1 overflow-y-auto">
+        <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
           <PersonaTab
             providerId={providerId}
             persona={currentProfile.persona}
@@ -1165,7 +1178,7 @@ export default function SpaceClient({
 
       {/* ── My plan: Plan / Billing ── */}
       {tab === 'plan' && planTab === 'plan' && (
-        <div className="flex-1 overflow-y-auto">
+        <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
           <PlanSection
             currentPlan={plan}
             region={region}
@@ -1184,7 +1197,7 @@ export default function SpaceClient({
 
       {/* ── My plan: Reviews ── */}
       {tab === 'plan' && planTab === 'reviews' && (
-        <div className="flex-1 overflow-y-auto">
+        <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
           <ReviewsTab providerId={providerId} />
         </div>
       )}
@@ -1196,7 +1209,7 @@ export default function SpaceClient({
 
       {/* ── My plan: Stats ── */}
       {tab === 'plan' && planTab === 'stats' && (
-        <div className="flex-1 overflow-y-auto">
+        <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
           <StatsTab providerId={providerId} />
         </div>
       )}
@@ -1205,6 +1218,24 @@ export default function SpaceClient({
       {tab === 'plan' && planTab === 'refer' && (
         <ReferTab providerId={providerId} slug={slug} initialCode={referralCode} />
       )}
+
+      {/* Mobile bottom tab bar */}
+      {isMobile && (
+        <MyChatTabBar
+          activeTab={tab}
+          setTab={setTab}
+          labels={{
+            chat:     t.tabs.chat,
+            design:   t.tabs.design,
+            messages: t.tabs.messages,
+            schedule: t.tabs.schedule,
+            plan:     t.tabs.plan,
+          }}
+        />
+      )}
+
+      {/* Install banner (My Chat app) */}
+      <InstallBanner app="mychat" slug={slug} />
 
     </div>
   )
