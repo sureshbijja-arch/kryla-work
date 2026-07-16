@@ -16,7 +16,7 @@
  */
 
 import { useState } from 'react'
-import { memberUrl, memberShareCardUrl } from '@/lib/links'
+import { memberUrl, memberShareCardUrl, memberBadgeUrl, badgeEmbedHtml, badgeEmbedImgHtml } from '@/lib/links'
 
 interface Props {
   slug: string
@@ -25,11 +25,14 @@ interface Props {
 }
 
 export default function ShareKit({ slug, displayName }: Props) {
-  const [linkCopied,  setLinkCopied]  = useState(false)
-  const [sigCopied,   setSigCopied]   = useState(false)
-  const [igCopied,    setIgCopied]    = useState(false)
-  const [showSig,     setShowSig]     = useState(false)
-  const [qrLoading,   setQrLoading]   = useState(false)
+  const [linkCopied,    setLinkCopied]    = useState(false)
+  const [sigCopied,     setSigCopied]     = useState(false)
+  const [igCopied,      setIgCopied]      = useState(false)
+  const [showSig,       setShowSig]       = useState(false)
+  const [qrLoading,     setQrLoading]     = useState(false)
+  const [showBadge,     setShowBadge]     = useState(false)
+  const [badgeCopied,   setBadgeCopied]   = useState(false)
+  const [badgeSigCopied,setBadgeSigCopied]= useState(false)
 
   const pageUrl  = memberUrl(slug)
   const cardUrl  = memberShareCardUrl(slug)
@@ -49,6 +52,11 @@ export default function ShareKit({ slug, displayName }: Props) {
     `style="display:block;border:none;border-radius:8px" />`,
     `</a>`,
   ].join('')
+
+  // Badge embed snippets (generated from lib/links helpers — consistent with server)
+  const badgeHtml    = badgeEmbedHtml(slug)
+  const badgeSigHtml = badgeEmbedImgHtml(slug)
+  const badgePngUrl  = memberBadgeUrl(slug)
 
   // ── Handlers ─────────────────────────────────────────────────────────────
   async function nativeShare() {
@@ -99,6 +107,37 @@ export default function ShareKit({ slug, displayName }: Props) {
       console.error('[ShareKit] QR generation failed:', err)
     } finally {
       setQrLoading(false)
+    }
+  }
+
+  function copyBadge() {
+    navigator.clipboard.writeText(badgeHtml).then(() => {
+      setBadgeCopied(true)
+      setTimeout(() => setBadgeCopied(false), 2500)
+    }).catch(() => {})
+  }
+
+  function copyBadgeSig() {
+    navigator.clipboard.writeText(badgeSigHtml).then(() => {
+      setBadgeSigCopied(true)
+      setTimeout(() => setBadgeSigCopied(false), 2500)
+    }).catch(() => {})
+  }
+
+  async function downloadBadgePng() {
+    try {
+      const res  = await fetch(badgePngUrl)
+      const blob = await res.blob()
+      const url  = URL.createObjectURL(blob)
+      const a    = document.createElement('a')
+      a.href     = url
+      a.download = `${slug}-badge.png`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('[ShareKit] Badge PNG download failed:', err)
     }
   }
 
@@ -275,6 +314,118 @@ export default function ShareKit({ slug, displayName }: Props) {
               className="w-full py-2 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors"
             >
               {sigCopied ? '✓ Copied HTML!' : 'Copy signature HTML'}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Embed a badge */}
+      <div>
+        <button
+          onClick={() => setShowBadge(v => !v)}
+          className="w-full py-2.5 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors flex items-center justify-center gap-2"
+        >
+          {/* K-mark mini icon */}
+          <span className="inline-flex items-center justify-center w-4 h-4 rounded-[3px] text-[9px] font-black" style={{ background: '#F5A623', color: '#0D0D0D' }}>K</span>
+          Embed a badge
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style={{ transform: showBadge ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
+            <path d="M1 3l4 4 4-4"/>
+          </svg>
+        </button>
+
+        {showBadge && (
+          <div className="mt-2 space-y-3">
+            <p className="text-[11px] text-[#666] leading-relaxed">
+              A small K badge that links to your page. Drop the code on any website, blog, or WhatsApp status. Download the PNG for Instagram or stories.
+            </p>
+
+            {/* Live preview */}
+            <div className="bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg px-4 py-4 flex items-center justify-center">
+              {/* Inline preview — mirrors badgeEmbedHtml output */}
+              <a
+                href={memberUrl(slug)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={e => e.preventDefault()}
+                style={{
+                  display:        'inline-flex',
+                  alignItems:     'center',
+                  gap:            '8px',
+                  background:     '#0D0D0D',
+                  borderRadius:   '8px',
+                  padding:        '6px 12px 6px 8px',
+                  textDecoration: 'none',
+                }}
+              >
+                <span style={{
+                  display:        'inline-flex',
+                  alignItems:     'center',
+                  justifyContent: 'center',
+                  width:          '24px',
+                  height:         '24px',
+                  background:     '#F5A623',
+                  borderRadius:   '5px',
+                  fontSize:       '14px',
+                  fontWeight:     900,
+                  color:          '#0D0D0D',
+                  flexShrink:     0,
+                }}>K</span>
+                <span style={{
+                  color:       '#FFFFFF',
+                  fontSize:    '13px',
+                  fontWeight:  600,
+                  whiteSpace:  'nowrap',
+                }}>{`${slug}.kryla.work`}</span>
+              </a>
+            </div>
+
+            {/* Copy embed HTML (SVG inline — for websites) */}
+            <button
+              onClick={copyBadge}
+              className="w-full py-2.5 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors flex items-center justify-center gap-1.5"
+            >
+              {badgeCopied ? (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                  Copy badge code <span className="text-[#999] font-normal ml-1">for website / blog</span>
+                </>
+              )}
+            </button>
+
+            {/* Copy img-based HTML (for email signatures) */}
+            <button
+              onClick={copyBadgeSig}
+              className="w-full py-2 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors flex items-center justify-center gap-1.5"
+            >
+              {badgeSigCopied ? (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  Copy for email signature <span className="text-[#999] font-normal ml-1">image-based</span>
+                </>
+              )}
+            </button>
+
+            {/* Download PNG for Instagram / stories */}
+            <button
+              onClick={downloadBadgePng}
+              className="w-full py-2 rounded-xl border border-[#E5E5E5] text-xs font-semibold text-[#0D0D0D] hover:border-[#0D0D0D] transition-colors flex items-center justify-center gap-1.5"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Download PNG <span className="text-[#999] font-normal ml-1">for Instagram &amp; stories</span>
             </button>
           </div>
         )}
