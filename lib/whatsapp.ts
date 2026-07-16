@@ -112,9 +112,10 @@ export function buildPageLiveMessage(opts: {
   memberName: string
   slug: string
 }) {
+  const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'kryla.work'
   return (
     `Hi ${opts.memberName}, your Kryla page is live! 🚀\n\n` +
-    `Share it with your customers: https://kryla.work/${opts.slug}\n\n` +
+    `Share it with your customers: https://${opts.slug}.${APP_DOMAIN}\n\n` +
     `Log in to manage your page: https://kryla.work/mychat`
   )
 }

@@ -1222,7 +1222,7 @@ export default function SpaceClient({
 
       {/* ── My plan: Refer ── */}
       {tab === 'plan' && planTab === 'refer' && (
-        <ReferTab providerId={providerId} slug={slug} initialCode={referralCode} isMobile={isMobile} />
+        <ReferTab providerId={providerId} slug={slug} initialCode={referralCode} isMobile={isMobile} displayName={customName ?? firstName} />
       )}
 
       {/* Mobile bottom tab bar */}

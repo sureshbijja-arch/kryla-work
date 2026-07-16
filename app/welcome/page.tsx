@@ -7,7 +7,9 @@ import Link from 'next/link'
 function WelcomeContent() {
   const params = useSearchParams()
   const slug   = params.get('slug') ?? ''
-  const pageUrl = `https://${slug}.kryla.work`
+  // memberUrl reads NEXT_PUBLIC_APP_DOMAIN — safe in client components
+  const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'kryla.work'
+  const pageUrl = `https://${slug}.${APP_DOMAIN}`
   const shareText = `Hi! I just set up my presence on Kryla — find me at ${pageUrl}`
 
   const [igCopied, setIgCopied]  = useState(false)

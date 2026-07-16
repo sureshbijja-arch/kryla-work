@@ -1,16 +1,18 @@
 ﻿'use client'
 
 import { useState, useEffect } from 'react'
-import ShareAppCard from './components/ShareAppCard'
+import ShareKit from './components/ShareKit'
 
 interface Props {
-  providerId: string
+  providerId:  string
   initialCode: string | null
-  slug: string
-  isMobile?: boolean
+  slug:        string
+  isMobile?:   boolean
+  /** Display name shown in share text (customName ?? firstName from SpaceClient). */
+  displayName?: string
 }
 
-export default function ReferTab({ providerId, initialCode, slug, isMobile = false }: Props) {
+export default function ReferTab({ providerId, initialCode, slug, isMobile = false, displayName }: Props) {
   const [code,           setCode]           = useState(initialCode ?? '')
   const [savedCode,      setSavedCode]      = useState(initialCode)
   const [saving,         setSaving]         = useState(false)
@@ -75,7 +77,7 @@ export default function ReferTab({ providerId, initialCode, slug, isMobile = fal
     <div className={`flex-1 overflow-y-auto${isMobile ? ' pwa-bottom-nav-clearance' : ''}`}>
       <div className="px-4 py-5 max-w-2xl mx-auto w-full space-y-6">
 
-        <ShareAppCard slug={slug} />
+        <ShareKit slug={slug} displayName={displayName} />
 
         {/* Header */}
         <div>

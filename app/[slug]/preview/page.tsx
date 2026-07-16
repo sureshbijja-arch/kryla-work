@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { ProfileData, PaletteKey, FontKey, DesignMode, ShowSections } from '../types'
@@ -7,6 +8,11 @@ import type { SectionEntry } from '../components/LayoutRenderer'
 
 // Always renders fresh from DB — never cached. Used as the draft preview.
 export const dynamic = 'force-dynamic'
+
+// Keep draft previews out of search engines and social crawlers.
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 
 interface Props {
   params: { slug: string }

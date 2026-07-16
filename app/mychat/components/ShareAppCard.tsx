@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { getAppUrl } from '@/lib/links'
 
 interface Props {
   slug: string
@@ -9,7 +10,7 @@ interface Props {
 export default function ShareAppCard({ slug }: Props) {
   const [copied, setCopied] = useState(false)
 
-  const link = `https://${slug}.kryla.work/get-app?app=customer`
+  const link = getAppUrl(slug, 'customer')
   const waText = encodeURIComponent(
     `Hey! Check out my business page and install it on your phone: ${link}`
   )

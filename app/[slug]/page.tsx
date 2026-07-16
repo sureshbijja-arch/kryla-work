@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { memberUrl, memberShareCardUrl } from '@/lib/links'
 import type { ProfileData, PaletteKey, FontKey, DesignMode, ShowSections, BusinessHours } from './types'
 import { ACCENT } from './types'
 import AdsScroller from './components/AdsScroller'
@@ -57,14 +58,33 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .single()
 
   const defaultTitle = `${provider.first_name} ${provider.last_name} — ${provider.persona} in ${provider.location}`
+  const title       = page?.seo_title       || defaultTitle
+  const description = page?.seo_description || `Book ${provider.first_name} on Kryla`
+
+  // Stable branded card image served at /api/share-card/{slug}
+  // memberShareCardUrl uses the apex domain so metadataBase can resolve it
+  const cardUrl = memberShareCardUrl(params.slug)
+  const pageUrl = memberUrl(params.slug)
 
   return {
-    title: page?.seo_title || defaultTitle,
-    description: page?.seo_description || `Book ${provider.first_name} on Kryla`,
+    title,
+    description,
+    alternates: {
+      canonical: pageUrl,
+    },
     openGraph: {
-      title: page?.seo_title || defaultTitle,
-      description: page?.seo_description || `Book ${provider.first_name} on Kryla`,
-      type: 'profile',
+      title,
+      description,
+      url:      pageUrl,
+      siteName: 'Kryla',
+      type:     'profile',
+      images: [{ url: cardUrl, width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card:        'summary_large_image',
+      title,
+      description,
+      images:      [cardUrl],
     },
   }
 }
