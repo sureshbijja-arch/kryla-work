@@ -231,7 +231,7 @@ All crons + event functions registered in `app/api/inngest/route.ts`.
 Two studio implementations — different use cases:
 
 ### PractitionerStudio (`app/mychat/PractitionerStudio.tsx`)
-- **Triggered:** Slide-in overlay via "Studio" button in Chat tab (visible when `provider.studioArchetype` is non-null)
+- **Triggered:** Slide-in overlay via "Studio" button in the chat screen's tool row (visible when `provider.studioArchetype` is non-null)
 - **Powered by:** `studio_archetypes` + `studio_modes` tables (fully DB-driven)
 - **Personas:** All studio-enabled personas — distributor family, agency family, allied health, etc.
 - **Archetype `business_docs`:** 7 modes — quotation, agreement, price_list, appointment, proposal, purchase_order, refine (redline)
@@ -240,13 +240,13 @@ Two studio implementations — different use cases:
 - **Documents saved to:** `studio_documents` table
 
 ### DraftingStudio (`app/mychat/DraftingStudio.tsx`)
-- **Triggered:** Slide-in overlay via "Drafting Studio" button in Chat tab — **advocate persona only**
+- **Triggered:** Slide-in overlay via "Drafting Studio" button in the chat screen's tool row — **advocate persona only**
 - **Features:** Draft generation, proofread, citations, import/export, clause library
 - **Routes:** `/api/mychat/draft*`, `/api/mychat/clauses`, `/api/mychat/drafts`
 
 ### Clinical Studio
 - **Personas:** doctor, physio, occtherapist, counselor, chiro, speech, dietitian, etc.
-- **Surfaced via:** PersonaTab (rendered inside Chat tab) — per-persona workspace panel
+- **Surfaced via:** PersonaTab — per-persona workspace panel. **Not currently mounted** (see MyKryla section below — pending Phase 2 rewiring into the My Tools tile)
 - **Routes:** `/api/mychat/clinical-notes`, `/api/mychat/treatment-plans`, `/api/mychat/hep`, `/api/mychat/outcome-measures`, `/api/mychat/exercises`
 
 ---
@@ -297,26 +297,26 @@ The old `/mychat` and `/{slug}/mychat` paths still work — each is now a thin `
 
 **Single implementation:** `app/mychat/SpaceClient.tsx` — panel component (file path unchanged). `app/[slug]/mykryla/page.tsx` — server route that auth-checks, fetches all data, renders split layout.
 
-**Layout (in progress — tile-launcher redesign, commit `62748b0`):** The old permanent split-view (live preview left / 400px panel right) and the 5-tab + sub-tab-bar navigation have been replaced by a tile-launcher home screen. Chat (AI assistant) is a persistent full-screen surface reached from home or from any tile via a floating "Ask" FAB; the old `tab`/`designTab`/`messagesTab`/`planTab` state is now one `MCView` union (`app/mychat/SpaceClient.tsx`).
+**Layout — tile-launcher redesign, Phase 1 shipped (commit `62748b0`), split-view removal NOT yet done:** Inside `app/mychat/SpaceClient.tsx`, the old 5-tab + sub-tab-bar navigation is gone, replaced by one `MCView` union (`{screen:'home'} | {screen:'tile', tile, detail?} | {screen:'chat'}`) in place of the old `tab`/`designTab`/`messagesTab`/`planTab` state. `goTo()` translates the AI chat's `suggest_tab`/`suggest_design_tab` response fields into `MCView` (note: `suggest_tab:'design', suggest_design_tab:'services'` now routes to the **services** tile, since Services moved off the old Design tab in this redesign).
 
-**Home screen (`app/mychat/MyChatHome.tsx`)** — kryla-dark gradient header (K-logo, member name, "Page live" pill) + a 2×2 tile grid (russet-family gradients, see `app/mychat/tileTheme.ts`):
-- **My Page** — folds in Sections, Layouts, Media, Language, Letterhead (advocate), Ads
-- **My Services** — folds in Services & pricing, Messages, Schedule (Bookings/Hours/Availability)
-- **My Plan** — folds in Plan & billing, Insights/Stats, Reviews, Refer, Custom name, Profile, Suggestions
+**⚠️ Known gap:** `app/[slug]/components/MyChatLayout.tsx` — the parent shell that mounts `SpaceClient` — was intentionally out of scope for Phase 1 and is **unchanged**. It still renders the old permanent split (draft-preview `<iframe>` on the left, `<SpaceClient>` constrained to `lg:w-[400px]` on the right) and the mobile Edit/Draft-preview toggle bar. The locked design calls for the tile-launcher to run full-width on all screen sizes with an on-demand Preview modal instead — that part of the plan (removing the split-view shell, adding the Preview/Publish modal) has **not been implemented yet** and should be picked up as follow-up work.
+
+**Home screen** (`app/mychat/MyChatHome.tsx`) — kryla-dark gradient header (`app/mychat/KLogo.tsx`, member name, "Page live" pill) + a 2×2 tile grid (russet-family gradients, single source of truth in `app/mychat/tileTheme.ts`):
+- **My Page** — Sections, Layouts, Media, Language, Letterhead (advocate), Ads
+- **My Services** — Services & pricing, Messages, Schedule (Bookings/Hours/Availability)
+- **My Plan** — Plan & billing, Insights/Stats, Reviews, Refer, Custom name, Profile, Suggestions
 - **My Tools** — persona-specific, shown only when relevant (advocate → Legal Tools, doctor/physio → Clinic, distributor/agency → Business Docs, tutor → Students)
 
-Tapping a tile opens `app/mychat/TileDetailShell.tsx` full-screen (colored header, "← Home" pill, Ask FAB). **Status: Phase 1 only** — the shell/navigation/home screen are live, but tile-detail bodies are still placeholders; the actual child components below (ServicesTab, SectionsTab, MessagesTab, Studio overlays, etc.) have not yet been rewired into the new tile pages (tracked as Phase 2 in `docs/superpowers/specs/` or the session's plan file — wire them in before treating this section as fully current).
+Tapping a tile opens `app/mychat/TileDetailShell.tsx` full-screen (colored header, `app/mychat/HomeBackPill.tsx` "← Home" pill, `app/mychat/AskFab.tsx` floating chat launcher). Chat itself is reached the same way (home "Ask" card or any tile's FAB) and renders full-screen with its own back-to-home pill.
 
-**PersonaTab** (`app/mychat/PersonaTab.tsx`) — persona-specific workspace (students for tutor, client matters for advocate, clinical records for doctor/physio, etc.); pending Phase 2 rewiring into the My Tools tile.
+**Phase 1 vs Phase 2 status — read before touching this area:**
+- ✅ **Live now:** the home screen, tile navigation, `MCView`/`goTo()` routing, the chat screen (message loop, voice, publish — unchanged from before the redesign) with its Research / Drafting Studio / Court Tools / Practitioner Studio tool buttons (still rendered inside the chat screen, gated by `currentProfile.persona`/`studioArchetype` exactly as before), and `LegalNewsTicker` (advocate).
+- ⏳ **Not yet wired (Phase 2):** tile-detail bodies are placeholders. `ServicesTab`, `SectionsTab`, `LayoutsTab`, `MediaTab`, `LanguageTab`, `LetterheadSettingsTab`, `AdsTab`, `MessagesTab`, `EmailTab`, `BookingsTab`, `AvailabilityTab`, `HoursTab`, `PersonaTab`, `PlanSection`, `ReviewsTab`, `StatsTab`, `ReferTab`, `SuggestionsTab` are **not currently imported/rendered** by `SpaceClient.tsx` — they exist as files but have no mount point until Phase 2 relocates their JSX into the matching tile's `TileDetailShell`. `MyChatTabBar.tsx` was deleted (no longer needed).
 
-**Studio overlays** (pending Phase 2 rewiring into the My Tools tile):
-- "Drafting Studio" — advocate only; slides in `DraftingStudio` component
-- "Practitioner Studio" — any persona with `studioArchetype` set; slides in `PractitionerStudio`
-
-Services tab (`app/mychat/ServicesTab.tsx`):
+Services tab (`app/mychat/ServicesTab.tsx`, not yet mounted — see above):
 - `ServiceItem` type: name, description, price, duration_or_unit, image_url?, badge?
 
-Section builder (`app/mychat/SectionsTab.tsx`):
+Section builder (`app/mychat/SectionsTab.tsx`, not yet mounted — see above):
 - Reorder, swap variant, add/remove sections
 - Save → POST `/api/mychat/sections`
 
@@ -519,7 +519,7 @@ REVALIDATE_SECRET=      # Random string — authorizes ISR revalidation from Inn
 - ✅ Section builder — all 7 section types, multiple variants, scroll/hover animations
 - ✅ Persona-smart defaults — PERSONA_SECTIONS + DESIGN_MODE_MAP in Inngest, auto variant in hero
 - ✅ Auth / login — Supabase email OTP at `/login`, session via `@supabase/ssr`
-- ✅ MyKryla dashboard — AI chat editor, Design tab (services, sections, layouts, ads, media, language, letterhead), Messages tab, Schedule tab, Plan tab
+- ✅ MyKryla dashboard — tile-launcher home (My Page / My Services / My Plan / My Tools) + persistent AI chat editor (Phase 1 shipped); tile-detail content (services, sections, layouts, ads, media, messages, bookings, plan, reviews, etc.) built as standalone components, pending Phase 2 rewiring into the new tile pages
 - ✅ Bookings — form on public page → DB → viewable in MyKryla
 - ✅ Draft data — AI edits saved to draft_data, applied on preview
 - ✅ Plans + features — DB-backed; managed at `/admin/plans`; gating data-driven via `feature_key`
@@ -530,7 +530,7 @@ REVALIDATE_SECRET=      # Random string — authorizes ISR revalidation from Inn
 - ✅ Clinical Studio — doctor/physio/allied health personas; clinical notes, treatment plans, HEP, outcome measures
 - ✅ WhatsApp connect + reply — providers link their number; reply to messages from MyKryla inbox
 - ✅ Research feature — AI research tab per persona with `researchGuidance`
-- ✅ Reviews system — members collect reviews, visible on MyKryla Plan tab
+- ✅ Reviews system — members collect reviews, visible on the My Plan tile (ReviewsTab component built, pending Phase 2 mount)
 - ✅ Page analytics — `page_events` and `page_reactions` (view counts, emoji reactions)
 - ✅ Landing page hero — 12-card layout (6+6), local images, distributor/agency cards added
 
