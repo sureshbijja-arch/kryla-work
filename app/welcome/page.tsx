@@ -58,7 +58,7 @@ function WelcomeContent() {
           <p className="text-xs font-semibold text-[#999] uppercase tracking-wide mb-3">Share your business profile</p>
           <div className="flex flex-col gap-2">
             <Link
-              href={`/${slug}/mychat`}
+              href={`/${slug}/mykryla`}
               className="bg-[#0D0D0D] text-white rounded-xl px-5 py-2.5 text-sm font-semibold hover:bg-[#222] transition-colors">
               Go to My Space →
             </Link>

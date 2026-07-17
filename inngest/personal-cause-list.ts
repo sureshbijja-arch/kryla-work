@@ -122,7 +122,7 @@ export const personalCauseListFunction = inngest.createFunction(
         const body = (
           `📋 *Your cause list for tomorrow, ${dateStr}*\n\n` +
           `${lineItems}\n\n` +
-          `Manage watched cases: https://kryla.work/mychat`
+          `Manage watched cases: https://kryla.work/mykryla`
         )
 
         const res = await sendWhatsAppMessage({

@@ -27,7 +27,9 @@ const serwist = new Serwist({
     // Customer public pages: stale-while-revalidate (works offline)
     {
       matcher: ({ request, url }) =>
-        request.destination === 'document' && !url.pathname.startsWith('/mychat'),
+        request.destination === 'document' &&
+        !url.pathname.startsWith('/mychat') &&
+        !url.pathname.startsWith('/mykryla'),
       handler: new StaleWhileRevalidate({
         cacheName: 'pages-cache',
         plugins: [new ExpirationPlugin({ maxEntries: 20, maxAgeSeconds: 3600 })],

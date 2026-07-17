@@ -255,7 +255,7 @@ export default function SpaceClient({
   useEffect(() => {
     if (!billingStatus) return
     // Clean the ?billing= query param from the URL without triggering a re-render
-    router.replace(`/${slug}/mychat`, { scroll: false })
+    router.replace(`/${slug}/mykryla`, { scroll: false })
     const t = setTimeout(() => setBillingToast(null), 5000)
     return () => clearTimeout(t)
   // eslint-disable-next-line react-hooks/exhaustive-deps

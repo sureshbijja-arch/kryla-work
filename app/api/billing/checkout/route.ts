@@ -110,8 +110,8 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const successUrl = `${APP_URL}/${provider.slug}/mychat?billing=success`
-  const cancelUrl  = `${APP_URL}/${provider.slug}/mychat?billing=cancelled`
+  const successUrl = `${APP_URL}/${provider.slug}/mykryla?billing=success`
+  const cancelUrl  = `${APP_URL}/${provider.slug}/mykryla?billing=cancelled`
 
   // Effective coupon: member-level override > plan-level default > none (user-entered promo code)
   const couponId =

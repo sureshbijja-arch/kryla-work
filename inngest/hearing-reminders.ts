@@ -69,7 +69,7 @@ async function sendRemindersForWindow(
       : ''
     const advocateBody = (
       `📅 Hearing reminder: *${client.name}* has a hearing in *${windowLabel}* on ${hearingDate}${noteStr}.\n\n` +
-      `Manage in My Chat: https://kryla.work/mychat`
+      `Manage in MyKryla: https://kryla.work/mykryla`
     )
     const clientBody   = (
       `📅 Reminder from your advocate: Your hearing is *${windowLabel}* on ${hearingDate}${noteStr}.\n\n` +

@@ -78,7 +78,7 @@ Personas are **fully DB-driven** — not hardcoded. The `personas` table is the 
 | `/api/notify/build-failed` | POST | Logs build failures |
 | `/api/revalidate` | POST | ISR revalidation trigger from Inngest (requires REVALIDATE_SECRET) |
 
-### My Chat — Page & Design
+### MyKryla — Page & Design
 
 | Route | Method | Purpose |
 |---|---|---|
@@ -98,7 +98,7 @@ Personas are **fully DB-driven** — not hardcoded. The `personas` table is the 
 | `/api/mychat/hours` | GET/POST | Business hours |
 | `/api/mychat/availability` | GET/POST | Availability slots |
 
-### My Chat — Communication
+### MyKryla — Communication
 
 | Route | Method | Purpose |
 |---|---|---|
@@ -109,7 +109,7 @@ Personas are **fully DB-driven** — not hardcoded. The `personas` table is the 
 | `/api/mychat/email-reply` | POST | Send email reply |
 | `/api/booking` | POST | Public booking form submission |
 
-### My Chat — AI Tools
+### MyKryla — AI Tools
 
 | Route | Method | Purpose |
 |---|---|---|
@@ -126,7 +126,7 @@ Personas are **fully DB-driven** — not hardcoded. The `personas` table is the 
 | `/api/mychat/court/tribunals` | GET | Tribunal directory search (`q`, `category` filter) (advocate, india) |
 | `/api/mychat/court/settings` | GET/PATCH | Read / flip `cause_list_alerts_enabled` per advocate (advocate, india) |
 
-### My Chat — Studio (Business Documents)
+### MyKryla — Studio (Business Documents)
 
 | Route | Method | Purpose |
 |---|---|---|
@@ -136,7 +136,7 @@ Personas are **fully DB-driven** — not hardcoded. The `personas` table is the 
 | `/api/mychat/studio/library` | GET/POST | Studio content library |
 | `/api/mychat/studio/config` | GET | Studio config for persona |
 
-### My Chat — Drafting Studio (Advocate)
+### MyKryla — Drafting Studio (Advocate)
 
 | Route | Method | Purpose |
 |---|---|---|
@@ -152,7 +152,7 @@ Personas are **fully DB-driven** — not hardcoded. The `personas` table is the 
 | `/api/mychat/clients/[id]/export` | POST | Export client data |
 | `/api/mychat/clients/[id]/erase` | DELETE | GDPR erase client data |
 
-### My Chat — Clinical Studio (Doctor / Physio / Allied Health)
+### MyKryla — Clinical Studio (Doctor / Physio / Allied Health)
 
 | Route | Method | Purpose |
 |---|---|---|
@@ -166,7 +166,7 @@ Personas are **fully DB-driven** — not hardcoded. The `personas` table is the 
 | `/api/mychat/working/export` | POST | Export working doc |
 | `/api/mychat/working/import` | POST | Import working doc |
 
-### My Chat — Members & Plan
+### MyKryla — Members & Plan
 
 | Route | Method | Purpose |
 |---|---|---|
@@ -289,13 +289,15 @@ Dynamic accent tokens set as **inline styles** on the LayoutRenderer wrapper (no
 
 ---
 
-## My Chat (Member Dashboard)
+## MyKryla (Member Dashboard)
 
-Accessed at `/{slug}/mychat` (e.g. `priya.kryla.work/mychat`). Auth-gated — middleware protects `/mychat` and `/{slug}/mychat`. `/mychat` slug-resolver: looks up signed-in member's slug and redirects.
+Member-facing product name: **MyKryla**. Accessed at `/{slug}/mykryla` (e.g. `priya.kryla.work/mykryla`). Auth-gated — middleware protects `/mychat`, `/mykryla`, `/{slug}/mychat`, and `/{slug}/mykryla`. `/mykryla` slug-resolver: looks up signed-in member's slug and redirects to `/{slug}/mykryla`.
 
-**Single implementation:** `app/mychat/SpaceClient.tsx` — panel component. `app/[slug]/mychat/page.tsx` — server route that auth-checks, fetches all data, renders split layout.
+The old `/mychat` and `/{slug}/mychat` paths still work — each is now a thin `redirect()` shim to the corresponding `/mykryla` path (kept for bookmarks and installed PWAs). API routes, internal component names (`SpaceClient`, `MyChatLayout`, etc.), and the folder `app/mychat/` (which holds the panel's tab components) were **not** renamed — only the member-facing route and display copy changed. The PWA manifest at `/api/manifest/mychat` also keeps its `id`/`start_url`/`scope` as `/mychat` unchanged (renaming those would break already-installed home-screen PWAs); only its `name`/`short_name` display text was updated to "MyKryla".
 
-**Layout:** Live public page on the left (desktop only, read-only), My Chat panel on the right (400px). Mobile shows panel full-width. `router.refresh()` re-renders server page so changes appear live.
+**Single implementation:** `app/mychat/SpaceClient.tsx` — panel component (file path unchanged). `app/[slug]/mykryla/page.tsx` — server route that auth-checks, fetches all data, renders split layout.
+
+**Layout:** Live public page on the left (desktop only, read-only), MyKryla panel on the right (400px). Mobile shows panel full-width. `router.refresh()` re-renders server page so changes appear live.
 
 **Tab structure:**
 - **Main tabs:** Chat | Design | Messages | Schedule | Plan
@@ -515,25 +517,25 @@ REVALIDATE_SECRET=      # Random string — authorizes ISR revalidation from Inn
 - ✅ Section builder — all 7 section types, multiple variants, scroll/hover animations
 - ✅ Persona-smart defaults — PERSONA_SECTIONS + DESIGN_MODE_MAP in Inngest, auto variant in hero
 - ✅ Auth / login — Supabase email OTP at `/login`, session via `@supabase/ssr`
-- ✅ My Chat dashboard — AI chat editor, Design tab (services, sections, layouts, ads, media, language, letterhead), Messages tab, Schedule tab, Plan tab
-- ✅ Bookings — form on public page → DB → viewable in My Chat
+- ✅ MyKryla dashboard — AI chat editor, Design tab (services, sections, layouts, ads, media, language, letterhead), Messages tab, Schedule tab, Plan tab
+- ✅ Bookings — form on public page → DB → viewable in MyKryla
 - ✅ Draft data — AI edits saved to draft_data, applied on preview
 - ✅ Plans + features — DB-backed; managed at `/admin/plans`; gating data-driven via `feature_key`
-- ✅ Custom links (Thrive+) — vanity name at `{name}.kryla.work`, self-serve via My Chat
+- ✅ Custom links (Thrive+) — vanity name at `{name}.kryla.work`, self-serve via MyKryla
 - ✅ Persona catalog — 46 personas across classic, storefront, distributor, agency, and specialist families
 - ✅ Business Documents Studio — `business_docs` archetype, 7 modes (quotation, agreement, price_list, appointment, proposal, purchase_order, refine), plan-gated via `studio_business`
 - ✅ Drafting Studio — advocate persona; drafts, clause library, proofread, citations, import/export
 - ✅ Clinical Studio — doctor/physio/allied health personas; clinical notes, treatment plans, HEP, outcome measures
-- ✅ WhatsApp connect + reply — providers link their number; reply to messages from My Chat inbox
+- ✅ WhatsApp connect + reply — providers link their number; reply to messages from MyKryla inbox
 - ✅ Research feature — AI research tab per persona with `researchGuidance`
-- ✅ Reviews system — members collect reviews, visible on My Chat Plan tab
+- ✅ Reviews system — members collect reviews, visible on MyKryla Plan tab
 - ✅ Page analytics — `page_events` and `page_reactions` (view counts, emoji reactions)
 - ✅ Landing page hero — 12-card layout (6+6), local images, distributor/agency cards added
 
 ## What's NOT Built Yet
 
 - Payment UI — Stripe (USA) / Razorpay (India) UI; DB infrastructure and webhook tables exist
-- Avatar/gallery upload UI in My Chat — upload endpoint exists (`/api/mychat/upload`), UI not built
+- Avatar/gallery upload UI in MyKryla — upload endpoint exists (`/api/mychat/upload`), UI not built
 - All 6 AI agents (Phase 3)
 - SEO tooling beyond basic meta tags
 - Local hero images for Distributor, Travel, Real Estate, Agency (Unsplash placeholders in use)

@@ -2,11 +2,11 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   manifest: '/api/manifest/mychat',
-  title: 'My Chat — Kryla',
+  title: 'MyKryla — Kryla',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'My Chat',
+    title: 'MyKryla',
   },
   icons: {
     apple: '/icons/apple-touch-icon.png',

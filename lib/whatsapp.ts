@@ -76,7 +76,7 @@ export function buildNewBookingMessage(opts: {
     `${opts.memberName}, someone wants to book you! 🎉\n\n` +
     `*${opts.customerName}* wants ${opts.service}${date}.` +
     chatLine +
-    `\nReply *accept* or *decline* to respond here, or manage in My Chat: https://kryla.work/mychat`
+    `\nReply *accept* or *decline* to respond here, or manage in MyKryla: https://kryla.work/mykryla`
   )
 }
 
@@ -116,7 +116,7 @@ export function buildPageLiveMessage(opts: {
   return (
     `Hi ${opts.memberName}, your Kryla page is live! 🚀\n\n` +
     `Share it with your customers: https://${opts.slug}.${APP_DOMAIN}\n\n` +
-    `Log in to manage your page: https://kryla.work/mychat`
+    `Log in to manage your page: https://kryla.work/mykryla`
   )
 }
 
@@ -128,7 +128,7 @@ export function buildInstallLinksMessage(opts: {
   const base = `https://${opts.slug}.kryla.work`
   return (
     `Hi ${opts.memberName}! 🎉 Your Kryla apps are ready to install.\n\n` +
-    `📱 *My Chat* (your business dashboard):\n${base}/get-app?app=mychat\n\n` +
+    `📱 *MyKryla* (your business dashboard):\n${base}/get-app?app=mychat\n\n` +
     `🌐 *Your customer page app* (share this link with customers):\n${base}/get-app?app=customer\n\n` +
     `Tap either link on your phone to install the app in one tap.`
   )

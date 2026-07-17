@@ -287,7 +287,7 @@ export function buildResearchSystemPrompt(opts: ResearchPromptOpts): string {
     ? `
 FORMAT: Plain text only — no markdown, no asterisks, no headers. Concise — this is a WhatsApp reply. 3–5 key points maximum.`
     : `
-FORMAT: Use clear structure when helpful (numbered steps, bullet points). Cite 1–2 specific sources by name when web search is used. End business answers with one concrete next step they can take in My Chat (e.g. "Want me to add X as a service?").`
+FORMAT: Use clear structure when helpful (numbered steps, bullet points). Cite 1–2 specific sources by name when web search is used. End business answers with one concrete next step they can take in MyKryla (e.g. "Want me to add X as a service?").`
 
   return `You are Kryla's co-pilot for ${opts.name}, a ${role} based in ${opts.location || 'their area'}.
 

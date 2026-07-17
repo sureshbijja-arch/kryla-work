@@ -32,7 +32,7 @@ function GetAppContent() {
 
   useEffect(() => { setPlatform(detectPlatform()) }, [])
 
-  const appName    = isMychat ? 'My Chat' : 'your Kryla space'
+  const appName    = isMychat ? 'MyKryla' : 'your Kryla space'
   const appDesc    = isMychat
     ? 'Manage bookings, messages, and your business — right from your home screen.'
     : 'Share your business with customers — they can open it like a native app.'
@@ -45,8 +45,8 @@ function GetAppContent() {
         </div>
         <h1 className="text-2xl font-bold text-white mb-2">App installed!</h1>
         <p className="text-[#999] text-sm mb-8">Find it on your home screen.</p>
-        <a href={isMychat ? '/mychat' : '/'} className="px-6 py-3 bg-[#F5A623] text-[#0D0D0D] font-bold rounded-xl text-sm">
-          Open {isMychat ? 'My Chat' : 'the app'}
+        <a href={isMychat ? '/mykryla' : '/'} className="px-6 py-3 bg-[#F5A623] text-[#0D0D0D] font-bold rounded-xl text-sm">
+          Open {isMychat ? 'MyKryla' : 'the app'}
         </a>
       </div>
     )

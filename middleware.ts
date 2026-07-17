@@ -8,13 +8,19 @@ export async function middleware(req: NextRequest) {
   const url      = req.nextUrl.clone()
   const hostname = host.split(':')[0]
 
-  // Known app domains — serve normally, but protect /mychat and /{slug}/mychat
+  // Known app domains — serve normally, but protect /mychat, /mykryla,
+  // /{slug}/mychat, and /{slug}/mykryla
   if (
     hostname === APP_DOMAIN ||
     hostname === 'www.' + APP_DOMAIN ||
     hostname === 'localhost'
   ) {
-    if (url.pathname.startsWith('/mychat') || url.pathname.startsWith('/print') || /^\/[^/]+\/mychat(\/|$)/.test(url.pathname)) {
+    if (
+      url.pathname.startsWith('/mychat') ||
+      url.pathname.startsWith('/mykryla') ||
+      url.pathname.startsWith('/print') ||
+      /^\/[^/]+\/(mychat|mykryla)(\/|$)/.test(url.pathname)
+    ) {
       let response = NextResponse.next({ request: { headers: req.headers } })
 
       const supabase = createServerClient(

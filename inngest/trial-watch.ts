@@ -81,7 +81,7 @@ export const trialWatchFunction = inngest.createFunction(
           html: `<div style="font-family:sans-serif;max-width:600px">
             <h2>Hi ${p.first_name},</h2>
             <p>Your free trial ends in <strong>${daysLeft} day${daysLeft !== 1 ? 's' : ''}</strong>. Add a payment method to keep your Kryla page live at kryla.work/${p.slug}.</p>
-            <a href="https://kryla.work/${p.slug}/mychat" style="display:inline-block;background:#0D0D0D;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Add payment method →</a>
+            <a href="https://kryla.work/${p.slug}/mykryla" style="display:inline-block;background:#0D0D0D;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Add payment method →</a>
             <p style="color:#999;font-size:12px;margin-top:24px">kryla.work · <a href="mailto:hello@kryla.work">hello@kryla.work</a></p>
           </div>`,
         })
@@ -115,7 +115,7 @@ export const trialWatchFunction = inngest.createFunction(
             <h2>Hi ${p.first_name},</h2>
             <p>Your free trial ends in <strong>${daysLeft} days</strong>. Add a payment method now to keep your Kryla page live at kryla.work/${p.slug}.</p>
             <p>You can upgrade anytime from your dashboard — you'll only be charged at the end of the trial.</p>
-            <a href="https://kryla.work/${p.slug}/mychat" style="display:inline-block;background:#0D0D0D;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Go to My Space →</a>
+            <a href="https://kryla.work/${p.slug}/mykryla" style="display:inline-block;background:#0D0D0D;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Go to My Space →</a>
             <p style="color:#999;font-size:12px;margin-top:24px">kryla.work · <a href="mailto:hello@kryla.work">hello@kryla.work</a></p>
           </div>`,
         })

@@ -53,7 +53,7 @@ export default function InstallBanner({ app, slug }: Props) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="text-white text-sm font-semibold leading-tight">
-          {app === 'mychat' ? 'My Chat' : 'This page'} — Add to Home Screen
+          {app === 'mychat' ? 'MyKryla' : 'This page'} — Add to Home Screen
         </div>
         <div className="text-[#666] text-xs mt-0.5">Opens like a native app</div>
       </div>

@@ -51,7 +51,7 @@ export const paymentAlertsFunction = inngest.createFunction(
           <h2>Hi ${name},</h2>
           <p>Your Kryla subscription payment didn't go through. No worries — you still have full access for now.</p>
           <p>Please update your payment method before <strong>${periodEndStr}</strong> to avoid any interruption.</p>
-          <a href="https://kryla.work/${slug}/mychat" style="display:inline-block;background:#0D0D0D;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Update payment method →</a>
+          <a href="https://kryla.work/${slug}/mykryla" style="display:inline-block;background:#0D0D0D;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Update payment method →</a>
           <p style="color:#999;font-size:12px;margin-top:24px">kryla.work · <a href="mailto:hello@kryla.work">hello@kryla.work</a></p>
         </div>`,
       })
@@ -64,7 +64,7 @@ export const paymentAlertsFunction = inngest.createFunction(
         html: `<div style="font-family:sans-serif;max-width:600px">
           <h2>Hi ${name},</h2>
           <p>This is your second missed payment. Your access to your Kryla page will be restricted on <strong>${periodEndStr}</strong> unless you pay now.</p>
-          <a href="https://kryla.work/${slug}/mychat" style="display:inline-block;background:#DC2626;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Pay now — keep my access →</a>
+          <a href="https://kryla.work/${slug}/mykryla" style="display:inline-block;background:#DC2626;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Pay now — keep my access →</a>
           <p style="color:#999;font-size:12px;margin-top:24px">Questions? Reply to this email or contact <a href="mailto:hello@kryla.work">hello@kryla.work</a></p>
         </div>`,
       })

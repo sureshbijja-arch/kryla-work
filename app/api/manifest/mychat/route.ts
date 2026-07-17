@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server'
 
 export async function GET() {
   const manifest = {
-    name:             'My Chat',
-    short_name:       'My Chat',
+    name:             'MyKryla',
+    short_name:       'MyKryla',
     description:      'Manage your Kryla business from anywhere',
     id:               '/mychat',
     start_url:        '/mychat?src=pwa',

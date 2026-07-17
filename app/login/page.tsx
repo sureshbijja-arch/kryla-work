@@ -50,7 +50,7 @@ export default function LoginPage() {
     if (error) { setErrorMsg('Incorrect code — check your email and try again'); return }
     posthog.identify(email, { email })
     posthog.capture('login_completed', { channel: 'email' })
-    router.push('/mychat')
+    router.push('/mykryla')
   }
 
   // ── WhatsApp path ──────────────────────────────────────────────────────────
@@ -82,7 +82,7 @@ export default function LoginPage() {
     setLoading(false)
     if (!res.ok) { setErrorMsg(data.error || 'Incorrect code — try again'); return }
     posthog.capture('login_completed', { channel: 'whatsapp' })
-    router.push(data.redirect ?? '/mychat')
+    router.push(data.redirect ?? '/mykryla')
   }
 
   function reset() { setStep('input'); setOtp(''); setErrorMsg('') }
@@ -104,7 +104,7 @@ export default function LoginPage() {
         {step === 'input' && (
           <>
             <h1 className="text-2xl font-bold text-[#0D0D0D] mb-1">Welcome back</h1>
-            <p className="text-[#666] text-sm mb-6">Sign in to My Chat</p>
+            <p className="text-[#666] text-sm mb-6">Sign in to MyKryla</p>
 
             {/* Channel segmented control */}
             <div className="flex bg-[#F5F5F5] rounded-xl p-1 mb-6">
