@@ -38,6 +38,7 @@ export default function ShareKit({ slug, displayName, persona, avatarUrl }: Prop
   const [badgeCopied,    setBadgeCopied]    = useState(false)
   const [badgeSigCopied, setBadgeSigCopied] = useState(false)
   const [badgeSharing,   setBadgeSharing]   = useState(false)
+  const [badgeSharingH,  setBadgeSharingH]  = useState(false)
 
   const pageUrl  = memberUrl(slug)
   const cardUrl  = memberShareCardUrl(slug)
@@ -128,6 +129,22 @@ export default function ShareKit({ slug, displayName, persona, avatarUrl }: Prop
       document.body.appendChild(a); a.click(); document.body.removeChild(a)
       URL.revokeObjectURL(url)
     } catch (err) { console.error('[ShareKit] Instagram card download failed:', err) }
+  }
+
+  // Share the horizontal badge PNG (WhatsApp / Email / SMS / any app)
+  async function shareBadgeHorizontal() {
+    setBadgeSharingH(true)
+    try {
+      const res  = await fetch(`/api/badge/${slug}`)
+      const blob = await res.blob()
+      const file = new File([blob], `${slug}-badge.png`, { type: 'image/png' })
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: `${displayName ?? slug} on Kryla`, url: pageUrl })
+      } else if (navigator.share) {
+        await navigator.share({ url: pageUrl, title })
+      }
+    } catch { /* cancelled */ }
+    finally { setBadgeSharingH(false) }
   }
 
   // Native share of the badge PNG image (mobile) — shares the square card for IG stories
@@ -407,6 +424,44 @@ export default function ShareKit({ slug, displayName, persona, avatarUrl }: Prop
                   Copy for email signature <span className="text-[#999] font-normal ml-1">image-based</span></>
               )}
             </button>
+
+            {/* Share badge — WhatsApp / Email / SMS */}
+            {canNativeShare ? (
+              <button
+                onClick={shareBadgeHorizontal}
+                disabled={badgeSharingH}
+                className="w-full py-2.5 rounded-xl bg-[#0D0D0D] text-white text-xs font-semibold flex items-center justify-center gap-2 hover:opacity-80 transition-opacity disabled:opacity-50"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+                  <polyline points="16 6 12 2 8 6"/>
+                  <line x1="12" y1="2" x2="12" y2="15"/>
+                </svg>
+                {badgeSharingH ? 'Preparing…' : 'Share badge — WhatsApp · Email · SMS'}
+              </button>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                <a href={waUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-1 py-2 rounded-xl text-[11px] font-semibold text-white transition-opacity hover:opacity-80"
+                  style={{ background: '#25D366' }}>
+                  <WaIcon /> WhatsApp
+                </a>
+                <a href={emailUrl}
+                  className="flex items-center justify-center gap-1 py-2 rounded-xl border border-[#E5E5E5] text-[11px] font-semibold text-[#333] hover:border-[#0D0D0D] transition-colors">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+                  </svg>
+                  Email
+                </a>
+                <a href={smsUrl}
+                  className="flex items-center justify-center gap-1 py-2 rounded-xl border border-[#E5E5E5] text-[11px] font-semibold text-[#333] hover:border-[#0D0D0D] transition-colors">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                  </svg>
+                  SMS
+                </a>
+              </div>
+            )}
 
             {/* Instagram square card */}
             <div className="rounded-lg border border-[#E8D5F0] bg-[#FCF5FF] px-3 py-2.5 flex items-center justify-between gap-2">
