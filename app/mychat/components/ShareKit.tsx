@@ -61,7 +61,7 @@ export default function ShareKit({ slug, displayName, persona, avatarUrl }: Prop
   ].join('')
 
   // Badge embed snippets
-  const badgeHtml    = badgeEmbedHtml(slug, { name: displayName, persona })
+  const badgeHtml    = badgeEmbedHtml(slug, { name: displayName, persona, avatarUrl })
   const badgeSigHtml = badgeEmbedImgHtml(slug)
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -322,7 +322,7 @@ export default function ShareKit({ slug, displayName, persona, avatarUrl }: Prop
               Drop the K badge anywhere — website, blog, bio, or email. It links directly to your Kryla page.
             </p>
 
-            {/* Live badge preview — gradient card, clickable, links to member page */}
+            {/* Live badge preview — compact "Find me" card, clickable */}
             <div className="bg-[#F5F5F5] border border-[#E5E5E5] rounded-xl px-4 py-5 flex items-center justify-center">
               <a
                 href={pageUrl}
@@ -331,72 +331,46 @@ export default function ShareKit({ slug, displayName, persona, avatarUrl }: Prop
                 title="Click to open your page"
                 style={{
                   display:        'inline-flex',
-                  alignItems:     'center',
-                  gap:            '10px',
-                  background:     'linear-gradient(100deg, #FFF8E8 0%, #FFE4A0 55%, #F5A623 100%)',
-                  borderRadius:   '10px',
-                  padding:        '8px 14px 8px 10px',
+                  flexDirection:  'column',
+                  width:          '220px',
+                  background:     '#FFFBF2',
+                  borderRadius:   '14px',
+                  overflow:       'hidden',
+                  border:         '1.5px solid rgba(245,166,35,0.30)',
+                  boxShadow:      '0 4px 16px rgba(0,0,0,0.06)',
                   textDecoration: 'none',
-                  border:         '1px solid rgba(245,166,35,0.3)',
-                  boxShadow:      '0 2px 8px rgba(0,0,0,0.08)',
                 }}
               >
-                {/* K mark — dark square on amber gradient */}
-                <span style={{
-                  display:        'inline-flex',
-                  alignItems:     'center',
-                  justifyContent: 'center',
-                  width:          '30px',
-                  height:         '30px',
-                  background:     '#0D0D0D',
-                  borderRadius:   '7px',
-                  fontSize:       '17px',
-                  fontWeight:     900,
-                  color:          '#F5A623',
-                  flexShrink:     0,
-                }}>K</span>
-
-                {/* Thin divider */}
-                <span style={{ width: '1px', height: '28px', background: 'rgba(0,0,0,0.12)', flexShrink: 0 }} />
-
-                {/* Avatar */}
-                {avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={avatarUrl}
-                    alt=""
-                    style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid rgba(255,255,255,0.8)' }}
-                  />
-                ) : (
-                  <span style={{
-                    display:        'inline-flex',
-                    alignItems:     'center',
-                    justifyContent: 'center',
-                    width:          '30px',
-                    height:         '30px',
-                    borderRadius:   '50%',
-                    background:     'rgba(255,255,255,0.7)',
-                    fontSize:       '14px',
-                    fontWeight:     700,
-                    color:          '#B87A10',
-                    flexShrink:     0,
-                  }}>{initial}</span>
-                )}
-
-                {/* Text — dark on light amber = high contrast */}
-                <span style={{ display: 'inline-flex', flexDirection: 'column', gap: '1px' }}>
-                  {displayName && (
-                    <span style={{ color: '#0D0D0D', fontSize: '12px', fontWeight: 800, lineHeight: 1.1, whiteSpace: 'nowrap' }}>
-                      {displayName}
+                {/* Top row — avatar + name/profession */}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', padding: '16px 16px 12px' }}>
+                  {avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={avatarUrl} alt="" style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid #F5A623', display: 'block' }} />
+                  ) : (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px', borderRadius: '50%', background: '#FFF0D6', border: '2px solid #F5A623', fontSize: '18px', fontWeight: 700, color: '#F5A623', flexShrink: 0 }}>
+                      {initial}
                     </span>
                   )}
-                  {persona && (
-                    <span style={{ color: '#333333', fontSize: '10px', fontWeight: 500, lineHeight: 1.3, whiteSpace: 'nowrap' }}>
-                      {persona}
-                    </span>
-                  )}
-                  <span style={{ color: '#555555', fontSize: '10px', lineHeight: 1.3, whiteSpace: 'nowrap' }}>
-                    {host}
+                  <span style={{ display: 'inline-flex', flexDirection: 'column', gap: '3px', flex: 1, minWidth: 0 }}>
+                    {displayName
+                      ? <span style={{ color: '#1A1A1A', fontSize: '13px', fontWeight: 800, lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{displayName}</span>
+                      : <span style={{ color: '#1A1A1A', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap', display: 'block' }}>{host}</span>
+                    }
+                    {persona && (
+                      <span style={{ color: '#8A6D3B', fontSize: '11px', fontWeight: 500, lineHeight: 1.3, whiteSpace: 'nowrap', display: 'block' }}>{persona}</span>
+                    )}
+                  </span>
+                </span>
+
+                {/* Warm divider */}
+                <span style={{ display: 'block', height: '1px', background: '#EFE3CC', margin: '0 14px' }} />
+
+                {/* Bottom row — host + Find me K */}
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px 14px' }}>
+                  <span style={{ color: '#5A5245', fontSize: '10px', fontWeight: 500, whiteSpace: 'nowrap' }}>{host}</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                    <span style={{ color: '#8A6D3B', fontSize: '9px', fontWeight: 500 }}>Find me on</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '17px', height: '17px', background: '#F5A623', borderRadius: '4px', fontSize: '11px', fontWeight: 900, color: '#1A1A1A' }}>K</span>
                   </span>
                 </span>
               </a>

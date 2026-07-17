@@ -49,40 +49,69 @@ export function memberBadgeSquareUrl(slug: string): string {
 
 /**
  * Inline-HTML embed snippet for websites/blogs.
- * Amber gradient background with dark legible text — matches the new badge design.
+ * Compact "Find me" card — avatar left, name + profession right,
+ * host URL + K mark at the bottom. Warm cream, no heavy black.
  * Clicking opens the member's canonical page.
- * Optionally shows the member's display name and profession.
  */
-export function badgeEmbedHtml(slug: string, opts?: { name?: string; persona?: string }): string {
-  const url  = memberUrl(slug)
-  const host = memberHost(slug)
+export function badgeEmbedHtml(
+  slug: string,
+  opts?: { name?: string; persona?: string; avatarUrl?: string }
+): string {
+  const url     = memberUrl(slug)
+  const host    = memberHost(slug)
   const name    = opts?.name
   const persona = opts?.persona
+  const av      = opts?.avatarUrl
+  const initial = name ? name[0].toUpperCase() : host[0].toUpperCase()
 
-  // Text block — dark text on the light-amber part of the gradient (high contrast)
+  // Avatar — image if available, else initial circle
+  const avatarHtml = av
+    ? `<img src="${av}" alt="" style="` +
+      `width:48px;height:48px;border-radius:50%;object-fit:cover;` +
+      `flex-shrink:0;border:2px solid #F5A623;display:block" />`
+    : `<span style="` +
+      `display:inline-flex;align-items:center;justify-content:center;` +
+      `width:48px;height:48px;border-radius:50%;` +
+      `background:#FFF0D6;border:2px solid #F5A623;` +
+      `font-size:21px;font-weight:700;color:#F5A623;` +
+      `flex-shrink:0;font-family:sans-serif">${initial}</span>`
+
+  // Name + profession text block (charcoal, warm muted brown — no black)
   const nameHtml = name
-    ? `<span style="color:#0D0D0D;font-size:13px;font-weight:800;` +
-      `letter-spacing:-0.2px;white-space:nowrap;line-height:1.1;display:block">${name}</span>` +
+    ? `<span style="color:#1A1A1A;font-size:13px;font-weight:800;letter-spacing:-0.2px;white-space:nowrap;line-height:1.1;display:block">${name}</span>` +
       (persona
-        ? `<span style="color:#333333;font-size:11px;font-weight:500;` +
-          `white-space:nowrap;line-height:1.3;display:block">${persona}</span>`
-        : '') +
-      `<span style="color:#555555;font-size:10px;white-space:nowrap;line-height:1.3;display:block">${host}</span>`
-    : `<span style="color:#0D0D0D;font-size:13px;font-weight:700;` +
-      `letter-spacing:0.01em;white-space:nowrap;display:block">${host}</span>`
+        ? `<span style="color:#8A6D3B;font-size:11px;font-weight:500;white-space:nowrap;line-height:1.3;margin-top:3px;display:block">${persona}</span>`
+        : '')
+    : `<span style="color:#1A1A1A;font-size:12px;font-weight:700;white-space:nowrap;display:block">${host}</span>`
 
   return (
+    // Outer card — cream bg, warm orange border, no heavy black
     `<a href="${url}" target="_blank" rel="noopener noreferrer" ` +
-    `style="display:inline-flex;align-items:center;gap:10px;` +
-    `background:linear-gradient(100deg,#FFF8E8 0%,#FFE4A0 55%,#F5A623 100%);` +
-    `border-radius:10px;padding:8px 14px 8px 8px;` +
-    `text-decoration:none;font-family:sans-serif;` +
-    `border:1px solid rgba(245,166,35,0.3)">` +
-    // K mark — dark square so it pops on the amber end
+    `style="display:inline-flex;flex-direction:column;width:220px;` +
+    `background:#FFFBF2;border-radius:14px;overflow:hidden;` +
+    `border:1.5px solid rgba(245,166,35,0.30);` +
+    `box-shadow:0 4px 16px rgba(0,0,0,0.06);` +
+    `text-decoration:none;font-family:sans-serif">` +
+
+    // Top row — avatar + text
+    `<span style="display:inline-flex;align-items:center;gap:12px;padding:16px 16px 12px">` +
+    avatarHtml +
+    `<span style="display:inline-flex;flex-direction:column;gap:3px;flex:1;min-width:0">${nameHtml}</span>` +
+    `</span>` +
+
+    // Warm divider
+    `<span style="display:block;height:1px;background:#EFE3CC;margin:0 14px"></span>` +
+
+    // Bottom row — host left, "Find me on K" right
+    `<span style="display:inline-flex;align-items:center;justify-content:space-between;padding:10px 14px 14px">` +
+    `<span style="color:#5A5245;font-size:10px;font-weight:500;white-space:nowrap">${host}</span>` +
+    `<span style="display:inline-flex;align-items:center;gap:5px">` +
+    `<span style="color:#8A6D3B;font-size:9px;font-weight:500">Find me on</span>` +
     `<span style="display:inline-flex;align-items:center;justify-content:center;` +
-    `width:30px;height:30px;background:#0D0D0D;border-radius:7px;` +
-    `font-size:17px;font-weight:900;color:#F5A623;flex-shrink:0">K</span>` +
-    `<span style="display:inline-flex;flex-direction:column;gap:1px">${nameHtml}</span>` +
+    `width:17px;height:17px;background:#F5A623;border-radius:4px;` +
+    `font-size:11px;font-weight:900;color:#1A1A1A">K</span>` +
+    `</span>` +
+    `</span>` +
     `</a>`
   )
 }
@@ -98,8 +127,8 @@ export function badgeEmbedImgHtml(slug: string): string {
   return (
     `<a href="${url}" target="_blank" rel="noopener noreferrer" ` +
     `style="display:inline-block;text-decoration:none">` +
-    `<img src="${imgUrl}" alt="${host}" width="180" height="45" ` +
-    `style="display:block;border:none;border-radius:5px" />` +
+    `<img src="${imgUrl}" alt="${host}" width="220" height="130" ` +
+    `style="display:block;border:none;border-radius:10px" />` +
     `</a>`
   )
 }
