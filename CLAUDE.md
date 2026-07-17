@@ -297,17 +297,19 @@ The old `/mychat` and `/{slug}/mychat` paths still work — each is now a thin `
 
 **Single implementation:** `app/mychat/SpaceClient.tsx` — panel component (file path unchanged). `app/[slug]/mykryla/page.tsx` — server route that auth-checks, fetches all data, renders split layout.
 
-**Layout:** Live public page on the left (desktop only, read-only), MyKryla panel on the right (400px). Mobile shows panel full-width. `router.refresh()` re-renders server page so changes appear live.
+**Layout (in progress — tile-launcher redesign, commit `62748b0`):** The old permanent split-view (live preview left / 400px panel right) and the 5-tab + sub-tab-bar navigation have been replaced by a tile-launcher home screen. Chat (AI assistant) is a persistent full-screen surface reached from home or from any tile via a floating "Ask" FAB; the old `tab`/`designTab`/`messagesTab`/`planTab` state is now one `MCView` union (`app/mychat/SpaceClient.tsx`).
 
-**Tab structure:**
-- **Main tabs:** Chat | Design | Messages | Schedule | Plan
-- **Design sub-tabs:** Services | Sections | Layouts | Ads | Media | Language | Letterhead
-- **Messages sub-tabs:** Inbox | Consultations | Clients | Email
-- **Plan sub-tabs:** Plan | Reviews | Suggestions | Stats | Refer
+**Home screen (`app/mychat/MyChatHome.tsx`)** — kryla-dark gradient header (K-logo, member name, "Page live" pill) + a 2×2 tile grid (russet-family gradients, see `app/mychat/tileTheme.ts`):
+- **My Page** — folds in Sections, Layouts, Media, Language, Letterhead (advocate), Ads
+- **My Services** — folds in Services & pricing, Messages, Schedule (Bookings/Hours/Availability)
+- **My Plan** — folds in Plan & billing, Insights/Stats, Reviews, Refer, Custom name, Profile, Suggestions
+- **My Tools** — persona-specific, shown only when relevant (advocate → Legal Tools, doctor/physio → Clinic, distributor/agency → Business Docs, tutor → Students)
 
-**PersonaTab** (`app/mychat/PersonaTab.tsx`) — rendered inside Chat tab; persona-specific workspace (students for tutor, client matters for advocate, clinical records for doctor/physio, etc.)
+Tapping a tile opens `app/mychat/TileDetailShell.tsx` full-screen (colored header, "← Home" pill, Ask FAB). **Status: Phase 1 only** — the shell/navigation/home screen are live, but tile-detail bodies are still placeholders; the actual child components below (ServicesTab, SectionsTab, MessagesTab, Studio overlays, etc.) have not yet been rewired into the new tile pages (tracked as Phase 2 in `docs/superpowers/specs/` or the session's plan file — wire them in before treating this section as fully current).
 
-**Studio overlays** (buttons appear in Chat tab when applicable):
+**PersonaTab** (`app/mychat/PersonaTab.tsx`) — persona-specific workspace (students for tutor, client matters for advocate, clinical records for doctor/physio, etc.); pending Phase 2 rewiring into the My Tools tile.
+
+**Studio overlays** (pending Phase 2 rewiring into the My Tools tile):
 - "Drafting Studio" — advocate only; slides in `DraftingStudio` component
 - "Practitioner Studio" — any persona with `studioArchetype` set; slides in `PractitionerStudio`
 
