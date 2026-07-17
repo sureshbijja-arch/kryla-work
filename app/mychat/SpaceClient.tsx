@@ -3,39 +3,24 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { speak, stopSpeaking } from '@/lib/voice'
-import PlanSection from './PlanSection'
-import BookingsTab from './BookingsTab'
-import MessagesTab from './MessagesTab'
-import SectionsTab from './SectionsTab'
 import type { SectionEntry } from './SectionsTab'
-import ServicesTab from './ServicesTab'
 import type { ServiceItem } from './ServicesTab'
-import MediaTab from './MediaTab'
-import AdsTab from './AdsTab'
-import LayoutsTab from './LayoutsTab'
-import LanguageTab from './LanguageTab'
-import SuggestionsTab from './SuggestionsTab'
-import ReferTab from './ReferTab'
-import AvailabilityTab from './AvailabilityTab'
-import HoursTab from './HoursTab'
-import PersonaTab, { type DraftSeed } from './PersonaTab'
-import ReviewsTab from './ReviewsTab'
-import StatsTab from './StatsTab'
+import type { DraftSeed } from './PersonaTab'
 import ResearchChat from './ResearchChat'
 import DraftingStudio from './DraftingStudio'
 import PractitionerStudio from './PractitionerStudio'
 import type { StudioSeed } from './PractitionerStudio'
-import EmailTab from './EmailTab'
-import MyChatTabBar from './components/MyChatTabBar'
 import InstallBanner from '@/components/InstallBanner'
-import LetterheadSettingsTab from './LetterheadSettingsTab'
-import { getPersonaConfig, getRosterConfig } from '@/app/[slug]/personaConfig'
 import MarkdownMessage from './chat/MarkdownMessage'
 import SourceCards from './chat/SourceCards'
 import MessageActions from './chat/MessageActions'
 import { getChatPromptChips } from '@/config/verticals'
 import LegalNewsTicker from './LegalNewsTicker'
 import CourtToolsPanel from './CourtToolsPanel'
+import MyChatHome from './MyChatHome'
+import TileDetailShell from './TileDetailShell'
+import HomeBackPill from './HomeBackPill'
+import { TILE_THEME } from './tileTheme'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -195,10 +180,18 @@ function getGreeting(lang: string, name: string): string {
   return `Hi ${name}! Ask me anything about your page — change your headline, bio, services, colours, layout, or anything else.`
 }
 
-export type MainTab     = 'chat' | 'design' | 'messages' | 'schedule' | 'plan'
-type DesignTab   = 'services' | 'sections' | 'layouts' | 'ads' | 'media' | 'language' | 'letterhead'
-type MessagesTab = 'inbox' | 'consultations' | 'clients' | 'email'
-type PlanTab     = 'plan' | 'reviews' | 'suggestions' | 'stats' | 'refer'
+// ── My Chat tile-launcher navigation state ──────────────────────────────────
+// Valid `detail` values per tile (documentation only — detail is a plain
+// string so goTo() can route legacy AI/internal target strings directly):
+//   page:     'sections' | 'layouts' | 'ads' | 'media' | 'language' | 'letterhead'
+//   services: 'services' | 'inbox' | 'consultations' | 'clients' | 'email'
+//   plan:     'plan' | 'reviews' | 'suggestions' | 'stats' | 'refer'
+//   tools:    persona-specific, wired in Phase 2
+type MCTile = 'page' | 'services' | 'plan' | 'tools'
+type MCView =
+  | { screen: 'home' }
+  | { screen: 'tile'; tile: MCTile; detail?: string }
+  | { screen: 'chat' }
 
 const PALETTE_LABELS: Record<string, string> = {
   professional: 'Professional', fresh: 'Fresh', warm: 'Warm',
@@ -212,24 +205,12 @@ const FONT_LABELS: Record<string, string> = {
 }
 
 export default function SpaceClient({
-  providerId, slug, firstName,
+  providerId, slug, firstName, pageLive,
   plan, planStatus, trialEndsAt, billingStatus,
   region, pageLanguage, customName, referralCode, currentProfile, onRefresh,
   plans, personaPlans, planOrder, canAds, canCustomName,
 }: Props) {
-  const defaultSections: SectionEntry[] = currentProfile.sections ?? [
-    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
-    { sectionKey: 'services',   variant: 'features',  order: 2 },
-    { sectionKey: 'highlights', variant: 'icons',     order: 3 },
-    { sectionKey: 'bio',        variant: 'paragraph', order: 4 },
-    { sectionKey: 'faq',        variant: 'accordion', order: 5 },
-    { sectionKey: 'contact',    variant: 'both',      order: 6 },
-  ]
-
-  const [tab, setTab]                   = useState<MainTab>('chat')
-  const [designTab, setDesignTab]       = useState<DesignTab>('services')
-  const [messagesTab, setMessagesTab]   = useState<MessagesTab>('inbox')
-  const [planTab, setPlanTab]           = useState<PlanTab>('plan')
+  const [view, setView]             = useState<MCView>({ screen: 'chat' })
   const [publishing, setPublishing] = useState(false)
   const [published, setPublished]   = useState(false)
   const [messages, setMessages] = useState<Message[]>([
@@ -280,17 +261,11 @@ export default function SpaceClient({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const bookingsLabel = getPersonaConfig(currentProfile.persona).tabLabel
-  const rosterCopy = getRosterConfig(currentProfile.persona)
   const t = UI[pageLanguage] ?? EN_UI
-  // Bookings tab: use translated generic label unless English (persona-specific)
-  const bookingsTabLabel = pageLanguage !== 'en' ? t.tabs.bookings : bookingsLabel
-  // Students/Clients tab: use persona-aware label for English; keep translated string otherwise
-  const studentsTabLabel = pageLanguage !== 'en' ? t.tabs.students : rosterCopy.tabLabel
 
   useEffect(() => {
-    if (tab === 'chat') bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, tab])
+    if (view.screen === 'chat') bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, view])
 
   // Auto-resize textarea as input grows (handles chips, voice, and keyboard input)
   useEffect(() => {
@@ -300,10 +275,10 @@ export default function SpaceClient({
     }
   }, [input])
 
-  // Stop speaking when user switches away from chat tab
+  // Stop speaking when user switches away from chat screen
   useEffect(() => {
-    if (tab !== 'chat') stopSpeaking()
-  }, [tab])
+    if (view.screen !== 'chat') stopSpeaking()
+  }, [view])
 
   const startListening = useCallback(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -501,20 +476,31 @@ export default function SpaceClient({
 
   // ── Navigation resolver ───────────────────────────────────────────────────
   // Centralises navigation so legacy `suggestTab` values from the chat API
-  // (bookings / plan / suggestions) and internal `onUpgrade` / `onGoToMessages`
-  // calls all route to the correct (mainTab, subTab) pair.
+  // (bookings / messages / design / plan / suggestions), the AI's
+  // `suggestDesignTab` sub-routing, and internal `onUpgrade` / `onGoToMessages`
+  // calls all route to the correct MCView. Services moved from the old Design
+  // tab to the My Services tile in this redesign — suggest_design_tab:"services"
+  // now routes to tile:'services', not tile:'page'.
   function goTo(target: string, designSub?: string) {
     switch (target) {
-      case 'bookings':     setTab('messages'); setMessagesTab('consultations'); break
-      case 'students':     setTab('messages'); setMessagesTab('clients');       break
-      case 'messages':     setTab('messages'); setMessagesTab('inbox');         break
+      case 'bookings':     setView({ screen: 'tile', tile: 'services', detail: 'consultations' }); break
+      case 'students':     setView({ screen: 'tile', tile: 'services', detail: 'clients' });       break
+      case 'messages':     setView({ screen: 'tile', tile: 'services', detail: 'inbox' });         break
       case 'reviews':
       case 'stats':
       case 'suggestions':
-      case 'refer':        setTab('plan'); setPlanTab(target as PlanTab);       break
-      case 'plan':         setTab('plan'); setPlanTab('plan');                  break
-      case 'design':       setTab('design'); if (designSub) setDesignTab(designSub as DesignTab); break
-      default:             setTab(target as MainTab)
+      case 'refer':         setView({ screen: 'tile', tile: 'plan', detail: target });                break
+      case 'plan':           setView({ screen: 'tile', tile: 'plan', detail: 'plan' });                break
+      case 'design':
+        if (designSub === 'services') {
+          setView({ screen: 'tile', tile: 'services', detail: 'services' })
+        } else {
+          setView({ screen: 'tile', tile: 'page', detail: designSub ?? 'sections' })
+        }
+        break
+      case 'chat':           setView({ screen: 'chat' });                                              break
+      case 'home':           setView({ screen: 'home' });                                              break
+      default:               setView({ screen: 'home' })
     }
   }
 
@@ -577,149 +563,71 @@ export default function SpaceClient({
         </div>
       )}
 
-      {/* Panel header */}
-      <header className="bg-white border-b border-[#E5E5E5] px-4 py-3 flex items-center justify-between shrink-0">
-        <a
-          href={`/${slug}`}
-          className="text-sm text-[#666] hover:text-[#0D0D0D] flex items-center gap-1.5 transition-colors">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          {slug}.kryla.work
-        </a>
-        <button
-          onClick={handlePublish}
-          disabled={publishing}
-          className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 ${
-            published
-              ? 'bg-[#22C55E] text-white'
-              : 'bg-[#0D0D0D] text-white hover:opacity-80'
-          }`}>
-          {publishing ? t.publishing : published ? t.published : t.publish}
-        </button>
-      </header>
+      {/* Publish header — shown above chat/tile screens only; the home screen
+          carries its own kryla-dark header (see MyChatHome). */}
+      {view.screen !== 'home' && (
+        <header className="bg-white border-b border-[#E5E5E5] px-4 py-3 flex items-center justify-between shrink-0">
+          <a
+            href={`/${slug}`}
+            className="text-sm text-[#666] hover:text-[#0D0D0D] flex items-center gap-1.5 transition-colors">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            {slug}.kryla.work
+          </a>
+          <button
+            onClick={handlePublish}
+            disabled={publishing}
+            className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 ${
+              published
+                ? 'bg-[#22C55E] text-white'
+                : 'bg-[#0D0D0D] text-white hover:opacity-80'
+            }`}>
+            {publishing ? t.publishing : published ? t.published : t.publish}
+          </button>
+        </header>
+      )}
 
-      {/* Tab bar — desktop: main tabs + sub-tabs; mobile: sub-tabs only (main tabs via bottom MyChatTabBar) */}
-      {(!isMobile || tab === 'design' || tab === 'messages' || tab === 'plan') && (
-      <div className="bg-white border-b border-[#E5E5E5] shrink-0">
-        {!isMobile && (
-        <div className="flex border-b border-[#F0F0F0]">
-          {([
-            { key: 'chat',     label: t.tabs.chat },
-            { key: 'design',   label: t.tabs.design },
-            { key: 'messages', label: t.tabs.messages },
-            { key: 'schedule', label: t.tabs.schedule },
-            { key: 'plan',     label: t.tabs.plan },
-          ] as { key: MainTab; label: string }[]).map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => setTab(key)}
-              className={`w-1/5 py-2 px-1 text-xs font-semibold border-b-2 transition-colors text-center truncate ${
-                tab === key
-                  ? 'border-[#0D0D0D] text-[#0D0D0D]'
-                  : 'border-transparent text-[#999] hover:text-[#0D0D0D]'
-              }`}>
-              {label}
-            </button>
-          ))}
-        </div>
-        )}
+      {/* ── Home: tile-launcher ── */}
+      {view.screen === 'home' && (
+        <MyChatHome
+          firstName={firstName}
+          lastName={currentProfile.lastName}
+          persona={currentProfile.persona}
+          slug={slug}
+          pageLive={pageLive}
+          onOpenTile={tile => setView({ screen: 'tile', tile })}
+          onOpenChat={() => setView({ screen: 'chat' })}
+        />
+      )}
 
-        {/* Design sub-tab bar */}
-        {tab === 'design' && (
-          <>
-            <div className="px-4 flex items-center gap-1 border-t border-[#F0F0F0] bg-[#FAFAFA] overflow-x-auto scrollbar-none">
-              {([
-                { key: 'services',   label: t.sub.services },
-                { key: 'sections',   label: t.sub.sections },
-                { key: 'layouts',    label: t.sub.layouts },
-                { key: 'ads',        label: t.sub.ads },
-                { key: 'media',      label: t.sub.media },
-                { key: 'language',   label: t.sub.language },
-              ] as { key: DesignTab; label: string }[]).map(({ key, label }) => (
-                <button
-                  key={key}
-                  onClick={() => setDesignTab(key)}
-                  className={`py-2 px-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
-                    designTab === key
-                      ? 'border-[#0D0D0D] text-[#0D0D0D]'
-                      : 'border-transparent text-[#999] hover:text-[#0D0D0D]'
-                  }`}>
-                  {label}
-                </button>
-              ))}
-            </div>
-            {/* Letterhead tab on its own row so it's always visible (advocate only) */}
-            {currentProfile.persona === 'advocate' && (
-              <div className="px-4 flex items-center border-t border-[#F0F0F0] bg-[#FAFAFA]">
-                <button
-                  onClick={() => setDesignTab('letterhead')}
-                  className={`py-2 px-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
-                    designTab === 'letterhead'
-                      ? 'border-[#0D0D0D] text-[#0D0D0D]'
-                      : 'border-transparent text-[#999] hover:text-[#0D0D0D]'
-                  }`}>
-                  Letterhead
-                </button>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Messages sub-tab bar */}
-        {tab === 'messages' && (
-          <div className="px-4 flex items-center gap-1 border-t border-[#F0F0F0] bg-[#FAFAFA] overflow-x-auto scrollbar-none">
-            {([
-              { key: 'inbox',         label: t.tabs.inbox },
-              { key: 'consultations', label: bookingsTabLabel },
-              { key: 'clients',       label: studentsTabLabel },
-              ...(currentProfile.persona === 'advocate'
-                ? [{ key: 'email' as MessagesTab, label: 'Email' }]
-                : []),
-            ] as { key: MessagesTab; label: string }[]).map(({ key, label }) => (
-              <button
-                key={key}
-                onClick={() => setMessagesTab(key)}
-                className={`py-2 px-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
-                  messagesTab === key
-                    ? 'border-[#0D0D0D] text-[#0D0D0D]'
-                    : 'border-transparent text-[#999] hover:text-[#0D0D0D]'
-                }`}>
-                {label}
-              </button>
-            ))}
+      {/* ── Tile detail (placeholder body — Phase 2 wires in real content) ── */}
+      {view.screen === 'tile' && (
+        <TileDetailShell
+          tile={view.tile}
+          icon={TILE_THEME[view.tile].emoji}
+          title={TILE_THEME[view.tile].label}
+          subtitle={TILE_THEME[view.tile].features.join(' · ')}
+          onBack={() => setView({ screen: 'home' })}
+          onOpenChat={() => setView({ screen: 'chat' })}
+        >
+          <div className="flex flex-col items-center justify-center text-center py-16 gap-2">
+            <p className="text-sm font-semibold text-[#999]">Coming in Phase 2</p>
+            <p className="text-xs text-[#bbb] max-w-[220px]">
+              {TILE_THEME[view.tile].label} tools will be wired in here next.
+            </p>
           </div>
-        )}
-
-        {/* My plan sub-tab bar */}
-        {tab === 'plan' && (
-          <div className="px-4 flex items-center gap-1 border-t border-[#F0F0F0] bg-[#FAFAFA] overflow-x-auto scrollbar-none">
-            {([
-              { key: 'plan',        label: t.tabs.plan },
-              { key: 'reviews',     label: t.tabs.reviews },
-              { key: 'suggestions', label: t.tabs.suggestions },
-              { key: 'stats',       label: t.tabs.stats },
-              { key: 'refer',       label: t.tabs.refer },
-            ] as { key: PlanTab; label: string }[]).map(({ key, label }) => (
-              <button
-                key={key}
-                onClick={() => setPlanTab(key)}
-                className={`py-2 px-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
-                  planTab === key
-                    ? 'border-[#0D0D0D] text-[#0D0D0D]'
-                    : 'border-transparent text-[#999] hover:text-[#0D0D0D]'
-                }`}>
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+        </TileDetailShell>
       )}
 
       {/* ── Chat ── */}
-      {tab === 'chat' && (
+      {view.screen === 'chat' && (
         <div className={chatExpanded ? 'fixed inset-0 z-50 bg-white flex flex-col' : 'contents'}>
+          {/* Back-to-home affordance — chat has no bottom tab bar to fall back on anymore */}
+          <div className="bg-white border-b border-[#F0F0F0] px-4 py-2 shrink-0">
+            <HomeBackPill onBack={() => setView({ screen: 'home' })} />
+          </div>
+
           {/* Style info strip + expand toggle */}
           <div className="bg-white border-b border-[#F0F0F0] px-4 py-2 flex items-center gap-2 flex-wrap shrink-0">
             <span className="text-[10px] font-semibold text-[#999] uppercase tracking-wide">Style</span>
@@ -1046,203 +954,6 @@ export default function SpaceClient({
         </div>
       )}
 
-      {/* ── Design: Services ── */}
-      {tab === 'design' && designTab === 'services' && (
-        <ServicesTab
-          providerId={providerId}
-          slug={slug}
-          initialServices={currentProfile.services}
-          plan={plan}
-          onPreview={onRefresh}
-          isMobile={isMobile}
-        />
-      )}
-
-      {/* ── Design: Page layout ── */}
-      {tab === 'design' && designTab === 'sections' && (
-        <SectionsTab
-          providerId={providerId}
-          slug={slug}
-          initialSections={defaultSections}
-          plan={plan}
-          onPreview={onRefresh}
-          isMobile={isMobile}
-        />
-      )}
-
-      {/* ── Design: Layouts ── */}
-      {tab === 'design' && designTab === 'layouts' && (
-        <LayoutsTab
-          slug={slug}
-          persona={currentProfile.persona}
-          plan={plan}
-          currentTemplate={currentProfile.template}
-          currentPalette={currentProfile.palette}
-          currentFont={currentProfile.font}
-          onPreview={onRefresh}
-          onUpgrade={() => goTo('plan')}
-          isMobile={isMobile}
-        />
-      )}
-
-      {/* ── Design: Ads ── */}
-      {tab === 'design' && designTab === 'ads' && (
-        <AdsTab
-          providerId={providerId}
-          slug={slug}
-          plan={plan}
-          canAds={canAds}
-          onUpgrade={() => goTo('plan')}
-          isMobile={isMobile}
-        />
-      )}
-
-      {/* ── Design: Media ── */}
-      {tab === 'design' && designTab === 'media' && (
-        <MediaTab
-          providerId={providerId}
-          slug={slug}
-          firstName={firstName}
-          plan={plan}
-          onUpgrade={() => goTo('plan')}
-          isMobile={isMobile}
-        />
-      )}
-
-      {/* ── Design: Language ── */}
-      {tab === 'design' && designTab === 'language' && (
-        <LanguageTab
-          providerId={providerId}
-          currentLanguage={pageLanguage}
-          isMobile={isMobile}
-        />
-      )}
-
-      {/* ── Design: Letterhead (advocate only) ── */}
-      {tab === 'design' && designTab === 'letterhead' && currentProfile.persona === 'advocate' && (
-        <div className={`flex-1 overflow-y-auto px-4 py-6 max-w-2xl mx-auto w-full ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
-          <LetterheadSettingsTab providerId={providerId} />
-        </div>
-      )}
-
-      {/* ── Schedule ── */}
-      {tab === 'schedule' && (
-        <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
-          <AvailabilityTab providerId={providerId} />
-          <div className="border-t border-[#F0F0F0]" />
-          <HoursTab providerId={providerId} />
-        </div>
-      )}
-
-      {/* ── Messages: Email (advocates only) ── */}
-      {tab === 'messages' && messagesTab === 'email' && currentProfile.persona === 'advocate' && (
-        <div className="flex-1 flex flex-col min-h-0">
-          <EmailTab providerId={providerId} slug={slug} />
-        </div>
-      )}
-
-      {/* ── Messages: Inbox ── */}
-      {tab === 'messages' && messagesTab === 'inbox' && (
-        <div className="flex-1 flex flex-col min-h-0">
-          <MessagesTab providerId={providerId} plan={plan} />
-        </div>
-      )}
-
-      {/* ── Messages: Consultations / Bookings ── */}
-      {tab === 'messages' && messagesTab === 'consultations' && (
-        <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
-          <BookingsTab providerId={providerId} />
-        </div>
-      )}
-
-      {/* ── Messages: Clients / Students ── */}
-      {tab === 'messages' && messagesTab === 'clients' && (
-        <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
-          <PersonaTab
-            providerId={providerId}
-            persona={currentProfile.persona}
-            label1Label={
-              currentProfile.persona === 'tutor'     ? 'Grade'       :
-              currentProfile.persona === 'trainer'   ? 'Level'       :
-              currentProfile.persona === 'advocate'  ? 'Matter type' :
-              'Category'
-            }
-            label2Label={
-              currentProfile.persona === 'tutor'     ? 'Subject'      :
-              currentProfile.persona === 'trainer'   ? 'Goal'         :
-              currentProfile.persona === 'advocate'  ? 'Court / Stage' :
-              'Notes label'
-            }
-            onDraftFromMatter={currentProfile.persona === 'advocate' ? seed => {
-              setDraftSeed(seed)
-              setDraftOpen(true)
-            } : undefined}
-            onOpenStudio={currentProfile.studioArchetype ? seed => {
-              setStudioSeed(seed)
-              setStudioOpen(true)
-            } : undefined}
-          />
-        </div>
-      )}
-
-      {/* ── My plan: Plan / Billing ── */}
-      {tab === 'plan' && planTab === 'plan' && (
-        <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
-          <PlanSection
-            currentPlan={plan}
-            region={region}
-            plans={personaPlans}
-            planOrder={planOrder}
-            planStatus={planStatus}
-            trialEndsAt={trialEndsAt}
-            providerId={providerId}
-            slug={slug}
-            onGoToMessages={() => goTo('messages')}
-          />
-          <DisplayNameCard providerId={providerId} initialFirstName={currentProfile.firstName} initialLastName={currentProfile.lastName} onSaved={() => router.refresh()} />
-          <CustomNameCard providerId={providerId} slug={slug} canUse={canCustomName} initialDomain={customName} />
-        </div>
-      )}
-
-      {/* ── My plan: Reviews ── */}
-      {tab === 'plan' && planTab === 'reviews' && (
-        <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
-          <ReviewsTab providerId={providerId} />
-        </div>
-      )}
-
-      {/* ── My plan: Suggestions ── */}
-      {tab === 'plan' && planTab === 'suggestions' && (
-        <SuggestionsTab providerId={providerId} isMobile={isMobile} />
-      )}
-
-      {/* ── My plan: Stats ── */}
-      {tab === 'plan' && planTab === 'stats' && (
-        <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
-          <StatsTab providerId={providerId} />
-        </div>
-      )}
-
-      {/* ── My plan: Refer ── */}
-      {tab === 'plan' && planTab === 'refer' && (
-        <ReferTab providerId={providerId} slug={slug} initialCode={referralCode} isMobile={isMobile} displayName={customName ?? firstName} persona={currentProfile.persona} avatarUrl={currentProfile.avatarUrl ?? undefined} />
-      )}
-
-      {/* Mobile bottom tab bar */}
-      {isMobile && (
-        <MyChatTabBar
-          activeTab={tab}
-          setTab={setTab}
-          labels={{
-            chat:     t.tabs.chat,
-            design:   t.tabs.design,
-            messages: t.tabs.messages,
-            schedule: t.tabs.schedule,
-            plan:     t.tabs.plan,
-          }}
-        />
-      )}
-
       {/* Install banner (My Chat app) */}
       <InstallBanner app="mychat" slug={slug} />
 
@@ -1258,232 +969,3 @@ function Tag({ label }: { label: string }) {
   )
 }
 
-function DisplayNameCard({ providerId, initialFirstName, initialLastName, onSaved }: { providerId: string; initialFirstName: string; initialLastName: string; onSaved: () => void }) {
-  const initial = [initialFirstName, initialLastName].filter(Boolean).join(' ')
-  const [value, setValue]   = useState(initial)
-  const [saving, setSaving] = useState(false)
-  const [error, setError]   = useState('')
-  const [saved, setSaved]   = useState(false)
-
-  async function save() {
-    const trimmed = value.trim()
-    if (!trimmed) return
-    setSaving(true)
-    setError('')
-    setSaved(false)
-    try {
-      const res = await fetch('/api/mychat/display-name', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ providerId, displayName: trimmed }),
-      })
-      const data = await res.json()
-      if (!res.ok) { setError(data.error ?? 'Failed to save'); return }
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2500)
-      onSaved()
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <div className="px-4 pb-6">
-      <p className="text-xs font-semibold text-[#999] uppercase tracking-widest mb-3">Display name</p>
-      <div className="rounded-2xl border border-[#E5E5E5] p-5 bg-white">
-        <div className="mb-4">
-          <p className="font-bold text-[#0D0D0D] text-sm mb-0.5">Name shown in your hero</p>
-          <p className="text-xs text-[#999]">This is the name that appears at the top of your public page.</p>
-        </div>
-        <div className="flex items-center gap-0 border border-[#E5E5E5] rounded-xl overflow-hidden focus-within:border-[#0D0D0D] transition-colors">
-          <input
-            type="text"
-            placeholder="Your display name"
-            value={value}
-            onChange={e => { setValue(e.target.value); setError(''); setSaved(false) }}
-            onKeyDown={e => { if (e.key === 'Enter') save() }}
-            className="flex-1 py-2.5 pl-3.5 pr-2 text-sm text-[#0D0D0D] placeholder:text-[#bbb] focus:outline-none bg-transparent"
-          />
-          <button
-            onClick={save}
-            disabled={saving || !value.trim() || value.trim() === initial}
-            className="shrink-0 text-sm font-semibold text-white bg-[#0D0D0D] px-4 py-2.5 disabled:opacity-40 hover:opacity-80 transition-opacity">
-            {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save'}
-          </button>
-        </div>
-        {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
-      </div>
-    </div>
-  )
-}
-
-function CustomNameCard({ providerId, slug, canUse, initialDomain }: { providerId: string; slug: string; canUse: boolean; initialDomain: string | null }) {
-  const [label, setLabel]             = useState(initialDomain ?? '')
-  const [savedLabel, setSavedLabel]   = useState(initialDomain)
-  const [saving, setSaving]           = useState(false)
-  const [removing, setRemoving]       = useState(false)
-  const [error, setError]             = useState('')
-  const [avail, setAvail]             = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
-  const [copied, setCopied]           = useState(false)
-  const debounceRef                   = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'kryla.work'
-  const vanityUrl  = savedLabel ? `https://${savedLabel}.${APP_DOMAIN}` : null
-
-  function handleChange(val: string) {
-    setLabel(val)
-    setError('')
-    setAvail('idle')
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    const trimmed = val.trim()
-    if (!trimmed) return
-    debounceRef.current = setTimeout(async () => {
-      setAvail('checking')
-      try {
-        const res = await fetch(`/api/mychat/custom-domain?label=${encodeURIComponent(trimmed)}&providerId=${providerId}`)
-        const data = await res.json()
-        if (data.error) { setAvail('invalid'); setError(data.error); return }
-        setAvail(data.available ? 'available' : 'taken')
-        if (!data.available) setError('That name is already taken — try another')
-      } catch {
-        setAvail('idle')
-      }
-    }, 500)
-  }
-
-  async function save() {
-    const trimmed = label.trim()
-    if (!trimmed) return
-    setSaving(true)
-    setError('')
-    try {
-      const res = await fetch('/api/mychat/custom-domain', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ providerId, domain: trimmed }),
-      })
-      const data = await res.json()
-      if (!res.ok) { setError(data.error ?? 'Failed to save'); return }
-      setLabel(data.domain)
-      setSavedLabel(data.domain)
-      setAvail('idle')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function remove() {
-    setRemoving(true)
-    try {
-      await fetch('/api/mychat/custom-domain', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ providerId }),
-      })
-      setLabel('')
-      setSavedLabel(null)
-      setAvail('idle')
-      setError('')
-    } finally {
-      setRemoving(false)
-    }
-  }
-
-  function copyUrl() {
-    if (!vanityUrl) return
-    navigator.clipboard.writeText(vanityUrl).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
-
-  const canSave = avail === 'available' || (label.trim() === savedLabel && !!savedLabel)
-
-  return (
-    <div className="px-4 pb-6">
-      <p className="text-xs font-semibold text-[#999] uppercase tracking-widest mb-3">Your custom link</p>
-      <div className="rounded-2xl border border-[#E5E5E5] p-5 bg-white">
-        <div className="flex items-start gap-3 mb-4">
-          <div className="flex-1">
-            <p className="font-bold text-[#0D0D0D] text-sm mb-0.5">Custom link</p>
-            <p className="text-xs text-[#999]">
-              {canUse
-                ? `Pick a custom name for your page — it'll live at yourname.${APP_DOMAIN}`
-                : 'Upgrade to Thrive to get a custom link for your page.'}
-            </p>
-          </div>
-          {!canUse && (
-            <span className="shrink-0 text-[10px] font-semibold bg-[#F5F5F5] text-[#999] px-2 py-0.5 rounded-full uppercase tracking-wide">Thrive+</span>
-          )}
-        </div>
-
-        {canUse ? (
-          <>
-            {/* Input row */}
-            <div className="flex items-center gap-0 mb-1 border border-[#E5E5E5] rounded-xl overflow-hidden focus-within:border-[#0D0D0D] transition-colors">
-              <span className="pl-3.5 text-sm text-[#bbb] shrink-0 select-none">{APP_DOMAIN}/</span>
-              <input
-                type="text"
-                placeholder={slug}
-                value={label}
-                onChange={e => handleChange(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter' && canSave) save() }}
-                className="flex-1 py-2.5 pr-2 text-sm text-[#0D0D0D] placeholder:text-[#bbb] focus:outline-none bg-transparent"
-              />
-              <button
-                onClick={save}
-                disabled={saving || !label.trim() || !canSave}
-                className="shrink-0 text-sm font-semibold text-white bg-[#0D0D0D] px-4 py-2.5 disabled:opacity-40 hover:opacity-80 transition-opacity">
-                {saving ? 'Saving…' : 'Save'}
-              </button>
-            </div>
-
-            {/* Availability indicator */}
-            {label.trim() && label.trim() !== savedLabel && (
-              <p className={`text-[11px] mb-2 ${avail === 'available' ? 'text-[#22C55E]' : avail === 'checking' ? 'text-[#999]' : 'text-red-500'}`}>
-                {avail === 'checking' ? 'Checking…'
-                  : avail === 'available' ? `✓ ${label.trim()}.${APP_DOMAIN} is available`
-                  : avail === 'taken' || avail === 'invalid' ? error
-                  : ''}
-              </p>
-            )}
-
-            {error && avail === 'idle' && <p className="text-red-500 text-xs mb-2">{error}</p>}
-
-            {/* Live vanity URL display */}
-            {vanityUrl && (
-              <div className="mt-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl px-4 py-3">
-                <p className="text-[10px] font-semibold text-[#666] uppercase tracking-wide mb-2">Your custom link is live</p>
-                <div className="flex items-center gap-2">
-                  <a
-                    href={vanityUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 font-mono text-[12px] text-[#0D0D0D] hover:underline break-all">
-                    {vanityUrl}
-                  </a>
-                  <button
-                    onClick={copyUrl}
-                    className="shrink-0 text-[11px] font-semibold text-[#0D0D0D] bg-white border border-[#E5E5E5] rounded-lg px-2.5 py-1 hover:bg-[#F5F5F5] transition-colors">
-                    {copied ? 'Copied!' : 'Copy'}
-                  </button>
-                </div>
-                <p className="text-[10px] text-[#bbb] mt-2">
-                  Also works as <span className="font-mono">{savedLabel}.{APP_DOMAIN}</span>
-                </p>
-                <button
-                  onClick={remove}
-                  disabled={removing}
-                  className="mt-2 text-[11px] text-[#bbb] hover:text-red-500 transition-colors">
-                  {removing ? 'Removing…' : 'Remove custom link'}
-                </button>
-              </div>
-            )}
-          </>
-        ) : (
-          <p className="text-xs text-[#bbb]">Available on the Thrive plan and above.</p>
-        )}
-      </div>
-    </div>
-  )
-}

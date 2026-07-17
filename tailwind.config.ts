@@ -28,6 +28,15 @@ const config: Config = {
           border:  'var(--color-accent-border)',
           glow:    'var(--color-accent-glow)',
         },
+        // My Chat redesign — "Kryla brand + russet" tokens (mc-* namespace).
+        // Flat (non-gradient-pair) tokens only — gradient pairs are consumed
+        // via inline styles (see app/mychat/tileTheme.ts) since Tailwind
+        // can't express arbitrary two-stop var() gradients.
+        mc: {
+          canvas: 'var(--mc-canvas)',
+          accent: 'var(--mc-accent)',
+          ink:    'var(--mc-tile-ink)',
+        },
       },
       fontFamily: {
         inter:     ["Inter", "sans-serif"],

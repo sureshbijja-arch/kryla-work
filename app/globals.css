@@ -30,6 +30,25 @@
   --color-accent-surface: #F5A62308;
   --color-accent-border:  #F5A62326;
   --color-accent-glow:    #F5A62340;
+
+  /* ── My Chat redesign — "Kryla brand + russet" tokens (--mc-* namespace) ──
+     Strictly separate from --color-accent-* above (those are mutated per
+     public member page via inline styles on LayoutRenderer). These drive
+     only the member dashboard (app/mychat/*) tile-launcher UI. */
+  --mc-header-from: #1A1A1A;
+  --mc-header-to:   #0D0D0D;
+  --mc-canvas:      #FAFAFA;
+  --mc-accent:      #F5A623;
+  --mc-tile-ink:    #ffffff;
+
+  --mc-tile-page-from:     #B4785E; /* rosewood — My Page */
+  --mc-tile-page-to:       #C79680;
+  --mc-tile-services-from: #9A5A46; /* russet — My Services */
+  --mc-tile-services-to:   #B4735C;
+  --mc-tile-plan-from:     #7C463A; /* oxblood — My Plan */
+  --mc-tile-plan-to:       #96604F;
+  --mc-tile-tools-from:    #C29277; /* clay — My Tools */
+  --mc-tile-tools-to:      #D4AA92;
 }
 
 /* ── craft — baker, chef, salon, trainer ────────────────────────────────── */
