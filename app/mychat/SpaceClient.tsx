@@ -5,12 +5,30 @@ import { useRouter } from 'next/navigation'
 import { speak, stopSpeaking } from '@/lib/voice'
 import type { SectionEntry } from './SectionsTab'
 import type { ServiceItem } from './ServicesTab'
-import type { DraftSeed } from './PersonaTab'
 import ResearchChat from './ResearchChat'
 import DraftingStudio from './DraftingStudio'
 import PractitionerStudio from './PractitionerStudio'
 import type { StudioSeed } from './PractitionerStudio'
 import InstallBanner from '@/components/InstallBanner'
+import SectionsTab from './SectionsTab'
+import ServicesTab from './ServicesTab'
+import LayoutsTab from './LayoutsTab'
+import MediaTab from './MediaTab'
+import LanguageTab from './LanguageTab'
+import LetterheadSettingsTab from './LetterheadSettingsTab'
+import AdsTab from './AdsTab'
+import MessagesTab from './MessagesTab'
+import EmailTab from './EmailTab'
+import BookingsTab from './BookingsTab'
+import PersonaTab, { type DraftSeed } from './PersonaTab'
+import AvailabilityTab from './AvailabilityTab'
+import HoursTab from './HoursTab'
+import PlanSection from './PlanSection'
+import ReviewsTab from './ReviewsTab'
+import SuggestionsTab from './SuggestionsTab'
+import StatsTab from './StatsTab'
+import ReferTab from './ReferTab'
+import { DisplayNameCard, CustomNameCard } from './PlanCards'
 import MarkdownMessage from './chat/MarkdownMessage'
 import SourceCards from './chat/SourceCards'
 import MessageActions from './chat/MessageActions'
@@ -19,8 +37,9 @@ import LegalNewsTicker from './LegalNewsTicker'
 import CourtToolsPanel from './CourtToolsPanel'
 import MyChatHome from './MyChatHome'
 import TileDetailShell from './TileDetailShell'
+import DetailCardList from './DetailCardList'
 import HomeBackPill from './HomeBackPill'
-import { TILE_THEME } from './tileTheme'
+import { TILE_THEME, type MykrylaToolCard } from './tileTheme'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -62,6 +81,10 @@ interface CurrentProfile {
   designMode: string
   /** Archetype id if this persona has a Practitioner Studio configured; null otherwise. */
   studioArchetype: string | null
+  /** DB-driven My Tools tile header label (studio_config.mykryla_tools_label); null hides the custom header. */
+  mykrylaToolsLabel: string | null
+  /** DB-driven My Tools tile card list (studio_config.mykryla_tools); empty array hides the tile entirely. */
+  mykrylaTools: MykrylaToolCard[]
 }
 
 interface Props {
@@ -83,7 +106,6 @@ interface Props {
   canAds: boolean
   canCustomName: boolean
   currentProfile: CurrentProfile
-  onRefresh: () => void
 }
 
 type UIStrings = {
@@ -193,6 +215,68 @@ type MCView =
   | { screen: 'tile'; tile: MCTile; detail?: string }
   | { screen: 'chat' }
 
+// Card-list config per tile: each entry becomes one tappable card in that
+// tile's card list (DetailCardList). `key` is the `detail` value the card
+// navigates to. The `tools` tile's list is DB-driven — see `mykrylaTools`
+// (from personas.studio_config, no hardcoded per-persona table in source).
+interface TileDetailCardConfig {
+  key: string
+  icon: string
+  title: string
+  description: string
+  /** When true, the card opens the Preview/Publish modal instead of navigating to `detail`. */
+  isPreview?: boolean
+}
+
+function getTileDetailCards(tile: MCTile, persona: string, mykrylaTools: MykrylaToolCard[]): TileDetailCardConfig[] {
+  switch (tile) {
+    case 'page':
+      return [
+        { key: 'sections', icon: '\u{1F9F1}', title: 'Sections', description: 'Reorder and edit your page layout' },
+        { key: 'layouts', icon: '\u{1F3A8}', title: 'Layouts', description: 'Templates, palettes, and fonts' },
+        { key: 'media', icon: '\u{1F5BC}️', title: 'Media', description: 'Photos and gallery images' },
+        { key: 'language', icon: '\u{1F310}', title: 'Language', description: 'Page display language' },
+        ...(persona === 'advocate'
+          ? [{ key: 'letterhead', icon: '\u{1F4C4}', title: 'Letterhead', description: 'Firm letterhead settings' }]
+          : []),
+        { key: 'ads', icon: '\u{1F4E3}', title: 'Ads', description: 'Manage promotional banners' },
+        { key: 'preview', icon: '\u{1F440}', title: 'Preview my page', description: 'See your live draft and publish', isPreview: true },
+      ]
+    case 'services':
+      return [
+        { key: 'services', icon: '\u{1F6E0}️', title: 'Services & pricing', description: 'What you offer and what it costs' },
+        { key: 'inbox', icon: '\u{1F4E5}', title: 'Messages', description: 'Inbox from your page visitors' },
+        ...(persona === 'advocate'
+          ? [{ key: 'email', icon: '✉️', title: 'Email', description: 'Connected email inbox' }]
+          : []),
+        { key: 'consultations', icon: '\u{1F4C5}', title: 'Consultations', description: 'Booking requests' },
+        { key: 'clients', icon: '\u{1F465}', title: 'Clients', description: 'Your client and matter roster' },
+        { key: 'schedule', icon: '\u{1F553}', title: 'Schedule', description: 'Hours and availability' },
+      ]
+    case 'plan':
+      return [
+        { key: 'plan', icon: '\u{1F4B3}', title: 'Plan & billing', description: 'Your subscription and billing details' },
+        { key: 'reviews', icon: '⭐', title: 'Reviews', description: 'What your clients are saying' },
+        { key: 'suggestions', icon: '\u{1F4A1}', title: 'Suggestions', description: 'Ideas to grow your page' },
+        { key: 'stats', icon: '\u{1F4CA}', title: 'Insights', description: 'Views and engagement stats' },
+        { key: 'refer', icon: '\u{1F381}', title: 'Refer', description: 'Invite others to Kryla' },
+      ]
+    case 'tools':
+      // DB-driven — cards come from personas.studio_config.mykryla_tools
+      // (see supabase/migrations/20260718033607_mykryla_tools_config.sql).
+      // `key` here is the tool's `action` enum value, mapped to the correct
+      // overlay/state setter at click time in the render below.
+      return mykrylaTools.map(card => ({
+        key: card.action,
+        icon: card.icon,
+        title: card.title,
+        description: card.description,
+      }))
+    default:
+      return []
+  }
+}
+
 const PALETTE_LABELS: Record<string, string> = {
   professional: 'Professional', fresh: 'Fresh', warm: 'Warm',
   minimal: 'Minimal', creative: 'Creative', calm: 'Calm',
@@ -207,9 +291,18 @@ const FONT_LABELS: Record<string, string> = {
 export default function SpaceClient({
   providerId, slug, firstName, pageLive,
   plan, planStatus, trialEndsAt, billingStatus,
-  region, pageLanguage, customName, referralCode, currentProfile, onRefresh,
+  region, pageLanguage, customName, referralCode, currentProfile,
   plans, personaPlans, planOrder, canAds, canCustomName,
 }: Props) {
+  const defaultSections: SectionEntry[] = currentProfile.sections ?? [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'services',   variant: 'features',  order: 2 },
+    { sectionKey: 'highlights', variant: 'icons',     order: 3 },
+    { sectionKey: 'bio',        variant: 'paragraph', order: 4 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 5 },
+    { sectionKey: 'contact',    variant: 'both',      order: 6 },
+  ]
+
   const [view, setView]             = useState<MCView>({ screen: 'chat' })
   const [publishing, setPublishing] = useState(false)
   const [published, setPublished]   = useState(false)
@@ -238,6 +331,10 @@ export default function SpaceClient({
   const [courtToolsOpen, setCourtToolsOpen] = useState(false)
   // Chat expand / full-screen toggle
   const [chatExpanded, setChatExpanded]     = useState(false)
+  // Preview/Publish modal — replaces the old permanent split-view iframe rail.
+  // `previewKey` remounts the modal's iframe to force a fresh draft load.
+  const [previewOpen, setPreviewOpen]       = useState(false)
+  const [previewKey, setPreviewKey]         = useState(0)
 
   // Mobile shell: bottom tabs at <768px, desktop split-view unchanged
   const [isMobile, setIsMobile] = useState(false)
@@ -398,6 +495,14 @@ export default function SpaceClient({
     startListening()
   }
 
+  // Bumps the preview iframe's remount key. Called after any edit that
+  // changes draft content (`data.changed` in send(), a successful publish)
+  // and passed to child tabs as `onPreview` so their own "preview" actions
+  // also refresh the modal's iframe if it happens to be open.
+  function onRefresh() {
+    setPreviewKey(k => k + 1)
+  }
+
   async function send() {
     const text = input.trim()
     if (!text || loading) return
@@ -504,6 +609,207 @@ export default function SpaceClient({
     }
   }
 
+  // ── Tile-detail body dispatch ────────────────────────────────────────────
+  // Mounts the real tab component for a given tile + detail key, wired with
+  // its exact original props (see .superpowers/pre-phase1-spaceclient-reference.tsx).
+  // Returns null for detail keys not yet relocated (My Tools tile — Task 4),
+  // letting the caller fall back to the placeholder.
+  function renderTileDetailBody(tile: MCTile, detail: string) {
+    if (tile === 'page') {
+      switch (detail) {
+        case 'sections':
+          return (
+            <SectionsTab
+              providerId={providerId}
+              slug={slug}
+              initialSections={defaultSections}
+              plan={plan}
+              onPreview={onRefresh}
+              isMobile={isMobile}
+            />
+          )
+        case 'layouts':
+          return (
+            <LayoutsTab
+              slug={slug}
+              persona={currentProfile.persona}
+              plan={plan}
+              currentTemplate={currentProfile.template}
+              currentPalette={currentProfile.palette}
+              currentFont={currentProfile.font}
+              onPreview={onRefresh}
+              onUpgrade={() => goTo('plan')}
+              isMobile={isMobile}
+            />
+          )
+        case 'media':
+          return (
+            <MediaTab
+              providerId={providerId}
+              slug={slug}
+              firstName={firstName}
+              plan={plan}
+              onUpgrade={() => goTo('plan')}
+              isMobile={isMobile}
+            />
+          )
+        case 'language':
+          return (
+            <LanguageTab
+              providerId={providerId}
+              currentLanguage={pageLanguage}
+              isMobile={isMobile}
+            />
+          )
+        case 'letterhead':
+          return currentProfile.persona === 'advocate' ? (
+            <div className={`flex-1 overflow-y-auto px-4 py-6 max-w-2xl mx-auto w-full ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+              <LetterheadSettingsTab providerId={providerId} />
+            </div>
+          ) : null
+        case 'ads':
+          return (
+            <AdsTab
+              providerId={providerId}
+              slug={slug}
+              plan={plan}
+              canAds={canAds}
+              onUpgrade={() => goTo('plan')}
+              isMobile={isMobile}
+            />
+          )
+        default:
+          return null
+      }
+    }
+
+    if (tile === 'services') {
+      switch (detail) {
+        case 'services':
+          return (
+            <ServicesTab
+              providerId={providerId}
+              slug={slug}
+              initialServices={currentProfile.services}
+              plan={plan}
+              onPreview={onRefresh}
+              isMobile={isMobile}
+            />
+          )
+        case 'inbox':
+          return (
+            <div className="flex-1 flex flex-col min-h-0">
+              <MessagesTab providerId={providerId} plan={plan} />
+            </div>
+          )
+        case 'email':
+          return currentProfile.persona === 'advocate' ? (
+            <div className="flex-1 flex flex-col min-h-0">
+              <EmailTab providerId={providerId} slug={slug} />
+            </div>
+          ) : null
+        case 'consultations':
+          return (
+            <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+              <BookingsTab providerId={providerId} />
+            </div>
+          )
+        case 'clients':
+          return (
+            <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+              <PersonaTab
+                providerId={providerId}
+                persona={currentProfile.persona}
+                label1Label={
+                  currentProfile.persona === 'tutor'    ? 'Grade' :
+                  currentProfile.persona === 'trainer'  ? 'Level' :
+                  currentProfile.persona === 'advocate' ? 'Matter type' :
+                  'Category'
+                }
+                label2Label={
+                  currentProfile.persona === 'tutor'    ? 'Subject' :
+                  currentProfile.persona === 'trainer'  ? 'Goal' :
+                  currentProfile.persona === 'advocate' ? 'Court / Stage' :
+                  'Notes label'
+                }
+                onDraftFromMatter={currentProfile.persona === 'advocate' ? seed => {
+                  setDraftSeed(seed)
+                  setDraftOpen(true)
+                } : undefined}
+                onOpenStudio={currentProfile.studioArchetype ? seed => {
+                  setStudioSeed(seed)
+                  setStudioOpen(true)
+                } : undefined}
+              />
+            </div>
+          )
+        case 'schedule':
+          return (
+            <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+              <AvailabilityTab providerId={providerId} />
+              <div className="border-t border-[#F0F0F0]" />
+              <HoursTab providerId={providerId} />
+            </div>
+          )
+        default:
+          return null
+      }
+    }
+
+    if (tile === 'plan') {
+      switch (detail) {
+        case 'plan':
+          return (
+            <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+              <PlanSection
+                currentPlan={plan}
+                region={region}
+                plans={personaPlans}
+                planOrder={planOrder}
+                planStatus={planStatus}
+                trialEndsAt={trialEndsAt}
+                providerId={providerId}
+                slug={slug}
+                onGoToMessages={() => goTo('messages')}
+              />
+              <DisplayNameCard providerId={providerId} initialFirstName={currentProfile.firstName} initialLastName={currentProfile.lastName} onSaved={() => router.refresh()} />
+              <CustomNameCard providerId={providerId} slug={slug} canUse={canCustomName} initialDomain={customName} />
+            </div>
+          )
+        case 'reviews':
+          return (
+            <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+              <ReviewsTab providerId={providerId} />
+            </div>
+          )
+        case 'suggestions':
+          return <SuggestionsTab providerId={providerId} isMobile={isMobile} />
+        case 'stats':
+          return (
+            <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+              <StatsTab providerId={providerId} />
+            </div>
+          )
+        case 'refer':
+          return (
+            <ReferTab
+              providerId={providerId}
+              slug={slug}
+              initialCode={referralCode}
+              isMobile={isMobile}
+              displayName={customName ?? firstName}
+              persona={currentProfile.persona}
+              avatarUrl={currentProfile.avatarUrl ?? undefined}
+            />
+          )
+        default:
+          return null
+      }
+    }
+
+    return null
+  }
+
   return (
     <div className="h-full flex flex-col bg-[#FAFAFA]">
 
@@ -548,6 +854,55 @@ export default function SpaceClient({
           seedClientName={studioSeed?.clientName}
           seedModeKey={studioSeed?.modeKey}
         />
+      )}
+
+      {/* ── Preview/Publish modal ── */}
+      {previewOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:p-6"
+          onClick={() => setPreviewOpen(false)}
+        >
+          <div
+            className="flex flex-col w-full h-[92dvh] sm:h-[85vh] sm:max-w-3xl bg-white rounded-t-2xl sm:rounded-2xl overflow-hidden shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="shrink-0 flex items-center justify-between gap-2 border-b border-[#E5E5E5] bg-[#F8F8F8] px-4 py-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#F5A623] shrink-0" />
+                <span className="text-[10px] font-semibold text-[#888] uppercase tracking-wider truncate">
+                  Draft preview — not visible to customers until you publish
+                </span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={handlePublish}
+                  disabled={publishing}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 ${
+                    published
+                      ? 'bg-[#22C55E] text-white'
+                      : 'bg-[#0D0D0D] text-white hover:opacity-80'
+                  }`}>
+                  {publishing ? t.publishing : published ? t.published : t.publish}
+                </button>
+                <button
+                  onClick={() => setPreviewOpen(false)}
+                  aria-label="Close preview"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-[#999] hover:text-[#0D0D0D] hover:bg-[#EDEDED] transition-colors"
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <iframe
+              key={previewKey}
+              src={`/${slug}/preview`}
+              className="flex-1 border-0 w-full"
+              title="Draft preview of your page"
+            />
+          </div>
+        </div>
       )}
 
       {/* ── Billing return toast ── */}
@@ -596,29 +951,85 @@ export default function SpaceClient({
           persona={currentProfile.persona}
           slug={slug}
           pageLive={pageLive}
+          showToolsTile={currentProfile.mykrylaTools.length > 0}
+          toolsTileLabel={currentProfile.mykrylaToolsLabel ?? undefined}
           onOpenTile={tile => setView({ screen: 'tile', tile })}
           onOpenChat={() => setView({ screen: 'chat' })}
         />
       )}
 
-      {/* ── Tile detail (placeholder body — Phase 2 wires in real content) ── */}
-      {view.screen === 'tile' && (
-        <TileDetailShell
-          tile={view.tile}
-          icon={TILE_THEME[view.tile].emoji}
-          title={TILE_THEME[view.tile].label}
-          subtitle={TILE_THEME[view.tile].features.join(' · ')}
-          onBack={() => setView({ screen: 'home' })}
-          onOpenChat={() => setView({ screen: 'chat' })}
-        >
-          <div className="flex flex-col items-center justify-center text-center py-16 gap-2">
-            <p className="text-sm font-semibold text-[#999]">Coming in Phase 2</p>
-            <p className="text-xs text-[#bbb] max-w-[220px]">
-              {TILE_THEME[view.tile].label} tools will be wired in here next.
-            </p>
-          </div>
-        </TileDetailShell>
-      )}
+      {/* ── Tile detail: two-level nav — card list, then a detail body ── */}
+      {view.screen === 'tile' && (() => {
+        const tile = view.tile
+        const detail = view.detail
+        const cards = getTileDetailCards(tile, currentProfile.persona, currentProfile.mykrylaTools)
+        const activeCard = detail ? cards.find(c => c.key === detail) : undefined
+        const tileTitle = tile === 'tools' && currentProfile.mykrylaToolsLabel
+          ? currentProfile.mykrylaToolsLabel
+          : TILE_THEME[tile].label
+
+        // My Tools cards don't navigate to a sub-detail page like other tiles —
+        // each `action` opens one of the already-existing overlays/setters, or
+        // (persona-tab) jumps straight to the Services tile's roster detail.
+        function handleToolsCardClick(action: string) {
+          switch (action) {
+            case 'court':        setCourtToolsOpen(true); break
+            case 'draft':        setDraftOpen(true); break
+            case 'studio':       setStudioOpen(true); break
+            case 'persona-tab':  setView({ screen: 'tile', tile: 'services', detail: 'clients' }); break
+            default: break
+          }
+        }
+
+        return (
+          <TileDetailShell
+            tile={tile}
+            icon={TILE_THEME[tile].emoji}
+            title={tileTitle}
+            subtitle={detail ? undefined : TILE_THEME[tile].features.join(' · ')}
+            onBack={() => setView({ screen: 'home' })}
+            onOpenChat={() => setView({ screen: 'chat' })}
+          >
+            {!detail ? (
+              <DetailCardList
+                items={cards.map(card => ({
+                  icon: card.icon,
+                  title: card.title,
+                  description: card.description,
+                  onClick: card.isPreview
+                    ? () => setPreviewOpen(true)
+                    : tile === 'tools'
+                      ? () => handleToolsCardClick(card.key)
+                      : () => setView({ screen: 'tile', tile, detail: card.key }),
+                }))}
+              />
+            ) : (
+              <div className="flex flex-col min-h-full">
+                <button
+                  onClick={() => setView({ screen: 'tile', tile })}
+                  className="inline-flex items-center gap-1.5 self-start rounded-full bg-white border border-[#E5E5E5] px-3.5 py-1.5 text-xs font-bold text-[#0D0D0D] shadow-sm transition-colors hover:bg-[#F5F5F5] mb-4"
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M7.5 2L3 6l4.5 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  {tileTitle}
+                </button>
+
+                {renderTileDetailBody(tile, detail) ?? (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center py-16 gap-2">
+                    <p className="text-sm font-semibold text-[#999]">
+                      {activeCard?.title ?? 'Coming soon'}
+                    </p>
+                    <p className="text-xs text-[#bbb] max-w-[220px]">
+                      {activeCard?.description ?? 'This tool will be wired in here next.'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </TileDetailShell>
+        )
+      })()}
 
       {/* ── Chat ── */}
       {view.screen === 'chat' && (

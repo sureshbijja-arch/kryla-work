@@ -9,6 +9,20 @@
 
 export type MCTile = 'page' | 'services' | 'plan' | 'tools'
 
+/**
+ * Shape of one entry in a persona's `studio_config.mykryla_tools` jsonb array
+ * (seeded by supabase/migrations/20260718033607_mykryla_tools_config.sql).
+ * `action` is the only field interpreted by app code — it maps to a fixed,
+ * already-existing overlay/state setter in SpaceClient.tsx. Everything else
+ * (icon/title/description) is DB copy rendered as-is.
+ */
+export interface MykrylaToolCard {
+  action:      'court' | 'draft' | 'studio' | 'persona-tab'
+  icon:        string
+  title:       string
+  description: string
+}
+
 export interface TileTheme {
   tile: MCTile
   label: string
