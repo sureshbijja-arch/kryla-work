@@ -4,6 +4,7 @@ import SpaceClient from '@/app/mychat/SpaceClient'
 import type { SectionEntry } from '@/app/mychat/SectionsTab'
 import type { ServiceItem } from '@/app/mychat/ServicesTab'
 import type { PlanDef } from '@/lib/plans'
+import type { MykrylaToolCard } from '@/app/mychat/tileTheme'
 
 interface SpaceProps {
   providerId: string
@@ -46,6 +47,8 @@ interface SpaceProps {
     sections: SectionEntry[] | null
     designMode: string
     studioArchetype: string | null
+    mykrylaToolsLabel: string | null
+    mykrylaTools: MykrylaToolCard[]
   }
 }
 

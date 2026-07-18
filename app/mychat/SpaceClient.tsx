@@ -39,7 +39,7 @@ import MyChatHome from './MyChatHome'
 import TileDetailShell from './TileDetailShell'
 import DetailCardList from './DetailCardList'
 import HomeBackPill from './HomeBackPill'
-import { TILE_THEME } from './tileTheme'
+import { TILE_THEME, type MykrylaToolCard } from './tileTheme'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -81,6 +81,10 @@ interface CurrentProfile {
   designMode: string
   /** Archetype id if this persona has a Practitioner Studio configured; null otherwise. */
   studioArchetype: string | null
+  /** DB-driven My Tools tile header label (studio_config.mykryla_tools_label); null hides the custom header. */
+  mykrylaToolsLabel: string | null
+  /** DB-driven My Tools tile card list (studio_config.mykryla_tools); empty array hides the tile entirely. */
+  mykrylaTools: MykrylaToolCard[]
 }
 
 interface Props {
@@ -213,10 +217,8 @@ type MCView =
 
 // Card-list config per tile: each entry becomes one tappable card in that
 // tile's card list (DetailCardList). `key` is the `detail` value the card
-// navigates to. Task 2 mounts the real component behind each `detail` key;
-// this task only needs the shape. The `tools` tile's list is a stub
-// (advocate-only) — Task 4 replaces it with the DB-driven `mykryla_tools`
-// config per the no-hardcoding rule.
+// navigates to. The `tools` tile's list is DB-driven — see `mykrylaTools`
+// (from personas.studio_config, no hardcoded per-persona table in source).
 interface TileDetailCardConfig {
   key: string
   icon: string
@@ -226,7 +228,7 @@ interface TileDetailCardConfig {
   isPreview?: boolean
 }
 
-function getTileDetailCards(tile: MCTile, persona: string): TileDetailCardConfig[] {
+function getTileDetailCards(tile: MCTile, persona: string, mykrylaTools: MykrylaToolCard[]): TileDetailCardConfig[] {
   switch (tile) {
     case 'page':
       return [
@@ -260,14 +262,16 @@ function getTileDetailCards(tile: MCTile, persona: string): TileDetailCardConfig
         { key: 'refer', icon: '\u{1F381}', title: 'Refer', description: 'Invite others to Kryla' },
       ]
     case 'tools':
-      // Stub — advocate-only for now. Task 4 replaces this with the
-      // DB-driven `mykryla_tools` array (no hardcoded per-persona table).
-      return persona === 'advocate'
-        ? [
-            { key: 'court', icon: '⚖️', title: 'Court Tools', description: 'CNR lookup, case status, cause lists, orders' },
-            { key: 'draft', icon: '\u{1F4DD}', title: 'Drafting Studio', description: 'Draft, proofread, and manage legal documents' },
-          ]
-        : []
+      // DB-driven — cards come from personas.studio_config.mykryla_tools
+      // (see supabase/migrations/20260718033607_mykryla_tools_config.sql).
+      // `key` here is the tool's `action` enum value, mapped to the correct
+      // overlay/state setter at click time in the render below.
+      return mykrylaTools.map(card => ({
+        key: card.action,
+        icon: card.icon,
+        title: card.title,
+        description: card.description,
+      }))
     default:
       return []
   }
@@ -947,6 +951,8 @@ export default function SpaceClient({
           persona={currentProfile.persona}
           slug={slug}
           pageLive={pageLive}
+          showToolsTile={currentProfile.mykrylaTools.length > 0}
+          toolsTileLabel={currentProfile.mykrylaToolsLabel ?? undefined}
           onOpenTile={tile => setView({ screen: 'tile', tile })}
           onOpenChat={() => setView({ screen: 'chat' })}
         />
@@ -956,14 +962,30 @@ export default function SpaceClient({
       {view.screen === 'tile' && (() => {
         const tile = view.tile
         const detail = view.detail
-        const cards = getTileDetailCards(tile, currentProfile.persona)
+        const cards = getTileDetailCards(tile, currentProfile.persona, currentProfile.mykrylaTools)
         const activeCard = detail ? cards.find(c => c.key === detail) : undefined
+        const tileTitle = tile === 'tools' && currentProfile.mykrylaToolsLabel
+          ? currentProfile.mykrylaToolsLabel
+          : TILE_THEME[tile].label
+
+        // My Tools cards don't navigate to a sub-detail page like other tiles —
+        // each `action` opens one of the already-existing overlays/setters, or
+        // (persona-tab) jumps straight to the Services tile's roster detail.
+        function handleToolsCardClick(action: string) {
+          switch (action) {
+            case 'court':        setCourtToolsOpen(true); break
+            case 'draft':        setDraftOpen(true); break
+            case 'studio':       setStudioOpen(true); break
+            case 'persona-tab':  setView({ screen: 'tile', tile: 'services', detail: 'clients' }); break
+            default: break
+          }
+        }
 
         return (
           <TileDetailShell
             tile={tile}
             icon={TILE_THEME[tile].emoji}
-            title={TILE_THEME[tile].label}
+            title={tileTitle}
             subtitle={detail ? undefined : TILE_THEME[tile].features.join(' · ')}
             onBack={() => setView({ screen: 'home' })}
             onOpenChat={() => setView({ screen: 'chat' })}
@@ -976,7 +998,9 @@ export default function SpaceClient({
                   description: card.description,
                   onClick: card.isPreview
                     ? () => setPreviewOpen(true)
-                    : () => setView({ screen: 'tile', tile, detail: card.key }),
+                    : tile === 'tools'
+                      ? () => handleToolsCardClick(card.key)
+                      : () => setView({ screen: 'tile', tile, detail: card.key }),
                 }))}
               />
             ) : (
@@ -988,7 +1012,7 @@ export default function SpaceClient({
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                     <path d="M7.5 2L3 6l4.5 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  {TILE_THEME[tile].label}
+                  {tileTitle}
                 </button>
 
                 {renderTileDetailBody(tile, detail) ?? (

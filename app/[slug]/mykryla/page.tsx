@@ -7,6 +7,7 @@ import MyChatLayout from '../components/MyChatLayout'
 import type { SectionEntry } from '@/app/mychat/SectionsTab'
 import type { ServiceItem } from '@/app/mychat/ServicesTab'
 import type { ShowSections } from '../types'
+import type { MykrylaToolCard } from '@/app/mychat/tileTheme'
 
 export const dynamic = 'force-dynamic'
 
@@ -54,10 +55,16 @@ export default async function MyChatPage({ params, searchParams }: Props) {
     getPlanGate(),
     supabaseAdmin
       .from('personas')
-      .select('studio_archetype')
+      .select('studio_archetype, studio_config')
       .eq('id', provider.persona)
       .maybeSingle(),
   ])
+
+  const studioConfig = (personaRow?.studio_config as Record<string, unknown> | null) ?? null
+  const mykrylaToolsLabel = (studioConfig?.mykryla_tools_label as string | undefined) ?? null
+  const mykrylaTools = Array.isArray(studioConfig?.mykryla_tools)
+    ? (studioConfig!.mykryla_tools as MykrylaToolCard[])
+    : []
 
   const memberPlan  = provider.plan ?? 'grow'
   const planOrder   = plans.map(p => p.id)
@@ -116,6 +123,8 @@ export default async function MyChatPage({ params, searchParams }: Props) {
           sections:     (page?.sections   as SectionEntry[] | null) ?? null,
           designMode:      (page?.design_mode as string) ?? 'craft',
           studioArchetype: (personaRow?.studio_archetype as string | null) ?? null,
+          mykrylaToolsLabel,
+          mykrylaTools,
         },
       }}
     />
