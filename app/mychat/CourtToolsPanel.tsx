@@ -24,6 +24,7 @@ import type { CourtDirectoryEntry, TribunalEntry, TribunalCategory } from '@/lib
 import { validateCnr, normalizeCnr, courtMapUrl, courtTypeLabel, PORTAL_LABELS,
          benchMapUrl, TRIBUNAL_CATEGORY_LABELS } from '@/lib/ecourts'
 import type { PortalKind } from '@/lib/ecourts'
+import HomeBackPill from './HomeBackPill'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -56,6 +57,8 @@ interface Props {
   providerId: string
   open:       boolean
   onClose:    () => void
+  /** Closes the panel AND returns to the MyKryla home screen. Omit to hide the "← Home" pill. */
+  onHome?:    () => void
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -91,7 +94,7 @@ function openPortal(url: string, copyValue?: string) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function CourtToolsPanel({ providerId, open, onClose }: Props) {
+export default function CourtToolsPanel({ providerId, open, onClose, onHome }: Props) {
   const [activeTab, setActiveTab] = useState<PanelTab>('cnr')
   const [portals, setPortals]     = useState<Record<PortalKind, string> | null>(null)
 
@@ -353,6 +356,7 @@ export default function CourtToolsPanel({ providerId, open, onClose }: Props) {
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <header className="bg-white border-b border-[#E5E5E5] px-4 py-2.5 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
+          {onHome && <HomeBackPill onBack={onHome} />}
           <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
             <circle cx="8" cy="8" r="6" stroke="#0D0D0D" strokeWidth="1.5"/>
             <path d="M5 8l2 2 4-4" stroke="#0D0D0D" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>

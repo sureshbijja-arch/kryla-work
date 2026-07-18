@@ -16,6 +16,7 @@ import OutlinePanel    from './editor/OutlinePanel'
 import RibbonToolbar   from './editor/RibbonToolbar'
 import StatusBar       from './editor/StatusBar'
 import type { MarginPreset } from './editor/LegalEditor'
+import HomeBackPill from './HomeBackPill'
 import {
   computeRedlineOps,
   buildRedlineHtml,
@@ -69,6 +70,8 @@ interface Props {
   providerId:     string
   open:           boolean
   onClose:        () => void
+  /** Closes the studio AND returns to the MyKryla home screen. Omit to hide the "← Home" pill. */
+  onHome?:        () => void
   // Phase 5 seed: when opened from a client/matter card, pre-populate template + client
   seedStudentId?: string | null
   seedClientName?: string | null
@@ -104,7 +107,7 @@ function slugify(text: string): string {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function DraftingStudio({
-  providerId, open, onClose,
+  providerId, open, onClose, onHome,
   seedStudentId, seedClientName, seedMatterType, seedDocType,
 }: Props) {
   const [mode, setMode]                             = useState<Mode>('draft')
@@ -573,6 +576,7 @@ export default function DraftingStudio({
       {/* ── Header ── */}
       <header className="bg-white border-b border-[#E5E5E5] px-4 py-2.5 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
+          {onHome && <HomeBackPill onBack={onHome} />}
           {/* Scale icon */}
           <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
             <path d="M8 1v14M1 13h14M4 13V9L1 5M12 13V9l3-4" stroke="#0D0D0D" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>

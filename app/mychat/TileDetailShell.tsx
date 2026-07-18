@@ -35,23 +35,27 @@ export default function TileDetailShell({
         className="shrink-0 px-4 pt-4 pb-6"
         style={{ background: tileGradient(tile) }}
       >
-        <HomeBackPill onBack={onBack} />
-        <div className="flex items-center gap-3 mt-4">
-          <div className="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center text-2xl shrink-0">
-            {icon}
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-lg font-extrabold text-mc-ink truncate">{title}</h1>
-            {subtitle && <p className="text-xs text-white/80 truncate">{subtitle}</p>}
+        <div className="mx-auto w-full max-w-2xl">
+          <HomeBackPill onBack={onBack} />
+          <div className="flex items-center gap-3 mt-4">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center text-2xl shrink-0">
+              {icon}
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-lg font-extrabold text-mc-ink truncate">{title}</h1>
+              {subtitle && <p className="text-xs text-white/80 truncate">{subtitle}</p>}
+            </div>
           </div>
         </div>
       </header>
 
       <main
-        className="flex-1 overflow-y-auto px-4 pt-5"
+        className="flex-1 overflow-y-auto"
         style={{ paddingBottom: 'calc(88px + env(safe-area-inset-bottom, 0px))' }}
       >
-        {children}
+        <div className="mx-auto w-full max-w-2xl px-4 pt-5">
+          {children}
+        </div>
       </main>
 
       <AskFab onClick={onOpenChat} />

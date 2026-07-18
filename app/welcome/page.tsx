@@ -60,7 +60,7 @@ function WelcomeContent() {
             <Link
               href={`/${slug}/mykryla`}
               className="bg-[#0D0D0D] text-white rounded-xl px-5 py-2.5 text-sm font-semibold hover:bg-[#222] transition-colors">
-              Go to My Space →
+              Go to MyKryla →
             </Link>
 
             {/* WhatsApp */}

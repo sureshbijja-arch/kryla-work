@@ -32,6 +32,7 @@ import RibbonToolbar from './editor/RibbonToolbar'
 import OutlinePanel  from './editor/OutlinePanel'
 import StatusBar     from './editor/StatusBar'
 import LibraryPanel  from './editor/LibraryPanel'
+import HomeBackPill  from './HomeBackPill'
 import type { LibraryItem, LibraryItemEntry } from './editor/LibraryPanel'
 import type { MarginPreset } from './editor/LegalEditor'
 import type { ClinicalFinding } from './editor/types'
@@ -101,6 +102,8 @@ interface Props {
   persona:      string
   open:         boolean
   onClose:      () => void
+  /** Closes the studio AND returns to the MyKryla home screen. Omit to hide the "← Home" pill. */
+  onHome?:      () => void
   seedStudentId?:  string
   seedClientName?: string
   seedModeKey?:    string
@@ -113,6 +116,7 @@ export default function PractitionerStudio({
   persona,
   open,
   onClose,
+  onHome,
   seedStudentId,
   seedClientName,
   seedModeKey,
@@ -510,6 +514,7 @@ export default function PractitionerStudio({
       {/* ── Top bar ── */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shrink-0">
         <div className="flex items-center gap-3">
+          {onHome && <HomeBackPill onBack={onHome} />}
           <button
             onClick={onClose}
             className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors p-1"

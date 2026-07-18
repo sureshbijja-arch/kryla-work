@@ -811,6 +811,7 @@ export default function SpaceClient({
           providerId={providerId}
           open={courtToolsOpen}
           onClose={() => setCourtToolsOpen(false)}
+          onHome={() => { setCourtToolsOpen(false); setView({ screen: 'home' }) }}
         />
       )}
 
@@ -820,6 +821,7 @@ export default function SpaceClient({
           providerId={providerId}
           open={draftOpen}
           onClose={() => { setDraftOpen(false); setDraftSeed(null) }}
+          onHome={() => { setDraftOpen(false); setDraftSeed(null); setView({ screen: 'home' }) }}
           seedStudentId={draftSeed?.studentId}
           seedClientName={draftSeed?.clientName}
           seedMatterType={draftSeed?.matterType}
@@ -834,6 +836,7 @@ export default function SpaceClient({
           persona={currentProfile.persona}
           open={studioOpen}
           onClose={() => { setStudioOpen(false); setStudioSeed(null) }}
+          onHome={() => { setStudioOpen(false); setStudioSeed(null); setView({ screen: 'home' }) }}
           seedStudentId={studioSeed?.studentId}
           seedClientName={studioSeed?.clientName}
           seedModeKey={studioSeed?.modeKey}
