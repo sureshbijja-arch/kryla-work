@@ -36,6 +36,7 @@ import { getChatPromptChips } from '@/config/verticals'
 import LegalNewsTicker from './LegalNewsTicker'
 import CourtToolsPanel from './CourtToolsPanel'
 import MyChatHome from './MyChatHome'
+import WalkthroughPlayer from './WalkthroughPlayer'
 import TileDetailShell from './TileDetailShell'
 import DetailCardList from './DetailCardList'
 import HomeBackPill from './HomeBackPill'
@@ -329,6 +330,7 @@ export default function SpaceClient({
   const [studioSeed, setStudioSeed]         = useState<StudioSeed | null>(null)
   // Court Tools overlay (advocate only)
   const [courtToolsOpen, setCourtToolsOpen] = useState(false)
+  const [walkthroughOpen, setWalkthroughOpen] = useState(false)
   // Chat expand / full-screen toggle
   const [chatExpanded, setChatExpanded]     = useState(false)
   // Preview/Publish modal — replaces the old permanent split-view iframe rail.
@@ -953,9 +955,14 @@ export default function SpaceClient({
           onOpenChat={() => setView({ screen: 'chat' })}
           onPreview={() => setPreviewOpen(true)}
           onPublish={handlePublish}
+          onOpenWalkthrough={() => setWalkthroughOpen(true)}
           publishing={publishing}
           published={published}
         />
+      )}
+
+      {walkthroughOpen && (
+        <WalkthroughPlayer firstName={firstName} onClose={() => setWalkthroughOpen(false)} />
       )}
 
       {/* ── Tile detail: two-level nav — card list, then a detail body ── */}

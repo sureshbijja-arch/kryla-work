@@ -17,6 +17,7 @@ interface MyChatHomeProps {
   onOpenChat: () => void
   onPreview: () => void
   onPublish: () => void
+  onOpenWalkthrough: () => void
   publishing: boolean
   published: boolean
 }
@@ -40,6 +41,7 @@ export default function MyChatHome({
   onOpenChat,
   onPreview,
   onPublish,
+  onOpenWalkthrough,
   publishing,
   published,
 }: MyChatHomeProps) {
@@ -98,8 +100,23 @@ export default function MyChatHome({
         </div>
       </header>
 
+      {/* ── New here? Watch how MyKryla works ── */}
+      <div className="px-4 -mt-4 mb-3">
+        <button
+          onClick={onOpenWalkthrough}
+          className="mx-auto w-full max-w-2xl flex items-center gap-3 rounded-2xl bg-[#0D0D0D] px-5 py-4 text-left shadow-md transition-transform hover:scale-[1.01]"
+        >
+          <span className="text-2xl shrink-0">▶️</span>
+          <div className="min-w-0 flex-1">
+            <p className="font-extrabold text-sm text-white">New here? Watch how your space works</p>
+            <p className="text-[11px] text-white/60 mt-0.5">A 2-minute tour of everything above</p>
+          </div>
+          <span className="shrink-0 text-xs font-semibold text-mc-accent">Watch →</span>
+        </button>
+      </div>
+
       {/* ── Tile grid — 2x2 on mobile, single full row on desktop ── */}
-      <div className="px-4 -mt-4">
+      <div className="px-4">
         <div className={`mx-auto w-full max-w-2xl grid grid-cols-2 ${desktopCols} gap-3 sm:gap-4`}>
           {tiles.map(tile => (
             <TileCard
