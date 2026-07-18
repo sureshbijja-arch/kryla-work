@@ -955,13 +955,18 @@ export default function SpaceClient({
         // My Tools cards don't navigate to a sub-detail page like other tiles —
         // each `action` opens one of the already-existing overlays/setters, or
         // (persona-tab) jumps straight to the Services tile's roster detail.
-        function handleToolsCardClick(action: string) {
+        function handleToolsCardClick(action: MykrylaToolCard['action']) {
           switch (action) {
             case 'court':        setCourtToolsOpen(true); break
             case 'draft':        setDraftOpen(true); break
             case 'studio':       setStudioOpen(true); break
             case 'persona-tab':  setView({ screen: 'tile', tile: 'services', detail: 'clients' }); break
-            default: break
+            default:
+              // Unreachable if studio_config.mykryla_tools only ever contains
+              // known action values — but that jsonb is DB-editable data, not
+              // a compiler-checked type, so a bad/typo'd value must fail loud
+              // here rather than silently no-op on tap.
+              console.error(`Unrecognized My Tools action from studio_config: "${action}"`)
           }
         }
 
@@ -983,21 +988,22 @@ export default function SpaceClient({
                   onClick: card.isPreview
                     ? () => setPreviewOpen(true)
                     : tile === 'tools'
-                      ? () => handleToolsCardClick(card.key)
+                      // Safe: 'tools' cards are always built from mykrylaTools
+                      // (MykrylaToolCard[]) in getTileDetailCards, so `key` is
+                      // really MykrylaToolCard['action'] here, not an arbitrary
+                      // detail string — the wider `string` type on
+                      // TileDetailCardConfig.key is shared with the other tiles.
+                      ? () => handleToolsCardClick(card.key as MykrylaToolCard['action'])
                       : () => setView({ screen: 'tile', tile, detail: card.key }),
                 }))}
               />
             ) : (
               <div className="flex flex-col min-h-full">
-                <button
-                  onClick={() => setView({ screen: 'tile', tile })}
-                  className="inline-flex items-center gap-1.5 self-start rounded-full bg-white border border-[#E5E5E5] px-3.5 py-1.5 text-xs font-bold text-[#0D0D0D] shadow-sm transition-colors hover:bg-[#F5F5F5] mb-4"
-                >
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path d="M7.5 2L3 6l4.5 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  {tileTitle}
-                </button>
+                <HomeBackPill
+                  onBack={() => setView({ screen: 'tile', tile })}
+                  label={tileTitle}
+                  className="self-start mb-4"
+                />
 
                 {renderTileDetailBody(tile, detail) ?? (
                   <div className="flex-1 flex flex-col items-center justify-center text-center py-16 gap-2">

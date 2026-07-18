@@ -60,10 +60,24 @@ export default async function MyChatPage({ params, searchParams }: Props) {
       .maybeSingle(),
   ])
 
+  const VALID_TOOL_ACTIONS = new Set(['court', 'draft', 'studio', 'persona-tab'])
+  function isMykrylaToolCard(item: unknown): item is MykrylaToolCard {
+    return (
+      typeof item === 'object' && item !== null &&
+      VALID_TOOL_ACTIONS.has((item as Record<string, unknown>).action as string) &&
+      typeof (item as Record<string, unknown>).icon === 'string' &&
+      typeof (item as Record<string, unknown>).title === 'string' &&
+      typeof (item as Record<string, unknown>).description === 'string'
+    )
+  }
+
   const studioConfig = (personaRow?.studio_config as Record<string, unknown> | null) ?? null
   const mykrylaToolsLabel = (studioConfig?.mykryla_tools_label as string | undefined) ?? null
+  // Filter, don't just cast — studio_config is DB-editable jsonb, not a
+  // compiler-checked shape, so a malformed entry (bad action, missing field)
+  // is dropped here rather than reaching the client as a dead-on-tap card.
   const mykrylaTools = Array.isArray(studioConfig?.mykryla_tools)
-    ? (studioConfig!.mykryla_tools as MykrylaToolCard[])
+    ? (studioConfig!.mykryla_tools as unknown[]).filter(isMykrylaToolCard)
     : []
 
   const memberPlan  = provider.plan ?? 'grow'
