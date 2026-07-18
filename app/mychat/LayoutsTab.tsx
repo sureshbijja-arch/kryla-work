@@ -12,7 +12,6 @@ interface Props {
   currentFont: string
   onPreview: () => void
   onUpgrade: () => void
-  isMobile?: boolean
 }
 
 const PLAN_RANK: Record<string, number> = { seed: 0, sprout: 1, grow: 2, thrive: 3, elevate: 4 }
@@ -20,7 +19,7 @@ const PLAN_RANK: Record<string, number> = { seed: 0, sprout: 1, grow: 2, thrive:
 export default function LayoutsTab({
   slug, persona, plan,
   currentTemplate, currentPalette, currentFont,
-  onPreview, onUpgrade, isMobile = false,
+  onPreview, onUpgrade,
 }: Props) {
   const [layouts, setLayouts]           = useState<LayoutOption[]>([])
   const [loaded, setLoaded]             = useState(false)
@@ -73,7 +72,7 @@ export default function LayoutsTab({
   }
 
   return (
-    <div className={`flex-1 overflow-y-auto${isMobile ? ' pwa-bottom-nav-clearance' : ''}`}>
+    <div className="flex-1 overflow-y-auto">
       <div className="px-4 pt-4 pb-2">
         <p className="text-xs text-[#666]">Choose a visual style for your page. Changes save to your draft — preview and publish when ready.</p>
       </div>

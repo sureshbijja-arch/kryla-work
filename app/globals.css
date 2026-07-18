@@ -213,11 +213,6 @@ body {
   body { padding-top: env(safe-area-inset-top, 0px); }
 }
 
-/* Bottom nav bar clearance — always reserve space when bar exists */
-.pwa-bottom-nav-clearance {
-  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
-}
-
 /* Smooth tab content transitions */
 .pwa-tab-fade {
   animation: pwaFadeIn 0.15s ease-out;

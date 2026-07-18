@@ -31,10 +31,9 @@ interface Props {
   initialServices: ServiceItem[]
   plan: string
   onPreview?: () => void
-  isMobile?: boolean
 }
 
-export default function ServicesTab({ providerId, slug, initialServices, plan, onPreview, isMobile = false }: Props) {
+export default function ServicesTab({ providerId, slug, initialServices, plan, onPreview }: Props) {
   const [services, setServices] = useState<ServiceItem[]>(initialServices)
   const [expanded, setExpanded]   = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
@@ -206,7 +205,7 @@ export default function ServicesTab({ providerId, slug, initialServices, plan, o
   }
 
   return (
-    <div className={`flex-1 overflow-y-auto${isMobile ? ' pwa-bottom-nav-clearance' : ''}`}>
+    <div className="flex-1 overflow-y-auto">
       <div className="max-w-xl mx-auto px-4 py-6 space-y-3">
 
         {/* Header */}

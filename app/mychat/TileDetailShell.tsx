@@ -47,7 +47,10 @@ export default function TileDetailShell({
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-4 py-5">
+      <main
+        className="flex-1 overflow-y-auto px-4 pt-5"
+        style={{ paddingBottom: 'calc(88px + env(safe-area-inset-bottom, 0px))' }}
+      >
         {children}
       </main>
 

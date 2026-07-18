@@ -40,10 +40,9 @@ const STATUS_TEXT: Record<string, string> = {
 interface Props {
   providerId: string
   onSuggestionFromChat?: (handler: (text: string) => void) => void
-  isMobile?: boolean
 }
 
-export default function SuggestionsTab({ providerId, onSuggestionFromChat, isMobile = false }: Props) {
+export default function SuggestionsTab({ providerId, onSuggestionFromChat }: Props) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [loading, setLoading]         = useState(true)
   const [text, setText]               = useState('')
@@ -110,7 +109,7 @@ export default function SuggestionsTab({ providerId, onSuggestionFromChat, isMob
   }
 
   return (
-    <div className={`flex-1 overflow-y-auto${isMobile ? ' pwa-bottom-nav-clearance' : ''}`}>
+    <div className="flex-1 overflow-y-auto">
       <div className="px-4 py-5 max-w-2xl mx-auto w-full space-y-6">
 
         {/* Submit form */}

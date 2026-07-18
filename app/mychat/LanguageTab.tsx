@@ -16,10 +16,9 @@ const LANGUAGES = [
 interface Props {
   providerId:      string
   currentLanguage: string
-  isMobile?: boolean
 }
 
-export default function LanguageTab({ providerId, currentLanguage, isMobile = false }: Props) {
+export default function LanguageTab({ providerId, currentLanguage }: Props) {
   const [active, setActive]       = useState(currentLanguage)
   const [translating, setTranslating] = useState<string | null>(null)
   const [done, setDone]           = useState<string | null>(null)
@@ -61,7 +60,7 @@ export default function LanguageTab({ providerId, currentLanguage, isMobile = fa
   }
 
   return (
-    <div className={`flex-1 overflow-y-auto${isMobile ? ' pwa-bottom-nav-clearance' : ''}`}>
+    <div className="flex-1 overflow-y-auto">
       <div className="max-w-xl mx-auto px-4 py-6">
 
         <div className="mb-5">

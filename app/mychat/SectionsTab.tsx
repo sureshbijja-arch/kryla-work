@@ -123,10 +123,9 @@ interface Props {
   initialSections: SectionEntry[]
   plan: string
   onPreview?: () => void
-  isMobile?: boolean
 }
 
-export default function SectionsTab({ providerId, slug, initialSections, plan, onPreview, isMobile = false }: Props) {
+export default function SectionsTab({ providerId, slug, initialSections, plan, onPreview }: Props) {
   const [sections, setSections] = useState<SectionEntry[]>(
     [...initialSections].sort((a, b) => a.order - b.order)
   )
@@ -235,7 +234,7 @@ export default function SectionsTab({ providerId, slug, initialSections, plan, o
   }
 
   return (
-    <div className={`flex-1 overflow-y-auto${isMobile ? ' pwa-bottom-nav-clearance' : ''}`}>
+    <div className="flex-1 overflow-y-auto">
       <div className="max-w-xl mx-auto px-4 py-6 space-y-2">
 
         {/* Header */}
