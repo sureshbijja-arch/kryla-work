@@ -9,7 +9,9 @@
 -- No UI code change required beyond reading these two keys — SpaceClient.tsx renders
 -- the tile purely from what this migration seeds.
 
--- ── 1. Advocate — has no studio_config row at all yet ─────────────────────────
+-- ── 1. Advocate — studio_config defaults to '{}' (never seeded a value; the column
+--    is `jsonb NOT NULL DEFAULT '{}'`, never actually NULL) — the `||` merge below adds
+--    the new keys cleanly without needing a NULL-guarding COALESCE. ─────────────────
 UPDATE personas
 SET studio_config = studio_config || jsonb_build_object(
   'mykryla_tools_label', 'Legal Tools',
