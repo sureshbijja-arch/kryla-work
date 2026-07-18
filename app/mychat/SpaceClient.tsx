@@ -19,6 +19,7 @@ import LegalNewsTicker from './LegalNewsTicker'
 import CourtToolsPanel from './CourtToolsPanel'
 import MyChatHome from './MyChatHome'
 import TileDetailShell from './TileDetailShell'
+import DetailCardList from './DetailCardList'
 import HomeBackPill from './HomeBackPill'
 import { TILE_THEME } from './tileTheme'
 
@@ -192,6 +193,65 @@ type MCView =
   | { screen: 'home' }
   | { screen: 'tile'; tile: MCTile; detail?: string }
   | { screen: 'chat' }
+
+// Card-list config per tile: each entry becomes one tappable card in that
+// tile's card list (DetailCardList). `key` is the `detail` value the card
+// navigates to. Task 2 mounts the real component behind each `detail` key;
+// this task only needs the shape. The `tools` tile's list is a stub
+// (advocate-only) — Task 4 replaces it with the DB-driven `mykryla_tools`
+// config per the no-hardcoding rule.
+interface TileDetailCardConfig {
+  key: string
+  icon: string
+  title: string
+  description: string
+}
+
+function getTileDetailCards(tile: MCTile, persona: string): TileDetailCardConfig[] {
+  switch (tile) {
+    case 'page':
+      return [
+        { key: 'sections', icon: '\u{1F9F1}', title: 'Sections', description: 'Reorder and edit your page layout' },
+        { key: 'layouts', icon: '\u{1F3A8}', title: 'Layouts', description: 'Templates, palettes, and fonts' },
+        { key: 'media', icon: '\u{1F5BC}️', title: 'Media', description: 'Photos and gallery images' },
+        { key: 'language', icon: '\u{1F310}', title: 'Language', description: 'Page display language' },
+        ...(persona === 'advocate'
+          ? [{ key: 'letterhead', icon: '\u{1F4C4}', title: 'Letterhead', description: 'Firm letterhead settings' }]
+          : []),
+        { key: 'ads', icon: '\u{1F4E3}', title: 'Ads', description: 'Manage promotional banners' },
+      ]
+    case 'services':
+      return [
+        { key: 'services', icon: '\u{1F6E0}️', title: 'Services & pricing', description: 'What you offer and what it costs' },
+        { key: 'inbox', icon: '\u{1F4E5}', title: 'Messages', description: 'Inbox from your page visitors' },
+        ...(persona === 'advocate'
+          ? [{ key: 'email', icon: '✉️', title: 'Email', description: 'Connected email inbox' }]
+          : []),
+        { key: 'consultations', icon: '\u{1F4C5}', title: 'Consultations', description: 'Booking requests' },
+        { key: 'clients', icon: '\u{1F465}', title: 'Clients', description: 'Your client and matter roster' },
+        { key: 'schedule', icon: '\u{1F553}', title: 'Schedule', description: 'Hours and availability' },
+      ]
+    case 'plan':
+      return [
+        { key: 'plan', icon: '\u{1F4B3}', title: 'Plan & billing', description: 'Your subscription and billing details' },
+        { key: 'reviews', icon: '⭐', title: 'Reviews', description: 'What your clients are saying' },
+        { key: 'suggestions', icon: '\u{1F4A1}', title: 'Suggestions', description: 'Ideas to grow your page' },
+        { key: 'stats', icon: '\u{1F4CA}', title: 'Insights', description: 'Views and engagement stats' },
+        { key: 'refer', icon: '\u{1F381}', title: 'Refer', description: 'Invite others to Kryla' },
+      ]
+    case 'tools':
+      // Stub — advocate-only for now. Task 4 replaces this with the
+      // DB-driven `mykryla_tools` array (no hardcoded per-persona table).
+      return persona === 'advocate'
+        ? [
+            { key: 'court', icon: '⚖️', title: 'Court Tools', description: 'CNR lookup, case status, cause lists, orders' },
+            { key: 'draft', icon: '\u{1F4DD}', title: 'Drafting Studio', description: 'Draft, proofread, and manage legal documents' },
+          ]
+        : []
+    default:
+      return []
+  }
+}
 
 const PALETTE_LABELS: Record<string, string> = {
   professional: 'Professional', fresh: 'Fresh', warm: 'Warm',
@@ -601,24 +661,56 @@ export default function SpaceClient({
         />
       )}
 
-      {/* ── Tile detail (placeholder body — Phase 2 wires in real content) ── */}
-      {view.screen === 'tile' && (
-        <TileDetailShell
-          tile={view.tile}
-          icon={TILE_THEME[view.tile].emoji}
-          title={TILE_THEME[view.tile].label}
-          subtitle={TILE_THEME[view.tile].features.join(' · ')}
-          onBack={() => setView({ screen: 'home' })}
-          onOpenChat={() => setView({ screen: 'chat' })}
-        >
-          <div className="flex flex-col items-center justify-center text-center py-16 gap-2">
-            <p className="text-sm font-semibold text-[#999]">Coming in Phase 2</p>
-            <p className="text-xs text-[#bbb] max-w-[220px]">
-              {TILE_THEME[view.tile].label} tools will be wired in here next.
-            </p>
-          </div>
-        </TileDetailShell>
-      )}
+      {/* ── Tile detail: two-level nav — card list, then a detail body ── */}
+      {view.screen === 'tile' && (() => {
+        const tile = view.tile
+        const detail = view.detail
+        const cards = getTileDetailCards(tile, currentProfile.persona)
+        const activeCard = detail ? cards.find(c => c.key === detail) : undefined
+
+        return (
+          <TileDetailShell
+            tile={tile}
+            icon={TILE_THEME[tile].emoji}
+            title={TILE_THEME[tile].label}
+            subtitle={detail ? undefined : TILE_THEME[tile].features.join(' · ')}
+            onBack={() => setView({ screen: 'home' })}
+            onOpenChat={() => setView({ screen: 'chat' })}
+          >
+            {!detail ? (
+              <DetailCardList
+                items={cards.map(card => ({
+                  icon: card.icon,
+                  title: card.title,
+                  description: card.description,
+                  onClick: () => setView({ screen: 'tile', tile, detail: card.key }),
+                }))}
+              />
+            ) : (
+              <div className="flex flex-col min-h-full">
+                <button
+                  onClick={() => setView({ screen: 'tile', tile })}
+                  className="inline-flex items-center gap-1.5 self-start rounded-full bg-white border border-[#E5E5E5] px-3.5 py-1.5 text-xs font-bold text-[#0D0D0D] shadow-sm transition-colors hover:bg-[#F5F5F5] mb-4"
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M7.5 2L3 6l4.5 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  {TILE_THEME[tile].label}
+                </button>
+
+                <div className="flex-1 flex flex-col items-center justify-center text-center py-16 gap-2">
+                  <p className="text-sm font-semibold text-[#999]">
+                    {activeCard?.title ?? 'Coming soon'}
+                  </p>
+                  <p className="text-xs text-[#bbb] max-w-[220px]">
+                    {activeCard?.description ?? 'This tool will be wired in here next.'}
+                  </p>
+                </div>
+              </div>
+            )}
+          </TileDetailShell>
+        )
+      })()}
 
       {/* ── Chat ── */}
       {view.screen === 'chat' && (
