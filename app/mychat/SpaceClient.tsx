@@ -23,6 +23,12 @@ import BookingsTab from './BookingsTab'
 import PersonaTab, { type DraftSeed } from './PersonaTab'
 import AvailabilityTab from './AvailabilityTab'
 import HoursTab from './HoursTab'
+import PlanSection from './PlanSection'
+import ReviewsTab from './ReviewsTab'
+import SuggestionsTab from './SuggestionsTab'
+import StatsTab from './StatsTab'
+import ReferTab from './ReferTab'
+import { DisplayNameCard, CustomNameCard } from './PlanCards'
 import MarkdownMessage from './chat/MarkdownMessage'
 import SourceCards from './chat/SourceCards'
 import MessageActions from './chat/MessageActions'
@@ -96,7 +102,6 @@ interface Props {
   canAds: boolean
   canCustomName: boolean
   currentProfile: CurrentProfile
-  onRefresh: () => void
 }
 
 type UIStrings = {
@@ -217,6 +222,8 @@ interface TileDetailCardConfig {
   icon: string
   title: string
   description: string
+  /** When true, the card opens the Preview/Publish modal instead of navigating to `detail`. */
+  isPreview?: boolean
 }
 
 function getTileDetailCards(tile: MCTile, persona: string): TileDetailCardConfig[] {
@@ -231,6 +238,7 @@ function getTileDetailCards(tile: MCTile, persona: string): TileDetailCardConfig
           ? [{ key: 'letterhead', icon: '\u{1F4C4}', title: 'Letterhead', description: 'Firm letterhead settings' }]
           : []),
         { key: 'ads', icon: '\u{1F4E3}', title: 'Ads', description: 'Manage promotional banners' },
+        { key: 'preview', icon: '\u{1F440}', title: 'Preview my page', description: 'See your live draft and publish', isPreview: true },
       ]
     case 'services':
       return [
@@ -279,7 +287,7 @@ const FONT_LABELS: Record<string, string> = {
 export default function SpaceClient({
   providerId, slug, firstName, pageLive,
   plan, planStatus, trialEndsAt, billingStatus,
-  region, pageLanguage, customName, referralCode, currentProfile, onRefresh,
+  region, pageLanguage, customName, referralCode, currentProfile,
   plans, personaPlans, planOrder, canAds, canCustomName,
 }: Props) {
   const defaultSections: SectionEntry[] = currentProfile.sections ?? [
@@ -319,6 +327,10 @@ export default function SpaceClient({
   const [courtToolsOpen, setCourtToolsOpen] = useState(false)
   // Chat expand / full-screen toggle
   const [chatExpanded, setChatExpanded]     = useState(false)
+  // Preview/Publish modal — replaces the old permanent split-view iframe rail.
+  // `previewKey` remounts the modal's iframe to force a fresh draft load.
+  const [previewOpen, setPreviewOpen]       = useState(false)
+  const [previewKey, setPreviewKey]         = useState(0)
 
   // Mobile shell: bottom tabs at <768px, desktop split-view unchanged
   const [isMobile, setIsMobile] = useState(false)
@@ -479,6 +491,14 @@ export default function SpaceClient({
     startListening()
   }
 
+  // Bumps the preview iframe's remount key. Called after any edit that
+  // changes draft content (`data.changed` in send(), a successful publish)
+  // and passed to child tabs as `onPreview` so their own "preview" actions
+  // also refresh the modal's iframe if it happens to be open.
+  function onRefresh() {
+    setPreviewKey(k => k + 1)
+  }
+
   async function send() {
     const text = input.trim()
     if (!text || loading) return
@@ -588,8 +608,8 @@ export default function SpaceClient({
   // ── Tile-detail body dispatch ────────────────────────────────────────────
   // Mounts the real tab component for a given tile + detail key, wired with
   // its exact original props (see .superpowers/pre-phase1-spaceclient-reference.tsx).
-  // Returns null for detail keys not yet relocated (My Plan tile — Task 3;
-  // My Tools tile — Task 4), letting the caller fall back to the placeholder.
+  // Returns null for detail keys not yet relocated (My Tools tile — Task 4),
+  // letting the caller fall back to the placeholder.
   function renderTileDetailBody(tile: MCTile, detail: string) {
     if (tile === 'page') {
       switch (detail) {
@@ -732,6 +752,57 @@ export default function SpaceClient({
       }
     }
 
+    if (tile === 'plan') {
+      switch (detail) {
+        case 'plan':
+          return (
+            <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+              <PlanSection
+                currentPlan={plan}
+                region={region}
+                plans={personaPlans}
+                planOrder={planOrder}
+                planStatus={planStatus}
+                trialEndsAt={trialEndsAt}
+                providerId={providerId}
+                slug={slug}
+                onGoToMessages={() => goTo('messages')}
+              />
+              <DisplayNameCard providerId={providerId} initialFirstName={currentProfile.firstName} initialLastName={currentProfile.lastName} onSaved={() => router.refresh()} />
+              <CustomNameCard providerId={providerId} slug={slug} canUse={canCustomName} initialDomain={customName} />
+            </div>
+          )
+        case 'reviews':
+          return (
+            <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+              <ReviewsTab providerId={providerId} />
+            </div>
+          )
+        case 'suggestions':
+          return <SuggestionsTab providerId={providerId} isMobile={isMobile} />
+        case 'stats':
+          return (
+            <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+              <StatsTab providerId={providerId} />
+            </div>
+          )
+        case 'refer':
+          return (
+            <ReferTab
+              providerId={providerId}
+              slug={slug}
+              initialCode={referralCode}
+              isMobile={isMobile}
+              displayName={customName ?? firstName}
+              persona={currentProfile.persona}
+              avatarUrl={currentProfile.avatarUrl ?? undefined}
+            />
+          )
+        default:
+          return null
+      }
+    }
+
     return null
   }
 
@@ -779,6 +850,55 @@ export default function SpaceClient({
           seedClientName={studioSeed?.clientName}
           seedModeKey={studioSeed?.modeKey}
         />
+      )}
+
+      {/* ── Preview/Publish modal ── */}
+      {previewOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:p-6"
+          onClick={() => setPreviewOpen(false)}
+        >
+          <div
+            className="flex flex-col w-full h-[92dvh] sm:h-[85vh] sm:max-w-3xl bg-white rounded-t-2xl sm:rounded-2xl overflow-hidden shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="shrink-0 flex items-center justify-between gap-2 border-b border-[#E5E5E5] bg-[#F8F8F8] px-4 py-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#F5A623] shrink-0" />
+                <span className="text-[10px] font-semibold text-[#888] uppercase tracking-wider truncate">
+                  Draft preview — not visible to customers until you publish
+                </span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={handlePublish}
+                  disabled={publishing}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 ${
+                    published
+                      ? 'bg-[#22C55E] text-white'
+                      : 'bg-[#0D0D0D] text-white hover:opacity-80'
+                  }`}>
+                  {publishing ? t.publishing : published ? t.published : t.publish}
+                </button>
+                <button
+                  onClick={() => setPreviewOpen(false)}
+                  aria-label="Close preview"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-[#999] hover:text-[#0D0D0D] hover:bg-[#EDEDED] transition-colors"
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <iframe
+              key={previewKey}
+              src={`/${slug}/preview`}
+              className="flex-1 border-0 w-full"
+              title="Draft preview of your page"
+            />
+          </div>
+        </div>
       )}
 
       {/* ── Billing return toast ── */}
@@ -854,7 +974,9 @@ export default function SpaceClient({
                   icon: card.icon,
                   title: card.title,
                   description: card.description,
-                  onClick: () => setView({ screen: 'tile', tile, detail: card.key }),
+                  onClick: card.isPreview
+                    ? () => setPreviewOpen(true)
+                    : () => setView({ screen: 'tile', tile, detail: card.key }),
                 }))}
               />
             ) : (
