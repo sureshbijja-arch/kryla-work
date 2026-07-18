@@ -616,7 +616,6 @@ export default function SpaceClient({
               initialSections={defaultSections}
               plan={plan}
               onPreview={onRefresh}
-              isMobile={isMobile}
             />
           )
         case 'layouts':
@@ -630,7 +629,6 @@ export default function SpaceClient({
               currentFont={currentProfile.font}
               onPreview={onRefresh}
               onUpgrade={() => goTo('plan')}
-              isMobile={isMobile}
             />
           )
         case 'media':
@@ -641,7 +639,6 @@ export default function SpaceClient({
               firstName={firstName}
               plan={plan}
               onUpgrade={() => goTo('plan')}
-              isMobile={isMobile}
             />
           )
         case 'language':
@@ -649,12 +646,11 @@ export default function SpaceClient({
             <LanguageTab
               providerId={providerId}
               currentLanguage={pageLanguage}
-              isMobile={isMobile}
             />
           )
         case 'letterhead':
           return currentProfile.persona === 'advocate' ? (
-            <div className={`flex-1 overflow-y-auto px-4 py-6 max-w-2xl mx-auto w-full ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+            <div className="flex-1 overflow-y-auto px-4 py-6 max-w-2xl mx-auto w-full">
               <LetterheadSettingsTab providerId={providerId} />
             </div>
           ) : null
@@ -666,7 +662,6 @@ export default function SpaceClient({
               plan={plan}
               canAds={canAds}
               onUpgrade={() => goTo('plan')}
-              isMobile={isMobile}
             />
           )
         default:
@@ -684,7 +679,6 @@ export default function SpaceClient({
               initialServices={currentProfile.services}
               plan={plan}
               onPreview={onRefresh}
-              isMobile={isMobile}
             />
           )
         case 'inbox':
@@ -701,13 +695,13 @@ export default function SpaceClient({
           ) : null
         case 'consultations':
           return (
-            <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+            <div className="flex-1 overflow-y-auto">
               <BookingsTab providerId={providerId} />
             </div>
           )
         case 'clients':
           return (
-            <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+            <div className="flex-1 overflow-y-auto">
               <PersonaTab
                 providerId={providerId}
                 persona={currentProfile.persona}
@@ -736,7 +730,7 @@ export default function SpaceClient({
           )
         case 'schedule':
           return (
-            <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+            <div className="flex-1 overflow-y-auto">
               <AvailabilityTab providerId={providerId} />
               <div className="border-t border-[#F0F0F0]" />
               <HoursTab providerId={providerId} />
@@ -751,7 +745,7 @@ export default function SpaceClient({
       switch (detail) {
         case 'plan':
           return (
-            <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+            <div className="flex-1 overflow-y-auto">
               <PlanSection
                 currentPlan={plan}
                 region={region}
@@ -769,15 +763,15 @@ export default function SpaceClient({
           )
         case 'reviews':
           return (
-            <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+            <div className="flex-1 overflow-y-auto">
               <ReviewsTab providerId={providerId} />
             </div>
           )
         case 'suggestions':
-          return <SuggestionsTab providerId={providerId} isMobile={isMobile} />
+          return <SuggestionsTab providerId={providerId} />
         case 'stats':
           return (
-            <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+            <div className="flex-1 overflow-y-auto">
               <StatsTab providerId={providerId} />
             </div>
           )
@@ -787,7 +781,6 @@ export default function SpaceClient({
               providerId={providerId}
               slug={slug}
               initialCode={referralCode}
-              isMobile={isMobile}
               displayName={customName ?? firstName}
               persona={currentProfile.persona}
               avatarUrl={currentProfile.avatarUrl ?? undefined}
