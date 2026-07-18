@@ -7,7 +7,6 @@ interface Props {
   providerId:  string
   initialCode: string | null
   slug:        string
-  isMobile?:   boolean
   /** Display name shown in share text (customName ?? firstName from SpaceClient). */
   displayName?: string
   /** Persona/profession label, e.g. "Advocate". */
@@ -16,7 +15,7 @@ interface Props {
   avatarUrl?: string
 }
 
-export default function ReferTab({ providerId, initialCode, slug, isMobile = false, displayName, persona, avatarUrl }: Props) {
+export default function ReferTab({ providerId, initialCode, slug, displayName, persona, avatarUrl }: Props) {
   const [code,           setCode]           = useState(initialCode ?? '')
   const [savedCode,      setSavedCode]      = useState(initialCode)
   const [saving,         setSaving]         = useState(false)
@@ -78,7 +77,7 @@ export default function ReferTab({ providerId, initialCode, slug, isMobile = fal
   const APP_URL = typeof window !== 'undefined' ? window.location.origin : 'https://kryla.work'
 
   return (
-    <div className={`flex-1 overflow-y-auto${isMobile ? ' pwa-bottom-nav-clearance' : ''}`}>
+    <div className="flex-1 overflow-y-auto">
       <div className="px-4 py-5 max-w-2xl mx-auto w-full space-y-6">
 
         <ShareKit slug={slug} displayName={displayName} persona={persona} avatarUrl={avatarUrl} />

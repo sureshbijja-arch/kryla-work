@@ -28,8 +28,11 @@ export default function AskFab({ onClick, label = 'Ask', variant = 'fab' }: AskF
   return (
     <button
       onClick={onClick}
-      className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full px-5 py-3.5 text-sm font-bold text-white shadow-lg transition-transform hover:scale-105 bg-mc-accent"
-      style={{ boxShadow: '0 8px 24px rgba(245, 166, 35, 0.45)' }}
+      className="fixed right-6 z-40 flex items-center gap-2 rounded-full px-5 py-3.5 text-sm font-bold text-white shadow-lg transition-transform hover:scale-105 bg-mc-accent"
+      style={{
+        bottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
+        boxShadow: '0 8px 24px rgba(245, 166, 35, 0.45)',
+      }}
     >
       <AskIcon />
       {label}

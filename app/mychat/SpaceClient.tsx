@@ -239,15 +239,6 @@ export default function SpaceClient({
   // Chat expand / full-screen toggle
   const [chatExpanded, setChatExpanded]     = useState(false)
 
-  // Mobile shell: bottom tabs at <768px, desktop split-view unchanged
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    function check() { setIsMobile(window.innerWidth < 768) }
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
-
   // ── Billing return toast ─────────────────────────────────────────────────────
   const router = useRouter()
   const [billingToast, setBillingToast] = useState<'success' | 'cancelled' | null>(billingStatus ?? null)
@@ -666,7 +657,7 @@ export default function SpaceClient({
             </div>
           </div>
 
-          <main className={`flex-1 overflow-y-auto px-4 py-6 ${chatExpanded ? 'max-w-3xl mx-auto w-full' : ''} ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+          <main className={`flex-1 overflow-y-auto px-4 py-6 ${chatExpanded ? 'max-w-3xl mx-auto w-full' : ''}`}>
             <div className="space-y-4">
               {messages.map((msg, i) => {
                 // Empty state: render greeting as centered welcome card instead of a bubble
