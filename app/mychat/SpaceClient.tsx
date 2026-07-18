@@ -5,12 +5,24 @@ import { useRouter } from 'next/navigation'
 import { speak, stopSpeaking } from '@/lib/voice'
 import type { SectionEntry } from './SectionsTab'
 import type { ServiceItem } from './ServicesTab'
-import type { DraftSeed } from './PersonaTab'
 import ResearchChat from './ResearchChat'
 import DraftingStudio from './DraftingStudio'
 import PractitionerStudio from './PractitionerStudio'
 import type { StudioSeed } from './PractitionerStudio'
 import InstallBanner from '@/components/InstallBanner'
+import SectionsTab from './SectionsTab'
+import ServicesTab from './ServicesTab'
+import LayoutsTab from './LayoutsTab'
+import MediaTab from './MediaTab'
+import LanguageTab from './LanguageTab'
+import LetterheadSettingsTab from './LetterheadSettingsTab'
+import AdsTab from './AdsTab'
+import MessagesTab from './MessagesTab'
+import EmailTab from './EmailTab'
+import BookingsTab from './BookingsTab'
+import PersonaTab, { type DraftSeed } from './PersonaTab'
+import AvailabilityTab from './AvailabilityTab'
+import HoursTab from './HoursTab'
 import MarkdownMessage from './chat/MarkdownMessage'
 import SourceCards from './chat/SourceCards'
 import MessageActions from './chat/MessageActions'
@@ -270,6 +282,15 @@ export default function SpaceClient({
   region, pageLanguage, customName, referralCode, currentProfile, onRefresh,
   plans, personaPlans, planOrder, canAds, canCustomName,
 }: Props) {
+  const defaultSections: SectionEntry[] = currentProfile.sections ?? [
+    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
+    { sectionKey: 'services',   variant: 'features',  order: 2 },
+    { sectionKey: 'highlights', variant: 'icons',     order: 3 },
+    { sectionKey: 'bio',        variant: 'paragraph', order: 4 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 5 },
+    { sectionKey: 'contact',    variant: 'both',      order: 6 },
+  ]
+
   const [view, setView]             = useState<MCView>({ screen: 'chat' })
   const [publishing, setPublishing] = useState(false)
   const [published, setPublished]   = useState(false)
@@ -564,6 +585,156 @@ export default function SpaceClient({
     }
   }
 
+  // ── Tile-detail body dispatch ────────────────────────────────────────────
+  // Mounts the real tab component for a given tile + detail key, wired with
+  // its exact original props (see .superpowers/pre-phase1-spaceclient-reference.tsx).
+  // Returns null for detail keys not yet relocated (My Plan tile — Task 3;
+  // My Tools tile — Task 4), letting the caller fall back to the placeholder.
+  function renderTileDetailBody(tile: MCTile, detail: string) {
+    if (tile === 'page') {
+      switch (detail) {
+        case 'sections':
+          return (
+            <SectionsTab
+              providerId={providerId}
+              slug={slug}
+              initialSections={defaultSections}
+              plan={plan}
+              onPreview={onRefresh}
+              isMobile={isMobile}
+            />
+          )
+        case 'layouts':
+          return (
+            <LayoutsTab
+              slug={slug}
+              persona={currentProfile.persona}
+              plan={plan}
+              currentTemplate={currentProfile.template}
+              currentPalette={currentProfile.palette}
+              currentFont={currentProfile.font}
+              onPreview={onRefresh}
+              onUpgrade={() => goTo('plan')}
+              isMobile={isMobile}
+            />
+          )
+        case 'media':
+          return (
+            <MediaTab
+              providerId={providerId}
+              slug={slug}
+              firstName={firstName}
+              plan={plan}
+              onUpgrade={() => goTo('plan')}
+              isMobile={isMobile}
+            />
+          )
+        case 'language':
+          return (
+            <LanguageTab
+              providerId={providerId}
+              currentLanguage={pageLanguage}
+              isMobile={isMobile}
+            />
+          )
+        case 'letterhead':
+          return currentProfile.persona === 'advocate' ? (
+            <div className={`flex-1 overflow-y-auto px-4 py-6 max-w-2xl mx-auto w-full ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+              <LetterheadSettingsTab providerId={providerId} />
+            </div>
+          ) : null
+        case 'ads':
+          return (
+            <AdsTab
+              providerId={providerId}
+              slug={slug}
+              plan={plan}
+              canAds={canAds}
+              onUpgrade={() => goTo('plan')}
+              isMobile={isMobile}
+            />
+          )
+        default:
+          return null
+      }
+    }
+
+    if (tile === 'services') {
+      switch (detail) {
+        case 'services':
+          return (
+            <ServicesTab
+              providerId={providerId}
+              slug={slug}
+              initialServices={currentProfile.services}
+              plan={plan}
+              onPreview={onRefresh}
+              isMobile={isMobile}
+            />
+          )
+        case 'inbox':
+          return (
+            <div className="flex-1 flex flex-col min-h-0">
+              <MessagesTab providerId={providerId} plan={plan} />
+            </div>
+          )
+        case 'email':
+          return currentProfile.persona === 'advocate' ? (
+            <div className="flex-1 flex flex-col min-h-0">
+              <EmailTab providerId={providerId} slug={slug} />
+            </div>
+          ) : null
+        case 'consultations':
+          return (
+            <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+              <BookingsTab providerId={providerId} />
+            </div>
+          )
+        case 'clients':
+          return (
+            <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+              <PersonaTab
+                providerId={providerId}
+                persona={currentProfile.persona}
+                label1Label={
+                  currentProfile.persona === 'tutor'    ? 'Grade' :
+                  currentProfile.persona === 'trainer'  ? 'Level' :
+                  currentProfile.persona === 'advocate' ? 'Matter type' :
+                  'Category'
+                }
+                label2Label={
+                  currentProfile.persona === 'tutor'    ? 'Subject' :
+                  currentProfile.persona === 'trainer'  ? 'Goal' :
+                  currentProfile.persona === 'advocate' ? 'Court / Stage' :
+                  'Notes label'
+                }
+                onDraftFromMatter={currentProfile.persona === 'advocate' ? seed => {
+                  setDraftSeed(seed)
+                  setDraftOpen(true)
+                } : undefined}
+                onOpenStudio={currentProfile.studioArchetype ? seed => {
+                  setStudioSeed(seed)
+                  setStudioOpen(true)
+                } : undefined}
+              />
+            </div>
+          )
+        case 'schedule':
+          return (
+            <div className={`flex-1 overflow-y-auto ${isMobile ? 'pwa-bottom-nav-clearance' : ''}`}>
+              <AvailabilityTab providerId={providerId} />
+              <div className="border-t border-[#F0F0F0]" />
+              <HoursTab providerId={providerId} />
+            </div>
+          )
+        default:
+          return null
+      }
+    }
+
+    return null
+  }
+
   return (
     <div className="h-full flex flex-col bg-[#FAFAFA]">
 
@@ -698,14 +869,16 @@ export default function SpaceClient({
                   {TILE_THEME[tile].label}
                 </button>
 
-                <div className="flex-1 flex flex-col items-center justify-center text-center py-16 gap-2">
-                  <p className="text-sm font-semibold text-[#999]">
-                    {activeCard?.title ?? 'Coming soon'}
-                  </p>
-                  <p className="text-xs text-[#bbb] max-w-[220px]">
-                    {activeCard?.description ?? 'This tool will be wired in here next.'}
-                  </p>
-                </div>
+                {renderTileDetailBody(tile, detail) ?? (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center py-16 gap-2">
+                    <p className="text-sm font-semibold text-[#999]">
+                      {activeCard?.title ?? 'Coming soon'}
+                    </p>
+                    <p className="text-xs text-[#bbb] max-w-[220px]">
+                      {activeCard?.description ?? 'This tool will be wired in here next.'}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </TileDetailShell>
