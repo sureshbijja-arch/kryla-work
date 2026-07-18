@@ -303,7 +303,7 @@ export default function SpaceClient({
     { sectionKey: 'contact',    variant: 'both',      order: 6 },
   ]
 
-  const [view, setView]             = useState<MCView>({ screen: 'chat' })
+  const [view, setView]             = useState<MCView>({ screen: 'home' })
   const [publishing, setPublishing] = useState(false)
   const [published, setPublished]   = useState(false)
   const [messages, setMessages] = useState<Message[]>([
@@ -908,22 +908,31 @@ export default function SpaceClient({
         <header className="bg-white border-b border-[#E5E5E5] px-4 py-3 flex items-center justify-between shrink-0">
           <a
             href={`/${slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-sm text-[#666] hover:text-[#0D0D0D] flex items-center gap-1.5 transition-colors">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             {slug}.kryla.work
           </a>
-          <button
-            onClick={handlePublish}
-            disabled={publishing}
-            className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 ${
-              published
-                ? 'bg-[#22C55E] text-white'
-                : 'bg-[#0D0D0D] text-white hover:opacity-80'
-            }`}>
-            {publishing ? t.publishing : published ? t.published : t.publish}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPreviewOpen(true)}
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-[#E5E5E5] text-[#0D0D0D] hover:bg-[#F5F5F5] transition-colors">
+              Preview
+            </button>
+            <button
+              onClick={handlePublish}
+              disabled={publishing}
+              className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 ${
+                published
+                  ? 'bg-[#22C55E] text-white'
+                  : 'bg-[#0D0D0D] text-white hover:opacity-80'
+              }`}>
+              {publishing ? t.publishing : published ? t.published : t.publish}
+            </button>
+          </div>
         </header>
       )}
 
@@ -939,6 +948,10 @@ export default function SpaceClient({
           toolsTileLabel={currentProfile.mykrylaToolsLabel ?? undefined}
           onOpenTile={tile => setView({ screen: 'tile', tile })}
           onOpenChat={() => setView({ screen: 'chat' })}
+          onPreview={() => setPreviewOpen(true)}
+          onPublish={handlePublish}
+          publishing={publishing}
+          published={published}
         />
       )}
 
@@ -1211,7 +1224,10 @@ export default function SpaceClient({
               </div>
             )}
 
-            {/* Tool buttons row — above textarea; Research + Draft disabled in full-screen */}
+            {/* Tool buttons row — above textarea; Research disabled in full-screen.
+                Studio / Drafting Studio / Court Tools launch only from the My Tools
+                tile (DB-driven, see supabase/migrations/20260718033607_mykryla_tools_config.sql)
+                — no duplicate shortcuts here, so there's one consistent entry point. */}
             <div className="flex items-center gap-1.5 mb-2">
               {/* Research Chat */}
               <button
@@ -1225,49 +1241,6 @@ export default function SpaceClient({
                 </svg>
                 Research
               </button>
-
-              {/* Advocate-only: Drafting Studio */}
-              {currentProfile.persona === 'advocate' && (
-                <button
-                  onClick={() => setDraftOpen(true)}
-                  disabled={chatExpanded}
-                  title={chatExpanded ? 'Exit full-screen to open Drafting Studio' : 'Drafting Studio'}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-[#F5F5F5] text-[#666] hover:bg-[#E5E5E5] transition-colors disabled:opacity-30 disabled:pointer-events-none">
-                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-                    <path d="M8 1v14M1 13h14M4 13V9L1 5M12 13V9l3-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  Draft
-                </button>
-              )}
-
-              {/* Advocate-only: Court Tools */}
-              {currentProfile.persona === 'advocate' && (
-                <button
-                  onClick={() => setCourtToolsOpen(true)}
-                  disabled={chatExpanded}
-                  title={chatExpanded ? 'Exit full-screen to open Court Tools' : 'Court Tools — CNR, case status, cause list, orders, caveat, process, find court'}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-[#FEF3C7] text-[#92400E] hover:bg-[#FDE68A] transition-colors disabled:opacity-30 disabled:pointer-events-none">
-                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-                    <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/>
-                    <path d="M5 8l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  Court Tools
-                </button>
-              )}
-
-              {/* Practitioner Studio — all studio-enabled personas */}
-              {currentProfile.studioArchetype && (
-                <button
-                  onClick={() => setStudioOpen(true)}
-                  disabled={chatExpanded}
-                  title={chatExpanded ? 'Exit full-screen to open Studio' : 'Practitioner Studio'}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-[#EFF6FF] text-[#1D4ED8] hover:bg-[#DBEAFE] transition-colors disabled:opacity-30 disabled:pointer-events-none">
-                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-                    <path d="M3 13V5l5-4 5 4v8M6 13V9h4v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  Studio
-                </button>
-              )}
 
               {/* Mic — always available */}
               <button
