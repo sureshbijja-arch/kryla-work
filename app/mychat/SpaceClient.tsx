@@ -36,7 +36,7 @@ import { getChatPromptChips } from '@/config/verticals'
 import LegalNewsTicker from './LegalNewsTicker'
 import CourtToolsPanel from './CourtToolsPanel'
 import MyChatHome from './MyChatHome'
-import WalkthroughPlayer from './WalkthroughPlayer'
+import GuidedTour from './GuidedTour'
 import TileDetailShell from './TileDetailShell'
 import DetailCardList from './DetailCardList'
 import HomeBackPill from './HomeBackPill'
@@ -211,7 +211,7 @@ function getGreeting(lang: string, name: string): string {
 //   plan:     'plan' | 'reviews' | 'suggestions' | 'stats' | 'refer'
 //   tools:    persona-specific, wired in Phase 2
 type MCTile = 'page' | 'services' | 'plan' | 'tools'
-type MCView =
+export type MCView =
   | { screen: 'home' }
   | { screen: 'tile'; tile: MCTile; detail?: string }
   | { screen: 'chat' }
@@ -962,7 +962,15 @@ export default function SpaceClient({
       )}
 
       {walkthroughOpen && (
-        <WalkthroughPlayer firstName={firstName} onClose={() => setWalkthroughOpen(false)} />
+        <GuidedTour
+          open={walkthroughOpen}
+          firstName={firstName}
+          persona={currentProfile.persona}
+          mykrylaTools={currentProfile.mykrylaTools}
+          mykrylaToolsLabel={currentProfile.mykrylaToolsLabel}
+          setView={setView}
+          onClose={() => setWalkthroughOpen(false)}
+        />
       )}
 
       {/* ── Tile detail: two-level nav — card list, then a detail body ── */}
@@ -1008,6 +1016,7 @@ export default function SpaceClient({
                   icon: card.icon,
                   title: card.title,
                   description: card.description,
+                  dataTour: `card-${tile}-${card.key}`,
                   onClick: card.isPreview
                     ? () => setPreviewOpen(true)
                     : tile === 'tools'

@@ -65,7 +65,7 @@ export default function MyChatHome({
             <span className="text-base font-extrabold tracking-tight text-mc-ink">kryla</span>
           </div>
 
-          <div className="mt-5 flex items-start justify-between gap-3">
+          <div data-tour="home-header" className="mt-5 flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h1 className="text-xl font-extrabold text-mc-ink truncate">{fullName || 'there'}</h1>
               <p className="text-xs font-medium text-mc-accent mt-0.5 truncate">
@@ -117,7 +117,7 @@ export default function MyChatHome({
 
       {/* ── Tile grid — 2x2 on mobile, single full row on desktop ── */}
       <div className="px-4">
-        <div className={`mx-auto w-full max-w-2xl grid grid-cols-2 ${desktopCols} gap-3 sm:gap-4`}>
+        <div data-tour="home-tilegrid" className={`mx-auto w-full max-w-2xl grid grid-cols-2 ${desktopCols} gap-3 sm:gap-4`}>
           {tiles.map(tile => (
             <TileCard
               key={tile}
@@ -132,6 +132,7 @@ export default function MyChatHome({
       {/* ── Ask your assistant card ── */}
       <div className="px-4 mt-4 pb-8">
         <button
+          data-tour="home-askcard"
           onClick={onOpenChat}
           className="mx-auto w-full max-w-2xl flex items-center justify-between gap-3 rounded-2xl bg-white border-2 border-mc-accent/40 px-5 py-4 text-left shadow-sm transition-colors hover:border-mc-accent"
         >
@@ -150,6 +151,7 @@ function TileCard({ tile, label, onOpen }: { tile: MCTile; label: string; onOpen
   const theme = TILE_THEME[tile]
   return (
     <button
+      data-tour={`tile-${tile}`}
       onClick={onOpen}
       className="rounded-2xl p-4 sm:p-5 text-left shadow-md transition-transform hover:scale-[1.02] flex flex-col gap-2.5 min-h-[150px]"
       style={{ background: tileGradient(tile) }}

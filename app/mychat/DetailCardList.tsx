@@ -11,6 +11,8 @@ export interface DetailCardItem {
   description: string
   badge?: string
   onClick?: () => void
+  /** Optional `data-tour` anchor so GuidedTour can spotlight this specific card. */
+  dataTour?: string
 }
 
 interface DetailCardListProps {
@@ -28,12 +30,13 @@ export default function DetailCardList({ items }: DetailCardListProps) {
 }
 
 function DetailCard({ item }: { item: DetailCardItem }) {
-  const { icon, title, description, badge, onClick } = item
+  const { icon, title, description, badge, onClick, dataTour } = item
   const Tag = onClick ? 'button' : 'div'
 
   return (
     <Tag
       onClick={onClick}
+      data-tour={dataTour}
       className={`flex items-center gap-3.5 rounded-2xl bg-white border border-[#EFEFEF] px-4 py-3.5 text-left shadow-sm transition-colors ${
         onClick ? 'hover:border-[#E0E0E0] hover:shadow-md cursor-pointer w-full' : ''
       }`}
