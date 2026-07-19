@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { parseBookingReply } from '@/lib/whatsapp'
 
 // Meta webhook verification
 export async function GET(req: NextRequest) {
@@ -62,13 +63,24 @@ export async function POST(req: NextRequest) {
     // Insert each inbound message
     for (const m of messages) {
       const msg = m as Record<string, unknown>
-      if (msg.type !== 'text') continue
 
       const from      = msg.from as string
       const waId      = msg.id as string
-      const text      = (msg.text as Record<string, unknown>)?.body as string | undefined
       const tsSeconds = msg.timestamp ? parseInt(msg.timestamp as string, 10) : Math.floor(Date.now() / 1000)
 
+      let text: string | undefined
+      let buttonPayloadId: string | undefined
+
+      if (msg.type === 'text') {
+        text = (msg.text as Record<string, unknown>)?.body as string | undefined
+      } else if (msg.type === 'interactive') {
+        const interactive = msg.interactive as Record<string, unknown>
+        const btnReply = interactive?.button_reply as Record<string, unknown> | undefined
+        buttonPayloadId = btnReply?.id as string | undefined
+        text = btnReply?.title as string | undefined
+      } else {
+        continue
+      }
       if (!text) continue
 
       // Deduplicate by wa_message_id
@@ -90,6 +102,40 @@ export async function POST(req: NextRequest) {
         read:           false,
         msg_timestamp:  new Date(tsSeconds * 1000).toISOString(),
       })
+
+      // ── Booking reply handling ────────────────────────────────────────────
+      const action = parseBookingReply({ buttonPayloadId, text })
+      if (action) {
+        const { data: booking } = await supabaseAdmin
+          .from('bookings')
+          .select('id, start_at')
+          .eq('provider_id', conn.provider_id)
+          .eq('customer_phone', from)
+          .eq('status', 'accepted')
+          .not('start_at', 'is', null)
+          .order('start_at', { ascending: true })
+          .limit(1)
+          .maybeSingle()
+
+        if (booking) {
+          if (action === 'confirm') {
+            // Already accepted — confirm is a no-op acknowledgement, no status change needed.
+            // (v1 doesn't have a separate "customer-confirmed" flag; accepted already implies it.)
+          } else if (action === 'cancel') {
+            await supabaseAdmin
+              .from('bookings')
+              .update({ status: 'cancelled', status_updated_at: new Date().toISOString() })
+              .eq('id', booking.id)
+          } else if (action === 'reschedule') {
+            // v1: mark on_hold so the owner sees it needs attention; a full slot-picker-over-
+            // WhatsApp reschedule flow is out of scope for this plan (see Out of scope).
+            await supabaseAdmin
+              .from('bookings')
+              .update({ status: 'onhold', status_updated_at: new Date().toISOString() })
+              .eq('id', booking.id)
+          }
+        }
+      }
     }
   } catch (err) {
     console.error('[wa-webhook] Error processing message:', err)

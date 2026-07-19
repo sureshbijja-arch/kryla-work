@@ -15,7 +15,7 @@
 
 import { inngest }       from '@/lib/inngest'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { sendWhatsAppMessage, buildBookingReminderMessage } from '@/lib/whatsapp'
+import { sendWhatsAppInteractiveMessage, buildBookingReminderMessage } from '@/lib/whatsapp'
 
 async function sendRemindersForWindow(
   hoursOut: number,
@@ -50,7 +50,15 @@ async function sendRemindersForWindow(
       startAt:      b.start_at as string,
       windowLabel,
     })
-    const res = await sendWhatsAppMessage({ to: b.customer_phone, text: msg })
+    const res = await sendWhatsAppInteractiveMessage({
+      to: b.customer_phone,
+      bodyText: msg,
+      buttons: [
+        { id: 'booking_confirm',    title: 'Confirm' },
+        { id: 'booking_cancel',     title: 'Cancel' },
+        { id: 'booking_reschedule', title: 'Reschedule' },
+      ],
+    })
     await supabaseAdmin.from('notifications').insert({
       provider_id: b.provider_id,
       booking_id:  b.id,

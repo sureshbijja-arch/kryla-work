@@ -151,3 +151,71 @@ export function buildBookingReminderMessage(opts: {
     `Reply *CONFIRM* to keep it, *CANCEL* to cancel, or *RESCHEDULE* to pick a new time.`
   )
 }
+
+interface SendInteractiveOptions {
+  to: string
+  bodyText: string
+  buttons: { id: string; title: string }[]   // max 3 — WhatsApp button-message limit
+}
+
+/** Send a WhatsApp interactive button message (max 3 buttons). */
+export async function sendWhatsAppInteractiveMessage(
+  opts: SendInteractiveOptions
+): Promise<SendMessageResult> {
+  try {
+    const res = await fetch(WA_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        to: opts.to,
+        type: "interactive",
+        interactive: {
+          type: "button",
+          body: { text: opts.bodyText },
+          action: {
+            buttons: opts.buttons.slice(0, 3).map(b => ({
+              type: "reply",
+              reply: { id: b.id, title: b.title },
+            })),
+          },
+        },
+      }),
+    })
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      console.error("[whatsapp] Interactive API error:", body)
+      return { success: false, error: JSON.stringify(body) }
+    }
+
+    const data = await res.json()
+    return { success: true, messageId: data?.messages?.[0]?.id }
+  } catch (err) {
+    console.error("[whatsapp] Unexpected interactive error:", err)
+    return { success: false, error: String(err) }
+  }
+}
+
+/**
+ * Parse an inbound WhatsApp booking-action reply — either an interactive button
+ * tap (payload id: 'booking_confirm' | 'booking_cancel' | 'booking_reschedule')
+ * or a plain-text keyword fallback ("confirm", "cancel", "reschedule",
+ * case-insensitive, ignoring surrounding whitespace/punctuation).
+ * Returns null if the text/payload doesn't match a known booking action.
+ */
+export function parseBookingReply(input: { buttonPayloadId?: string; text?: string }):
+  'confirm' | 'cancel' | 'reschedule' | null {
+  if (input.buttonPayloadId === 'booking_confirm')    return 'confirm'
+  if (input.buttonPayloadId === 'booking_cancel')     return 'cancel'
+  if (input.buttonPayloadId === 'booking_reschedule') return 'reschedule'
+
+  const t = (input.text ?? '').trim().toLowerCase().replace(/[^a-z]/g, '')
+  if (t === 'confirm' || t === 'yes' || t === 'accept') return 'confirm'
+  if (t === 'cancel' || t === 'no')                     return 'cancel'
+  if (t === 'reschedule' || t === 'resched')            return 'reschedule'
+  return null
+}
