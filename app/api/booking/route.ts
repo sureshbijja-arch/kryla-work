@@ -4,6 +4,23 @@ import { supabaseAdmin } from "@/lib/supabase/admin"
 import { sendEmail } from "@/lib/email"
 import { sendWhatsAppMessage, buildNewBookingMessage } from "@/lib/whatsapp"
 
+// Best-effort parse of a "9:00 AM" style label + "2026-07-20" date into a timestamptz.
+// Returns null if either piece is missing or unparseable — the owner can still set
+// start_at explicitly when accepting the booking (see BookingsTab in Task 3).
+function parseSlotToStartAt(preferredDate?: string, preferredSlot?: string): string | null {
+  if (!preferredDate || !preferredSlot) return null
+  const match = preferredSlot.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i)
+  if (!match) return null
+  let hour = parseInt(match[1], 10)
+  const minute = parseInt(match[2], 10)
+  const isPM = match[3].toUpperCase() === 'PM'
+  if (hour === 12) hour = 0
+  if (isPM) hour += 12
+  const iso = `${preferredDate}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00`
+  const d = new Date(iso)
+  return isNaN(d.getTime()) ? null : d.toISOString()
+}
+
 const schema = z.object({
   providerId:    z.string().uuid(),
   customerName:  z.string().min(1).max(100),
@@ -60,19 +77,15 @@ export async function POST(req: NextRequest) {
         provider_id:       data.providerId,
         customer_name:     data.customerName,
         customer_phone:    data.customerPhone,
+        client_email:      data.customerEmail ?? '',   // still the live email column, keep writing it
         service:           serviceLabel,
         preferred_date:    data.preferredDate ?? null,
         preferred_slot:    data.preferredSlot ?? null,
+        start_at:          parseSlotToStartAt(data.preferredDate, data.preferredSlot),
         message:           data.message ?? null,
         status:            "pending",
         notification_sent: false,
         confirmation_sent: false,
-        // legacy NOT NULL columns — keep in sync
-        client_name:       data.customerName,
-        client_phone:      data.customerPhone,
-        client_email:      data.customerEmail ?? '',
-        service_requested: serviceLabel,
-        requested_slot:    data.preferredSlot ?? data.preferredDate ?? '',
       })
       .select()
       .single()
