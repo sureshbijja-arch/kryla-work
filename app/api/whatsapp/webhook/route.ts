@@ -106,16 +106,31 @@ export async function POST(req: NextRequest) {
       // ── Booking reply handling ────────────────────────────────────────────
       const action = parseBookingReply({ buttonPayloadId, text })
       if (action) {
-        const { data: booking } = await supabaseAdmin
+        // NOTE: intentionally not `.eq('customer_phone', from)`. The public booking form
+        // (app/api/booking/route.ts) stores customer_phone verbatim as the customer typed it
+        // (Zod only checks length, no normalization) — e.g. "+1 (555) 999-9999" — while Meta's
+        // `from` (wa_id) is always bare digits in full international format, e.g. "15559999999".
+        // An exact string match would silently fail to resolve the booking for any customer who
+        // didn't happen to type plain digits, so their CONFIRM/CANCEL/RESCHEDULE tap would be a
+        // silent no-op (webhook still returns 200). Instead we fetch this provider's candidate
+        // accepted bookings and match by normalized (digits-only) phone in application code.
+        const { data: candidates } = await supabaseAdmin
           .from('bookings')
-          .select('id, start_at')
+          .select('id, start_at, customer_phone')
           .eq('provider_id', conn.provider_id)
-          .eq('customer_phone', from)
           .eq('status', 'accepted')
           .not('start_at', 'is', null)
           .order('start_at', { ascending: true })
-          .limit(1)
-          .maybeSingle()
+
+        // Compare on the last 10 digits (a US/India-safe local-number length that drops any
+        // leading country code on either side) rather than a raw suffix check, so a short
+        // unrelated number can't accidentally match as a substring of a longer one. Meta's
+        // `from` is already full international digits, so this also handles stored numbers
+        // that were typed with or without their country code.
+        const fromDigits = from.replace(/\D/g, '').slice(-10)
+        const booking = fromDigits.length === 10
+          ? candidates?.find((b) => (b.customer_phone ?? '').replace(/\D/g, '').slice(-10) === fromDigits) ?? null
+          : null
 
         if (booking) {
           if (action === 'confirm') {
