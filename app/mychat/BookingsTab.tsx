@@ -11,6 +11,8 @@ interface Booking {
   service: string
   preferred_date: string | null
   preferred_slot: string | null
+  start_at: string | null
+  duration_min: number | null
   message: string | null
   status: 'pending' | 'accepted' | 'rejected' | 'cancelled' | 'onhold'
 }
@@ -65,22 +67,50 @@ export default function BookingsTab({
 
   useEffect(() => { load() }, [load])
 
-  async function updateStatus(bookingId: string, status: string) {
+  const [acceptingId, setAcceptingId] = useState<string | null>(null)
+  const [acceptDate, setAcceptDate]   = useState('')
+  const [acceptTime, setAcceptTime]   = useState('')
+  const [acceptDuration, setAcceptDuration] = useState(30)
+
+  async function updateStatus(bookingId: string, status: string, startAt?: string, durationMin?: number) {
     setUpdating(bookingId)
     try {
-      await fetch('/api/mychat/bookings', {
+      const res = await fetch('/api/mychat/bookings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ providerId, bookingId, status }),
+        body: JSON.stringify({ providerId, bookingId, status, startAt, durationMin }),
       })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        alert(data.error ?? 'Could not update booking')
+        return
+      }
       setBookings(prev => {
         const updated = prev.map(b => b.id === bookingId ? { ...b, status: status as Booking['status'] } : b)
         onPendingCount?.(updated.filter(b => b.status === 'pending').length)
         return updated
       })
+      setAcceptingId(null)
     } finally {
       setUpdating(null)
     }
+  }
+
+  function startAccept(b: Booking) {
+    if (b.start_at) {
+      // Already has a parsed time from the slot picker — accept directly.
+      updateStatus(b.id, 'accepted')
+      return
+    }
+    setAcceptingId(b.id)
+    setAcceptDate(b.preferred_date ?? new Date().toISOString().slice(0, 10))
+    setAcceptTime('10:00')
+    setAcceptDuration(30)
+  }
+
+  function confirmAccept(bookingId: string) {
+    const startAt = new Date(`${acceptDate}T${acceptTime}:00`).toISOString()
+    updateStatus(bookingId, 'accepted', startAt, acceptDuration)
   }
 
   if (loading) {
@@ -209,30 +239,59 @@ export default function BookingsTab({
 
             {/* Actions */}
             {(b.status === 'pending' || b.status === 'onhold') ? (
-              <div className="flex gap-2">
-                <button
-                  disabled={updating === b.id}
-                  onClick={() => updateStatus(b.id, 'accepted')}
-                  className="flex-1 py-2 rounded-lg text-xs font-semibold bg-[#0D0D0D] text-white hover:opacity-80 disabled:opacity-40 transition-opacity">
-                  {updating === b.id ? '…' : 'Accept'}
-                </button>
-                <button
-                  disabled={updating === b.id}
-                  onClick={() => updateStatus(b.id, 'onhold')}
-                  className={`flex-1 py-2 rounded-lg text-xs font-semibold border disabled:opacity-40 transition-colors ${
-                    b.status === 'onhold'
-                      ? 'border-[#F59E0B] text-[#9A5F00] bg-[#FFF7ED]'
-                      : 'border-[#E5E5E5] text-[#666] hover:border-[#F59E0B] hover:text-[#9A5F00]'
-                  }`}>
-                  Hold
-                </button>
-                <button
-                  disabled={updating === b.id}
-                  onClick={() => updateStatus(b.id, 'rejected')}
-                  className="flex-1 py-2 rounded-lg text-xs font-semibold border border-[#E5E5E5] text-[#666] hover:border-[#DC2626] hover:text-[#DC2626] disabled:opacity-40 transition-colors">
-                  Decline
-                </button>
-              </div>
+              acceptingId === b.id ? (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <input type="date" value={acceptDate} onChange={e => setAcceptDate(e.target.value)}
+                      className="flex-1 text-xs border border-[#E5E5E5] rounded-lg px-2 py-1.5" />
+                    <input type="time" value={acceptTime} onChange={e => setAcceptTime(e.target.value)}
+                      className="flex-1 text-xs border border-[#E5E5E5] rounded-lg px-2 py-1.5" />
+                    <select value={acceptDuration} onChange={e => setAcceptDuration(Number(e.target.value))}
+                      className="text-xs border border-[#E5E5E5] rounded-lg px-2 py-1.5">
+                      <option value={30}>30 min</option>
+                      <option value={45}>45 min</option>
+                      <option value={60}>1 hr</option>
+                      <option value={90}>1.5 hr</option>
+                      <option value={180}>3 hr</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <button disabled={updating === b.id} onClick={() => confirmAccept(b.id)}
+                      className="flex-1 py-2 rounded-lg text-xs font-semibold bg-[#0D0D0D] text-white hover:opacity-80 disabled:opacity-40">
+                      {updating === b.id ? '…' : 'Confirm time & accept'}
+                    </button>
+                    <button onClick={() => setAcceptingId(null)}
+                      className="px-3 py-2 rounded-lg text-xs font-semibold border border-[#E5E5E5] text-[#666]">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <button
+                    disabled={updating === b.id}
+                    onClick={() => startAccept(b)}
+                    className="flex-1 py-2 rounded-lg text-xs font-semibold bg-[#0D0D0D] text-white hover:opacity-80 disabled:opacity-40 transition-opacity">
+                    {updating === b.id ? '…' : 'Accept'}
+                  </button>
+                  <button
+                    disabled={updating === b.id}
+                    onClick={() => updateStatus(b.id, 'onhold')}
+                    className={`flex-1 py-2 rounded-lg text-xs font-semibold border disabled:opacity-40 transition-colors ${
+                      b.status === 'onhold'
+                        ? 'border-[#F59E0B] text-[#9A5F00] bg-[#FFF7ED]'
+                        : 'border-[#E5E5E5] text-[#666] hover:border-[#F59E0B] hover:text-[#9A5F00]'
+                    }`}>
+                    Hold
+                  </button>
+                  <button
+                    disabled={updating === b.id}
+                    onClick={() => updateStatus(b.id, 'rejected')}
+                    className="flex-1 py-2 rounded-lg text-xs font-semibold border border-[#E5E5E5] text-[#666] hover:border-[#DC2626] hover:text-[#DC2626] disabled:opacity-40 transition-colors">
+                    Decline
+                  </button>
+                </div>
+              )
             ) : b.status === 'accepted' ? (
               <a
                 href={waLink(b.customer_phone, b.customer_name)}

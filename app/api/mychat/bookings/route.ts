@@ -28,7 +28,7 @@ export async function GET(req: Request) {
 
   const { data: bookings, error } = await supabaseAdmin
     .from('bookings')
-    .select('id, created_at, customer_name, client_email, customer_phone, service, preferred_date, preferred_slot, message, status')
+    .select('id, created_at, customer_name, client_email, customer_phone, service, preferred_date, preferred_slot, start_at, duration_min, end_at, message, status')
     .eq('provider_id', providerId)
     .order('created_at', { ascending: false })
     .limit(100)
@@ -40,13 +40,13 @@ export async function GET(req: Request) {
 
 export async function PATCH(req: Request) {
   const body = await req.json()
-  const { providerId, bookingId, status } = body
+  const { providerId, bookingId, status, startAt, durationMin } = body
 
   if (!providerId || !bookingId || !status) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
   }
 
-  const allowed = ['accepted', 'rejected', 'cancelled', 'onhold']
+  const allowed = ['accepted', 'rejected', 'cancelled', 'onhold', 'no_show']
   if (!allowed.includes(status)) {
     return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
   }
@@ -57,14 +57,41 @@ export async function PATCH(req: Request) {
   // Fetch booking before updating so we have customer details + slot info
   const { data: booking } = await supabaseAdmin
     .from('bookings')
-    .select('customer_name, client_email, service, preferred_date, preferred_slot')
+    .select('customer_name, client_email, service, preferred_date, preferred_slot, start_at, duration_min')
     .eq('id', bookingId)
     .eq('provider_id', providerId)
     .single()
 
+  const update: Record<string, unknown> = { status, status_updated_at: new Date().toISOString() }
+  if (status === 'accepted') {
+    if (startAt) update.start_at = startAt
+    if (durationMin) update.duration_min = durationMin
+    // Overlap check: reject if this block collides with another accepted booking.
+    if (update.start_at && (update.duration_min ?? booking?.duration_min)) {
+      const durMin = (update.duration_min ?? booking?.duration_min) as number
+      const newStart = new Date(update.start_at as string)
+      const newEnd = new Date(newStart.getTime() + durMin * 60000)
+      const { data: existing } = await supabaseAdmin
+        .from('bookings')
+        .select('id, start_at, end_at')
+        .eq('provider_id', providerId)
+        .eq('status', 'accepted')
+        .neq('id', bookingId)
+        .not('start_at', 'is', null)
+      const collision = (existing ?? []).some(b => {
+        const bStart = new Date(b.start_at as string)
+        const bEnd = new Date(b.end_at as string)
+        return newStart < bEnd && newEnd > bStart
+      })
+      if (collision) {
+        return NextResponse.json({ error: 'That time overlaps an existing accepted booking' }, { status: 409 })
+      }
+    }
+  }
+
   const { error } = await supabaseAdmin
     .from('bookings')
-    .update({ status, status_updated_at: new Date().toISOString() })
+    .update(update)
     .eq('id', bookingId)
     .eq('provider_id', providerId)
 
