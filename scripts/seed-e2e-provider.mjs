@@ -55,7 +55,7 @@ async function main() {
         location: 'Test City',
         email: TEST_EMAIL,
         whatsapp_number: '15550000000',
-        plan: 'grow',
+        plan: 'thrive',
         plan_status: 'active',
         region: 'usa',
         page_live: true,
