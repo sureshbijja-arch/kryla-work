@@ -12,7 +12,10 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://kryla.work'),
-  title: "Kryla.work — One platform, built around your craft",
+  title: {
+    default: "Kryla.work — One platform, built around your craft",
+    template: '%s — Kryla',
+  },
   description: "Run it, grow it — your way. The business platform built around your craft, alongside how you already work. Live in 15 minutes.",
   openGraph: {
     siteName: 'Kryla',

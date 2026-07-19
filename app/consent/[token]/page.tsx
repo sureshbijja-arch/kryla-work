@@ -3,9 +3,14 @@
  * Client visits this URL (from WhatsApp message footer) to withdraw WhatsApp consent.
  */
 
+import type { Metadata } from 'next'
 import { notFound }     from 'next/navigation'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import ConsentWithdrawPanel from './ConsentWithdrawPanel'
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 
 interface Props {
   params: { token: string }

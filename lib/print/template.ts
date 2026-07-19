@@ -320,6 +320,7 @@ export function buildPrintHtml(opts: BuildPrintOptions): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
   <title>${kind === 'document' ? esc((data as DocumentData).title) : kind === 'hearings' ? 'Hearing Schedule' : kind === 'case-sheet' ? 'Case Sheet' : 'Consultation Record'}</title>
   <style>${PRINT_CSS}</style>
   ${autoprint ? `<script>window.addEventListener('load', function(){ setTimeout(function(){ window.print() }, 400) })</script>` : ''}
