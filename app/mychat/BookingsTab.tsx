@@ -14,7 +14,7 @@ interface Booking {
   start_at: string | null
   duration_min: number | null
   message: string | null
-  status: 'pending' | 'accepted' | 'rejected' | 'cancelled' | 'onhold'
+  status: 'pending' | 'accepted' | 'rejected' | 'cancelled' | 'onhold' | 'no_show'
 }
 
 const STATUS_STYLES: Record<string, string> = {
