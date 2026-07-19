@@ -34,11 +34,19 @@ test.describe('Salon bookings day-view', () => {
     await expect(page).not.toHaveURL(/\/login/)
 
     // Home -> My Services tile (app/mychat/tileTheme.ts: TILE_THEME.services.label).
+    // No `exact: true` here: MyChatHome.tsx's TileCard renders an emoji span + title <p> +
+    // features <p> all inside one <button>, so the accessible name is the concatenation of
+    // all three ("🧰 My Services Services & pricing · Messages · Schedule") — a substring
+    // match against the title is what actually matches, and it's unambiguous since no other
+    // tile on Home is titled "My Services".
     await page.getByRole('button', { name: 'My Services' }).click()
 
     // Card list -> Consultations (app/mychat/SpaceClient.tsx getTileDetailCards: 'services'
     // tile's 'consultations' card; rendered as a button by app/mychat/DetailCardList.tsx).
-    await page.getByRole('button', { name: 'Consultations', exact: true }).click()
+    // No `exact: true`: DetailCardList.tsx's DetailCard likewise wraps an icon + title <p> +
+    // description <p> in one <button> (accessible name includes the 📅 icon and "Booking
+    // requests" description text) — substring match on the title, unique within this card list.
+    await page.getByRole('button', { name: 'Consultations' }).click()
 
     // Accept the seeded pending booking (app/mychat/BookingsTab.tsx: "Accept" button opens
     // the inline date/time/duration picker; startAccept() defaults acceptDate to the
@@ -68,7 +76,10 @@ test.describe('Salon bookings day-view', () => {
     // Open Today (app/mychat/SpaceClient.tsx getTileDetailCards: 'services' tile's
     // 'dayview' card, gated to salon/makeup personas — the seeded provider is persona
     // 'salon' so this card is present).
-    await page.getByRole('button', { name: 'Today', exact: true }).click()
+    // No `exact: true`: same DetailCard multi-text-node button as above — accessible name
+    // includes the 📆 icon and "Today's appointment timeline" description; substring match
+    // on "Today" is unique within this card list.
+    await page.getByRole('button', { name: 'Today' }).click()
 
     // The accepted booking should now appear in the day-view timeline
     // (app/mychat/BookingsDayView.tsx renders "N appointment(s) today" plus a card per

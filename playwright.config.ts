@@ -11,7 +11,12 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    // testIgnore excludes *.auth.spec.ts: Playwright's default testMatch
+    // (**/*.@(spec|test).?(c|m)[jt]s?(x)) would otherwise also pick up files like
+    // booking-dayview.auth.spec.ts and run them unauthenticated here, where they fail
+    // immediately (no session, middleware redirects to /login). Those files are scoped to
+    // the `authenticated` project below via its own testMatch.
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] }, testIgnore: /\.auth\.spec\.ts/ },
     // Authenticated project: runs the setup project first to log in via the test-only
     // /api/test/login route and reuse its storageState. Kept separate from `chromium` so
     // unauthenticated smoke tests are unaffected — opt in per-test-file with
