@@ -14,8 +14,9 @@ import PwaActionBar from './components/PwaActionBar'
 import InstallBanner from '@/components/InstallBanner'
 import { getComplianceCopy } from '@/lib/compliance'
 import type { SectionEntry } from './components/LayoutRenderer'
-
-const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'kryla.work'
+import {
+  buildEntityJsonLd, buildAggregateRating, buildOpeningHours, buildFaqJsonLd,
+} from '@/lib/seo/structuredData'
 
 export const revalidate = 3600
 
@@ -112,11 +113,12 @@ export default async function MemberProfilePage({ params }: Props) {
 
   // These queries depend on columns added in migrations — they fail gracefully
   // if the migrations haven't been run yet.
-  const [avatarRes, galleryRes, menuFilesRes, hoursRes] = await Promise.allSettled([
+  const [avatarRes, galleryRes, menuFilesRes, hoursRes, reviewsRes] = await Promise.allSettled([
     supabaseAdmin.from('providers').select('avatar_url, instagram_handle, nextdoor_url').eq('id', provider.id).single(),
     supabaseAdmin.from('pages').select('gallery').eq('provider_id', provider.id).single(),
     supabaseAdmin.from('pages').select('menu_files').eq('provider_id', provider.id).single(),
     supabaseAdmin.from('providers').select('business_hours').eq('id', provider.id).single(),
+    supabaseAdmin.from('reviews').select('rating, status').eq('provider_id', provider.id),
   ])
 
   const providerExtra   = avatarRes.status === 'fulfilled' ? (avatarRes.value.data as Record<string, unknown> | null) : null
@@ -130,6 +132,9 @@ export default async function MemberProfilePage({ params }: Props) {
   const businessHours   = hoursRes.status      === 'fulfilled'
     ? ((hoursRes.value.data as Record<string, unknown> | null)?.business_hours as BusinessHours | null) ?? null
     : null
+  const reviews = reviewsRes.status === 'fulfilled' && Array.isArray(reviewsRes.value.data)
+    ? (reviewsRes.value.data as { rating: number; status: string }[])
+    : []
 
   const defaultShowSections: ShowSections = {
     hero: true, services: true, highlights: true,
@@ -171,6 +176,32 @@ export default async function MemberProfilePage({ params }: Props) {
     verified: provider.verified === true,
   }
 
+  const entityType = page.schema_type || 'Person'
+
+  const entityJsonLd = buildEntityJsonLd({
+    type: entityType,
+    name: `${provider.first_name} ${provider.last_name}`,
+    url: memberUrl(params.slug),
+    image: avatarUrl ?? memberShareCardUrl(params.slug),
+    description: page.subheadline,
+    telephone: provider.whatsapp_number
+      ? `+${provider.whatsapp_number.replace(/\D/g, '')}`
+      : null,
+    addressLocality: provider.location || null,
+    sameAs: [
+      instagramHandle ? `https://www.instagram.com/${instagramHandle.replace(/^@/, '')}/` : '',
+      nextdoorUrl ?? '',
+    ].filter(Boolean),
+  })
+
+  const aggregateRating = buildAggregateRating(reviews)
+  const openingHours = buildOpeningHours(businessHours)
+
+  if (aggregateRating) entityJsonLd.aggregateRating = aggregateRating
+  if (openingHours) entityJsonLd.openingHoursSpecification = openingHours
+
+  const faqJsonLd = buildFaqJsonLd(profileData.faq)
+
   const pageSections  = Array.isArray(page.sections) ? (page.sections as SectionEntry[]) : null
   const isTutor       = provider.persona === 'tutor'
   const defaultLang   = (provider.page_language as string) ?? 'en'
@@ -194,28 +225,18 @@ export default async function MemberProfilePage({ params }: Props) {
   const advocateCompliance = (provider.compliance ?? {}) as Record<string, unknown>
   const intakeWidgetEnabled = advocateCompliance['intake_widget_enabled'] !== false
 
-  const jsonLd = page.schema_type
-    ? {
-        '@context': 'https://schema.org',
-        '@type': page.schema_type,
-        name: `${provider.first_name} ${provider.last_name}`,
-        description: page.subheadline,
-        url: `https://${params.slug}.${APP_DOMAIN}`,
-        ...(provider.whatsapp_number
-          ? { telephone: `+${provider.whatsapp_number.replace(/\D/g, '')}` }
-          : {}),
-        ...(provider.location ? { address: { '@type': 'PostalAddress', addressLocality: provider.location } } : {}),
-      }
-    : null
-
   const template = page.template as string
 
   return (
     <>
-      {jsonLd && (
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(entityJsonLd) }}
+      />
+      {faqJsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
         />
       )}
       <PageTracker providerId={provider.id} slug={params.slug} />
