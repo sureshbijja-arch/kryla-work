@@ -21,6 +21,7 @@ import AdsTab from './AdsTab'
 import MessagesTab from './MessagesTab'
 import EmailTab from './EmailTab'
 import BookingsTab from './BookingsTab'
+import BookingsDayView from './BookingsDayView'
 import PersonaTab, { type DraftSeed } from './PersonaTab'
 import AvailabilityTab from './AvailabilityTab'
 import HoursTab from './HoursTab'
@@ -250,6 +251,9 @@ function getTileDetailCards(tile: MCTile, persona: string, mykrylaTools: Mykryla
         { key: 'inbox', icon: '\u{1F4E5}', title: 'Messages', description: 'Inbox from your page visitors' },
         ...(persona === 'advocate'
           ? [{ key: 'email', icon: '✉️', title: 'Email', description: 'Connected email inbox' }]
+          : []),
+        ...(persona === 'salon' || persona === 'makeup'
+          ? [{ key: 'dayview', icon: '\u{1F4C6}', title: 'Today', description: "Today's appointment timeline" }]
           : []),
         { key: 'consultations', icon: '\u{1F4C5}', title: 'Consultations', description: 'Booking requests' },
         { key: 'clients', icon: '\u{1F465}', title: 'Clients', description: 'Your client and matter roster' },
@@ -701,6 +705,12 @@ export default function SpaceClient({
           return (
             <div className="flex-1 overflow-y-auto">
               <BookingsTab providerId={providerId} />
+            </div>
+          )
+        case 'dayview':
+          return (
+            <div className="flex-1 overflow-y-auto">
+              <BookingsDayView providerId={providerId} />
             </div>
           )
         case 'clients':
