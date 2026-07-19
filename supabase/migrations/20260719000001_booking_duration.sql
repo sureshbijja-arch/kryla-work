@@ -1,9 +1,8 @@
 -- supabase/migrations/20260719000001_booking_duration.sql
 -- Adds duration-aware scheduling to bookings (salon/makeup vertical build) and a
--- no_show status. Backfills start_at from the legacy preferred_date/preferred_slot
--- free-text fields on a best-effort basis; NULL where unparseable (free-text
--- requests with no slot chosen) — the day-view simply won't show those until the
--- owner sets a duration/time on accept, which now also sets start_at explicitly.
+-- no_show status. start_at is NULL on existing rows and new free-text-slot requests
+-- until parsed (Task 2) or set explicitly by the owner on accept (Task 3) — the
+-- day-view simply won't show those until then.
 
 ALTER TABLE bookings
   ADD COLUMN IF NOT EXISTS start_at timestamptz,
