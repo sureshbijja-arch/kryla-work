@@ -133,3 +133,21 @@ export function buildInstallLinksMessage(opts: {
     `Tap either link on your phone to install the app in one tap.`
   )
 }
+
+/** Reminder sent to a customer ahead of their accepted booking. */
+export function buildBookingReminderMessage(opts: {
+  customerName: string
+  memberName: string
+  service: string
+  startAt: string
+  windowLabel: '24 hours' | '2 hours'
+}) {
+  const when = new Date(opts.startAt).toLocaleString('en-US', {
+    weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+  })
+  return (
+    `Hi ${opts.customerName}! Reminder: you have *${opts.service}* with ${opts.memberName} ` +
+    `in *${opts.windowLabel}* — ${when}.\n\n` +
+    `Reply *CONFIRM* to keep it, *CANCEL* to cancel, or *RESCHEDULE* to pick a new time.`
+  )
+}
