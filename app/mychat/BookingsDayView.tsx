@@ -2,6 +2,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { waLink as baseWaLink } from '@/lib/whatsapp'
 
 interface Booking {
   id: string
@@ -13,9 +14,9 @@ interface Booking {
   status: string
 }
 
-function waLink(phone: string, name: string) {
-  const num = phone.replace(/\D/g, '')
-  return `https://wa.me/${num}?text=Hi%20${encodeURIComponent(name)}!`
+function bookingChatLink(phone: string, name: string): string {
+  const base = baseWaLink(phone)
+  return base ? `${base}?text=${encodeURIComponent(`Hi ${name}!`)}` : ''
 }
 
 function formatTimeRange(startAt: string, durationMin: number | null): string {
@@ -71,7 +72,7 @@ export default function BookingsDayView({ providerId }: { providerId: string }) 
         {bookings.map(b => (
           <a
             key={b.id}
-            href={waLink(b.customer_phone, b.customer_name)}
+            href={bookingChatLink(b.customer_phone, b.customer_name)}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-between gap-3 bg-white border border-[#E5E5E5] rounded-2xl p-4 hover:border-[#25D366] transition-colors">
