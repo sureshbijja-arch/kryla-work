@@ -60,8 +60,10 @@ async function sendRemindersForWindow(
       body:        msg,
       status:      res.success ? 'sent' : 'failed',
     })
-    if (res.success) sent++
-    await supabaseAdmin.from('bookings').update({ [dedupeCol]: new Date().toISOString() }).eq('id', b.id)
+    if (res.success) {
+      sent++
+      await supabaseAdmin.from('bookings').update({ [dedupeCol]: new Date().toISOString() }).eq('id', b.id)
+    }
   }
 
   console.log(`[booking-reminders] ${hoursOut}h window: sent ${sent} of ${bookings.length}`)
