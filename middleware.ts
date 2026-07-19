@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { RESERVED_SLUGS } from '@/lib/slug'
+import { RESERVED_SLUGS, validateSlug } from '@/lib/slug'
 
 const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN ?? 'kryla.work'
 
@@ -23,9 +23,10 @@ async function findLiveSlug(firstSegment: string): Promise<string | null> {
       .eq('page_live', true)
       .maybeSingle()
     return (data?.slug as string | undefined) ?? null
-  } catch {
+  } catch (err) {
     // DB unreachable — fail open so a transient outage never 500s every
     // apex-path request; the path just falls through to normal app routing.
+    console.error('middleware findLiveSlug failed, failing open:', err)
     return null
   }
 }
@@ -45,12 +46,17 @@ export async function middleware(req: NextRequest) {
     const segments = url.pathname.split('/').filter(Boolean)
     const firstSegment = segments[0]
 
-    if (firstSegment && !APP_ROUTES.has(firstSegment) && !url.pathname.startsWith('/api')) {
+    if (
+      firstSegment &&
+      !APP_ROUTES.has(firstSegment) &&
+      !url.pathname.startsWith('/api') &&
+      validateSlug(firstSegment) === null
+    ) {
       const liveSlug = await findLiveSlug(firstSegment)
       if (liveSlug) {
         const rest = '/' + segments.slice(1).join('/')
         const redirectUrl = new URL(
-          `https://${liveSlug}.${APP_DOMAIN}${rest === '/' ? '' : rest}`
+          `https://${liveSlug}.${APP_DOMAIN}${rest === '/' ? '' : rest}${url.search}`
         )
         return NextResponse.redirect(redirectUrl, 308)
       }
