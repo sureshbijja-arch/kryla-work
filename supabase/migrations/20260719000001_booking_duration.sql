@@ -11,10 +11,15 @@ ALTER TABLE bookings
   ADD COLUMN IF NOT EXISTS reminder_2h_sent_at timestamptz;
 
 -- end_at is derived, not stored redundantly by hand — generated column keeps it
--- always consistent with start_at + duration_min.
+-- always consistent with start_at + duration_min. Plain `start_at + interval` on a
+-- timestamptz is only STABLE (not IMMUTABLE, since day/month intervals aren't
+-- timezone-independent) and Postgres rejects that in a generated column. Pinning the
+-- arithmetic to a fixed zone (UTC) makes it deterministic and therefore IMMUTABLE.
 ALTER TABLE bookings
   ADD COLUMN IF NOT EXISTS end_at timestamptz
-  GENERATED ALWAYS AS (start_at + (duration_min || ' minutes')::interval) STORED;
+  GENERATED ALWAYS AS (
+    ((start_at AT TIME ZONE 'UTC') + (duration_min * interval '1 minute')) AT TIME ZONE 'UTC'
+  ) STORED;
 
 -- Extend status check to include no_show (Step 2 of the build spine).
 ALTER TABLE bookings DROP CONSTRAINT IF EXISTS bookings_status_check;
