@@ -85,6 +85,7 @@ Personas are **fully DB-driven** — not hardcoded. The `personas` table is the 
 | `/api/mychat/chat` | POST | AI chat editor — updates pages via draft_data |
 | `/api/mychat/sections` | POST | Updates pages.sections (auth-gated by email ownership) |
 | `/api/mychat/services` | POST | Updates pages.services array |
+| `/api/mychat/seo` | GET/POST | Reads/writes seo_title + seo_description via draft_data (Get Found tab) |
 | `/api/mychat/upload` | POST | Uploads image to profile-media bucket; types: avatar, gallery, service (Grow+) |
 | `/api/mychat/profile` | GET/POST | Member profile read/write |
 | `/api/mychat/publish` | POST | Publish/unpublish public page |
@@ -533,12 +534,13 @@ REVALIDATE_SECRET=      # Random string — authorizes ISR revalidation from Inn
 - ✅ Reviews system — members collect reviews, visible on the My Plan tile (ReviewsTab mounted at My Plan → Reviews)
 - ✅ Page analytics — `page_events` and `page_reactions` (view counts, emoji reactions)
 - ✅ Landing page hero — 12-card layout (6+6), local images, distributor/agency cards added
+- ✅ SEO — per-member + apex sitemaps/robots, entity + FAQ JSON-LD (`lib/seo/structuredData.ts`), OG/share cards, canonical URLs, apex→subdomain 308 redirects, Google Search Console verification; member-facing "Get Found" editor in MyKryla (My Plan → Get Found, `app/mychat/GetFoundTab.tsx`) with live Google-result preview, search title/description editing (`app/api/mychat/seo/route.ts`), and a readiness checklist — shared defaults in `lib/seo/defaults.ts`
 
 ## What's NOT Built Yet
 
 - Payment UI — Stripe (USA) / Razorpay (India) UI; DB infrastructure and webhook tables exist
 - Avatar/gallery upload UI in MyKryla — upload endpoint exists (`/api/mychat/upload`), UI not built
 - All 6 AI agents (Phase 3)
-- SEO tooling beyond basic meta tags
+- Search Console impressions/clicks per member (needs GSC API + sync pipeline) and Service/Offer JSON-LD from members' service pricing — natural SEO follow-ups now that member-facing title/description editing exists
 - Local hero images for Distributor, Travel, Real Estate, Agency (Unsplash placeholders in use)
 - Community ticker update for distributor/agency members (Task 3 of landing-page-showcase plan — optional)

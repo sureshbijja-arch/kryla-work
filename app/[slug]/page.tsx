@@ -17,6 +17,7 @@ import type { SectionEntry } from './components/LayoutRenderer'
 import {
   buildEntityJsonLd, buildAggregateRating, buildOpeningHours, buildFaqJsonLd,
 } from '@/lib/seo/structuredData'
+import { defaultSeoTitle, defaultSeoDescription } from '@/lib/seo/defaults'
 
 export const revalidate = 3600
 
@@ -58,9 +59,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .eq('provider_id', provider.id)
     .single()
 
-  const defaultTitle = `${provider.first_name} ${provider.last_name} — ${provider.persona} in ${provider.location}`
+  const defaultTitle = defaultSeoTitle({
+    firstName: provider.first_name, lastName: provider.last_name,
+    persona: provider.persona, location: provider.location,
+  })
   const title       = page?.seo_title       || defaultTitle
-  const description = page?.seo_description || `Book ${provider.first_name} on Kryla`
+  const description = page?.seo_description || defaultSeoDescription({ firstName: provider.first_name })
 
   // Stable branded card image served at /api/share-card/{slug}
   // memberShareCardUrl uses the apex domain so metadataBase can resolve it

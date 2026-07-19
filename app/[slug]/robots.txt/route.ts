@@ -18,7 +18,7 @@ export async function GET(_req: NextRequest, { params }: Props) {
     .select('slug')
     .eq('slug', params.slug)
     .eq('page_live', true)
-    .single()
+    .maybeSingle()
 
   const provider = bySlug ?? (
     await supabaseAdmin
@@ -26,7 +26,7 @@ export async function GET(_req: NextRequest, { params }: Props) {
       .select('slug')
       .eq('custom_domain', params.slug)
       .eq('page_live', true)
-      .single()
+      .maybeSingle()
   ).data
 
   if (!provider) {

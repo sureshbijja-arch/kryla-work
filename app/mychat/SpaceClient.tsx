@@ -15,6 +15,7 @@ import ServicesTab from './ServicesTab'
 import LayoutsTab from './LayoutsTab'
 import MediaTab from './MediaTab'
 import LanguageTab from './LanguageTab'
+import GetFoundTab from './GetFoundTab'
 import LetterheadSettingsTab from './LetterheadSettingsTab'
 import AdsTab from './AdsTab'
 import MessagesTab from './MessagesTab'
@@ -260,6 +261,7 @@ function getTileDetailCards(tile: MCTile, persona: string, mykrylaTools: Mykryla
         { key: 'reviews', icon: '⭐', title: 'Reviews', description: 'What your clients are saying' },
         { key: 'suggestions', icon: '\u{1F4A1}', title: 'Suggestions', description: 'Ideas to grow your page' },
         { key: 'stats', icon: '\u{1F4CA}', title: 'Insights', description: 'Views and engagement stats' },
+        { key: 'getfound', icon: '\u{1F50D}', title: 'Get Found', description: 'How you appear in Google search' },
         { key: 'refer', icon: '\u{1F381}', title: 'Refer', description: 'Invite others to Kryla' },
       ]
     case 'tools':
@@ -777,6 +779,8 @@ export default function SpaceClient({
               <StatsTab providerId={providerId} />
             </div>
           )
+        case 'getfound':
+          return <GetFoundTab providerId={providerId} slug={slug} />
         case 'refer':
           return (
             <ReferTab
