@@ -23,6 +23,7 @@ const STATUS_STYLES: Record<string, string> = {
   rejected:  'bg-[#FEF2F2] text-[#DC2626]',
   cancelled: 'bg-[#F5F5F5] text-[#999]',
   onhold:    'bg-[#FFF7ED] text-[#9A5F00]',
+  no_show:   'bg-[#FEF2F2] text-[#DC2626]',
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -31,6 +32,7 @@ const STATUS_LABELS: Record<string, string> = {
   rejected:  'Declined',
   cancelled: 'Cancelled',
   onhold:    'On hold',
+  no_show:   'No-show',
 }
 
 type Filter = 'all' | 'pending' | 'accepted' | 'declined'

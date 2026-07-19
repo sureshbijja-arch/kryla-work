@@ -31,6 +31,21 @@ function formatTimeRange(startAt: string, durationMin: number | null): string {
 export default function BookingsDayView({ providerId }: { providerId: string }) {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading]   = useState(true)
+  const [updating, setUpdating] = useState<string | null>(null)
+
+  async function markNoShow(providerId: string, bookingId: string) {
+    setUpdating(bookingId)
+    try {
+      await fetch('/api/mychat/bookings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ providerId, bookingId, status: 'no_show' }),
+      })
+      setBookings(prev => prev.filter(b => b.id !== bookingId))
+    } finally {
+      setUpdating(null)
+    }
+  }
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -69,22 +84,32 @@ export default function BookingsDayView({ providerId }: { providerId: string }) 
         {bookings.length} appointment{bookings.length !== 1 ? 's' : ''} today
       </p>
       <div className="space-y-3">
-        {bookings.map(b => (
-          <a
-            key={b.id}
-            href={bookingChatLink(b.customer_phone, b.customer_name)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-between gap-3 bg-white border border-[#E5E5E5] rounded-2xl p-4 hover:border-[#25D366] transition-colors">
-            <div>
-              <p className="font-semibold text-[#0D0D0D] text-sm">{b.customer_name}</p>
-              <p className="text-xs text-[#666] mt-0.5">{b.service}</p>
+        {bookings.map(b => {
+          const isPast = new Date(b.start_at!).getTime() < Date.now()
+          return (
+            <div key={b.id} className="flex items-center justify-between gap-3 bg-white border border-[#E5E5E5] rounded-2xl p-4">
+              <a
+                href={bookingChatLink(b.customer_phone, b.customer_name)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 hover:opacity-70 transition-opacity">
+                <p className="font-semibold text-[#0D0D0D] text-sm">{b.customer_name}</p>
+                <p className="text-xs text-[#666] mt-0.5">{b.service}</p>
+              </a>
+              <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                <p className="text-xs font-semibold text-[#0D0D0D]">{formatTimeRange(b.start_at!, b.duration_min)}</p>
+                {isPast && (
+                  <button
+                    disabled={updating === b.id}
+                    onClick={() => markNoShow(providerId, b.id)}
+                    className="text-[10px] font-semibold text-[#DC2626] hover:underline disabled:opacity-40">
+                    {updating === b.id ? '…' : 'Mark no-show'}
+                  </button>
+                )}
+              </div>
             </div>
-            <div className="text-right shrink-0">
-              <p className="text-xs font-semibold text-[#0D0D0D]">{formatTimeRange(b.start_at!, b.duration_min)}</p>
-            </div>
-          </a>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
