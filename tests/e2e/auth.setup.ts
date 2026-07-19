@@ -16,7 +16,7 @@ import { test as setup, expect } from '@playwright/test'
 
 const AUTH_FILE = 'tests/e2e/.auth/test-provider.json'
 
-setup('authenticate as e2e test provider', async ({ page, request, baseURL }) => {
+setup('authenticate as e2e test provider', async ({ page, baseURL }) => {
   const secret = process.env.E2E_TEST_AUTH_SECRET
   const email = process.env.E2E_TEST_PROVIDER_EMAIL
 
@@ -27,7 +27,11 @@ setup('authenticate as e2e test provider', async ({ page, request, baseURL }) =>
     throw new Error('E2E_TEST_PROVIDER_EMAIL is not set — cannot authenticate for e2e tests.')
   }
 
-  const response = await request.post('/api/test/login', {
+  // Use page.request (shares the browser context's cookie jar), not the standalone `request`
+  // fixture (a separate APIRequestContext) — otherwise the Set-Cookie response from the login
+  // route lands in a cookie jar page.goto() never reads from, and every navigation below would
+  // look unauthenticated even though the route itself succeeded.
+  const response = await page.request.post('/api/test/login', {
     headers: { 'x-e2e-test-secret': secret },
     data: { email },
   })
