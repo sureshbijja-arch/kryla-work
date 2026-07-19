@@ -22,7 +22,7 @@ export function validateSlug(slug: string): string | null {
 
 export const RESERVED_SLUGS = new Set([
   'admin', 'api', 'app', 'auth', 'billing', 'blog', 'checkout',
-  'community', 'contact', 'dashboard', 'docs', 'help', 'home',
+  'community', 'contact', 'dashboard', 'directory', 'docs', 'help', 'home',
   'join', 'kryla', 'login', 'logout', 'me', 'new', 'onboarding',
   'pricing', 'privacy', 'settings', 'signup', 'static', 'support',
   'terms', 'v1', 'v2', 'www',
