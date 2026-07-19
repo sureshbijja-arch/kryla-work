@@ -19,5 +19,8 @@ public/serwist-*.js
 playwright-report/
 test-results/
 
+# Playwright auth storageState — contains live Supabase session tokens, must never be committed
+tests/e2e/.auth/
+
 # Local git worktrees
 .worktrees/

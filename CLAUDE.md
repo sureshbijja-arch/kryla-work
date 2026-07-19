@@ -476,6 +476,8 @@ STRIPE_WEBHOOK_SECRET=
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 RESEND_API_KEY=
 REVALIDATE_SECRET=      # Random string — authorizes ISR revalidation from Inngest
+E2E_TEST_AUTH_SECRET=   # Random string — required to reach app/api/test/login (also NODE_ENV!=production, never works in prod). Non-prod only.
+E2E_TEST_PROVIDER_EMAIL= # Seeded test-salon provider's email (scripts/seed-e2e-provider.mjs); the only email app/api/test/login will ever mint a session for.
 ```
 
 ---
