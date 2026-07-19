@@ -7,7 +7,7 @@ import { SITE_URL } from '@/lib/links'
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: 'Browse professionals — Kryla',
+  title: { absolute: 'Browse professionals — Kryla' },
   description: 'Find tutors, bakers, advocates, and other independent professionals on Kryla.',
   alternates: { canonical: `${SITE_URL}/directory` },
 }

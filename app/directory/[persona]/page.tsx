@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!label) return { title: 'Not found' }
 
   return {
-    title: `${label}s on Kryla`,
+    title: { absolute: `${label}s on Kryla` },
     description: `Browse independent ${label.toLowerCase()}s with a live presence on Kryla.`,
     alternates: { canonical: `${SITE_URL}/directory/${params.persona}` },
   }
