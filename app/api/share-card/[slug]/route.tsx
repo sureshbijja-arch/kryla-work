@@ -40,13 +40,13 @@ export async function GET(_req: NextRequest, { params }: Props) {
   try {
     const { data: provider } = await supabaseAdmin
       .from('providers')
-      .select('first_name, last_name, display_name, persona, location, verified, avatar_url')
+      .select('first_name, last_name, persona, location, verified, avatar_url')
       .or(`slug.eq.${slug},custom_domain.eq.${slug}`)
       .eq('page_live', true)
       .single()
 
     if (provider) {
-      memberName = provider.display_name || `${provider.first_name ?? ''} ${provider.last_name ?? ''}`.trim()
+      memberName = `${provider.first_name ?? ''} ${provider.last_name ?? ''}`.trim()
       persona    = provider.persona   ?? ''
       location   = provider.location ?? ''
       verified   = !!provider.verified

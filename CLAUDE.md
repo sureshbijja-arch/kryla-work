@@ -343,7 +343,6 @@ Section builder (`app/mychat/SectionsTab.tsx`, mounted at My Page → `sections`
 | custom_persona_name | set when persona='other' |
 | avatar_url | Supabase Storage, profile-media bucket |
 | custom_domain | vanity name for Thrive+ |
-| display_name | shown on public page |
 
 **pages**
 | Column | Notes |

@@ -17,13 +17,13 @@ export async function GET(req: NextRequest) {
     try {
       const { data: provider } = await supabaseAdmin
         .from('providers')
-        .select('first_name, display_name')
+        .select('first_name')
         .eq('slug', slug)
         .single()
 
       if (provider) {
-        name      = provider.display_name || provider.first_name || 'Kryla'
-        shortName = provider.first_name   || 'Kryla'
+        name      = provider.first_name || 'Kryla'
+        shortName = provider.first_name || 'Kryla'
       }
     } catch {
       // DB error — fall back to generic Kryla branding
