@@ -8,7 +8,9 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookieOptions: {
-        domain: window.location.hostname.endsWith(APP_DOMAIN) ? `.${APP_DOMAIN}` : undefined,
+        domain: typeof window !== "undefined" && window.location.hostname.endsWith(APP_DOMAIN)
+          ? `.${APP_DOMAIN}`
+          : undefined,
       },
     }
   )
