@@ -34,6 +34,7 @@ async function findProvider<T>(
     .select(select)
     .eq('slug', slug)
     .eq('page_live', true)
+    .eq('suspended', false)
     .single()
   if (bySlug) return bySlug as T
   const { data: byVanity } = await supabaseAdmin
@@ -41,6 +42,7 @@ async function findProvider<T>(
     .select(select)
     .eq('custom_domain', slug)
     .eq('page_live', true)
+    .eq('suspended', false)
     .single()
   return (byVanity as T) ?? null
 }

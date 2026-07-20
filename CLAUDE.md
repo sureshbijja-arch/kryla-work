@@ -340,6 +340,7 @@ Section builder (`app/mychat/SectionsTab.tsx`, mounted at My Page → `sections`
 | plan_status | active / pending_payment |
 | region | usa / india |
 | page_live boolean | set true by Inngest after build |
+| suspended boolean | admin kill-switch, default false. Site resolves only when `page_live=true AND suspended=false` — enforced in `middleware.ts` (`findLiveSlug`) and `app/[slug]/page.tsx` (`findProvider`). Managed at `/admin/members`. |
 | verified boolean | |
 | custom_persona_name | set when persona='other' |
 | avatar_url | Supabase Storage, profile-media bucket |
@@ -540,6 +541,7 @@ E2E_TEST_PROVIDER_EMAIL= # Seeded test-salon provider's email (scripts/seed-e2e-
 - ✅ Landing page hero — 12-card layout (6+6), local images, distributor/agency cards added
 - ✅ SEO — per-member + apex sitemaps/robots, entity + FAQ JSON-LD (`lib/seo/structuredData.ts`), OG/share cards, canonical URLs, apex→subdomain 308 redirects, Google Search Console verification; member-facing "Get Found" editor in MyKryla (My Plan → Get Found, `app/mychat/GetFoundTab.tsx`) with live Google-result preview, search title/description editing (`app/api/mychat/seo/route.ts`), and a readiness checklist — shared defaults in `lib/seo/defaults.ts`
 - ✅ CopyWebsite — gated "bring your existing website over" onboarding option. Referral-code allowlist + none/all globals (`system_config.copywebsite_gate`) control who sees the field; allowed submissions are captured as a `website_copy_requests` row (never built automatically). Reviewed at `/admin/copywebsite` — admin picks Native pre-fill or Faithful clone per request at approval time, then builds the page by hand in MyKryla. Builder-agent automation is an explicit future milestone.
+- ✅ Admin Members tab — `/admin/members` lists every provider with two independent toggles: **Live** (`page_live`) and **Not suspended** (`suspended`, new column, defaults false). A site resolves only when both are satisfied; either OFF 404s the subdomain. Search by name/slug/email. Includes a **hard delete** (type-the-slug confirmation, server-verified) — permanently removes the provider and cascades through nearly every linked table (bookings, reviews, documents, WhatsApp history, etc.); no soft-delete/undo. `onboarding_answers` and `website_copy_requests` aren't cascade-configured on this FK, so those rows are deleted explicitly first. `app/api/admin/members` (GET list, PATCH `[id]` toggle, DELETE `[id]`).
 
 ## What's NOT Built Yet
 

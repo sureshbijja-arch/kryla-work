@@ -21,6 +21,7 @@ async function findLiveSlug(firstSegment: string): Promise<string | null> {
       .select('slug')
       .or(`slug.eq.${firstSegment},custom_domain.eq.${firstSegment}`)
       .eq('page_live', true)
+      .eq('suspended', false)
       .maybeSingle()
     return (data?.slug as string | undefined) ?? null
   } catch (err) {

@@ -14,6 +14,7 @@ const NAV = [
   { label: 'Notifications', href: '/admin/notifications' },
   { label: 'Verifications', href: '/admin/verifications' },
   { label: 'CopyWebsite',   href: '/admin/copywebsite' },
+  { label: 'Members',       href: '/admin/members' },
 ]
 
 export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
