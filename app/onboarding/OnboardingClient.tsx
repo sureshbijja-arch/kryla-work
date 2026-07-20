@@ -44,6 +44,7 @@ export default function OnboardingClient({
   const [slugStatus, setSlugStatus] = useState<SlugStatus>({ checking: false, available: null, message: null })
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [copyWebsiteAllowed, setCopyWebsiteAllowed] = useState(false)
   const [providerId, setProviderId] = useState<string | null>(null)
   const [buildStep, setBuildStep] = useState(0)
   const [timedOut, setTimedOut] = useState(false)
@@ -81,6 +82,14 @@ export default function OnboardingClient({
   }, [step])
 
   useEffect(() => { posthog.capture('onboarding_started') }, [])
+
+  useEffect(() => {
+    fetch(`/api/onboarding/copywebsite-gate?ref=${encodeURIComponent(referredBy)}`)
+      .then(res => res.json())
+      .then(data => setCopyWebsiteAllowed(!!data.allowed))
+      .catch(() => setCopyWebsiteAllowed(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => { slugRef.current = slug }, [slug])
 
@@ -325,6 +334,16 @@ export default function OnboardingClient({
                     <p className="text-xs text-red-500 mt-1">Please enter a valid email address.</p>
                   )}
                 </div>
+                {copyWebsiteAllowed ? (
+                  <div className="mb-6">
+                    <label className="block text-xs font-medium text-[#444] mb-1.5">Already have a website? <span className="font-normal text-[#999]">optional — we&apos;ll bring it over</span></label>
+                    <input type="url" placeholder="https://your-current-site.com" value={answers.sourceUrl ?? ''} onChange={(e) => setAnswers((a) => ({ ...a, sourceUrl: e.target.value }))}
+                      className="w-full border border-[#E5E5E5] rounded-lg px-3.5 py-2.5 text-sm text-[#0D0D0D] placeholder:text-[#999] focus:outline-none focus:border-[#F5A623] focus:shadow-[0_0_0_3px_rgba(245,166,35,0.1)] transition-all" />
+                    <p className="text-xs text-[#999] mt-1.5">Paste the URL and we'll review it — your page will be built once we've had a look.</p>
+                  </div>
+                ) : (
+                  <p className="text-xs text-[#999] mb-6">Want to bring your existing website over to Kryla? Reach out to <a href="mailto:hello@kryla.work" className="text-[#C17A3A] font-semibold hover:underline">hello@kryla.work</a>.</p>
+                )}
                 <div className="flex justify-between items-center">
                   <button onClick={goBack} className="text-sm text-[#999] hover:text-[#0D0D0D] transition-colors">← Back</button>
                   <button onClick={goNext} disabled={!canProceed3}

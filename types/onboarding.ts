@@ -22,6 +22,7 @@ export interface OnboardingAnswers {
   email?: string
   plan: Plan
   region: Region
+  sourceUrl?: string
 }
 
 export const PERSONA_LABELS: Record<Persona, string> = {

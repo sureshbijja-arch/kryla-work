@@ -72,8 +72,9 @@ Personas are **fully DB-driven** — not hardcoded. The `personas` table is the 
 | Route | Method | Purpose |
 |---|---|---|
 | `/api/onboarding/check-slug` | GET | Validates + checks slug availability |
-| `/api/onboarding/submit` | POST | Creates provider row, fires Inngest build event |
+| `/api/onboarding/submit` | POST | Creates provider row, fires Inngest build event; also captures a CopyWebsite request (non-fatal) if `sourceUrl` present + gate allows |
 | `/api/onboarding/status` | GET | Polls page_live for providerId + slug |
+| `/api/onboarding/copywebsite-gate` | GET | Public — `?ref=<code>` → `{ allowed }`, whether to show the "bring your website over" field |
 | `/api/inngest` | GET/POST/PUT | Inngest serve endpoint |
 | `/api/notify/build-failed` | POST | Logs build failures |
 | `/api/revalidate` | POST | ISR revalidation trigger from Inngest (requires REVALIDATE_SECRET) |
@@ -369,6 +370,8 @@ Section builder (`app/mychat/SectionsTab.tsx`, mounted at My Page → `sections`
 
 **build_failures** — id, provider_id, slug, failed_at
 
+**website_copy_requests** — CopyWebsite feature (gated "bring your existing site over"). id, provider_id FK, slug, source_url, status (pending/approved/rejected/done), output_type (native/clone — set at approval), admin_note, created_at, reviewed_at. Captured non-fatally by `/api/onboarding/submit` when the member pastes a URL and their referral code passes the gate (`lib/copywebsite.ts` → `isCopyWebsiteAllowed()`). **No automatic scraping/cloning** — every request is approved by hand in `/admin/copywebsite`, and the page itself is then built manually in MyKryla; "approved" is bookkeeping only, not a trigger.
+
 ### Persona Catalog
 
 **personas** — DB registry of all personas. Key columns: id, label, emoji, template, palette, font, enabled (bool), sort_order, studio_archetype (FK → studio_archetypes.id), studio_guidance (text), studio_config (jsonb — vocab overrides: patient_noun, studio_label, content_noun, etc.). `getEnabledPersonas()` reads this table.
@@ -438,7 +441,7 @@ Section builder (`app/mychat/SectionsTab.tsx`, mounted at My Page → `sections`
 ### Config & Research
 
 **research_usage** (5) — AI research usage tracking  
-**system_config** (3) — key-value system config  
+**system_config** — key-value system config. Includes `copywebsite_gate` (`{mode: 'none'|'all'|'list', codes: string[]}`) — controls who sees the CopyWebsite onboarding field; managed at `/admin/copywebsite`, ships dark (`mode:'none'`).  
 **consent_events** — GDPR consent tracking  
 **legal_news** (238) — legal news feed for advocate persona  
 
@@ -536,6 +539,7 @@ E2E_TEST_PROVIDER_EMAIL= # Seeded test-salon provider's email (scripts/seed-e2e-
 - ✅ Page analytics — `page_events` and `page_reactions` (view counts, emoji reactions)
 - ✅ Landing page hero — 12-card layout (6+6), local images, distributor/agency cards added
 - ✅ SEO — per-member + apex sitemaps/robots, entity + FAQ JSON-LD (`lib/seo/structuredData.ts`), OG/share cards, canonical URLs, apex→subdomain 308 redirects, Google Search Console verification; member-facing "Get Found" editor in MyKryla (My Plan → Get Found, `app/mychat/GetFoundTab.tsx`) with live Google-result preview, search title/description editing (`app/api/mychat/seo/route.ts`), and a readiness checklist — shared defaults in `lib/seo/defaults.ts`
+- ✅ CopyWebsite — gated "bring your existing website over" onboarding option. Referral-code allowlist + none/all globals (`system_config.copywebsite_gate`) control who sees the field; allowed submissions are captured as a `website_copy_requests` row (never built automatically). Reviewed at `/admin/copywebsite` — admin picks Native pre-fill or Faithful clone per request at approval time, then builds the page by hand in MyKryla. Builder-agent automation is an explicit future milestone.
 
 ## What's NOT Built Yet
 
@@ -545,3 +549,4 @@ E2E_TEST_PROVIDER_EMAIL= # Seeded test-salon provider's email (scripts/seed-e2e-
 - Search Console impressions/clicks per member (needs GSC API + sync pipeline) and Service/Offer JSON-LD from members' service pricing — natural SEO follow-ups now that member-facing title/description editing exists
 - Local hero images for Distributor, Travel, Real Estate, Agency (Unsplash placeholders in use)
 - Community ticker update for distributor/agency members (Task 3 of landing-page-showcase plan — optional)
+- CopyWebsite builder agent — currently every approved request is built by hand in MyKryla; automating the native pre-fill / faithful clone build is a deliberate later milestone once volume justifies it

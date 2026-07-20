@@ -4,6 +4,7 @@ import { inngest, BUILD_PAGE_EVENT, GENERATE_PERSONA_EVENT } from '@/lib/inngest
 import { validateSlug, RESERVED_SLUGS } from '@/lib/slug'
 import { getPlans } from '@/lib/plans'
 import { inferCountry } from '@/lib/researchPrompt'
+import { isCopyWebsiteAllowed } from '@/lib/copywebsite'
 import type { OnboardingAnswers } from '@/types/onboarding'
 
 export async function POST(req: NextRequest) {
@@ -19,6 +20,8 @@ export async function POST(req: NextRequest) {
   const referredBy       = typeof rawReferredBy === 'string' ? rawReferredBy.trim().toUpperCase().slice(0, 5) : null
   const rawCustomPersona = (body as unknown as Record<string, unknown>).customPersonaName
   const customPersonaName = typeof rawCustomPersona === 'string' ? rawCustomPersona.trim() : ''
+  const rawSourceUrl = (body as unknown as Record<string, unknown>).sourceUrl
+  const sourceUrl = typeof rawSourceUrl === 'string' ? rawSourceUrl.trim() : ''
   const normalizedPersonaName = persona === 'other' && customPersonaName.length >= 2
     ? customPersonaName.slice(0, 60).toLowerCase()
     : undefined
@@ -146,6 +149,26 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('[submit] answers insert failed:', JSON.stringify(err))
     // Non-fatal — provider row exists, build can still proceed
+  }
+
+  // CopyWebsite: capture a request if the member pasted a URL AND their referral
+  // code is allowlisted. Re-checked server-side so a spoofed client can't file
+  // one — this never builds/fetches anything, it just queues it for admin review.
+  if (sourceUrl) {
+    try {
+      const allowed = await isCopyWebsiteAllowed(referredBy)
+      if (allowed) {
+        await supabase.from('website_copy_requests').insert({
+          provider_id: providerId,
+          slug,
+          source_url: sourceUrl,
+        })
+        console.log('[submit] copywebsite request captured for:', providerId)
+      }
+    } catch (err) {
+      console.error('[submit] copywebsite request insert failed:', JSON.stringify(err))
+      // Non-fatal — provider row exists, build can still proceed
+    }
   }
 
   // Insert persona_templates row BEFORE firing build-page (spec constraint)

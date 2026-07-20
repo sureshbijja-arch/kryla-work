@@ -13,6 +13,7 @@ const NAV = [
   { label: 'Suggestions',   href: '/admin/suggestions' },
   { label: 'Notifications', href: '/admin/notifications' },
   { label: 'Verifications', href: '/admin/verifications' },
+  { label: 'CopyWebsite',   href: '/admin/copywebsite' },
 ]
 
 export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
