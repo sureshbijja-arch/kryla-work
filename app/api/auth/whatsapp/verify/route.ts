@@ -98,7 +98,10 @@ export async function POST(req: NextRequest) {
   })
 
   if (verifyError) {
-    return NextResponse.json({ error: 'Failed to establish session' }, { status: 500 })
+    return NextResponse.json(
+      { error: `Failed to establish session (${verifyError.code ?? verifyError.message})` },
+      { status: 500 }
+    )
   }
 
   return NextResponse.json({ ok: true, redirect: `${SITE_URL}/mykryla` })

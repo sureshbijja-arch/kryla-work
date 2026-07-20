@@ -69,11 +69,13 @@ export async function middleware(req: NextRequest) {
       /^\/[^/]+\/(mychat|mykryla)(\/|$)/.test(url.pathname)
     ) {
       let response = NextResponse.next({ request: { headers: req.headers } })
+      const cookieDomain = hostname.endsWith(APP_DOMAIN) ? `.${APP_DOMAIN}` : undefined
 
       const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
+          cookieOptions: { domain: cookieDomain },
           cookies: {
             get(name: string) {
               return req.cookies.get(name)?.value

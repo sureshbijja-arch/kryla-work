@@ -47,7 +47,10 @@ export default function LoginPage() {
     const supabase = createClient()
     const { error } = await supabase.auth.verifyOtp({ email, token: otp.trim(), type: 'email' })
     setLoading(false)
-    if (error) { setErrorMsg('Incorrect code — check your email and try again'); return }
+    if (error) {
+      setErrorMsg(`Incorrect code — check your email and try again (${error.code ?? error.message})`)
+      return
+    }
     posthog.identify(email, { email })
     posthog.capture('login_completed', { channel: 'email' })
     router.push('/mykryla')
