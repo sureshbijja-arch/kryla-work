@@ -50,8 +50,27 @@ export default function SmartImg({
 }: SmartImgProps) {
   const [loaded, setLoaded] = useState(false)
 
+  // Server-rendered <img src> starts fetching/decoding before React hydrates
+  // and attaches onLoad — a cached or fast-decoding image can fire `load`
+  // before the listener exists, so it's silently missed and `loaded` never
+  // flips, leaving the image stuck at opacity:0 behind the shimmer forever.
+  // The ref callback runs on mount, after the DOM node (and its network
+  // state) already exists, so `.complete` catches that already-finished case.
+  const checkComplete = (node: HTMLImageElement | null) => {
+    if (node?.complete && node.naturalWidth > 0) setLoaded(true)
+  }
+
+  // Default to position:relative so the wrapper can host absolutely-positioned
+  // children (shimmer, hover overlay). Some callers instead need this element
+  // itself to be position:absolute (full-bleed backgrounds) — passing both
+  // `relative` and `absolute` classes on one element is a real bug: Tailwind's
+  // generated stylesheet order (not className order) decides which wins, so it
+  // can silently collapse the element to zero height. Skip the default when
+  // the caller's className already declares a position.
+  const hasPositionOverride = /(^|\s)(absolute|fixed|sticky|static)(\s|$)/.test(className)
   const wrapperClass = [
-    'relative overflow-hidden',
+    hasPositionOverride ? '' : 'relative',
+    'overflow-hidden',
     fit === 'band' ? '' : 'bg-[#F5F5F5]',
     className,
   ].filter(Boolean).join(' ')
@@ -72,6 +91,7 @@ export default function SmartImg({
     <div className={wrapperClass} style={wrapperStyle}>
       {!loaded && fit === 'cover' && <div className="absolute inset-0 animate-pulse bg-[#E8E8E8]" />}
       <img
+        ref={checkComplete}
         src={src}
         alt={alt}
         aria-hidden={alt === '' ? true : undefined}
