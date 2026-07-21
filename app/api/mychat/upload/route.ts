@@ -141,7 +141,12 @@ async function assertOwnership(userEmail: string, slug: string) {
     .eq('slug', slug)
     .maybeSingle()
   if (!provider) return { error: NextResponse.json({ error: 'Not your page' }, { status: 403 }) }
-  if (provider.email !== userEmail) return { error: NextResponse.json({ error: 'Not your page' }, { status: 403 }) }
+
+  if (provider.email === null) {
+    await supabaseAdmin.from('providers').update({ email: userEmail }).eq('id', provider.id)
+  } else if (provider.email !== userEmail) {
+    return { error: NextResponse.json({ error: 'Not your page' }, { status: 403 }) }
+  }
   return { provider }
 }
 

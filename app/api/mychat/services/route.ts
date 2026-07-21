@@ -21,7 +21,13 @@ export async function POST(req: NextRequest) {
     .eq('id', providerId)
     .single()
 
-  if (!provider || provider.email !== user.email) {
+  if (!provider) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  if (provider.email === null) {
+    await supabaseAdmin.from('providers').update({ email: user.email }).eq('id', providerId)
+  } else if (provider.email !== user.email) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
