@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import sharp from 'sharp'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { deleteStorageFile } from '@/lib/storage'
+import { normalizeImage } from '@/lib/imageNormalize'
 
 // Image processing (sharp) requires the Node runtime, not Edge.
 export const runtime = 'nodejs'
@@ -14,39 +14,6 @@ const ALLOWED_TYPES: Record<string, string> = {
   'image/png':  'png',
   'image/webp': 'webp',
   'image/gif':  'gif',
-}
-
-// Uploaded photos arrive at whatever size/orientation/aspect-ratio the
-// member's device produced — large phone photos, sideways EXIF-rotated
-// portraits, huge screenshots. Every display spot on the page relies on
-// object-cover inside a fixed box, so unnormalized input looks "as-is":
-// sideways photos, awkward crops, slow loads. Normalize once here so every
-// consumer downstream gets a clean, predictable image.
-//
-// - avatar: cropped to a fixed square, biased toward the salient region
-//   (faces) so a portrait doesn't get its head cut off by a naive center crop.
-// - gallery / service: capped to a max dimension, aspect ratio preserved
-//   (never cropped), never upscaled.
-// - GIFs are passed through untouched — sharp would flatten the animation.
-async function normalizeImage(
-  bytes: ArrayBuffer,
-  mime: string,
-  type: string
-): Promise<{ buffer: Buffer; ext: string; contentType: string }> {
-  if (mime === 'image/gif') {
-    return { buffer: Buffer.from(bytes), ext: 'gif', contentType: 'image/gif' }
-  }
-
-  // .rotate() with no args reads the EXIF orientation tag and bakes it into
-  // the pixels, then strips the tag — fixes sideways/upside-down phone photos.
-  let pipeline = sharp(Buffer.from(bytes)).rotate()
-
-  pipeline = type === 'avatar'
-    ? pipeline.resize(512, 512, { fit: 'cover', position: 'attention' })
-    : pipeline.resize(1600, 1600, { fit: 'inside', withoutEnlargement: true })
-
-  const buffer = await pipeline.webp({ quality: 82 }).toBuffer()
-  return { buffer, ext: 'webp', contentType: 'image/webp' }
 }
 
 export async function POST(req: NextRequest) {

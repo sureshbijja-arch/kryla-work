@@ -1,6 +1,7 @@
 import React from 'react'
 import { Footer } from './shared'
 import AnimateIn from './AnimateIn'
+import SmartImg from './SmartImg'
 import HeroSection from './sections/HeroSection'
 import ServicesSection from './sections/ServicesSection'
 import HighlightsSection from './sections/HighlightsSection'
@@ -53,7 +54,10 @@ export default function LayoutRenderer({ sections, data }: Props) {
 
     return (
       <div key={`bg-${key}`} className="relative overflow-hidden" style={{ ['--sec-custom-bg' as string]: 'transparent' }}>
-        <img src={bgCfg.value} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+        {/* 'band' fit shows the whole background photo un-cropped (color band
+            fills any leftover space) instead of magnifying an off-ratio image
+            to cover the section. */}
+        <SmartImg src={bgCfg.value} fit="band" className="absolute inset-0 pointer-events-none" />
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(0,0,0,0.42)' }} />
         <div className="relative z-10">{node}</div>
       </div>

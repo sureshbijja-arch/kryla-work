@@ -1,6 +1,7 @@
 ﻿'use client'
 import { useState, useRef } from 'react'
 import type { ServiceItem } from '../[slug]/types'
+import SmartImg from '../[slug]/components/SmartImg'
 
 export type { ServiceItem }
 
@@ -374,7 +375,7 @@ export default function ServicesTab({ providerId, slug, initialServices, plan, o
                 </div>
 
                 {service.image_url ? (
-                  <img src={service.image_url} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                  <SmartImg src={service.image_url} className="w-10 h-10 rounded-lg shrink-0" />
                 ) : (
                   <div className="w-10 h-10 rounded-lg bg-[#F5F5F5] flex items-center justify-center shrink-0">
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -423,7 +424,7 @@ export default function ServicesTab({ providerId, slug, initialServices, plan, o
                     <p className="text-[10px] font-black uppercase tracking-widest text-[#999] mb-2">Photo</p>
                     {canUploadImages ? (
                       <div className="flex items-center gap-3 flex-wrap">
-                        {service.image_url && <img src={service.image_url} alt="" className="w-16 h-16 rounded-lg object-cover" />}
+                        {service.image_url && <SmartImg src={service.image_url} className="w-16 h-16 rounded-lg" />}
                         <label className="flex items-center gap-2 px-3 py-2 border border-dashed border-[#CCC] rounded-lg text-xs font-semibold text-[#666] hover:border-[#0D0D0D] hover:text-[#0D0D0D] transition-colors cursor-pointer">
                           {uploading === i ? <span className="text-[#999]">Uploading…</span> : (
                             <>

@@ -2,6 +2,7 @@ import BookingForm from '../BookingForm'
 import { KrylaLogo, Footer, WhatsAppIcon, SectionHeading, FaqList, GalleryGrid } from '../shared'
 import { ACCENT, PAGE_BG, FONT_CLASS, waUrl, mapsUrl } from '../../types'
 import type { ProfileData } from '../../types'
+import SmartImg from '../SmartImg'
 
 export default function StorefrontTemplate({ data }: { data: ProfileData }) {
   const {
@@ -24,7 +25,8 @@ export default function StorefrontTemplate({ data }: { data: ProfileData }) {
         <div className="max-w-2xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
             {avatarUrl && (
-              <img src={avatarUrl} alt={fullName} className="w-10 h-10 rounded-full object-cover border-2 border-white/20 shrink-0" />
+              <SmartImg src={avatarUrl} alt={fullName} focus="50% 35%" rounded="full"
+                className="w-10 h-10 border-2 border-white/20 shrink-0" />
             )}
             <div>
               <p className="font-bold text-white text-lg">{fullName}</p>

@@ -4,6 +4,7 @@ import { mapsUrl, waUrl } from '../../types'
 import type { ProfileData, BusinessHours } from '../../types'
 import { getPersonaConfig } from '../../personaConfig'
 import { DAY_ORDER, DAY_LABELS, DAY_FULL, toMins, fmt12, getTodayKey, getStatus, getUpcomingExceptions, fmtExceptionDate, getDateStr } from '../../hours'
+import SmartImg from '../SmartImg'
 
 interface Props {
   data: ProfileData
@@ -294,11 +295,13 @@ function HeroPhoto({ data }: { data: ProfileData }) {
   const showAvatar = !!(avatarUrl && gallery?.length)
 
   return (
-    <section className="relative overflow-hidden flex flex-col" style={{ minHeight: '100svh' }}>
+    <section className="relative overflow-hidden flex flex-col" style={{ minHeight: 'clamp(32rem, 100svh, 100svh)', maxHeight: '100svh' }}>
       <style>{STYLES}</style>
 
-      {bg && <img src={bg} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />}
-      {!bg && <div className="absolute inset-0" style={{ background: '#111' }} />}
+      {/* Background — 'band' fit shows the whole photo un-cropped (color band
+          fills any leftover space) so an off-ratio image (e.g. a wide banner)
+          never gets magnified/cropped to fill the viewport. */}
+      <SmartImg src={bg} fit="band" className="absolute inset-0" />
 
       {/* Scrim */}
       <div className="absolute inset-0 pointer-events-none"
@@ -323,8 +326,8 @@ function HeroPhoto({ data }: { data: ProfileData }) {
         style={{ paddingBottom: 'var(--space-section)', paddingTop: '7rem' }}>
         {showAvatar && (
           <div className="h-up h-up-1 mb-6">
-            <img src={avatarUrl!} alt={fullName}
-              className="w-16 h-16 object-cover shadow-2xl"
+            <SmartImg src={avatarUrl} alt={fullName} focus="50% 35%"
+              className="w-16 h-16 shadow-2xl"
               style={{
                 borderRadius: 'var(--radius-card)',
                 border: '2px solid var(--color-accent)',
@@ -476,8 +479,8 @@ function HeroDark({ data, framesConfig, accent = '#F5A623' }: { data: ProfileDat
               opacity: 0.28,
               zIndex: 0,
             }}>
-            <img src={src} alt="" aria-hidden
-              className="w-28 h-36 sm:w-32 sm:h-44 object-cover"
+            <SmartImg src={src}
+              className="w-28 h-36 sm:w-32 sm:h-44"
               style={{
                 borderRadius: 'var(--radius-card)',
                 filter: 'brightness(0.7) saturate(0.8)',
@@ -503,8 +506,8 @@ function HeroDark({ data, framesConfig, accent = '#F5A623' }: { data: ProfileDat
         style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
         {avatarUrl && (
           <div className="h-up h-up-1 mb-8 inline-block">
-            <img src={avatarUrl} alt={fullName}
-              className="w-20 h-20 object-cover"
+            <SmartImg src={avatarUrl} alt={fullName} focus="50% 35%"
+              className="w-20 h-20"
               style={{
                 borderRadius: 'var(--radius-card)',
                 outline: '3px solid var(--color-accent)',
@@ -564,8 +567,8 @@ function HeroGradient({ data }: { data: ProfileData }) {
         style={{ paddingTop: 'calc(var(--space-section) * .75)', paddingBottom: 'var(--space-section)' }}>
         {avatarUrl && (
           <div className="h-up h-up-1 mb-7 inline-block">
-            <img src={avatarUrl} alt={fullName}
-              className="w-24 h-24 object-cover shadow-2xl"
+            <SmartImg src={avatarUrl} alt={fullName} focus="50% 35%"
+              className="w-24 h-24 shadow-2xl"
               style={{
                 borderRadius: 'var(--radius-card)',
                 outline: '2px solid var(--color-accent-border)',
@@ -672,7 +675,7 @@ function HeroSplit({ data }: { data: ProfileData }) {
                   borderRadius: 'var(--radius-card)',
                   boxShadow: '0 24px 64px rgba(0,0,0,.14)',
                 }}>
-                <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
+                <SmartImg src={avatarUrl} alt={fullName} focus="50% 35%" className="w-full h-full" />
               </div>
             </div>
           </div>
@@ -712,8 +715,8 @@ function HeroBanner({ data }: { data: ProfileData }) {
         </div>
         {avatarUrl && (
           <div className="relative max-w-2xl mx-auto px-6 mt-8">
-            <img src={avatarUrl} alt={fullName}
-              className="w-24 h-24 object-cover shadow-2xl"
+            <SmartImg src={avatarUrl} alt={fullName} focus="50% 35%"
+              className="w-24 h-24 shadow-2xl"
               style={{ borderRadius: 'var(--radius-card)', border: '4px solid rgba(255,255,255,.2)' }} />
           </div>
         )}
@@ -771,8 +774,8 @@ function HeroCentered({ data, framesConfig }: { data: ProfileData; framesConfig?
               opacity: 0.72,
               zIndex: 0,
             }}>
-            <img src={src} alt="" aria-hidden
-              className="w-28 h-36 sm:w-32 sm:h-44 object-cover shadow-2xl"
+            <SmartImg src={src}
+              className="w-28 h-36 sm:w-32 sm:h-44 shadow-2xl"
               style={{
                 borderRadius: 'var(--radius-card)',
                 border: '2px solid rgba(255,255,255,0.6)',
@@ -787,8 +790,8 @@ function HeroCentered({ data, framesConfig }: { data: ProfileData; framesConfig?
         style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
         {avatarUrl && (
           <div className="h-up h-up-1 mb-7">
-            <img src={avatarUrl} alt={fullName}
-              className="w-32 h-32 object-cover"
+            <SmartImg src={avatarUrl} alt={fullName} focus="50% 35%"
+              className="w-32 h-32"
               style={{
                 borderRadius: '50%',
                 outline: '3px solid var(--color-accent)',
@@ -855,8 +858,8 @@ function HeroMinimal({ data }: { data: ProfileData }) {
       <div className="max-w-2xl mx-auto px-6"
         style={{ paddingTop: 'calc(var(--space-section) * .8)', paddingBottom: 'var(--space-section)' }}>
         {avatarUrl && (
-          <img src={avatarUrl} alt={fullName}
-            className="h-up w-20 h-20 object-cover shadow-xl mb-6"
+          <SmartImg src={avatarUrl} alt={fullName} focus="50% 35%"
+            className="h-up w-20 h-20 shadow-xl mb-6"
             style={{
               borderRadius: 'var(--radius-card)',
               outline: '2px solid var(--color-accent-border)',

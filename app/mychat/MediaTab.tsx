@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import SmartImg from '../[slug]/components/SmartImg'
 
 interface Props {
   providerId: string
@@ -356,7 +357,8 @@ export default function MediaTab({ providerId, slug, firstName, plan: _plan, onU
           <p className="text-xs font-semibold uppercase tracking-wide text-[#0D0D0D] mb-3">Profile photo</p>
           <div className="flex items-center gap-4">
             {avatarUrl ? (
-              <img src={avatarUrl} alt="Avatar" className="w-16 h-16 rounded-full object-cover border border-[#E5E5E5]" />
+              <SmartImg src={avatarUrl} alt="Avatar" focus="50% 35%" rounded="full"
+                className="w-16 h-16 border border-[#E5E5E5]" />
             ) : (
               <div className="w-16 h-16 rounded-full bg-[#F5F5F5] flex items-center justify-center text-2xl font-semibold text-[#bbb]">
                 {firstName[0]?.toUpperCase()}
@@ -388,7 +390,7 @@ export default function MediaTab({ providerId, slug, firstName, plan: _plan, onU
                   const busy = galleryBusyUrl === url
                   return (
                     <div key={url} className="relative group">
-                      <img src={url} alt="" className="w-full aspect-square object-cover rounded-lg border border-[#E5E5E5]" />
+                      <SmartImg src={url} className="w-full aspect-square rounded-lg border border-[#E5E5E5]" />
                       {i === 0 && (
                         <span className="absolute top-1 left-1 text-[9px] font-bold uppercase tracking-wide bg-[#0D0D0D]/80 text-white px-1.5 py-0.5 rounded">Hero</span>
                       )}

@@ -2,6 +2,7 @@ import BookingForm from '../BookingForm'
 import { KrylaLogo, Footer, WhatsAppIcon, SectionHeading, FaqList, GalleryGrid } from '../shared'
 import { ACCENT, PAGE_BG, FONT_CLASS, waUrl, mapsUrl } from '../../types'
 import type { ProfileData } from '../../types'
+import SmartImg from '../SmartImg'
 
 export default function StudioTemplate({ data }: { data: ProfileData }) {
   const {
@@ -38,7 +39,8 @@ export default function StudioTemplate({ data }: { data: ProfileData }) {
         {showSections.hero && (
           <section className="pt-14 pb-10">
             {avatarUrl && (
-              <img src={avatarUrl} alt={fullName} className="w-16 h-16 rounded-full object-cover border-2 border-[#E5E5E5] mb-5" />
+              <SmartImg src={avatarUrl} alt={fullName} focus="50% 35%" rounded="full"
+                className="w-16 h-16 border-2 border-[#E5E5E5] mb-5" />
             )}
             <p className="text-sm font-semibold mb-3" style={{ color: accent }}>{fullName}</p>
             <h1 className="text-4xl sm:text-5xl font-bold text-[#0D0D0D] leading-tight mb-4">

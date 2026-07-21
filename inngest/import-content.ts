@@ -1,6 +1,7 @@
 import { inngest, IMPORT_CONTENT_EVENT } from '@/lib/inngest'
 import { createServerClient } from '@/lib/supabase'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { normalizeImage } from '@/lib/imageNormalize'
 import Anthropic from '@anthropic-ai/sdk'
 import type { ImportContentPayload } from '@/lib/inngest'
 
@@ -91,19 +92,26 @@ Respond with ONLY a valid JSON object, no markdown fences, no explanation. Shape
 Rules: extract as many real services/products as you can find (do not invent a fixed count — if you find 12, return 12; if you find 2, return 2). Use only information actually present in the scraped content — do not invent business details. If a field genuinely can't be determined, omit it rather than guessing.`
 }
 
+// Images arrive here scraped from an arbitrary external site — unknown size,
+// orientation, and aspect ratio, same as a member's own phone-camera upload.
+// Run them through the same normalizeImage() pipeline as
+// app/api/mychat/upload/route.ts (EXIF-rotate, cap dimensions, re-encode) so
+// an imported page doesn't inherit a giant/rotated/off-ratio source image —
+// these become pages.gallery entries, so treat them as type 'gallery'
+// (capped, aspect-preserved, never cropped).
 async function rehostImage(providerId: string, imageUrl: string, index: number): Promise<string | null> {
   try {
     const res = await fetch(imageUrl)
     if (!res.ok) return null
     const contentType = res.headers.get('content-type')?.split(';')[0] ?? ''
-    const ext = ALLOWED_IMAGE_TYPES[contentType]
-    if (!ext) return null
+    if (!ALLOWED_IMAGE_TYPES[contentType]) return null
 
-    const bytes = await res.arrayBuffer()
+    const rawBytes = await res.arrayBuffer()
+    const { buffer, ext, contentType: outContentType } = await normalizeImage(rawBytes, contentType, 'gallery')
     const path = `${providerId}/imported/${Date.now()}-${index}.${ext}`
     const { error } = await supabaseAdmin.storage
       .from('profile-media')
-      .upload(path, bytes, { contentType })
+      .upload(path, buffer, { contentType: outContentType })
     if (error) return null
 
     const { data: { publicUrl } } = supabaseAdmin.storage.from('profile-media').getPublicUrl(path)

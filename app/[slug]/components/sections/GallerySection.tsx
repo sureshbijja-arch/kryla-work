@@ -1,6 +1,6 @@
 'use client'
-import { useState } from 'react'
 import type { ProfileData } from '../../types'
+import SmartImg from '../SmartImg'
 
 interface Props {
   data: ProfileData
@@ -11,22 +11,6 @@ function galleryLabel(persona: string) {
   if (persona === 'photographer') return 'My Portfolio'
   if (persona === 'baker' || persona === 'chef') return 'Our Work'
   return 'Gallery'
-}
-
-function Img({ url, i, className = '' }: { url: string; i: number; className?: string }) {
-  const [loaded, setLoaded] = useState(false)
-  return (
-    <div className={`relative overflow-hidden bg-[#F5F5F5] ${className}`}>
-      {!loaded && <div className="absolute inset-0 animate-pulse bg-[#E8E8E8]" />}
-      <img
-        src={url} alt={`Gallery ${i + 1}`}
-        onLoad={() => setLoaded(true)}
-        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        style={{ opacity: loaded ? 1 : 0, transition: 'opacity 0.3s, transform 0.5s' }}
-      />
-      <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-300 pointer-events-none" />
-    </div>
-  )
 }
 
 /* ── FEATURED ─────────────────────────────────────────────────────────────── */
@@ -45,14 +29,14 @@ function Featured({ data }: { data: ProfileData }) {
             <a href={first} target="_blank" rel="noopener noreferrer"
               className="group col-span-2 row-span-2 overflow-hidden block"
               style={{ borderRadius: 'var(--radius-card)', aspectRatio: '4/5' }}>
-              <Img url={first} i={0} className="w-full h-full" />
+              <SmartImg src={first} alt="Gallery 1" hover className="w-full h-full" />
             </a>
           )}
           {rest.slice(0, 4).map((url, i) => (
             <a key={i} href={url} target="_blank" rel="noopener noreferrer"
               className="group overflow-hidden block aspect-square"
               style={{ borderRadius: 'var(--radius-card)' }}>
-              <Img url={url} i={i + 1} className="w-full h-full" />
+              <SmartImg src={url} alt={`Gallery ${i + 2}`} hover className="w-full h-full" />
             </a>
           ))}
         </div>
@@ -75,7 +59,7 @@ function Masonry({ data }: { data: ProfileData }) {
             <a key={i} href={url} target="_blank" rel="noopener noreferrer"
               className="group block mb-3 overflow-hidden break-inside-avoid"
               style={{ borderRadius: 'var(--radius-card)', aspectRatio: '3/4' }}>
-              <Img url={url} i={i} className="w-full h-full" />
+              <SmartImg src={url} alt={`Gallery ${i + 1}`} hover className="w-full h-full" />
             </a>
           ))}
         </div>
@@ -100,7 +84,7 @@ function Scroll({ data }: { data: ProfileData }) {
             <a key={i} href={url} target="_blank" rel="noopener noreferrer"
               className="group snap-start shrink-0 w-60 h-60 sm:w-72 sm:h-72 overflow-hidden"
               style={{ borderRadius: 'var(--radius-card)' }}>
-              <Img url={url} i={i} className="w-full h-full" />
+              <SmartImg src={url} alt={`Gallery ${i + 1}`} hover className="w-full h-full" />
             </a>
           ))}
         </div>
@@ -123,7 +107,7 @@ function Grid({ data }: { data: ProfileData }) {
             <a key={i} href={url} target="_blank" rel="noopener noreferrer"
               className="group overflow-hidden block aspect-square"
               style={{ borderRadius: 'var(--radius-card)' }}>
-              <Img url={url} i={i} className="w-full h-full" />
+              <SmartImg src={url} alt={`Gallery ${i + 1}`} hover className="w-full h-full" />
             </a>
           ))}
         </div>

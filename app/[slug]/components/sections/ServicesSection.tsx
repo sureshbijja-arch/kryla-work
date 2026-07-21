@@ -4,6 +4,7 @@ import type { ProfileData } from '../../types'
 import { getPersonaConfig } from '../../personaConfig'
 import OrderModal, { type OrderItem } from '../OrderModal'
 import CustomOrderModal from '../CustomOrderModal'
+import SmartImg from '../SmartImg'
 
 interface Props {
   data: ProfileData
@@ -90,8 +91,7 @@ function Features({ data }: { data: ProfileData }) {
                 }}>
                 {s.image_url && (
                   <div className="w-full h-40 overflow-hidden">
-                    <img src={s.image_url} alt={s.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <SmartImg src={s.image_url} alt={s.name} hover className="w-full h-full" />
                   </div>
                 )}
                 <div className="flex items-start gap-5 p-6">
@@ -164,7 +164,7 @@ function Grid({ data }: { data: ProfileData }) {
               }}>
               {s.image_url && (
                 <div className="w-full h-44 overflow-hidden relative">
-                  <img src={s.image_url} alt={s.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <SmartImg src={s.image_url} alt={s.name} hover className="w-full h-full" />
                   {s.badge && (
                     <span className="absolute top-3 left-3 text-[10px] font-black uppercase tracking-wide px-2 py-1 rounded-full text-white"
                       style={{ background: 'var(--color-accent)' }}>
@@ -225,7 +225,7 @@ function Menu({ data }: { data: ProfileData }) {
                 style={{ borderRadius: 'var(--radius-card)', border: '1.5px solid var(--color-accent-border)' }}>
                 {s.image_url && (
                   <div className="shrink-0 w-20 h-20 overflow-hidden rounded-l-[inherit]">
-                    <img src={s.image_url} alt={s.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <SmartImg src={s.image_url} alt={s.name} hover className="w-full h-full" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0 py-4" style={{ paddingLeft: s.image_url ? undefined : '1.25rem' }}>
@@ -336,7 +336,7 @@ function Pricing({ data }: { data: ProfileData }) {
                 }}>
                 {s.image_url && (
                   <div className="w-full h-36 overflow-hidden">
-                    <img src={s.image_url} alt={s.name} className="w-full h-full object-cover" />
+                    <SmartImg src={s.image_url} alt={s.name} className="w-full h-full" />
                   </div>
                 )}
                 <div className="p-6 flex-1 flex flex-col">
@@ -387,7 +387,7 @@ function List({ data }: { data: ProfileData }) {
             <div key={i} className="flex items-start gap-4 cursor-default pb-5 border-b border-[#F0F0F0] last:border-0 last:pb-0">
               {s.image_url && (
                 <div className="shrink-0 w-14 h-14 overflow-hidden rounded-xl">
-                  <img src={s.image_url} alt={s.name} className="w-full h-full object-cover" />
+                  <SmartImg src={s.image_url} alt={s.name} className="w-full h-full" />
                 </div>
               )}
               <div className="flex-1 min-w-0">

@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { SectionStyle } from '../[slug]/types'
+import SmartImg from '../[slug]/components/SmartImg'
 
 export interface SectionEntry {
   sectionKey: string
@@ -468,9 +469,7 @@ export default function SectionsTab({ providerId, slug, initialSections, plan, o
                         <p className="text-xs text-[#999]">Loading…</p>
                       ) : heroPhoto ? (
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg overflow-hidden border border-[#E5E5E5] shrink-0">
-                            <img src={heroPhoto} alt="" className="w-full h-full object-cover" />
-                          </div>
+                          <SmartImg src={heroPhoto} fit="band" className="w-8 h-8 rounded-lg border border-[#E5E5E5] shrink-0" />
                           <span className="text-[10px] text-[#666] flex-1">Current hero photo</span>
                           <button onClick={removeHeroPhoto} disabled={heroPhotoBusy}
                             className="text-[10px] font-semibold text-red-400 hover:text-red-600 disabled:opacity-50 transition-colors">
@@ -549,9 +548,7 @@ export default function SectionsTab({ providerId, slug, initialSections, plan, o
                         />
                         {currentBg?.type === 'photo' ? (
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg overflow-hidden border border-[#E5E5E5] shrink-0">
-                              <img src={currentBg.value} alt="" className="w-full h-full object-cover" />
-                            </div>
+                            <SmartImg src={currentBg.value} fit="band" className="w-8 h-8 rounded-lg border border-[#E5E5E5] shrink-0" />
                             <span className="text-[10px] text-[#666] flex-1">Photo background</span>
                             <button onClick={() => clearBgPhoto(s.sectionKey)}
                               className="text-[10px] font-semibold text-red-400 hover:text-red-600 transition-colors">
