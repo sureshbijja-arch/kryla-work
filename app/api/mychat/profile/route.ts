@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { providerId, instagramHandle, nextdoorUrl } = body
+  const { providerId, instagramHandle, nextdoorUrl, whatsappNumber } = body
 
   if (!providerId) return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
 
@@ -43,6 +43,17 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  if ('whatsappNumber' in body) {
+    // Same digits-only combined format the onboarding submit route writes
+    // (see api/onboarding/submit/route.ts:94-95) — this was previously
+    // set-once at onboarding with no edit path anywhere.
+    const digits = typeof whatsappNumber === 'string' ? whatsappNumber.replace(/\D/g, '') : ''
+    if (!digits) {
+      return NextResponse.json({ error: 'Please enter a valid WhatsApp number' }, { status: 400 })
+    }
+    update.whatsapp_number = digits
+  }
+
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ ok: true, handle: null, nextdoorUrl: null })
   }
@@ -56,7 +67,8 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    handle:     'instagram_handle' in update ? (update.instagram_handle as string | null) : undefined,
-    nextdoorUrl: 'nextdoor_url'    in update ? (update.nextdoor_url     as string | null) : undefined,
+    handle:         'instagram_handle' in update ? (update.instagram_handle as string | null) : undefined,
+    nextdoorUrl:    'nextdoor_url'     in update ? (update.nextdoor_url     as string | null) : undefined,
+    whatsappNumber: 'whatsapp_number'  in update ? (update.whatsapp_number  as string)         : undefined,
   })
 }

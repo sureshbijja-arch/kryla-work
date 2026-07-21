@@ -28,22 +28,80 @@ export default function MediaTab({ providerId, slug, firstName, plan: _plan, onU
   const [socialSaved,  setSocialSaved]  = useState(false)
   const [socialError,  setSocialError]  = useState('')
 
+  const [whatsappNumber, setWhatsappNumber] = useState('')
+  const [waSaving, setWaSaving] = useState(false)
+  const [waSaved,  setWaSaved]  = useState(false)
+  const [waError,  setWaError]  = useState('')
+
+  const [currentEmail, setCurrentEmail] = useState('')
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null)
+  const [newEmail, setNewEmail]         = useState('')
+  const [emailSaving, setEmailSaving]   = useState(false)
+  const [emailSent,   setEmailSent]     = useState(false)
+  const [emailError,  setEmailError]    = useState('')
+
   const supabase  = createClient()
 
   useEffect(() => {
     Promise.all([
-      supabase.from('providers').select('avatar_url, instagram_handle, nextdoor_url').eq('id', providerId).single(),
+      supabase.from('providers').select('avatar_url, instagram_handle, nextdoor_url, whatsapp_number, email, pending_email').eq('id', providerId).single(),
       supabase.from('pages').select('gallery').eq('provider_id', providerId).single(),
     ]).then(([providerRes, galleryRes]) => {
       const p = providerRes.data as Record<string, unknown> | null
       setAvatarUrl((p?.avatar_url as string | null) ?? null)
       setIgHandle((p?.instagram_handle as string | null) ?? '')
       setNdUrl((p?.nextdoor_url as string | null) ?? '')
+      setWhatsappNumber((p?.whatsapp_number as string | null) ?? '')
+      setCurrentEmail((p?.email as string | null) ?? '')
+      setPendingEmail((p?.pending_email as string | null) ?? null)
       setGallery(Array.isArray(galleryRes.data?.gallery) ? (galleryRes.data!.gallery as string[]) : [])
       setLoading(false)
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [providerId])
+
+  async function handleEmailChangeRequest() {
+    setEmailSaving(true)
+    setEmailError('')
+    setEmailSent(false)
+    try {
+      const res  = await fetch('/api/mychat/email-change', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ providerId, newEmail }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setEmailError(data.error ?? 'Could not start email change'); return }
+      setPendingEmail(data.pendingEmail ?? newEmail)
+      setEmailSent(true)
+      setNewEmail('')
+    } catch {
+      setEmailError('Something went wrong — try again.')
+    } finally {
+      setEmailSaving(false)
+    }
+  }
+
+  async function handleWhatsappSave() {
+    setWaSaving(true)
+    setWaError('')
+    setWaSaved(false)
+    try {
+      const res  = await fetch('/api/mychat/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ providerId, whatsappNumber }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setWaError(data.error ?? 'Save failed'); return }
+      if (data.whatsappNumber !== undefined) setWhatsappNumber(data.whatsappNumber ?? '')
+      setWaSaved(true)
+    } catch {
+      setWaError('Something went wrong — try again.')
+    } finally {
+      setWaSaving(false)
+    }
+  }
 
   async function handleSocialSave() {
     setSocialSaving(true)
@@ -197,6 +255,61 @@ export default function MediaTab({ providerId, slug, firstName, plan: _plan, onU
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="px-4 py-5 max-w-2xl mx-auto w-full space-y-8">
+
+        {/* ── Account — WhatsApp notification number ── */}
+        <section>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#0D0D0D] mb-1">WhatsApp notification number</p>
+          <p className="text-xs text-[#999] mb-3">Booking and enquiry alerts are sent to this number.</p>
+          <div className="flex items-center gap-3">
+            <input
+              type="tel"
+              value={whatsappNumber}
+              onChange={e => { setWhatsappNumber(e.target.value); setWaSaved(false) }}
+              onKeyDown={e => { if (e.key === 'Enter') handleWhatsappSave() }}
+              placeholder="e.g. +14695550112"
+              className="w-full border border-[#E5E5E5] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
+            />
+            <button
+              onClick={handleWhatsappSave}
+              disabled={waSaving}
+              className="shrink-0 text-sm font-semibold text-white rounded-xl px-4 py-2.5 disabled:opacity-50 transition-opacity"
+              style={{ background: '#0D0D0D' }}>
+              {waSaving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+          {waSaved && <p className="text-xs text-green-600 mt-2">Saved ✓</p>}
+          {waError && <p className="text-red-500 text-xs mt-2">{waError}</p>}
+        </section>
+
+        {/* ── Account — login email ── */}
+        <section>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#0D0D0D] mb-1">Login email</p>
+          <p className="text-xs text-[#999] mb-3">Currently <span className="font-medium text-[#444]">{currentEmail || '—'}</span></p>
+          {pendingEmail && (
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-[#FFF7ED] border border-[#F5A623]/20 mb-3">
+              <span className="text-xs text-[#8A5A00]">Change to <span className="font-semibold">{pendingEmail}</span> pending — check your inbox to confirm.</span>
+            </div>
+          )}
+          <div className="flex items-center gap-3">
+            <input
+              type="email"
+              value={newEmail}
+              onChange={e => { setNewEmail(e.target.value); setEmailSent(false) }}
+              onKeyDown={e => { if (e.key === 'Enter') handleEmailChangeRequest() }}
+              placeholder="new@email.com"
+              className="w-full border border-[#E5E5E5] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
+            />
+            <button
+              onClick={handleEmailChangeRequest}
+              disabled={emailSaving || !newEmail}
+              className="shrink-0 text-sm font-semibold text-white rounded-xl px-4 py-2.5 disabled:opacity-50 transition-opacity"
+              style={{ background: '#0D0D0D' }}>
+              {emailSaving ? 'Sending…' : 'Change email'}
+            </button>
+          </div>
+          {emailSent && <p className="text-xs text-green-600 mt-2">Confirmation email sent — click the link to finish the change.</p>}
+          {emailError && <p className="text-red-500 text-xs mt-2">{emailError}</p>}
+        </section>
 
         {/* ── Social links — available to all plans ── */}
         <section>
