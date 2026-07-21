@@ -74,11 +74,10 @@ Respond ONLY with a JSON object (no markdown, no extra text):
     .update({
       comments: comment,
       status: 'in_review',
-      auto_implement: analysis.recommendation === 'Auto-implement',
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
-    .select('id, suggestion_id, description, created_at, auto_implement, status, comments, updated_at')
+    .select('id, suggestion_id, description, created_at, status, comments, updated_at')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

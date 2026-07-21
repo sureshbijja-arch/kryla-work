@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   const { data, error } = await supabaseAdmin
     .from('suggestions')
     .insert({ provider_id: providerId, description: description.trim() })
-    .select('id, suggestion_id, description, created_at, status, auto_implement, comments')
+    .select('id, suggestion_id, description, created_at, status, comments')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

@@ -54,6 +54,8 @@ export default function AdminCopyWebsitePage() {
   const [outputChoice, setOutputChoice] = useState<Record<string, OutputType>>({})
   const [importingId, setImportingId]   = useState<string | null>(null)
   const [importError, setImportError]   = useState<Record<string, string>>({})
+  const [noteDraft, setNoteDraft]       = useState<Record<string, string>>({})
+  const [savingNoteId, setSavingNoteId] = useState<string | null>(null)
 
   useEffect(() => { load() }, [])
 
@@ -109,6 +111,30 @@ export default function AdminCopyWebsitePage() {
       setError('Update failed')
     } finally {
       setBusyId(null)
+    }
+  }
+
+  // The PATCH route already accepted admin_note (used by the import job to
+  // stamp its own notes) but there was no UI input for an admin to write
+  // one themselves — the field was visible (truncated, read-only) but
+  // unreachable to edit.
+  async function saveNote(id: string) {
+    const note = noteDraft[id] ?? ''
+    setSavingNoteId(id); setError('')
+    try {
+      const res = await fetch(`/api/admin/copywebsite/${id}`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ admin_note: note }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error ?? 'Note save failed'); return }
+      setRequests(prev => prev.map(r => r.id === id ? data.request : r))
+      setNoteDraft(prev => { const n = { ...prev }; delete n[id]; return n })
+    } catch {
+      setError('Note save failed')
+    } finally {
+      setSavingNoteId(null)
     }
   }
 
@@ -266,7 +292,26 @@ export default function AdminCopyWebsitePage() {
                     </td>
                     <td className="px-4 py-2.5 text-[#666]">{r.output_type ?? '—'}</td>
                     <td className="px-4 py-2.5 whitespace-nowrap text-[#666]">{r.reviewed_at ? formatDate(r.reviewed_at) : '—'}</td>
-                    <td className="px-4 py-2.5 max-w-[200px] truncate text-[#888]" title={r.admin_note ?? ''}>{r.admin_note ?? '—'}</td>
+                    <td className="px-4 py-2.5 max-w-[220px]">
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="text"
+                          value={noteDraft[r.id] ?? r.admin_note ?? ''}
+                          onChange={e => setNoteDraft(prev => ({ ...prev, [r.id]: e.target.value }))}
+                          onKeyDown={e => { if (e.key === 'Enter') saveNote(r.id) }}
+                          placeholder="Add a note…"
+                          className="w-full text-[11px] text-[#444] bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg px-2 py-1 focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#ccc]"
+                        />
+                        {noteDraft[r.id] !== undefined && noteDraft[r.id] !== (r.admin_note ?? '') && (
+                          <button
+                            onClick={() => saveNote(r.id)}
+                            disabled={savingNoteId === r.id}
+                            className="shrink-0 text-[10px] font-semibold text-[#C17A3A] hover:text-[#8f5623] disabled:opacity-60 transition-colors">
+                            {savingNoteId === r.id ? '…' : 'Save'}
+                          </button>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-4 py-2.5 whitespace-nowrap space-x-2">
                       {canImport && (
                         <button onClick={() => importContent(r.id)} disabled={importing}

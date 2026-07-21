@@ -12,7 +12,10 @@ async function assertAdmin(): Promise<{ email: string } | NextResponse> {
   return { email: user.email }
 }
 
-// PATCH body: { status: 'approved' | 'rejected' | 'done', output_type?: 'native' | 'clone', admin_note?: string }
+// PATCH body: { status?: 'approved' | 'rejected' | 'done', output_type?: 'native' | 'clone', admin_note?: string }
+// status is optional so a note can be saved on its own without forcing a
+// status transition (previously admin_note was accepted here but had no UI
+// input at all — an admin could see system-written notes but never add one).
 // Approve/Reject stamp reviewed_at. Never triggers any build — admin builds the
 // page by hand in MyKryla once approved; this route is bookkeeping only.
 export async function PATCH(
@@ -24,19 +27,23 @@ export async function PATCH(
 
   const body = await req.json()
   const { status, output_type, admin_note } = body as {
-    status: 'approved' | 'rejected' | 'done'
+    status?: 'approved' | 'rejected' | 'done'
     output_type?: 'native' | 'clone'
     admin_note?: string
   }
 
-  if (!['approved', 'rejected', 'done'].includes(status)) {
+  if (status !== undefined && !['approved', 'rejected', 'done'].includes(status)) {
     return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
   }
   if (status === 'approved' && !['native', 'clone'].includes(output_type ?? '')) {
     return NextResponse.json({ error: 'output_type required when approving' }, { status: 400 })
   }
+  if (status === undefined && typeof admin_note !== 'string') {
+    return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
+  }
 
-  const update: Record<string, unknown> = { status }
+  const update: Record<string, unknown> = {}
+  if (status) update.status = status
   if (status === 'approved') {
     update.output_type = output_type
     update.reviewed_at = new Date().toISOString()

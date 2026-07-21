@@ -19,7 +19,7 @@ export async function GET() {
   const { data, error } = await supabaseAdmin
     .from('suggestions')
     .select(`
-      id, suggestion_id, description, created_at, auto_implement, status, comments, updated_at,
+      id, suggestion_id, description, created_at, status, comments, updated_at,
       providers(id, first_name, last_name, slug, email)
     `)
     .order('created_at', { ascending: false })
@@ -37,15 +37,14 @@ export async function PATCH(req: NextRequest) {
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
   const update: Record<string, unknown> = { updated_at: new Date().toISOString() }
-  if ('status' in body)         update.status         = body.status
-  if ('comments' in body)       update.comments       = body.comments
-  if ('auto_implement' in body) update.auto_implement = body.auto_implement
+  if ('status' in body)   update.status   = body.status
+  if ('comments' in body) update.comments = body.comments
 
   const { data, error } = await supabaseAdmin
     .from('suggestions')
     .update(update)
     .eq('id', id)
-    .select('id, suggestion_id, description, created_at, auto_implement, status, comments, updated_at')
+    .select('id, suggestion_id, description, created_at, status, comments, updated_at')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

@@ -9,7 +9,6 @@ interface Suggestion {
   description: string
   created_at: string
   status: string
-  auto_implement: boolean
   comments: string | null
 }
 
@@ -54,7 +53,7 @@ export default function SuggestionsTab({ providerId, onSuggestionFromChat }: Pro
     const supabase = createClient()
     supabase
       .from('suggestions')
-      .select('id, suggestion_id, description, created_at, status, auto_implement, comments')
+      .select('id, suggestion_id, description, created_at, status, comments')
       .eq('provider_id', providerId)
       .order('created_at', { ascending: false })
       .then(({ data }) => {
@@ -160,12 +159,6 @@ export default function SuggestionsTab({ providerId, onSuggestionFromChat }: Pro
                     <span className="text-[10px] text-[#999]">
                       {new Date(s.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </span>
-                    {s.auto_implement && (
-                      <>
-                        <span className="text-[10px] text-[#ddd]">·</span>
-                        <span className="text-[10px] font-semibold text-[#3B82F6]">Auto-implement</span>
-                      </>
-                    )}
                   </div>
                   {s.comments && (
                     <p className="text-xs text-[#666] mt-2 bg-[#F9F9F9] rounded-lg px-3 py-2 leading-relaxed whitespace-pre-line">

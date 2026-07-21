@@ -29,12 +29,17 @@ const TYPES = [
   {
     key:         'hearing_reminders',
     label:       'Hearing Reminders',
-    description: 'Daily cron (08:00 IST) — WhatsApp alerts to advocate + client 7 days and 1 day before a hearing.',
+    description: 'Daily cron (08:00 IST) — WhatsApp alerts to advocate + client 7 days and 1 day before a hearing. Controls both the 7-day and 1-day windows together (logged in the table below as separate "Reminder 7d"/"Reminder 1d" rows).',
   },
   {
     key:         'consultation_followup',
     label:       'Post-consultation Follow-up',
     description: 'Event-driven — WhatsApp follow-up to client when advocate logs a consultation.',
+  },
+  {
+    key:         'cause_list_digest',
+    label:       'Personal Cause List Digest',
+    description: 'Daily cron (18:00 IST) — WhatsApp digest of tomorrow’s watched matters, only for advocates who’ve opted in individually.',
   },
 ]
 

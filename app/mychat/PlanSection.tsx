@@ -151,6 +151,20 @@ export default function PlanSection({
               )
             }
 
+            // India checkout isn't live yet (Razorpay — see api/billing/checkout
+            // route.ts's region check). Previously these buttons rendered fully
+            // clickable and just silently failed on click for every India member.
+            if (region !== 'usa' && !isCurrent) {
+              return (
+                <button
+                  disabled
+                  title="Online checkout for India is coming soon"
+                  className="text-xs font-semibold px-4 py-2 rounded-lg border border-[#E5E5E5] text-[#ccc] cursor-not-allowed whitespace-nowrap">
+                  Coming soon
+                </button>
+              )
+            }
+
             if (isCurrent) {
               // During trial or payment required: show "Add card" CTA on current plan
               if (isTrialing || needsPayment) {

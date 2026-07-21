@@ -16,7 +16,6 @@ interface Suggestion {
   description:    string
   created_at:     string
   updated_at:     string
-  auto_implement: boolean
   status:         string
   comments:       string | null
   providers:      Provider | null
@@ -148,7 +147,6 @@ export default function AdminSuggestionsPage() {
               <th className="text-left text-[10px] font-semibold uppercase tracking-wide text-[#999] px-3 py-3">Description</th>
               <th className="text-left text-[10px] font-semibold uppercase tracking-wide text-[#999] px-3 py-3 w-32">Provider</th>
               <th className="text-left text-[10px] font-semibold uppercase tracking-wide text-[#999] px-3 py-3 w-28">Date</th>
-              <th className="text-center text-[10px] font-semibold uppercase tracking-wide text-[#999] px-3 py-3 w-24">Auto-impl</th>
               <th className="text-left text-[10px] font-semibold uppercase tracking-wide text-[#999] px-3 py-3 w-36">Status</th>
               <th className="text-left text-[10px] font-semibold uppercase tracking-wide text-[#999] px-3 py-3 w-56">Comments</th>
               <th className="text-left text-[10px] font-semibold uppercase tracking-wide text-[#999] px-3 py-3 w-28">Actions</th>
@@ -224,15 +222,6 @@ function SuggestionRow({
         <p className="text-xs text-[#666]">
           {new Date(row.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' })}
         </p>
-      </td>
-      <td className="px-3 py-3 text-center">
-        <button
-          onClick={() => onPatch({ auto_implement: !row.auto_implement })}
-          className={`w-9 h-5 rounded-full transition-colors relative inline-flex ${row.auto_implement ? 'bg-[#22C55E]' : 'bg-[#D1D5DB]'}`}>
-          <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
-            row.auto_implement ? 'translate-x-4' : 'translate-x-0.5'
-          }`} />
-        </button>
       </td>
       <td className="px-3 py-3">
         <select
