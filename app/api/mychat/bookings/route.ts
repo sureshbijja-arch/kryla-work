@@ -218,6 +218,26 @@ export async function PATCH(req: Request) {
   return NextResponse.json({ success: true })
 }
 
+// Bookings/enquiries had no delete path at all — a spam or test lead sat
+// in the list forever, short of an admin hard-deleting the whole provider.
+export async function DELETE(req: Request) {
+  const body = await req.json().catch(() => ({})) as { providerId?: string; bookingId?: string }
+  const { providerId, bookingId } = body
+  if (!providerId || !bookingId) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+
+  const provider = await getAuthedProvider(providerId)
+  if (!provider) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { error } = await supabaseAdmin
+    .from('bookings')
+    .delete()
+    .eq('id', bookingId)
+    .eq('provider_id', providerId)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ success: true })
+}
+
 const COLORS = ['#6366F1','#EC4899','#F59E0B','#10B981','#3B82F6','#8B5CF6','#EF4444','#14B8A6']
 function randomColor() {
   return COLORS[Math.floor(Math.random() * COLORS.length)]

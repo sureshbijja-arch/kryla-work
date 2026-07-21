@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react'
 
+type ReviewStatus = 'published' | 'hidden' | 'pending'
+
 interface Review {
   id:          string
   author_name: string
   rating:      number
   body:        string | null
-  status:      'published' | 'hidden'
+  status:      ReviewStatus
   created_at:  string
 }
 
@@ -37,8 +39,7 @@ export default function ReviewsTab({ providerId }: { providerId: string }) {
 
   useEffect(() => { load() }, [load])
 
-  async function toggleStatus(reviewId: string, current: 'published' | 'hidden') {
-    const next = current === 'published' ? 'hidden' : 'published'
+  async function setStatus(reviewId: string, next: ReviewStatus) {
     setUpdating(reviewId)
     try {
       await fetch('/api/mychat/reviews', {
@@ -68,9 +69,17 @@ export default function ReviewsTab({ providerId }: { providerId: string }) {
   }
 
   const published = reviews.filter(r => r.status === 'published')
+  const pending   = reviews.filter(r => r.status === 'pending')
   const avg = published.length
     ? (published.reduce((s, r) => s + r.rating, 0) / published.length).toFixed(1)
     : null
+
+  // Pending reviews need attention first, then newest-first within each group.
+  const sorted = [...reviews].sort((a, b) => {
+    if (a.status === 'pending' && b.status !== 'pending') return -1
+    if (b.status === 'pending' && a.status !== 'pending') return 1
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  })
 
   if (loading) {
     return <div className="flex items-center justify-center py-20 text-[#bbb] text-sm">Loading reviews…</div>
@@ -88,7 +97,10 @@ export default function ReviewsTab({ providerId }: { providerId: string }) {
           </div>
           <div className="border-l border-[#E5E5E5] pl-4">
             <p className="text-sm font-semibold text-[#0D0D0D]">{published.length} published review{published.length !== 1 ? 's' : ''}</p>
-            <p className="text-xs text-[#999] mt-0.5">{reviews.filter(r => r.status === 'hidden').length} hidden</p>
+            <p className="text-xs text-[#999] mt-0.5">
+              {pending.length > 0 && <span className="text-[#EA8C00] font-semibold">{pending.length} awaiting approval · </span>}
+              {reviews.filter(r => r.status === 'hidden').length} hidden
+            </p>
           </div>
         </div>
       )}
@@ -108,11 +120,13 @@ export default function ReviewsTab({ providerId }: { providerId: string }) {
       )}
 
       <div className="space-y-3">
-        {reviews.map(r => (
+        {sorted.map(r => (
           <div
             key={r.id}
             className={`bg-white border rounded-2xl p-4 ${
-              r.status === 'hidden' ? 'border-[#F0F0F0] opacity-60' : 'border-[#E5E5E5]'
+              r.status === 'hidden' ? 'border-[#F0F0F0] opacity-60'
+                : r.status === 'pending' ? 'border-[#F5A623]/40'
+                : 'border-[#E5E5E5]'
             }`}>
 
             <div className="flex items-start justify-between gap-3 mb-2">
@@ -126,21 +140,40 @@ export default function ReviewsTab({ providerId }: { providerId: string }) {
                 </div>
               </div>
               <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase ${
-                r.status === 'published' ? 'bg-[#F0FDF4] text-[#16A34A]' : 'bg-[#F5F5F5] text-[#999]'
+                r.status === 'published' ? 'bg-[#F0FDF4] text-[#16A34A]'
+                  : r.status === 'pending' ? 'bg-[#FFF7ED] text-[#EA8C00]'
+                  : 'bg-[#F5F5F5] text-[#999]'
               }`}>
-                {r.status}
+                {r.status === 'pending' ? 'New' : r.status}
               </span>
             </div>
 
             {r.body && <p className="text-xs text-[#444] leading-relaxed mb-3">{r.body}</p>}
 
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => toggleStatus(r.id, r.status)}
-                disabled={updating === r.id}
-                className="text-xs font-semibold text-[#666] hover:text-[#0D0D0D] transition-colors disabled:opacity-40">
-                {updating === r.id ? '…' : r.status === 'published' ? 'Hide' : 'Publish'}
-              </button>
+              {r.status === 'pending' ? (
+                <>
+                  <button
+                    onClick={() => setStatus(r.id, 'published')}
+                    disabled={updating === r.id}
+                    className="text-xs font-semibold text-[#16A34A] hover:text-[#0F7A2E] transition-colors disabled:opacity-40">
+                    {updating === r.id ? '…' : 'Approve'}
+                  </button>
+                  <button
+                    onClick={() => setStatus(r.id, 'hidden')}
+                    disabled={updating === r.id}
+                    className="text-xs font-semibold text-[#666] hover:text-[#0D0D0D] transition-colors disabled:opacity-40">
+                    Reject
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setStatus(r.id, r.status === 'published' ? 'hidden' : 'published')}
+                  disabled={updating === r.id}
+                  className="text-xs font-semibold text-[#666] hover:text-[#0D0D0D] transition-colors disabled:opacity-40">
+                  {updating === r.id ? '…' : r.status === 'published' ? 'Hide' : 'Publish'}
+                </button>
+              )}
               <button
                 onClick={() => deleteReview(r.id)}
                 disabled={updating === r.id}

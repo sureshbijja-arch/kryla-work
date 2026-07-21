@@ -31,6 +31,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Rating must be 1–5' }, { status: 422 })
   }
 
+  // Pending by default — the member approves from ReviewsTab before it
+  // goes live. Previously inserted as 'published' with no auth, rate
+  // limit, or moderation at all.
   const { data, error } = await supabaseAdmin
     .from('reviews')
     .insert({
@@ -38,7 +41,7 @@ export async function POST(req: Request) {
       author_name: authorName,
       rating,
       body:        reviewBody ?? null,
-      status:      'published',
+      status:      'pending',
     })
     .select()
     .single()

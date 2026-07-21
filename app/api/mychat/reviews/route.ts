@@ -40,7 +40,7 @@ export async function PATCH(req: Request) {
   if (!providerId || !reviewId || !status) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
-  if (!['published', 'hidden'].includes(status)) {
+  if (!['published', 'hidden', 'pending'].includes(status)) {
     return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
   }
 

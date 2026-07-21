@@ -115,6 +115,33 @@ export default function BookingsTab({
     updateStatus(bookingId, 'accepted', startAt, acceptDuration)
   }
 
+  // Previously there was no way to remove a booking/enquiry at all — a
+  // spam or test lead sat in the list forever. Lightweight confirm since
+  // this is the member's own inbound-lead list, not a destructive account action.
+  async function deleteBooking(bookingId: string) {
+    if (!confirm('Delete this booking?')) return
+    setUpdating(bookingId)
+    try {
+      const res = await fetch('/api/mychat/bookings', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ providerId, bookingId }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        alert(data.error ?? 'Could not delete booking')
+        return
+      }
+      setBookings(prev => {
+        const updated = prev.filter(b => b.id !== bookingId)
+        onPendingCount?.(updated.filter(b => b.status === 'pending').length)
+        return updated
+      })
+    } finally {
+      setUpdating(null)
+    }
+  }
+
   if (loading) {
     return <div className="flex items-center justify-center py-20 text-[#bbb] text-sm">Loading bookings…</div>
   }
@@ -307,6 +334,13 @@ export default function BookingsTab({
                 Follow up on WhatsApp
               </a>
             ) : null}
+
+            <button
+              disabled={updating === b.id}
+              onClick={() => deleteBooking(b.id)}
+              className="mt-2 text-[10px] text-[#bbb] hover:text-red-500 transition-colors disabled:opacity-40">
+              Delete
+            </button>
           </div>
         ))}
       </div>
