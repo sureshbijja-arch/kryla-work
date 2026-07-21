@@ -114,7 +114,11 @@ const BG_PRESETS = [
   { id: 'midnight',     value: '#0D0D0D', dark: true  },
 ] as const
 
-const PHOTO_BG_KEYS = new Set(['hero', 'services', 'highlights', 'bio'])
+// 'hero' intentionally excluded: no hero variant reads style.bg (the photo
+// hero always renders gallery[0]/avatarUrl — see HeroSection.tsx) so a
+// "photo background" control there would write a field nothing consumes.
+// Reorder the gallery in Media to change the hero photo instead.
+const PHOTO_BG_KEYS = new Set(['services', 'highlights', 'bio'])
 const PLAN_RANK: Record<string, number> = { seed: 0, sprout: 1, grow: 2, thrive: 3, elevate: 4 }
 
 interface Props {

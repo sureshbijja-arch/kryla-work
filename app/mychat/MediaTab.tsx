@@ -16,7 +16,9 @@ export default function MediaTab({ providerId, slug, firstName, plan: _plan, onU
   const [gallery, setGallery]                 = useState<string[]>([])
   const [loading, setLoading]                 = useState(true)
   const [avatarUploading, setAvatarUploading] = useState(false)
+  const [avatarRemoving, setAvatarRemoving]   = useState(false)
   const [galleryUploading, setGalleryUploading] = useState(false)
+  const [galleryBusyUrl, setGalleryBusyUrl]   = useState<string | null>(null)
   const [avatarError, setAvatarError]         = useState('')
   const [galleryError, setGalleryError]       = useState('')
 
@@ -109,6 +111,77 @@ export default function MediaTab({ providerId, slug, firstName, plan: _plan, onU
     }
   }
 
+  async function handleGalleryDelete(url: string) {
+    setGalleryBusyUrl(url)
+    setGalleryError('')
+    const prev = gallery
+    setGallery(g => g.filter(u => u !== url)) // optimistic
+    try {
+      const res  = await fetch('/api/mychat/upload', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'gallery', slug, url }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        setGallery(prev) // revert
+        setGalleryError(data.error ?? 'Delete failed')
+      }
+    } catch {
+      setGallery(prev) // revert
+      setGalleryError('Delete failed — please try again.')
+    } finally {
+      setGalleryBusyUrl(null)
+    }
+  }
+
+  async function handleGalleryReorder(from: number, to: number) {
+    if (to < 0 || to >= gallery.length) return
+    const next = [...gallery]
+    ;[next[from], next[to]] = [next[to], next[from]]
+    const prev = gallery
+    setGallery(next) // optimistic
+    try {
+      const res = await fetch('/api/mychat/upload', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug, gallery: next }),
+      })
+      if (!res.ok) {
+        setGallery(prev) // revert
+        const data = await res.json()
+        setGalleryError(data.error ?? 'Reorder failed')
+      }
+    } catch {
+      setGallery(prev) // revert
+      setGalleryError('Reorder failed — please try again.')
+    }
+  }
+
+  async function handleAvatarRemove() {
+    setAvatarRemoving(true)
+    setAvatarError('')
+    const prev = avatarUrl
+    setAvatarUrl(null) // optimistic
+    try {
+      const res = await fetch('/api/mychat/upload', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'avatar', slug }),
+      })
+      if (!res.ok) {
+        setAvatarUrl(prev) // revert
+        const data = await res.json()
+        setAvatarError(data.error ?? 'Remove failed')
+      }
+    } catch {
+      setAvatarUrl(prev) // revert
+      setAvatarError('Remove failed — please try again.')
+    } finally {
+      setAvatarRemoving(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -178,8 +251,16 @@ export default function MediaTab({ providerId, slug, firstName, plan: _plan, onU
             )}
             <label className="cursor-pointer text-sm font-semibold text-[#0D0D0D] border border-[#E5E5E5] rounded-xl px-4 py-2.5 hover:bg-[#F5F5F5] transition-colors">
               {avatarUploading ? 'Uploading…' : avatarUrl ? 'Change photo' : 'Upload photo'}
-              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={avatarUploading} />
+              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={avatarUploading || avatarRemoving} />
             </label>
+            {avatarUrl && (
+              <button
+                onClick={handleAvatarRemove}
+                disabled={avatarRemoving || avatarUploading}
+                className="text-sm font-semibold text-red-500 hover:text-red-600 disabled:opacity-50 transition-colors">
+                {avatarRemoving ? 'Removing…' : 'Remove photo'}
+              </button>
+            )}
           </div>
           {avatarError && <p className="text-red-500 text-xs mt-2">{avatarError}</p>}
         </section>
@@ -187,11 +268,45 @@ export default function MediaTab({ providerId, slug, firstName, plan: _plan, onU
         <section>
           <p className="text-xs font-semibold uppercase tracking-wide text-[#0D0D0D] mb-3">Gallery</p>
           {gallery.length > 0 && (
-            <div className="grid grid-cols-3 gap-2 mb-3">
-              {gallery.map((url, i) => (
-                <img key={i} src={url} alt="" className="w-full aspect-square object-cover rounded-lg border border-[#E5E5E5]" />
-              ))}
-            </div>
+            <>
+              <p className="text-[11px] text-[#999] mb-2">First photo is used as your page's hero background. Use the arrows to reorder.</p>
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                {gallery.map((url, i) => {
+                  const busy = galleryBusyUrl === url
+                  return (
+                    <div key={url} className="relative group">
+                      <img src={url} alt="" className="w-full aspect-square object-cover rounded-lg border border-[#E5E5E5]" />
+                      {i === 0 && (
+                        <span className="absolute top-1 left-1 text-[9px] font-bold uppercase tracking-wide bg-[#0D0D0D]/80 text-white px-1.5 py-0.5 rounded">Hero</span>
+                      )}
+                      <button
+                        onClick={() => handleGalleryDelete(url)}
+                        disabled={busy}
+                        aria-label="Remove image"
+                        className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center rounded-full bg-black/60 text-white text-xs hover:bg-red-600 disabled:opacity-50 transition-colors">
+                        ×
+                      </button>
+                      <div className="absolute bottom-1 right-1 flex gap-0.5">
+                        <button
+                          onClick={() => handleGalleryReorder(i, i - 1)}
+                          disabled={i === 0 || busy}
+                          aria-label="Move earlier"
+                          className="w-5 h-5 flex items-center justify-center rounded bg-black/60 text-white text-[10px] disabled:opacity-30 hover:bg-black/80 transition-colors">
+                          ‹
+                        </button>
+                        <button
+                          onClick={() => handleGalleryReorder(i, i + 1)}
+                          disabled={i === gallery.length - 1 || busy}
+                          aria-label="Move later"
+                          className="w-5 h-5 flex items-center justify-center rounded bg-black/60 text-white text-[10px] disabled:opacity-30 hover:bg-black/80 transition-colors">
+                          ›
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
           )}
           {gallery.length === 0 && (
             <p className="text-xs text-[#999] mb-3">No gallery images yet.</p>
