@@ -450,7 +450,7 @@ Section builder (`app/mychat/SectionsTab.tsx`, mounted at My Page → `sections`
 **legal_news** (238) — legal news feed for advocate persona  
 **rate_limit_hits** — backing store for `lib/rateLimit.ts` (see What's Built). `(bucket, identifier, created_at)`, indexed on `(bucket, identifier, created_at)`. No automatic cleanup job yet — acceptable at current volume, revisit if it grows large.  
 
-**RLS note:** Core tables (`providers`, `pages`, `onboarding_answers`) have RLS disabled — service role key used for all writes. Studio tables also have RLS disabled. Clinical tables have RLS disabled. All others use RLS.
+**RLS note:** `providers` and `pages` have RLS **enabled** with an owner-access policy (`email = auth.jwt() ->> 'email'`, mirrors the `provider_email`/`emails` pattern — see `20260721000011_pages_providers_rls_policies.sql`) so MediaTab.tsx's client-side browser-client reads work; all API routes use the service role and bypass RLS regardless. `onboarding_answers` has RLS enabled with no policies (only ever read/written via service role — no client-side reads exist). Studio and clinical tables also have RLS enabled with no policies (service-role-only). Do not assume "RLS disabled" for any table without checking `pg_policies` — most tables in this project have RLS on by default with zero policies, which silently blocks any client-side (browser `createClient()`) read/write against them.
 
 ---
 
