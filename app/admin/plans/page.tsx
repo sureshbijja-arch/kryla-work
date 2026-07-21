@@ -155,8 +155,13 @@ export default function AdminPlansPage() {
   }
 
   async function handleDeletePlan(id: string) {
+    setError('')
     const res = await fetch(`/api/admin/plans/${id}`, { method: 'DELETE' })
-    if (res.ok) { setPlans(prev => prev.filter(p => p.id !== id)); setDeleteConfirm(null) }
+    if (res.ok) { setPlans(prev => prev.filter(p => p.id !== id)); setDeleteConfirm(null); return }
+    // 409 = blocked because members still use this plan (see route.ts)
+    const data = await res.json().catch(() => ({}))
+    setError(data.error ?? 'Could not delete plan')
+    setDeleteConfirm(null)
   }
 
   // ── Feature actions ───────────────────────────────────────────────────────

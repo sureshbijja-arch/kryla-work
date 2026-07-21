@@ -32,9 +32,26 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json({ persona: data })
 }
 
+// Previously a bare delete with no usage check — deleting a persona that
+// live providers still reference stranded them pointing at a missing id
+// (onboarding/build/public-page copy all fall back to 'other' or break).
+// Hard-blocks until every provider using it has been reassigned.
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const auth = await assertAdmin()
   if (auth instanceof NextResponse) return auth
+
+  const { count, error: countError } = await supabaseAdmin
+    .from('providers')
+    .select('id', { count: 'exact', head: true })
+    .eq('persona', params.id)
+
+  if (countError) return NextResponse.json({ error: countError.message }, { status: 500 })
+  if ((count ?? 0) > 0) {
+    return NextResponse.json(
+      { error: `${count} member${count === 1 ? '' : 's'} still use this persona — reassign them first`, memberCount: count },
+      { status: 409 },
+    )
+  }
 
   const { error } = await supabaseAdmin.from('personas').delete().eq('id', params.id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

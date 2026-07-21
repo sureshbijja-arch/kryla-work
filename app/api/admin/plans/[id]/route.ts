@@ -31,9 +31,28 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json({ plan: data })
 }
 
+// Previously a bare delete with no usage check, and plan_features rows
+// for the plan were never cleaned up (orphaned gating rows). Hard-blocks
+// until every provider on this plan has been moved off it, and cascades
+// the plan's own feature rows once the block check passes.
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const auth = await assertAdmin()
   if (auth instanceof NextResponse) return auth
+
+  const { count, error: countError } = await supabaseAdmin
+    .from('providers')
+    .select('id', { count: 'exact', head: true })
+    .eq('plan', params.id)
+
+  if (countError) return NextResponse.json({ error: countError.message }, { status: 500 })
+  if ((count ?? 0) > 0) {
+    return NextResponse.json(
+      { error: `${count} member${count === 1 ? '' : 's'} still use this plan — move them first`, memberCount: count },
+      { status: 409 },
+    )
+  }
+
+  await supabaseAdmin.from('plan_features').delete().eq('plan_id', params.id)
 
   const { error } = await supabaseAdmin.from('plans').delete().eq('id', params.id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
