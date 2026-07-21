@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { deleteStorageFolder } from '@/lib/storage'
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAIL ?? '').split(',').map(e => e.trim()).filter(Boolean)
 
@@ -45,7 +46,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 // Permanently removes the provider and every linked table via cascade
 // (bookings, reviews, documents, WhatsApp history, etc.) — no undo.
 // onboarding_answers and website_copy_requests aren't cascade-configured on
-// this FK, so their rows are deleted explicitly first.
+// this FK, so their rows are deleted explicitly first. The provider's
+// profile-media storage folder is purged too (see deleteStorageFolder call
+// below) — Storage has no FK cascade of its own.
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const auth = await assertAdmin()
   if (auth instanceof NextResponse) return auth
@@ -65,6 +68,12 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
   await supabaseAdmin.from('onboarding_answers').delete().eq('provider_id', params.id)
   await supabaseAdmin.from('website_copy_requests').delete().eq('provider_id', params.id)
+
+  // Storage has no FK cascade — the provider's avatar/gallery/service/menu/
+  // imported files must be purged explicitly, or they're stranded forever
+  // (and untraceable, since the DB rows that referenced them are about to
+  // be gone too). Best-effort: never blocks the row delete below.
+  await deleteStorageFolder(`${params.id}/`)
 
   const { error } = await supabaseAdmin.from('providers').delete().eq('id', params.id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

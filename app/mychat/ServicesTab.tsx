@@ -71,10 +71,18 @@ export default function ServicesTab({ providerId, slug, initialServices, plan, o
   }
 
   function remove(index: number) {
+    const url = services[index]?.image_url
     setServices(prev => prev.filter((_, i) => i !== index))
     if (expanded === index) setExpanded(null)
     else if (expanded !== null && expanded > index) setExpanded(expanded - 1)
     setSaved(false)
+    if (url) {
+      fetch('/api/mychat/upload', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'service', slug, url }),
+      }).catch(() => {}) // non-fatal — card is already removed from state
+    }
   }
 
   function move(index: number, dir: -1 | 1) {
@@ -90,10 +98,12 @@ export default function ServicesTab({ providerId, slug, initialServices, plan, o
     setUploading(index)
     setError('')
     try {
+      const oldUrl = services[index]?.image_url
       const form = new FormData()
       form.append('file', file)
       form.append('type', 'service')
       form.append('slug', slug)
+      if (oldUrl) form.append('oldUrl', oldUrl) // lets the route clean up the replaced file
       const res  = await fetch('/api/mychat/upload', { method: 'POST', body: form })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Upload failed')
@@ -103,6 +113,24 @@ export default function ServicesTab({ providerId, slug, initialServices, plan, o
       setError(e instanceof Error ? e.message : 'Upload failed')
     } finally {
       setUploading(null)
+    }
+  }
+
+  // Removes a service card's photo (not the card itself) and purges the
+  // now-unreferenced storage file — previously `update(i,'image_url','')`
+  // only cleared the field and left the file orphaned.
+  async function removeServiceImage(index: number) {
+    const url = services[index]?.image_url
+    update(index, 'image_url', '')
+    if (!url) return
+    try {
+      await fetch('/api/mychat/upload', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'service', slug, url }),
+      })
+    } catch {
+      // Non-fatal — the field is already cleared; a stray file can be swept later.
     }
   }
 
@@ -411,7 +439,7 @@ export default function ServicesTab({ providerId, slug, initialServices, plan, o
                             onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage(i, f); e.target.value = '' }} />
                         </label>
                         {service.image_url && (
-                          <button onClick={() => update(i, 'image_url', '')} className="text-[10px] text-red-400 hover:text-red-600 transition-colors">Remove</button>
+                          <button onClick={() => removeServiceImage(i)} className="text-[10px] text-red-400 hover:text-red-600 transition-colors">Remove</button>
                         )}
                       </div>
                     ) : (
