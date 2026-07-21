@@ -1,0 +1,28 @@
+# Safety net for local `vercel` CLI deploys — Git-based deploys already
+# respect .gitignore, so this file matters only if someone ever deploys
+# from the local working copy directly. Mirrors .gitignore plus explicit
+# docs/local-artifact excludes that don't need to ship to Vercel.
+
+.env.local
+.env
+node_modules/
+.next/
+out/
+.vercel/
+*.log
+.DS_Store
+tsconfig.tsbuildinfo
+supabase/.temp/
+
+playwright-report/
+test-results/
+tests/e2e/.auth/
+.worktrees/
+
+# Untracked local duplicate of public/images/ that sometimes exists at the
+# repo root — never needed in a deploy payload.
+/images/
+
+# Docs/planning content — not needed at runtime
+docs/
+references/
