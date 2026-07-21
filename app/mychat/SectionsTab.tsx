@@ -1,5 +1,6 @@
 ﻿'use client'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import type { SectionStyle } from '../[slug]/types'
 
 export interface SectionEntry {
@@ -139,6 +140,87 @@ export default function SectionsTab({ providerId, slug, initialSections, plan, o
   const [error, setError]         = useState('')
   const [uploading, setUploading] = useState<Record<string, boolean>>({})
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({})
+
+  // Hero photo — always gallery[0] (see HeroSection.tsx); fetched here so the
+  // Hero card can show/add/remove it directly instead of routing everyone to
+  // Media just to change the one photo that actually drives the hero. Tracks
+  // the full gallery array (not just index 0) so replacing/removing the hero
+  // slot correctly repositions via PATCH instead of just appending, which
+  // would silently leave gallery[0] — and therefore the hero photo — unchanged
+  // whenever other gallery images already exist.
+  const [gallery, setGallery]               = useState<string[]>([])
+  const [heroPhotoLoading, setHeroPhotoLoading] = useState(true)
+  const [heroPhotoBusy, setHeroPhotoBusy]   = useState(false)
+  const [heroPhotoError, setHeroPhotoError] = useState('')
+  const heroFileRef = useRef<HTMLInputElement | null>(null)
+  const heroPhoto = gallery[0] ?? null
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.from('pages').select('gallery').eq('provider_id', providerId).single().then(({ data }) => {
+      setGallery(Array.isArray(data?.gallery) ? (data!.gallery as string[]) : [])
+      setHeroPhotoLoading(false)
+    })
+  }, [providerId])
+
+  async function uploadHeroPhoto(file: File) {
+    setHeroPhotoBusy(true)
+    setHeroPhotoError('')
+    const prev = gallery
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('type', 'gallery')
+      fd.append('slug', slug)
+      const uploadRes = await fetch('/api/mychat/upload', { method: 'POST', body: fd })
+      const uploadData = await uploadRes.json()
+      if (!uploadRes.ok) { setHeroPhotoError(uploadData.error ?? 'Upload failed'); return }
+
+      // Upload appends to the end — move it to index 0 so it's actually the hero photo.
+      const rest = prev.filter(u => u !== uploadData.url)
+      const next = [uploadData.url, ...rest]
+      const patchRes = await fetch('/api/mychat/upload', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug, gallery: next }),
+      })
+      if (!patchRes.ok) {
+        const patchData = await patchRes.json()
+        setHeroPhotoError(patchData.error ?? 'Could not set as hero photo')
+        return
+      }
+      setGallery(next)
+    } catch {
+      setHeroPhotoError('Upload failed — please try again')
+    } finally {
+      setHeroPhotoBusy(false)
+    }
+  }
+
+  async function removeHeroPhoto() {
+    if (!heroPhoto) return
+    setHeroPhotoBusy(true)
+    setHeroPhotoError('')
+    const prev = gallery
+    setGallery(g => g.slice(1)) // optimistic
+    try {
+      const res = await fetch('/api/mychat/upload', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'gallery', slug, url: heroPhoto }),
+      })
+      if (!res.ok) {
+        setGallery(prev) // revert
+        const data = await res.json()
+        setHeroPhotoError(data.error ?? 'Remove failed')
+      }
+    } catch {
+      setGallery(prev) // revert
+      setHeroPhotoError('Remove failed — please try again')
+    } finally {
+      setHeroPhotoBusy(false)
+    }
+  }
 
   const rank     = PLAN_RANK[plan ?? 'seed'] ?? 0
   const isSeed   = rank < 1
@@ -364,6 +446,59 @@ export default function SectionsTab({ providerId, slug, initialSections, plan, o
                       ))}
                     </div>
                   </div>
+
+                  {/* Hero photo — gallery[0], the actual field HeroSection.tsx renders.
+                      Separate from the generic Background block below since hero
+                      never reads style.bg (see PHOTO_BG_KEYS comment). */}
+                  {s.sectionKey === 'hero' && (
+                    <div className="border-t border-[#F0F0F0] px-4 py-3">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-[#999] mb-2.5">Hero photo</p>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        ref={heroFileRef}
+                        onChange={e => {
+                          const file = e.target.files?.[0]
+                          if (file) uploadHeroPhoto(file)
+                          e.target.value = ''
+                        }}
+                      />
+                      {heroPhotoLoading ? (
+                        <p className="text-xs text-[#999]">Loading…</p>
+                      ) : heroPhoto ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg overflow-hidden border border-[#E5E5E5] shrink-0">
+                            <img src={heroPhoto} alt="" className="w-full h-full object-cover" />
+                          </div>
+                          <span className="text-[10px] text-[#666] flex-1">Current hero photo</span>
+                          <button onClick={removeHeroPhoto} disabled={heroPhotoBusy}
+                            className="text-[10px] font-semibold text-red-400 hover:text-red-600 disabled:opacity-50 transition-colors">
+                            {heroPhotoBusy ? 'Removing…' : 'Remove'}
+                          </button>
+                          <button onClick={() => heroFileRef.current?.click()} disabled={heroPhotoBusy}
+                            className="text-[10px] font-semibold text-[#666] hover:text-[#0D0D0D] disabled:opacity-50 transition-colors">
+                            Change
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => heroFileRef.current?.click()}
+                          disabled={heroPhotoBusy}
+                          className="flex items-center gap-2 text-xs font-semibold text-[#666] border border-dashed border-[#CCC] rounded-lg px-3 py-2 hover:border-[#0D0D0D] hover:text-[#0D0D0D] transition-colors disabled:opacity-50 w-full">
+                          {heroPhotoBusy
+                            ? <div className="w-3 h-3 border-2 border-[#0D0D0D] border-t-transparent rounded-full animate-spin" />
+                            : <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                              </svg>
+                          }
+                          {heroPhotoBusy ? 'Uploading…' : 'Add hero photo'}
+                        </button>
+                      )}
+                      {heroPhotoError && <p className="text-red-500 text-[10px] mt-2">{heroPhotoError}</p>}
+                      <p className="text-[10px] text-[#999] mt-2">Also visible as the first photo in Media → Gallery.</p>
+                    </div>
+                  )}
 
                   {/* Background styling */}
                   <div className={`border-t border-[#F0F0F0] px-4 py-3 ${isSeed ? 'opacity-50 pointer-events-none select-none' : ''}`}>
