@@ -20,7 +20,7 @@ const DESIGN_MODE_MAP: Record<string, string> = {
   photographer: 'editorial', doctor: 'editorial', musician: 'editorial', tutor: 'editorial',
   advocate: 'editorial',
   // Commerce / storefront expansion — all craft (warm, product-oriented)
-  tiffin: 'craft', homefoods: 'craft', makeup: 'craft', tailor: 'craft', mehndi: 'craft',
+  tiffin: 'craft', sellganeshidols: 'craft', makeup: 'craft', tailor: 'craft', mehndi: 'craft',
   maker: 'craft', gifting: 'craft', florist: 'craft', jeweller: 'craft',
   // Distributor personas — editorial (professional B2B feel)
   fmcgdist: 'editorial', pharmadist: 'editorial', electronicsdist: 'editorial',
@@ -45,6 +45,7 @@ const PERSONA_DEFAULT_GALLERY: Record<string, string[]> = {
   advocate:     ['/images/Advocate1.jpg'],
   retailer:     ['/images/Retailer1.jpg'],
   salon:        ['/images/Salon1.jpg'],
+  sellganeshidols: ['/images/Ganesh1.jpg', '/images/Ganesh2.jpg', '/images/Ganesh3.jpg', '/images/GaneshClay.jpg'],
 }
 
 type Section = { sectionKey: string; variant: string; order: number }
@@ -176,7 +177,7 @@ const PERSONA_SECTIONS: Record<string, Section[]> = {
     { sectionKey: 'contact',    variant: 'both',      order: 7 },
   ],
   // Product seller personas (menu/catalog layout, enquiry contact)
-  homefoods: [
+  sellganeshidols: [
     { sectionKey: 'hero',       variant: 'auto',      order: 1 },
     { sectionKey: 'services',   variant: 'menu',      order: 2 },
     { sectionKey: 'gallery',    variant: 'grid',      order: 3 },

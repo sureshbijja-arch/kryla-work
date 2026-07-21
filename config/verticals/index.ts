@@ -776,29 +776,29 @@ Help update the provider's page: meal plan listings (as services), delivery area
 BUSINESS: Local tiffin pricing benchmarks, subscription model best practices, how to grow a WhatsApp subscriber base, seasonal demand (college academic year, Diwali, Onam specials), FSSAI licensing basics for home kitchen operators, and positioning against aggregator apps like Swiggy/Zomato.`,
 }
 
-const homefoods: VerticalConfig = {
-  id: 'homefoods',
-  label: 'Home Food Brand',
-  emoji: '🫙',
+const sellganeshidols: VerticalConfig = {
+  id: 'sellganeshidols',
+  label: 'Sell Ganesh Idols',
+  emoji: '🕉️',
   phase: 1,
   defaultTemplate: 'storefront',
   defaultPalette: 'warm',
   defaultFont: 'inter',
-  bookingLabel: 'Order now',
+  bookingLabel: 'Enquire',
   ctaLabel: 'WhatsApp to order',
   sections: ['about', 'services', 'gallery', 'highlights', 'contact'],
   onboardingQuestions: [
-    { id: 'products',   question: 'What homemade food products do you sell?',           placeholder: 'e.g. Mango pickles, podi, masala powders, murukku, traditional sweets' },
-    { id: 'experience', question: 'How long have you been making and selling these?',   placeholder: 'e.g. 4 years' },
-    { id: 'approach',   question: 'What makes your products special?',                  placeholder: "e.g. My grandmother's recipes, stone-ground spices, no preservatives, FSSAI certified" },
-    { id: 'location',   question: 'Where are you based? Do you ship across India?',     placeholder: 'e.g. Chennai — ship pan-India via courier, 3–5 days' },
-    { id: 'pricing',    question: 'What is your price range? (optional)',               placeholder: 'e.g. Products from ₹120, Diwali hampers from ₹499' },
+    { id: 'products',   question: 'What kinds of Ganesh idols do you make or sell?',      placeholder: 'e.g. Plain natural clay idols, gold-colour decorated idols, custom designs' },
+    { id: 'sizes',      question: 'What sizes do you offer?',                             placeholder: 'e.g. 1 ft to 7 ft, custom sizes on request' },
+    { id: 'approach',   question: 'What makes your idols special?',                       placeholder: 'e.g. Eco-friendly natural clay, hand-painted natural colours, dissolves cleanly in water' },
+    { id: 'location',   question: 'Where are you based? What area do you deliver to?',    placeholder: 'e.g. Hyderabad — doorstep delivery across the city with advance orders' },
+    { id: 'pricing',    question: 'What is your price range? (optional)',                 placeholder: 'e.g. From ₹500 for 1 ft, decorated idols from ₹2500' },
   ],
-  chatGuidance: `PERSONA: HOME FOOD BRAND
-Speak in food-brand language: say "customers", "orders", "products", "batch", "shelf life" — never "students" or "appointments".
-Help update the provider's page: product listings (as services), shipping info, bio, and CTAs. Offer to add new products or update seasonal festive packs. Remind them they can build a full product catalog, draft order reply messages, and plan Diwali/Rakhi campaigns from the Studio.`,
-  researchGuidance: `You are a business advisor for a home food brand seller.
-BUSINESS: D2C food brand pricing, FSSAI home kitchen registration basics, Instagram vs WhatsApp Business selling strategies, packaging and labelling requirements, festive gifting demand (Diwali, Rakhi, Pongal), courier partners for food shipments, and how to differentiate from supermarket alternatives.`,
+  chatGuidance: `PERSONA: GANESH IDOL SELLER
+Speak in idol-seller language: say "customers", "orders", "idols", "sizes", "advance order" — never "students" or "appointments".
+Help update the provider's page: idol catalog listings (as services, by type and size), delivery info, bio, and CTAs. Offer to add new idol types or update Ganesh Chaturthi season specials. Remind them they can build a full idol catalog, draft enquiry reply messages, and plan Ganesh Chaturthi campaigns from the Studio.`,
+  researchGuidance: `You are a business advisor for a Ganesh idol maker/seller.
+BUSINESS: Eco-friendly clay idol demand vs Plaster of Paris, Ganesh Chaturthi seasonality and advance-order timing, size/price positioning across plain vs decorated idols, local delivery logistics, WhatsApp Business and Instagram selling strategies, and how to differentiate on natural-clay/eco-friendly sourcing.`,
 }
 
 const makeup: VerticalConfig = {
@@ -1410,7 +1410,7 @@ export const VERTICALS: Record<string, VerticalConfig> = {
   lactation,
   // Commerce / storefront expansion — all use PractitionerStudio (config-driven)
   tiffin,
-  homefoods,
+  sellganeshidols,
   makeup,
   tailor,
   mehndi,
@@ -1463,7 +1463,7 @@ const PERSONA_CHIPS: Record<string, string[]> = {
   postnatal:    ['Add a new mother',          'Log a postnatal visit',    'Update my services',      'Improve my bio'],
   lactation:    ['Add a new mother',          'Log a consultation',       'Update my services',      'Improve my bio'],
   tiffin:       ['Add a meal plan',            'Update my delivery area',  'Add a menu item',         'Improve my bio'],
-  homefoods:    ['Add a new product',         'Update my bio',            'Add a festive pack',       'Improve my headline'],
+  sellganeshidols: ['Add a new idol',         'Update my sizes & pricing', 'Add a Chaturthi special',  'Improve my headline'],
   makeup:       ['Add a bridal package',      'Update my services',       'Improve my bio',           'Change my booking CTA'],
   tailor:       ['Add a new service',         'Update my pricing',        'Improve my bio',           'Add a stitching FAQ'],
   mehndi:       ['Update my rates',           'Add a design style',       'Improve my bio',           'Add bridal packages'],
