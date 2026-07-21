@@ -378,7 +378,7 @@ Section builder (`app/mychat/SectionsTab.tsx`, mounted at My Page → `sections`
 
 ### Persona Catalog
 
-**personas** — DB registry of all personas. Key columns: id, label, emoji, template, palette, font, enabled (bool), sort_order, studio_archetype (FK → studio_archetypes.id), studio_guidance (text), studio_config (jsonb — vocab overrides: patient_noun, studio_label, content_noun, etc.). `getEnabledPersonas()` reads this table.
+**personas** — DB registry of all personas. Key columns: id, label, emoji, template, palette, font, enabled (bool), sort_order, studio_archetype (FK → studio_archetypes.id), studio_guidance (text), studio_config (jsonb — vocab overrides: patient_noun, studio_label, content_noun, etc.), default_gallery (jsonb array of `/images/*` paths — seeded gallery for new members of that persona, default `[]`). `getEnabledPersonas()` reads this table. `fetchPersonaDefaults()` in `lib/personas.ts` returns template/palette/font/defaultGallery together for Inngest's build-page step.
 
 ### Plans & Gating
 

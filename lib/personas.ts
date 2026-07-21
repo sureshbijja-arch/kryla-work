@@ -121,19 +121,26 @@ export const getEnabledPersonas = cache(async (): Promise<PersonaRow[]> => {
  */
 export async function fetchPersonaDefaults(
   id: string
-): Promise<{ template: string; palette: string; font: string }> {
+): Promise<{ template: string; palette: string; font: string; defaultGallery: string[] }> {
   const { data } = await supabaseAdmin
     .from('personas')
-    .select('template, palette, font')
+    .select('template, palette, font, default_gallery')
     .eq('id', id)
     .maybeSingle()
 
-  if (data) return { template: data.template, palette: data.palette, font: data.font }
+  if (data) {
+    return {
+      template: data.template,
+      palette: data.palette,
+      font: data.font,
+      defaultGallery: Array.isArray(data.default_gallery) ? data.default_gallery : [],
+    }
+  }
 
   // Fall back to 'other' row
   const { data: fallback } = await supabaseAdmin
     .from('personas')
-    .select('template, palette, font')
+    .select('template, palette, font, default_gallery')
     .eq('id', 'other')
     .maybeSingle()
 
@@ -141,6 +148,7 @@ export async function fetchPersonaDefaults(
     template: fallback?.template ?? 'focus',
     palette:  fallback?.palette  ?? 'professional',
     font:     fallback?.font     ?? 'inter',
+    defaultGallery: Array.isArray(fallback?.default_gallery) ? fallback.default_gallery : [],
   }
 }
 

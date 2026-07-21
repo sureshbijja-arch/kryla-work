@@ -32,22 +32,6 @@ const DESIGN_MODE_MAP: Record<string, string> = {
   events: 'editorial', logistics: 'editorial', agency: 'editorial',
 }
 
-// Default hero background image per persona (public/images/* → served at /images/*)
-// resolveVariant() returns 'photo' when gallery is non-empty → full-bleed hero
-const PERSONA_DEFAULT_GALLERY: Record<string, string[]> = {
-  tutor:        ['/images/Tutor1.jpg'],
-  trainer:      ['/images/FitnessTrainer1.jpg'],
-  baker:        ['/images/Baker1.jpg'],
-  photographer: ['/images/Photographer1.jpg'],
-  chef:         ['/images/HomeChef1.jpg'],
-  doctor:       ['/images/Doctor1.jpg'],
-  musician:     ['/images/MusicTeacher1.jpg'],
-  advocate:     ['/images/Advocate1.jpg'],
-  retailer:     ['/images/Retailer1.jpg'],
-  salon:        ['/images/Salon1.jpg'],
-  sellganeshidols: ['/images/Ganesh1.jpg', '/images/Ganesh2.jpg', '/images/Ganesh3.jpg', '/images/GaneshClay.jpg'],
-}
-
 type Section = { sectionKey: string; variant: string; order: number }
 
 // Smart defaults per persona — hero is always 'auto' so resolveVariant() picks the right layout
@@ -464,7 +448,7 @@ export const buildPageFunction = inngest.createFunction(
         font,
         design_mode: DESIGN_MODE_MAP[payload.persona] ?? 'craft',
         sections: PERSONA_SECTIONS[payload.persona] ?? PERSONA_SECTIONS.other,
-        gallery: PERSONA_DEFAULT_GALLERY[payload.persona] ?? [],
+        gallery: defaults.defaultGallery,
         show_sections: {
           hero: true, services: true, highlights: true,
           booking: payload.plan !== 'seed', faq: true, contact: true,
