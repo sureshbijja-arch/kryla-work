@@ -254,7 +254,7 @@ export default function AdminCopyWebsitePage() {
                 {reviewed.map((r, i) => {
                   const importing = importingId === r.id
                   const importMsg = importError[r.id]
-                  const canImport = r.status === 'approved' && r.output_type === 'native'
+                  const canImport = (r.status === 'approved' || r.status === 'done') && r.output_type === 'native'
                   return (
                   <tr key={r.id} className={`border-b border-[#F9F9F9] ${i % 2 === 0 ? 'bg-white' : 'bg-[#FAFAFA]'}`}>
                     <td className="px-4 py-2.5 whitespace-nowrap text-[#0D0D0D]">{r.slug}</td>
