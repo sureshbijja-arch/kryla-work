@@ -74,9 +74,8 @@ function Masonry({ data }: { data: ProfileData }) {
           {gallery.map((url, i) => (
             <a key={i} href={url} target="_blank" rel="noopener noreferrer"
               className="group block mb-3 overflow-hidden break-inside-avoid"
-              style={{ borderRadius: 'var(--radius-card)' }}>
-              <img src={url} alt={`Gallery ${i + 1}`}
-                className="w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              style={{ borderRadius: 'var(--radius-card)', aspectRatio: '3/4' }}>
+              <Img url={url} i={i} className="w-full h-full" />
             </a>
           ))}
         </div>
