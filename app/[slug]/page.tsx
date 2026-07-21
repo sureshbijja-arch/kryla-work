@@ -111,11 +111,18 @@ export default async function MemberProfilePage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, show_sections, sections, translations')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, show_sections, sections, translations, custom_css, content_overrides')
     .eq('provider_id', provider.id)
     .single()
 
   if (!page) return notFound()
+
+  // Per-member cosmetic overlay, admin-set only. Deliberately narrow to text
+  // fields — headline/subheadline/bio — never services/contact/business data.
+  // See CLAUDE.md for the scope guardrail (cosmetic only; new capabilities
+  // become persona-level features instead).
+  const contentOverrides = (page.content_overrides ?? {}) as Partial<Pick<ProfileData, 'headline' | 'subheadline' | 'bio'>>
+  const customCss = typeof page.custom_css === 'string' ? page.custom_css : null
 
   // These queries depend on columns added in migrations — they fail gracefully
   // if the migrations haven't been run yet.
@@ -161,9 +168,9 @@ export default async function MemberProfilePage({ params }: Props) {
     whatsappNumber: provider.whatsapp_number ?? null,
     whatsappPublic: provider.whatsapp_public !== false,
     email: provider.email ?? null,
-    headline: page.headline ?? '',
-    subheadline: page.subheadline ?? '',
-    bio: page.bio ?? '',
+    headline: contentOverrides.headline ?? page.headline ?? '',
+    subheadline: contentOverrides.subheadline ?? page.subheadline ?? '',
+    bio: contentOverrides.bio ?? page.bio ?? '',
     ctaPrimary: page.cta_primary ?? 'Book now',
     ctaSecondary: page.cta_secondary ?? 'Get in touch',
     services: Array.isArray(page.services) ? page.services : [],
@@ -233,8 +240,13 @@ export default async function MemberProfilePage({ params }: Props) {
 
   const template = page.template as string
 
+  // Scoped per-member CSS, admin-set only (see pages.custom_css). Scoped by a
+  // data-provider attribute on a wrapping div rather than a global <style> tag,
+  // so one member's overrides can never bleed onto another member's page.
+  const providerScopeAttr = `[data-kryla-provider="${provider.id}"]`
+
   return (
-    <>
+    <div data-kryla-provider={provider.id}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(entityJsonLd) }}
@@ -243,6 +255,14 @@ export default async function MemberProfilePage({ params }: Props) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
+      {customCss && (
+        <style
+          // Admin-set only (see pages.custom_css guardrail in CLAUDE.md) — not
+          // sanitized against arbitrary CSS injection since only trusted admins
+          // can set it; never expose this field to member self-serve input.
+          dangerouslySetInnerHTML={{ __html: `${providerScopeAttr} { ${customCss} }` }}
         />
       )}
       <PageTracker providerId={provider.id} slug={params.slug} />
@@ -285,6 +305,6 @@ export default async function MemberProfilePage({ params }: Props) {
       />
       {/* PWA: install banner (shows on 2nd visit, dismissible) */}
       <InstallBanner app="customer" slug={params.slug} />
-    </>
+    </div>
   )
 }

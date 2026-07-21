@@ -38,19 +38,33 @@ export default function AdminMembersPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState('')
   const [query, setQuery]     = useState('')
+  const [page, setPage]       = useState(0)
+  const [total, setTotal]     = useState(0)
+  const [pageSize, setPageSize] = useState(50)
   const [busyId, setBusyId]   = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<Member | null>(null)
   const [deleteInput, setDeleteInput]     = useState('')
   const [deleting, setDeleting]           = useState(false)
+  const [overridesFor, setOverridesFor]   = useState<Member | null>(null)
+  const [overridesLoading, setOverridesLoading] = useState(false)
+  const [overridesSaving, setOverridesSaving]   = useState(false)
+  const [customCssInput, setCustomCssInput]     = useState('')
+  const [headlineInput, setHeadlineInput]       = useState('')
+  const [subheadlineInput, setSubheadlineInput] = useState('')
+  const [bioInput, setBioInput]                 = useState('')
 
-  const load = useCallback(async (q: string) => {
+  const load = useCallback(async (q: string, p: number) => {
     setError('')
     try {
-      const res = await fetch(`/api/admin/members${q ? `?q=${encodeURIComponent(q)}` : ''}`)
+      const params = new URLSearchParams({ page: String(p) })
+      if (q) params.set('q', q)
+      const res = await fetch(`/api/admin/members?${params}`)
       if (res.status === 401) { window.location.href = '/admin'; return }
       if (res.status === 403) { setError('Not authorized'); setLoading(false); return }
       const data = await res.json()
       setMembers(data.members ?? [])
+      setTotal(data.total ?? 0)
+      setPageSize(data.pageSize ?? 50)
     } catch {
       setError('Failed to load')
     } finally {
@@ -58,13 +72,18 @@ export default function AdminMembersPage() {
     }
   }, [])
 
-  useEffect(() => { load('') }, [load])
-
   useEffect(() => {
-    const t = setTimeout(() => load(query), 300)
+    const t = setTimeout(() => load(query, page), 300)
     return () => clearTimeout(t)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query])
+  }, [query, page])
+
+  function handleQueryChange(value: string) {
+    setQuery(value)
+    setPage(0) // any search change resets to the first page; the effect above re-fetches
+  }
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
   async function toggle(member: Member, field: 'page_live' | 'suspended') {
     setBusyId(member.id); setError('')
@@ -97,12 +116,53 @@ export default function AdminMembersPage() {
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Delete failed'); return }
       setMembers(prev => prev.filter(m => m.id !== deleteConfirm.id))
+      setTotal(prev => Math.max(0, prev - 1))
       setDeleteConfirm(null)
       setDeleteInput('')
     } catch {
       setError('Delete failed')
     } finally {
       setDeleting(false)
+    }
+  }
+
+  async function openOverrides(member: Member) {
+    setOverridesFor(member)
+    setOverridesLoading(true)
+    setCustomCssInput(''); setHeadlineInput(''); setSubheadlineInput(''); setBioInput('')
+    try {
+      const res = await fetch(`/api/admin/members/${member.id}/overrides`)
+      const data = await res.json()
+      if (res.ok) {
+        setCustomCssInput(data.customCss ?? '')
+        setHeadlineInput(data.contentOverrides?.headline ?? '')
+        setSubheadlineInput(data.contentOverrides?.subheadline ?? '')
+        setBioInput(data.contentOverrides?.bio ?? '')
+      }
+    } finally {
+      setOverridesLoading(false)
+    }
+  }
+
+  async function saveOverrides() {
+    if (!overridesFor) return
+    setOverridesSaving(true); setError('')
+    try {
+      const res = await fetch(`/api/admin/members/${overridesFor.id}/overrides`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          customCss: customCssInput,
+          contentOverrides: { headline: headlineInput, subheadline: subheadlineInput, bio: bioInput },
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error ?? 'Save failed'); return }
+      setOverridesFor(null)
+    } catch {
+      setError('Save failed')
+    } finally {
+      setOverridesSaving(false)
     }
   }
 
@@ -130,7 +190,7 @@ export default function AdminMembersPage() {
         <p className="text-sm text-red-500 bg-red-50 border border-red-200 rounded-xl px-4 py-3">{error}</p>
       )}
 
-      <input value={query} onChange={e => setQuery(e.target.value)}
+      <input value={query} onChange={e => handleQueryChange(e.target.value)}
         placeholder="Search by name, slug, or email…"
         className="field-input max-w-sm" />
 
@@ -165,7 +225,11 @@ export default function AdminMembersPage() {
                     <td className="px-4 py-2.5">
                       <Toggle on={!m.suspended} busy={busy} onClick={() => toggle(m, 'suspended')} />
                     </td>
-                    <td className="px-4 py-2.5 whitespace-nowrap">
+                    <td className="px-4 py-2.5 whitespace-nowrap space-x-3">
+                      <button onClick={() => openOverrides(m)}
+                        className="text-[10px] font-semibold text-[#666] hover:text-[#0D0D0D] transition-colors">
+                        Overrides
+                      </button>
                       <button onClick={() => { setDeleteConfirm(m); setDeleteInput('') }}
                         className="text-[10px] font-semibold text-red-500 hover:text-red-700 transition-colors">
                         Delete
@@ -176,6 +240,67 @@ export default function AdminMembersPage() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {total > pageSize && (
+        <div className="flex items-center justify-between text-xs text-[#666]">
+          <span>{total} member{total === 1 ? '' : 's'} — page {page + 1} of {totalPages}</span>
+          <div className="flex gap-2">
+            <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
+              className="px-3 py-1.5 rounded-lg font-semibold bg-[#F5F5F5] text-[#666] disabled:opacity-40 disabled:cursor-not-allowed hover:text-[#0D0D0D] transition-colors">
+              ← Prev
+            </button>
+            <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
+              className="px-3 py-1.5 rounded-lg font-semibold bg-[#F5F5F5] text-[#666] disabled:opacity-40 disabled:cursor-not-allowed hover:text-[#0D0D0D] transition-colors">
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {overridesFor && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6 max-w-lg w-full max-h-[85vh] overflow-y-auto">
+            <h2 className="text-base font-bold text-[#0D0D0D] mb-1">Overrides — {overridesFor.slug}</h2>
+            <p className="text-xs text-[#666] mb-4">
+              Cosmetic/text exceptions only — styling and copy. Anything implying a new capability or
+              integration should become a persona-level feature instead, not an override here.
+            </p>
+            {overridesLoading ? (
+              <p className="text-sm text-[#999]">Loading…</p>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="field-label">Headline override (blank = use normal page value)</label>
+                  <input value={headlineInput} onChange={e => setHeadlineInput(e.target.value)} className="field-input" />
+                </div>
+                <div>
+                  <label className="field-label">Subheadline override</label>
+                  <input value={subheadlineInput} onChange={e => setSubheadlineInput(e.target.value)} className="field-input" />
+                </div>
+                <div>
+                  <label className="field-label">Bio override</label>
+                  <textarea value={bioInput} onChange={e => setBioInput(e.target.value)} rows={3} className="field-input" />
+                </div>
+                <div>
+                  <label className="field-label">Custom CSS (scoped to this member&apos;s page only)</label>
+                  <textarea value={customCssInput} onChange={e => setCustomCssInput(e.target.value)} rows={5}
+                    placeholder=".hero { background: #fafafa; }" className="field-input font-mono" />
+                </div>
+              </div>
+            )}
+            <div className="flex justify-end gap-2 mt-5">
+              <button onClick={() => setOverridesFor(null)}
+                className="px-4 py-2 rounded-lg text-xs font-semibold text-[#666] hover:text-[#0D0D0D] transition-colors">
+                Cancel
+              </button>
+              <button onClick={saveOverrides} disabled={overridesSaving || overridesLoading}
+                className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#0D0D0D] text-white disabled:opacity-60 hover:bg-[#222] transition-colors">
+                {overridesSaving ? 'Saving…' : 'Save overrides'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

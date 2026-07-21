@@ -5,9 +5,18 @@ import { validateSlug, RESERVED_SLUGS } from '@/lib/slug'
 import { getPlans } from '@/lib/plans'
 import { inferCountry } from '@/lib/researchPrompt'
 import { isCopyWebsiteAllowed } from '@/lib/copywebsite'
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
 import type { OnboardingAnswers } from '@/types/onboarding'
 
 export async function POST(req: NextRequest) {
+  const { allowed, retryAfterSeconds } = await checkRateLimit('onboarding-submit', getClientIp(req), 5, 3600)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many attempts — please try again later' },
+      { status: 429, headers: { 'Retry-After': String(retryAfterSeconds) } }
+    )
+  }
+
   let body: OnboardingAnswers
   try {
     body = await req.json()

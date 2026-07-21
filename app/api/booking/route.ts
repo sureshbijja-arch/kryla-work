@@ -3,6 +3,7 @@ import { z } from "zod"
 import { supabaseAdmin } from "@/lib/supabase/admin"
 import { sendEmail } from "@/lib/email"
 import { sendWhatsAppMessage, buildNewBookingMessage } from "@/lib/whatsapp"
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit"
 
 // Best-effort parse of a "9:00 AM" style label + "2026-07-20" date into a timestamptz.
 // Returns null if either piece is missing or unparseable — the owner can still set
@@ -35,6 +36,14 @@ const schema = z.object({
 })
 
 export async function POST(req: NextRequest) {
+  const { allowed, retryAfterSeconds } = await checkRateLimit('booking-submit', getClientIp(req), 10, 3600)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many booking requests — please try again later' },
+      { status: 429, headers: { 'Retry-After': String(retryAfterSeconds) } }
+    )
+  }
+
   try {
     const body = await req.json()
     const data = schema.parse(body)

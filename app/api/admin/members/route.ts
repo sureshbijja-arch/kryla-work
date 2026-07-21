@@ -12,24 +12,33 @@ async function assertAdmin(): Promise<{ email: string } | NextResponse> {
   return { email: user.email }
 }
 
-// GET ?q=<search> — lists all member sites for the admin kill-switch tab.
+const PAGE_SIZE = 50
+
+// GET ?q=<search>&page=<0-based> — lists member sites for the admin kill-switch
+// tab, paginated so this stays flat as the member count grows. Search uses a
+// prefix match (col.ilike.q%) rather than a leading-wildcard (%q%) so it can
+// use a standard index instead of forcing a sequential scan.
 export async function GET(req: NextRequest) {
   const auth = await assertAdmin()
   if (auth instanceof NextResponse) return auth
 
   const q = req.nextUrl.searchParams.get('q')?.trim()
+  const page = Math.max(0, Number(req.nextUrl.searchParams.get('page') ?? '0') || 0)
+  const from = page * PAGE_SIZE
+  const to = from + PAGE_SIZE - 1
 
   let query = supabaseAdmin
     .from('providers')
-    .select('id, slug, first_name, last_name, email, plan, page_live, suspended, created_at')
+    .select('id, slug, first_name, last_name, email, plan, page_live, suspended, created_at', { count: 'exact' })
     .order('created_at', { ascending: false })
+    .range(from, to)
 
   if (q) {
-    query = query.or(`slug.ilike.%${q}%,first_name.ilike.%${q}%,last_name.ilike.%${q}%,email.ilike.%${q}%`)
+    query = query.or(`slug.ilike.${q}%,first_name.ilike.${q}%,last_name.ilike.${q}%,email.ilike.${q}%`)
   }
 
-  const { data, error } = await query
+  const { data, error, count } = await query
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  return NextResponse.json({ members: data ?? [] })
+  return NextResponse.json({ members: data ?? [], total: count ?? 0, page, pageSize: PAGE_SIZE })
 }

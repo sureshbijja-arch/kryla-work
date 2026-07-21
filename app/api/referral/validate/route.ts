@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit'
 
 export async function POST(req: NextRequest) {
+  // 5-char codes are guessable via brute force — throttle harder than the other public endpoints
+  const { allowed, retryAfterSeconds } = await checkRateLimit('referral-validate', getClientIp(req), 20, 3600)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many attempts — please try again later' },
+      { status: 429, headers: { 'Retry-After': String(retryAfterSeconds) } }
+    )
+  }
+
   const { code } = await req.json()
   if (!code || typeof code !== 'string') {
     return NextResponse.json({ error: 'Code required' }, { status: 400 })
