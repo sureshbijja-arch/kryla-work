@@ -223,6 +223,7 @@ Personas are **fully DB-driven** — not hardcoded. The `personas` table is the 
 | `inngest/livelaw-sync.ts` | cron | LiveLaw legal news sync |
 | `inngest/generate-persona-template.ts` | event-driven | AI persona template generation |
 | `inngest/personal-cause-list.ts` | cron `30 12 * * *` (18:00 IST) | Daily WhatsApp digest of tomorrow's watched matters; only for advocates with `cause_list_alerts_enabled=true`; deduped via `providers.cause_list_alert_sent_for`; global kill-switch: `system_config.notification_types_enabled.cause_list_digest` |
+| `inngest/import-content.ts` | event: `kryla/website.import.requested` | CopyWebsite native-pre-fill import. Fired by `POST /api/admin/copywebsite/[id]/import` (admin-only, only for `approved`+`native` requests). Steps: Firecrawl scrape → Claude extraction → re-host images to `profile-media` → write `pages.draft_data.pages` (never live columns) → stamp `website_copy_requests.admin_note`. Admin/member then previews at `/{slug}/preview` and publishes via the existing publish flow. Requires `FIRECRAWL_API_KEY`; throws a clear error (surfaced via `onFailure` into `admin_note`) if unset. |
 
 All crons + event functions registered in `app/api/inngest/route.ts`.
 
@@ -467,6 +468,7 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 ANTHROPIC_API_KEY=
+FIRECRAWL_API_KEY=      # Renders/scrapes JS-heavy sites for the CopyWebsite import (inngest/import-content.ts)
 INNGEST_EVENT_KEY=
 INNGEST_SIGNING_KEY=
 NEXT_PUBLIC_APP_URL=https://kryla.work
@@ -540,7 +542,7 @@ E2E_TEST_PROVIDER_EMAIL= # Seeded test-salon provider's email (scripts/seed-e2e-
 - ✅ Page analytics — `page_events` and `page_reactions` (view counts, emoji reactions)
 - ✅ Landing page hero — 12-card layout (6+6), local images, distributor/agency cards added
 - ✅ SEO — per-member + apex sitemaps/robots, entity + FAQ JSON-LD (`lib/seo/structuredData.ts`), OG/share cards, canonical URLs, apex→subdomain 308 redirects, Google Search Console verification; member-facing "Get Found" editor in MyKryla (My Plan → Get Found, `app/mychat/GetFoundTab.tsx`) with live Google-result preview, search title/description editing (`app/api/mychat/seo/route.ts`), and a readiness checklist — shared defaults in `lib/seo/defaults.ts`
-- ✅ CopyWebsite — gated "bring your existing website over" onboarding option. Referral-code allowlist + none/all globals (`system_config.copywebsite_gate`) control who sees the field; allowed submissions are captured as a `website_copy_requests` row (never built automatically). Reviewed at `/admin/copywebsite` — admin picks Native pre-fill or Faithful clone per request at approval time, then builds the page by hand in MyKryla. Builder-agent automation is an explicit future milestone.
+- ✅ CopyWebsite — gated "bring your existing website over" onboarding option. Referral-code allowlist + none/all globals (`system_config.copywebsite_gate`) control who sees the field; allowed submissions are captured as a `website_copy_requests` row (never built automatically). Reviewed at `/admin/copywebsite` — admin picks Native pre-fill or Faithful clone per request at approval time. For **Native pre-fill**, an "Import content" button triggers `inngest/import-content.ts` (Firecrawl scrape → Claude extraction → re-hosted images → `pages.draft_data`) — admin/member then previews and publishes as normal; nothing goes live automatically. **Faithful clone** remains fully manual (admin builds by hand in MyKryla).
 - ✅ Admin Members tab — `/admin/members` lists every provider with two independent toggles: **Live** (`page_live`) and **Not suspended** (`suspended`, new column, defaults false). A site resolves only when both are satisfied; either OFF 404s the subdomain. Search by name/slug/email. Includes a **hard delete** (type-the-slug confirmation, server-verified) — permanently removes the provider and cascades through nearly every linked table (bookings, reviews, documents, WhatsApp history, etc.); no soft-delete/undo. `onboarding_answers` and `website_copy_requests` aren't cascade-configured on this FK, so those rows are deleted explicitly first. `app/api/admin/members` (GET list, PATCH `[id]` toggle, DELETE `[id]`).
 
 ## What's NOT Built Yet

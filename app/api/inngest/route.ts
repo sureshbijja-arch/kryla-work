@@ -9,6 +9,7 @@ import { consultationFollowupFunction } from '@/inngest/consultation-followup'
 import { liveLawSyncFunction }      from '@/inngest/livelaw-sync'
 import { personalCauseListFunction } from '@/inngest/personal-cause-list'
 import { bookingRemindersFunction } from '@/inngest/booking-reminders'
+import { importContentFunction } from '@/inngest/import-content'
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -22,5 +23,6 @@ export const { GET, POST, PUT } = serve({
     liveLawSyncFunction,
     personalCauseListFunction,
     bookingRemindersFunction,
+    importContentFunction,
   ],
 })

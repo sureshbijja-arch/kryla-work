@@ -52,6 +52,8 @@ export default function AdminCopyWebsitePage() {
   const [codesText, setCodesText]   = useState('')
   const [busyId, setBusyId]         = useState<string | null>(null)
   const [outputChoice, setOutputChoice] = useState<Record<string, OutputType>>({})
+  const [importingId, setImportingId]   = useState<string | null>(null)
+  const [importError, setImportError]   = useState<Record<string, string>>({})
 
   useEffect(() => { load() }, [])
 
@@ -107,6 +109,21 @@ export default function AdminCopyWebsitePage() {
       setError('Update failed')
     } finally {
       setBusyId(null)
+    }
+  }
+
+  async function importContent(id: string) {
+    setImportingId(id)
+    setImportError(prev => ({ ...prev, [id]: '' }))
+    try {
+      const res = await fetch(`/api/admin/copywebsite/${id}/import`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) { setImportError(prev => ({ ...prev, [id]: data.error ?? 'Import failed to start' })); return }
+      setImportError(prev => ({ ...prev, [id]: 'started' }))
+    } catch {
+      setImportError(prev => ({ ...prev, [id]: 'Import failed to start' }))
+    } finally {
+      setImportingId(null)
     }
   }
 
@@ -228,13 +245,17 @@ export default function AdminCopyWebsitePage() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-[#F0F0F0]">
-                  {['Member', 'URL', 'Status', 'Output', 'Reviewed', ''].map(h => (
+                  {['Member', 'URL', 'Status', 'Output', 'Reviewed', 'Note', ''].map(h => (
                     <th key={h} className="text-left px-4 py-3 font-semibold text-[#888] whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {reviewed.map((r, i) => (
+                {reviewed.map((r, i) => {
+                  const importing = importingId === r.id
+                  const importMsg = importError[r.id]
+                  const canImport = r.status === 'approved' && r.output_type === 'native'
+                  return (
                   <tr key={r.id} className={`border-b border-[#F9F9F9] ${i % 2 === 0 ? 'bg-white' : 'bg-[#FAFAFA]'}`}>
                     <td className="px-4 py-2.5 whitespace-nowrap text-[#0D0D0D]">{r.slug}</td>
                     <td className="px-4 py-2.5 max-w-[220px] truncate">
@@ -245,16 +266,36 @@ export default function AdminCopyWebsitePage() {
                     </td>
                     <td className="px-4 py-2.5 text-[#666]">{r.output_type ?? '—'}</td>
                     <td className="px-4 py-2.5 whitespace-nowrap text-[#666]">{r.reviewed_at ? formatDate(r.reviewed_at) : '—'}</td>
-                    <td className="px-4 py-2.5 whitespace-nowrap">
+                    <td className="px-4 py-2.5 max-w-[200px] truncate text-[#888]" title={r.admin_note ?? ''}>{r.admin_note ?? '—'}</td>
+                    <td className="px-4 py-2.5 whitespace-nowrap space-x-2">
+                      {canImport && (
+                        <button onClick={() => importContent(r.id)} disabled={importing}
+                          className="text-[10px] font-semibold text-[#C17A3A] hover:text-[#8f5623] disabled:opacity-60 transition-colors">
+                          {importing ? 'Starting…' : 'Import content'}
+                        </button>
+                      )}
+                      {canImport && (
+                        <a href={`https://${r.slug}.kryla.work/preview`} target="_blank" rel="noreferrer"
+                          className="text-[10px] font-semibold text-[#666] hover:text-[#0D0D0D] transition-colors">
+                          Preview →
+                        </a>
+                      )}
                       {r.status === 'approved' && (
                         <button onClick={() => review(r.id, 'done')} disabled={busyId === r.id}
                           className="text-[10px] font-semibold text-[#666] hover:text-[#0D0D0D] disabled:opacity-60 transition-colors">
                           Mark done
                         </button>
                       )}
+                      {importMsg && importMsg !== 'started' && (
+                        <p className="text-[10px] text-red-500 mt-1">{importMsg}</p>
+                      )}
+                      {importMsg === 'started' && (
+                        <p className="text-[10px] text-[#16A34A] mt-1">Import started — refresh shortly</p>
+                      )}
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           </div>

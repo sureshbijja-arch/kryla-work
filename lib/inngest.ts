@@ -25,6 +25,18 @@ export const GENERATE_PERSONA_EVENT = 'kryla/persona.template.generate'
 
 export const BILLING_PAYMENT_FAILED_EVENT  = 'kryla/billing.payment.failed'
 
+// CopyWebsite: fetch + extract a member's existing site into a draft
+// (never live columns) so admin/member can preview + publish. See
+// app/api/admin/copywebsite/[id]/import/route.ts and inngest/import-content.ts.
+export const IMPORT_CONTENT_EVENT = 'kryla/website.import.requested'
+
+export interface ImportContentPayload {
+  providerId: string
+  slug:       string
+  requestId:  string
+  sourceUrl:  string
+}
+
 // Emitted by /api/mychat/student-sessions POST when sendFollowup=true
 export const CONSULTATION_LOGGED_EVENT = 'kryla/consultation.logged'
 
