@@ -3,15 +3,17 @@
 import { useState, useEffect, useCallback } from 'react'
 
 interface Member {
-  id:         string
-  slug:       string
-  first_name: string
-  last_name:  string
-  email:      string | null
-  plan:       string
-  page_live:  boolean
-  suspended:  boolean
-  created_at: string
+  id:            string
+  slug:          string
+  first_name:    string
+  last_name:     string
+  email:         string | null
+  plan:          string
+  page_live:     boolean
+  suspended:     boolean
+  referral_code: string | null
+  referred_by:   string | null
+  created_at:    string
 }
 
 function formatDate(iso: string) {
@@ -52,6 +54,11 @@ export default function AdminMembersPage() {
   const [headlineInput, setHeadlineInput]       = useState('')
   const [subheadlineInput, setSubheadlineInput] = useState('')
   const [bioInput, setBioInput]                 = useState('')
+  const [codesFor, setCodesFor]                   = useState<Member | null>(null)
+  const [inviteCodeInput, setInviteCodeInput]     = useState('')
+  const [referralCodeInput, setReferralCodeInput] = useState('')
+  const [codesSaving, setCodesSaving]             = useState(false)
+  const [codesError, setCodesError]               = useState('')
 
   const load = useCallback(async (q: string, p: number) => {
     setError('')
@@ -166,6 +173,37 @@ export default function AdminMembersPage() {
     }
   }
 
+  function cleanCode(raw: string) {
+    return raw.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5)
+  }
+
+  function openCodes(member: Member) {
+    setCodesFor(member)
+    setInviteCodeInput(member.referred_by ?? '')
+    setReferralCodeInput(member.referral_code ?? '')
+    setCodesError('')
+  }
+
+  async function saveCodes() {
+    if (!codesFor) return
+    setCodesSaving(true); setCodesError('')
+    try {
+      const res = await fetch(`/api/admin/members/${codesFor.id}`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ referred_by: inviteCodeInput, referral_code: referralCodeInput }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setCodesError(data.error ?? 'Save failed'); return }
+      setMembers(prev => prev.map(m => m.id === codesFor.id ? data.member : m))
+      setCodesFor(null)
+    } catch {
+      setCodesError('Save failed')
+    } finally {
+      setCodesSaving(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto pt-8">
@@ -203,7 +241,7 @@ export default function AdminMembersPage() {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-[#F0F0F0]">
-                {['Name', 'Slug', 'Plan', 'Joined', 'Live', 'Not suspended', ''].map(h => (
+                {['Name', 'Slug', 'Plan', 'Invite code', 'Referral code', 'Joined', 'Live', 'Not suspended', ''].map(h => (
                   <th key={h} className="text-left px-4 py-3 font-semibold text-[#888] whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -218,6 +256,8 @@ export default function AdminMembersPage() {
                       <a href={`https://${m.slug}.kryla.work`} target="_blank" rel="noreferrer" className="text-[#C17A3A] hover:underline">{m.slug}</a>
                     </td>
                     <td className="px-4 py-2.5 whitespace-nowrap text-[#666]">{m.plan}</td>
+                    <td className="px-4 py-2.5 whitespace-nowrap font-mono text-[#666]">{m.referred_by ?? '—'}</td>
+                    <td className="px-4 py-2.5 whitespace-nowrap font-mono text-[#666]">{m.referral_code ?? '—'}</td>
                     <td className="px-4 py-2.5 whitespace-nowrap text-[#666]">{formatDate(m.created_at)}</td>
                     <td className="px-4 py-2.5">
                       <Toggle on={m.page_live} busy={busy} onClick={() => toggle(m, 'page_live')} />
@@ -226,6 +266,10 @@ export default function AdminMembersPage() {
                       <Toggle on={!m.suspended} busy={busy} onClick={() => toggle(m, 'suspended')} />
                     </td>
                     <td className="px-4 py-2.5 whitespace-nowrap space-x-3">
+                      <button onClick={() => openCodes(m)}
+                        className="text-[10px] font-semibold text-[#666] hover:text-[#0D0D0D] transition-colors">
+                        Edit codes
+                      </button>
                       <button onClick={() => openOverrides(m)}
                         className="text-[10px] font-semibold text-[#666] hover:text-[#0D0D0D] transition-colors">
                         Overrides
@@ -298,6 +342,41 @@ export default function AdminMembersPage() {
               <button onClick={saveOverrides} disabled={overridesSaving || overridesLoading}
                 className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#0D0D0D] text-white disabled:opacity-60 hover:bg-[#222] transition-colors">
                 {overridesSaving ? 'Saving…' : 'Save overrides'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {codesFor && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6 max-w-sm w-full">
+            <h2 className="text-base font-bold text-[#0D0D0D] mb-1">Codes — {codesFor.slug}</h2>
+            <p className="text-xs text-[#666] mb-4">
+              5 letters/numbers each. Referral code is the member&apos;s own shareable code (must be unique).
+              Invite code is the code they signed up with.
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label className="field-label">Invite code (used at signup)</label>
+                <input value={inviteCodeInput} onChange={e => setInviteCodeInput(cleanCode(e.target.value))}
+                  maxLength={5} placeholder="—" className="field-input font-mono" />
+              </div>
+              <div>
+                <label className="field-label">Referral code (member&apos;s own)</label>
+                <input value={referralCodeInput} onChange={e => setReferralCodeInput(cleanCode(e.target.value))}
+                  maxLength={5} placeholder="—" className="field-input font-mono" />
+              </div>
+              {codesError && <p className="text-red-500 text-xs">{codesError}</p>}
+            </div>
+            <div className="flex justify-end gap-2 mt-5">
+              <button onClick={() => setCodesFor(null)}
+                className="px-4 py-2 rounded-lg text-xs font-semibold text-[#666] hover:text-[#0D0D0D] transition-colors">
+                Cancel
+              </button>
+              <button onClick={saveCodes} disabled={codesSaving}
+                className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#0D0D0D] text-white disabled:opacity-60 hover:bg-[#222] transition-colors">
+                {codesSaving ? 'Saving…' : 'Save codes'}
               </button>
             </div>
           </div>
