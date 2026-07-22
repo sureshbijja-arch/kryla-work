@@ -13,18 +13,38 @@ async function assertAdmin(): Promise<{ email: string } | NextResponse> {
   return { email: user.email }
 }
 
-// PATCH { page_live?: boolean, suspended?: boolean } — the two independent
-// kill-switches. A site resolves only when page_live=true AND suspended=false
-// (see middleware.ts findLiveSlug / app/[slug]/page.tsx findProvider).
+// PATCH { page_live?: boolean, suspended?: boolean, referral_code?: string,
+// referred_by?: string } — the two kill-switches (page resolves only when
+// page_live=true AND suspended=false — see middleware.ts findLiveSlug /
+// app/[slug]/page.tsx findProvider) plus the two invite/referral codes.
+// referral_code is the member's own shareable code (globally unique — see
+// app/api/mychat/referral-code/route.ts, the member-side equivalent);
+// referred_by is the code they signed up with (not unique).
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const auth = await assertAdmin()
   if (auth instanceof NextResponse) return auth
 
   const body = await req.json() as Record<string, unknown>
-  const allowed = ['page_live', 'suspended']
-  const patch = Object.fromEntries(
-    Object.entries(body).filter(([k, v]) => allowed.includes(k) && typeof v === 'boolean')
+
+  // Booleans: the two kill-switches (unchanged behavior).
+  const patch: Record<string, unknown> = Object.fromEntries(
+    Object.entries(body).filter(([k, v]) => ['page_live', 'suspended'].includes(k) && typeof v === 'boolean')
   )
+
+  // Codes: 5-char [A-Z0-9], normalized; empty clears to null. Same rules as
+  // the member-side ReferTab (app/api/mychat/referral-code/route.ts).
+  for (const field of ['referral_code', 'referred_by'] as const) {
+    if (typeof body[field] === 'string') {
+      const clean = (body[field] as string).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5)
+      if (clean === '') {
+        patch[field] = null
+      } else if (/^[A-Z0-9]{5}$/.test(clean)) {
+        patch[field] = clean
+      } else {
+        return NextResponse.json({ error: 'Code must be exactly 5 letters or numbers' }, { status: 400 })
+      }
+    }
+  }
 
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
@@ -34,10 +54,15 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     .from('providers')
     .update(patch)
     .eq('id', params.id)
-    .select('id, slug, first_name, last_name, email, plan, page_live, suspended, created_at')
+    .select('id, slug, first_name, last_name, email, plan, page_live, suspended, referral_code, referred_by, created_at')
     .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    if (error.code === '23505') {
+      return NextResponse.json({ error: 'That code is already taken — try another' }, { status: 409 })
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
   return NextResponse.json({ member: data })
 }
 

@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabaseAdmin
     .from('providers')
-    .select('id, slug, first_name, last_name, email, plan, page_live, suspended, created_at', { count: 'exact' })
+    .select('id, slug, first_name, last_name, email, plan, page_live, suspended, referral_code, referred_by, created_at', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(from, to)
 
