@@ -10,7 +10,7 @@
 | AI | Anthropic `claude-sonnet-4-6` via `@anthropic-ai/sdk` |
 | Job queue | Inngest |
 | Hosting | Vercel |
-| Notifications | Meta WhatsApp API (built — connect + reply flows) |
+| Notifications | Meta WhatsApp API (built — connect + reply flows) + Web Push (`web-push`, VAPID) + Resend email |
 | Payments | Stripe / Razorpay (infrastructure in DB; UI not built) |
 
 ## Repo
@@ -110,6 +110,8 @@ Personas are **fully DB-driven** — not hardcoded. The `personas` table is the 
 | `/api/mychat/email-settings` | GET/POST | Email settings |
 | `/api/mychat/email-reply` | POST | Send email reply |
 | `/api/booking` | POST | Public booking form submission |
+| `/api/push/vapid-key` | GET | Public — exposes the VAPID public key for client-side `pushManager.subscribe()` |
+| `/api/push/subscribe` | POST/DELETE | Save / remove a member's Web Push subscription (auth-gated by email ownership) |
 
 ### MyKryla — AI Tools
 
@@ -418,6 +420,7 @@ Section builder (`app/mychat/SectionsTab.tsx`, mounted at My Page → `sections`
 **provider_email** — email accounts per provider  
 **emails** — email log  
 **notifications** — in-app notifications  
+**push_subscriptions** — Web Push subscriptions for the MyKryla PWA (`provider_id`, `endpoint` unique, `p256dh`, `auth`, `user_agent`). One provider can have several (multiple devices). Service-role-only (RLS enabled, no policies). Written by `POST/DELETE /api/push/subscribe`; read by `lib/push/send.ts`; stale (404/410) subscriptions are pruned automatically on send.
 
 ### Members / Activity
 
@@ -481,6 +484,9 @@ STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 RESEND_API_KEY=
+VAPID_PUBLIC_KEY=       # Web Push — MyKryla enquiry/booking phone alerts (lib/push/send.ts, lib/push/subscribe.ts)
+VAPID_PRIVATE_KEY=
+VAPID_SUBJECT=          # mailto: or https:// URL, required by the web-push library
 REVALIDATE_SECRET=      # Random string — authorizes ISR revalidation from Inngest
 E2E_TEST_AUTH_SECRET=   # Random string — required to reach app/api/test/login (also NODE_ENV!=production, never works in prod). Non-prod only.
 E2E_TEST_PROVIDER_EMAIL= # Seeded test-salon provider's email (scripts/seed-e2e-provider.mjs); the only email app/api/test/login will ever mint a session for.
@@ -547,6 +553,8 @@ E2E_TEST_PROVIDER_EMAIL= # Seeded test-salon provider's email (scripts/seed-e2e-
 - ✅ Admin Members tab — `/admin/members` lists every provider with two independent toggles: **Live** (`page_live`) and **Not suspended** (`suspended`, new column, defaults false). A site resolves only when both are satisfied; either OFF 404s the subdomain. Paginated (`PAGE_SIZE=50`, `.range()` + `count:'exact'`), search uses a prefix match (`col.ilike.q%`, index-friendly) rather than leading-wildcard. Includes a **hard delete** (type-the-slug confirmation, server-verified) — permanently removes the provider and cascades through nearly every linked table (bookings, reviews, documents, WhatsApp history, etc.); no soft-delete/undo. `onboarding_answers` and `website_copy_requests` aren't cascade-configured on this FK, so those rows are deleted explicitly first. `app/api/admin/members` (GET list+search+pagination, PATCH `[id]` toggle, DELETE `[id]`).
 - ✅ Rate limiting on public endpoints — `lib/rateLimit.ts`, DB-backed (`rate_limit_hits` table — deliberately not in-memory, since Vercel serverless instances don't share memory across cold starts). Applied to `/api/onboarding/submit` (5/hr/IP), `/api/booking` (10/hr/IP), `/api/referral/validate` (20/hr/IP — tighter since 5-char codes are guessable). Fails open on DB error (never blocks legitimate traffic on a transient outage), mirrors `middleware.ts`'s `findLiveSlug` fail-open pattern.
 - ✅ Avatar/gallery upload UI in MyKryla — My Page → Media (`app/mychat/MediaTab.tsx`): avatar upload/change/remove, gallery add/delete/reorder, all backed by `/api/mychat/upload` (POST/DELETE/PATCH). Ownership check (`assertOwnership`) auto-claims a null `providers.email` on first DELETE/PATCH too, matching the POST upload path's claim behavior. `/api/mychat/services` now claims a null email the same way (previously 403'd any member whose email wasn't set yet).
+- ✅ Member enquiry/booking alerts — three layered channels, built for the `sellganeshidols` festival pilot (WhatsApp production intentionally deferred; see below). **Email** (`app/api/booking/route.ts`): config-driven copy via `PERSONA_CONFIG[persona].contactVariant === 'enquiry'` (enquiry vs. booking wording), a "Reply on WhatsApp" `wa.me` button (`waLink()`), `replyTo` set to the customer's email. **In-app badge**: an authoritative server-side pending-bookings count (`app/[slug]/mykryla/page.tsx`, `head:true` query) seeds the My Services home tile + Consultations card badge (`app/mychat/MyChatHome.tsx`, `DetailCardList`'s existing `badge` prop); `BookingsTab`'s `onPendingCount` callback (previously unwired/dead) now keeps it live after accept/decline/delete. **Web Push** (`lib/push/send.ts`, `lib/push/subscribe.ts`, `push_subscriptions` table): "Turn on phone alerts" control (`app/mychat/PushAlertsCard.tsx`, mounted in `BookingsTab`) handles the permission/subscribe flow, with an iOS-specific "Add to Home Screen first" prompt since Web Push doesn't work in a bare Safari tab. `app/sw.ts` (Serwist) gained `push` + `notificationclick` handlers — the notification body shows the customer's name + phone, and tapping it deep-links (`?bookingId=`) straight to that booking in the Consultations screen (scrolled into view + highlighted), landing exactly on the existing "Follow up on WhatsApp" button rather than a new one. `sendWhatsAppMessage`'s `notification_sent` flag is now gated on actual send success (previously set unconditionally, misleading in Meta test mode). Also fixed: `notification_sent` false-positive.
+- ⏸️ WhatsApp production / Meta business verification — deliberately deferred. The Meta Cloud API alert (`sendWhatsAppMessage`) only delivers in test mode (≤5 allow-listed recipient numbers), so it's a no-op for most members until production signup is done; Web Push (above) is the interim + long-term phone-alert channel. SMS was considered and rejected for India (mandatory DLT registration).
 
 ## What's NOT Built Yet
 

@@ -95,6 +95,7 @@ interface Props {
   slug: string
   firstName: string
   pageLive: boolean
+  pendingEnquiries: number
   plan: string
   planStatus: string
   trialEndsAt: string | null
@@ -296,11 +297,15 @@ const FONT_LABELS: Record<string, string> = {
 }
 
 export default function SpaceClient({
-  providerId, slug, firstName, pageLive,
+  providerId, slug, firstName, pageLive, pendingEnquiries: initialPendingEnquiries,
   plan, planStatus, trialEndsAt, billingStatus,
   region, pageLanguage, customName, referralCode, currentProfile,
   plans, personaPlans, planOrder, canAds, canCustomName,
 }: Props) {
+  // Authoritative on first paint from the server (mykryla/page.tsx); kept
+  // live afterward via BookingsTab's onPendingCount as the member
+  // accepts/declines/deletes enquiries without a full page reload.
+  const [pendingEnquiries, setPendingEnquiries] = useState(initialPendingEnquiries)
   const defaultSections: SectionEntry[] = currentProfile.sections ?? [
     { sectionKey: 'hero',       variant: 'auto',      order: 1 },
     { sectionKey: 'services',   variant: 'features',  order: 2 },
@@ -354,6 +359,39 @@ export default function SpaceClient({
     router.replace(`/${slug}/mykryla`, { scroll: false })
     const t = setTimeout(() => setBillingToast(null), 5000)
     return () => clearTimeout(t)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // ── Push notification deep link ──────────────────────────────────────────────
+  // Tapping an enquiry push (see app/sw.ts's notificationclick) either opens
+  // /mychat?bookingId=... fresh, or — if MyKryla is already open — focuses this
+  // tab and posts { type: 'push-notification-click', url }. Either way, land
+  // straight on that enquiry in the Consultations screen, same as a "bookings"
+  // AI-chat suggestion (see the goTo() 'bookings' case above).
+  const [highlightBookingId, setHighlightBookingId] = useState<string | null>(null)
+
+  const routeToBooking = useCallback((url: string) => {
+    const bookingId = new URL(url, window.location.origin).searchParams.get('bookingId')
+    if (!bookingId) return
+    setHighlightBookingId(bookingId)
+    setView({ screen: 'tile', tile: 'services', detail: 'consultations' })
+  }, [])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const bookingId = params.get('bookingId')
+    if (bookingId) {
+      routeToBooking(window.location.href)
+      router.replace(`/${slug}/mykryla`, { scroll: false })
+    }
+
+    function onMessage(event: MessageEvent) {
+      if (event.data?.type === 'push-notification-click' && event.data.url) {
+        routeToBooking(event.data.url)
+      }
+    }
+    navigator.serviceWorker?.addEventListener('message', onMessage)
+    return () => navigator.serviceWorker?.removeEventListener('message', onMessage)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -704,7 +742,11 @@ export default function SpaceClient({
         case 'consultations':
           return (
             <div className="flex-1 overflow-y-auto">
-              <BookingsTab providerId={providerId} />
+              <BookingsTab
+                providerId={providerId}
+                onPendingCount={setPendingEnquiries}
+                highlightBookingId={highlightBookingId}
+              />
             </div>
           )
         case 'dayview':
@@ -965,6 +1007,7 @@ export default function SpaceClient({
           pageLive={pageLive}
           showToolsTile={currentProfile.mykrylaTools.length > 0}
           toolsTileLabel={currentProfile.mykrylaToolsLabel ?? undefined}
+          pendingEnquiries={pendingEnquiries}
           onOpenTile={tile => setView({ screen: 'tile', tile })}
           onOpenChat={() => setView({ screen: 'chat' })}
           onPreview={() => setPreviewOpen(true)}
@@ -1030,6 +1073,9 @@ export default function SpaceClient({
                   icon: card.icon,
                   title: card.title,
                   description: card.description,
+                  badge: card.key === 'consultations' && pendingEnquiries > 0
+                    ? String(pendingEnquiries)
+                    : undefined,
                   dataTour: `card-${tile}-${card.key}`,
                   onClick: card.isPreview
                     ? () => setPreviewOpen(true)

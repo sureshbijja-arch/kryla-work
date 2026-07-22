@@ -44,7 +44,7 @@ export default async function MyChatPage({ params, searchParams }: Props) {
 
   captureServerEvent('dashboard_viewed', { slug: provider.slug, providerId: provider.id })
 
-  const [{ data: page }, plans, personaPlans, gate, { data: personaRow }] = await Promise.all([
+  const [{ data: page }, plans, personaPlans, gate, { data: personaRow }, { count: pendingEnquiries }] = await Promise.all([
     supabaseAdmin
       .from('pages')
       .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, palette, font, template, show_sections, sections, design_mode')
@@ -58,6 +58,14 @@ export default async function MyChatPage({ params, searchParams }: Props) {
       .select('studio_archetype, studio_config')
       .eq('id', provider.persona)
       .maybeSingle(),
+    // Authoritative first-paint count for the My Services home-tile badge —
+    // cheap head:true count, no row data fetched. Live updates after this are
+    // handled client-side via BookingsTab's onPendingCount (see SpaceClient).
+    supabaseAdmin
+      .from('bookings')
+      .select('id', { count: 'exact', head: true })
+      .eq('provider_id', provider.id)
+      .eq('status', 'pending'),
   ])
 
   const VALID_TOOL_ACTIONS = new Set(['court', 'draft', 'studio', 'persona-tab'])
@@ -101,6 +109,7 @@ export default async function MyChatPage({ params, searchParams }: Props) {
         slug:          provider.slug,
         firstName:     provider.first_name,
         pageLive:      provider.page_live ?? false,
+        pendingEnquiries: pendingEnquiries ?? 0,
         plan:          memberPlan,
         planStatus:    provider.plan_status ?? 'active',
         trialEndsAt:   (provider.trial_ends_at as string | null) ?? null,

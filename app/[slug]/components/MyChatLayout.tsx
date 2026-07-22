@@ -11,6 +11,7 @@ interface SpaceProps {
   slug: string
   firstName: string
   pageLive: boolean
+  pendingEnquiries: number
   plan: string
   planStatus: string
   trialEndsAt: string | null

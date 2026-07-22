@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import PushAlertsCard from './PushAlertsCard'
 
 interface Booking {
   id: string
@@ -45,9 +46,12 @@ function waLink(phone: string, name: string) {
 export default function BookingsTab({
   providerId,
   onPendingCount,
+  highlightBookingId,
 }: {
   providerId: string
   onPendingCount?: (count: number) => void
+  /** Booking to scroll to and highlight — set when arriving via a push notification tap. */
+  highlightBookingId?: string | null
 }) {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading]   = useState(true)
@@ -68,6 +72,20 @@ export default function BookingsTab({
   }, [providerId, onPendingCount])
 
   useEffect(() => { load() }, [load])
+
+  // Arrived via a push notification tap — make sure the "all" filter is
+  // active (so the target booking can't be hidden by a narrower filter),
+  // then scroll it into view once it's rendered.
+  useEffect(() => {
+    if (!highlightBookingId) return
+    setFilter('all')
+  }, [highlightBookingId])
+
+  useEffect(() => {
+    if (!highlightBookingId || loading) return
+    const el = document.getElementById(`booking-${highlightBookingId}`)
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [highlightBookingId, loading, bookings])
 
   const [acceptingId, setAcceptingId] = useState<string | null>(null)
   const [acceptDate, setAcceptDate]   = useState('')
@@ -154,21 +172,25 @@ export default function BookingsTab({
 
   if (bookings.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-        <div className="w-12 h-12 rounded-full bg-[#F5F5F5] flex items-center justify-center mb-4">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <rect x="3" y="4" width="14" height="13" rx="2" stroke="#bbb" strokeWidth="1.5" />
-            <path d="M7 2v4M13 2v4M3 8h14" stroke="#bbb" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
+      <div className="max-w-2xl mx-auto px-4 py-6">
+        <PushAlertsCard providerId={providerId} />
+        <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+          <div className="w-12 h-12 rounded-full bg-[#F5F5F5] flex items-center justify-center mb-4">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <rect x="3" y="4" width="14" height="13" rx="2" stroke="#bbb" strokeWidth="1.5" />
+              <path d="M7 2v4M13 2v4M3 8h14" stroke="#bbb" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </div>
+          <p className="font-semibold text-[#0D0D0D] text-sm">No bookings yet</p>
+          <p className="text-[#999] text-xs mt-1">Booking requests from your profile page will appear here.</p>
         </div>
-        <p className="font-semibold text-[#0D0D0D] text-sm">No bookings yet</p>
-        <p className="text-[#999] text-xs mt-1">Booking requests from your profile page will appear here.</p>
       </div>
     )
   }
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
+      <PushAlertsCard providerId={providerId} />
 
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
@@ -216,7 +238,15 @@ export default function BookingsTab({
 
       <div className="space-y-3">
         {filtered.map(b => (
-          <div key={b.id} className="bg-white border border-[#E5E5E5] rounded-2xl p-4">
+          <div
+            key={b.id}
+            id={`booking-${b.id}`}
+            className={`bg-white rounded-2xl p-4 transition-shadow ${
+              b.id === highlightBookingId
+                ? 'border-2 border-mc-accent shadow-[0_0_0_4px_rgba(192,86,31,0.15)]'
+                : 'border border-[#E5E5E5]'
+            }`}
+          >
 
             {/* Top row: name + status */}
             <div className="flex items-start justify-between gap-3 mb-3">

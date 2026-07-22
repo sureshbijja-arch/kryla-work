@@ -41,3 +41,39 @@ const serwist = new Serwist({
 })
 
 serwist.addEventListeners()
+
+// ── Web Push — member enquiry/booking alerts ────────────────────────────────
+// Payload shape sent by lib/push/send.ts: { title, body, url }.
+// `url` deep-links into the specific enquiry (e.g. /mychat?src=pwa&bookingId=...)
+// so tapping the notification lands the member on that booking, where the
+// existing "Follow up on WhatsApp" button (BookingsTab.tsx) is one tap away.
+
+self.addEventListener('push', (event: PushEvent) => {
+  if (!event.data) return
+  const payload = event.data.json() as { title: string; body: string; url: string }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: '/icons/icon-mychat-192.png',
+      badge: '/icons/icon-mychat-192.png',
+      data: { url: payload.url },
+    }),
+  )
+})
+
+self.addEventListener('notificationclick', (event: NotificationEvent) => {
+  event.notification.close()
+  const targetUrl = (event.notification.data as { url?: string } | undefined)?.url ?? '/mychat'
+
+  event.waitUntil((async () => {
+    const clientsList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    const existing = clientsList.find(c => c.url.includes('/mychat'))
+    if (existing) {
+      await existing.focus()
+      existing.postMessage({ type: 'push-notification-click', url: targetUrl })
+      return
+    }
+    await self.clients.openWindow(targetUrl)
+  })())
+})

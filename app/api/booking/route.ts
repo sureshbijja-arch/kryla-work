@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { supabaseAdmin } from "@/lib/supabase/admin"
 import { sendEmail } from "@/lib/email"
-import { sendWhatsAppMessage, buildNewBookingMessage } from "@/lib/whatsapp"
+import { sendWhatsAppMessage, buildNewBookingMessage, waLink } from "@/lib/whatsapp"
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit"
+import { getPersonaConfig } from "@/app/[slug]/personaConfig"
+import { sendPush } from "@/lib/push/send"
 
 // Best-effort parse of a "9:00 AM" style label + "2026-07-20" date into a timestamptz.
 // Returns null if either piece is missing or unparseable — the owner can still set
@@ -138,9 +140,11 @@ export async function POST(req: NextRequest) {
     try {
       const { data: provider } = await supabaseAdmin
         .from('providers')
-        .select('email, first_name, whatsapp_number')
+        .select('email, first_name, whatsapp_number, persona')
         .eq('id', data.providerId)
         .single()
+
+      const isEnquiry = getPersonaConfig(provider?.persona ?? '').contactVariant === 'enquiry'
 
       if (provider?.whatsapp_number) {
         const msg = buildNewBookingMessage({
@@ -151,8 +155,10 @@ export async function POST(req: NextRequest) {
           bookingId:     booking.id,
           customerPhone: data.customerPhone,
         })
-        await sendWhatsAppMessage({ to: provider.whatsapp_number, text: msg })
-        await supabaseAdmin.from('bookings').update({ notification_sent: true }).eq('id', booking.id)
+        const waResult = await sendWhatsAppMessage({ to: provider.whatsapp_number, text: msg })
+        if (waResult.success) {
+          await supabaseAdmin.from('bookings').update({ notification_sent: true }).eq('id', booking.id)
+        }
       }
 
       if (provider?.email) {
@@ -160,14 +166,29 @@ export async function POST(req: NextRequest) {
           ? `<p style="margin:6px 0"><strong>Preferred date:</strong> ${data.preferredDate}${data.preferredSlot ? ` at ${data.preferredSlot}` : ''}</p>` : ''
         const msgLine  = data.message
           ? `<p style="margin:6px 0"><strong>Message:</strong> ${data.message}</p>` : ''
+        const waHref   = waLink(data.customerPhone)
+        const waButton = waHref
+          ? `<a href="${waHref}"
+                style="display:inline-block;background:#25D366;color:#fff;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:600;font-size:14px;margin-right:8px">
+                Reply on WhatsApp →
+              </a>` : ''
+
+        const subject = isEnquiry
+          ? `New enquiry from ${data.customerName}`
+          : `New booking from ${data.customerName}`
+        const heading  = isEnquiry ? 'New enquiry' : 'New booking request'
+        const introLine = isEnquiry
+          ? `Hi ${provider.first_name}, someone sent you an enquiry on Kryla.`
+          : `Hi ${provider.first_name}, someone wants to book with you on Kryla.`
 
         await sendEmail({
           to: provider.email,
-          subject: `New booking from ${data.customerName}`,
+          subject,
+          replyTo: data.customerEmail,
           html: `
             <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#0D0D0D">
-              <p style="font-size:20px;font-weight:700;margin-bottom:4px">New booking request</p>
-              <p style="color:#666;margin-top:0">Hi ${provider.first_name}, someone wants to book with you on Kryla.</p>
+              <p style="font-size:20px;font-weight:700;margin-bottom:4px">${heading}</p>
+              <p style="color:#666;margin-top:0">${introLine}</p>
               <hr style="border:none;border-top:1px solid #E5E5E5;margin:16px 0"/>
               <p style="margin:6px 0"><strong>Name:</strong> ${data.customerName}</p>
               <p style="margin:6px 0"><strong>Email:</strong> ${data.customerEmail ?? '—'}</p>
@@ -176,15 +197,21 @@ export async function POST(req: NextRequest) {
               ${dateLine}
               ${msgLine}
               <hr style="border:none;border-top:1px solid #E5E5E5;margin:16px 0"/>
-              <a href="https://kryla.work/mykryla"
+              ${waButton}<a href="https://kryla.work/mykryla"
                 style="display:inline-block;background:#0D0D0D;color:#fff;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:600;font-size:14px">
-                Accept or decline in MyKryla →
+                Open in MyKryla →
               </a>
             </div>`,
         })
       }
+
+      await sendPush(data.providerId, {
+        title: isEnquiry ? 'New enquiry' : 'New booking',
+        body:  `${data.customerName} · ${data.customerPhone} — tap to reply`,
+        url:   `/mychat?src=pwa&bookingId=${booking.id}`,
+      })
     } catch (err) {
-      console.error('[booking] Member email failed (non-fatal):', err)
+      console.error('[booking] Member notification failed (non-fatal):', err)
     }
 
     return NextResponse.json({ success: true, bookingId: booking.id })

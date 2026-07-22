@@ -13,6 +13,8 @@ interface MyChatHomeProps {
   /** My Tools tile is persona-gated — hidden entirely unless explicitly shown. */
   showToolsTile?: boolean
   toolsTileLabel?: string
+  /** Count of pending enquiries/bookings — shown as a badge on the My Services tile. */
+  pendingEnquiries?: number
   onOpenTile: (tile: MCTile) => void
   onOpenChat: () => void
   onPreview: () => void
@@ -37,6 +39,7 @@ export default function MyChatHome({
   pageLive,
   showToolsTile = false,
   toolsTileLabel,
+  pendingEnquiries = 0,
   onOpenTile,
   onOpenChat,
   onPreview,
@@ -123,6 +126,7 @@ export default function MyChatHome({
               key={tile}
               tile={tile}
               label={tile === 'tools' && toolsTileLabel ? toolsTileLabel : TILE_THEME[tile].label}
+              badge={tile === 'services' && pendingEnquiries > 0 ? pendingEnquiries : undefined}
               onOpen={() => onOpenTile(tile)}
             />
           ))}
@@ -147,15 +151,25 @@ export default function MyChatHome({
   )
 }
 
-function TileCard({ tile, label, onOpen }: { tile: MCTile; label: string; onOpen: () => void }) {
+function TileCard({
+  tile, label, badge, onOpen,
+}: { tile: MCTile; label: string; badge?: number; onOpen: () => void }) {
   const theme = TILE_THEME[tile]
   return (
     <button
       data-tour={`tile-${tile}`}
       onClick={onOpen}
-      className="rounded-2xl p-4 sm:p-5 text-left shadow-md transition-transform hover:scale-[1.02] flex flex-col gap-2.5 min-h-[150px]"
+      className="relative rounded-2xl p-4 sm:p-5 text-left shadow-md transition-transform hover:scale-[1.02] flex flex-col gap-2.5 min-h-[150px]"
       style={{ background: tileGradient(tile) }}
     >
+      {badge !== undefined && (
+        <span
+          className="absolute -top-1.5 -right-1.5 min-w-[1.4rem] h-[1.4rem] px-1 rounded-full bg-mc-accent text-white text-[11px] font-bold flex items-center justify-center shadow-md border-2 border-white"
+          aria-label={`${badge} new enquir${badge === 1 ? 'y' : 'ies'}`}
+        >
+          {badge > 99 ? '99+' : badge}
+        </span>
+      )}
       <span className="text-2xl sm:text-3xl leading-none">{theme.emoji}</span>
       <div>
         <p className="font-extrabold text-sm sm:text-base text-mc-ink">{label}</p>
