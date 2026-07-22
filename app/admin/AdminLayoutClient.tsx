@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 type AuthState = 'loading' | 'login_email' | 'login_code' | 'ready'
@@ -171,21 +172,21 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
             </span>
           </a>
           <span className="text-[#D1D5DB] text-xs">/</span>
-          <a href="/admin" className="text-xs font-semibold text-[#666] hover:text-[#0D0D0D] transition-colors">admin</a>
+          <Link href="/admin" className="text-xs font-semibold text-[#666] hover:text-[#0D0D0D] transition-colors">admin</Link>
 
           {/* Section tabs */}
           <div className="flex items-center gap-1">
             {NAV.map(tab => {
               const active = pathname.startsWith(tab.href)
               return (
-                <a key={tab.href} href={tab.href}
+                <Link key={tab.href} href={tab.href}
                   className={`text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors ${
                     active
                       ? 'bg-[#F5A623] text-[#0D0D0D]'
                       : 'text-[#666] hover:text-[#0D0D0D] hover:bg-[#F5F5F5]'
                   }`}>
                   {tab.label}
-                </a>
+                </Link>
               )
             })}
           </div>
