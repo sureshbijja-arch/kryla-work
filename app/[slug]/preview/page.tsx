@@ -29,7 +29,7 @@ export default async function PreviewPage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, show_sections, sections, draft_data, translations, custom_css, content_overrides')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, show_sections, sections, draft_data, translations')
     .eq('provider_id', provider.id)
     .single()
 
@@ -40,12 +40,6 @@ export default async function PreviewPage({ params }: Props) {
   const draft = (page.draft_data ?? {}) as DraftShape
   const dp    = draft.pages     ?? {}
   const dpr   = draft.providers ?? {}
-
-  // Per-member cosmetic overlay (admin-set) sits between live and draft:
-  // draft (pending edits) always wins in preview, content_overrides fills in
-  // when draft doesn't touch that field. See CLAUDE.md for scope guardrail.
-  const contentOverrides = (page.content_overrides ?? {}) as Partial<Pick<ProfileData, 'headline' | 'subheadline' | 'bio'>>
-  const customCss = typeof page.custom_css === 'string' ? page.custom_css : null
 
   const [avatarRes, galleryRes, menuFilesRes] = await Promise.allSettled([
     supabaseAdmin.from('providers').select('avatar_url, instagram_handle, nextdoor_url').eq('id', provider.id).single(),
@@ -83,9 +77,9 @@ export default async function PreviewPage({ params }: Props) {
     whatsappNumber:  ((dpr.whatsapp_number as string) ?? provider.whatsapp_number) ?? null,
     whatsappPublic: (provider as Record<string, unknown>).whatsapp_public !== false,
     email:        provider.email ?? null,
-    headline:     (dp.headline     as string) ?? contentOverrides.headline    ?? page.headline     ?? '',
-    subheadline:  (dp.subheadline  as string) ?? contentOverrides.subheadline ?? page.subheadline  ?? '',
-    bio:          (dp.bio          as string) ?? contentOverrides.bio         ?? page.bio          ?? '',
+    headline:     (dp.headline     as string) ?? page.headline     ?? '',
+    subheadline:  (dp.subheadline  as string) ?? page.subheadline  ?? '',
+    bio:          (dp.bio          as string) ?? page.bio          ?? '',
     ctaPrimary:   (dp.cta_primary  as string) ?? page.cta_primary  ?? 'Book now',
     ctaSecondary: (dp.cta_secondary as string) ?? page.cta_secondary ?? 'Get in touch',
     services:   Array.isArray(dp.services)   ? dp.services   as ProfileData['services']   : (Array.isArray(page.services)   ? page.services   : []),
@@ -114,15 +108,8 @@ export default async function PreviewPage({ params }: Props) {
   const defaultLang   = (provider.page_language as string) ?? 'en'
   const translations  = (page.translations ?? {}) as Record<string, Record<string, unknown>>
 
-  const providerScopeAttr = `[data-kryla-provider="${provider.id}"]`
-
   return (
-    <div data-kryla-provider={provider.id}>
-      {customCss && (
-        <style
-          dangerouslySetInnerHTML={{ __html: `${providerScopeAttr} { ${customCss} }` }}
-        />
-      )}
+    <div>
       <LanguagePage
         profileData={profileData}
         translations={translations}

@@ -47,13 +47,6 @@ export default function AdminMembersPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<Member | null>(null)
   const [deleteInput, setDeleteInput]     = useState('')
   const [deleting, setDeleting]           = useState(false)
-  const [overridesFor, setOverridesFor]   = useState<Member | null>(null)
-  const [overridesLoading, setOverridesLoading] = useState(false)
-  const [overridesSaving, setOverridesSaving]   = useState(false)
-  const [customCssInput, setCustomCssInput]     = useState('')
-  const [headlineInput, setHeadlineInput]       = useState('')
-  const [subheadlineInput, setSubheadlineInput] = useState('')
-  const [bioInput, setBioInput]                 = useState('')
   const [codesFor, setCodesFor]                   = useState<Member | null>(null)
   const [inviteCodeInput, setInviteCodeInput]     = useState('')
   const [referralCodeInput, setReferralCodeInput] = useState('')
@@ -130,46 +123,6 @@ export default function AdminMembersPage() {
       setError('Delete failed')
     } finally {
       setDeleting(false)
-    }
-  }
-
-  async function openOverrides(member: Member) {
-    setOverridesFor(member)
-    setOverridesLoading(true)
-    setCustomCssInput(''); setHeadlineInput(''); setSubheadlineInput(''); setBioInput('')
-    try {
-      const res = await fetch(`/api/admin/members/${member.id}/overrides`)
-      const data = await res.json()
-      if (res.ok) {
-        setCustomCssInput(data.customCss ?? '')
-        setHeadlineInput(data.contentOverrides?.headline ?? '')
-        setSubheadlineInput(data.contentOverrides?.subheadline ?? '')
-        setBioInput(data.contentOverrides?.bio ?? '')
-      }
-    } finally {
-      setOverridesLoading(false)
-    }
-  }
-
-  async function saveOverrides() {
-    if (!overridesFor) return
-    setOverridesSaving(true); setError('')
-    try {
-      const res = await fetch(`/api/admin/members/${overridesFor.id}/overrides`, {
-        method:  'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({
-          customCss: customCssInput,
-          contentOverrides: { headline: headlineInput, subheadline: subheadlineInput, bio: bioInput },
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok) { setError(data.error ?? 'Save failed'); return }
-      setOverridesFor(null)
-    } catch {
-      setError('Save failed')
-    } finally {
-      setOverridesSaving(false)
     }
   }
 
@@ -270,10 +223,6 @@ export default function AdminMembersPage() {
                         className="text-[10px] font-semibold text-[#666] hover:text-[#0D0D0D] transition-colors">
                         Edit codes
                       </button>
-                      <button onClick={() => openOverrides(m)}
-                        className="text-[10px] font-semibold text-[#666] hover:text-[#0D0D0D] transition-colors">
-                        Overrides
-                      </button>
                       <button onClick={() => { setDeleteConfirm(m); setDeleteInput('') }}
                         className="text-[10px] font-semibold text-red-500 hover:text-red-700 transition-colors">
                         Delete
@@ -299,51 +248,6 @@ export default function AdminMembersPage() {
               className="px-3 py-1.5 rounded-lg font-semibold bg-[#F5F5F5] text-[#666] disabled:opacity-40 disabled:cursor-not-allowed hover:text-[#0D0D0D] transition-colors">
               Next →
             </button>
-          </div>
-        </div>
-      )}
-
-      {overridesFor && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl border border-[#E5E5E5] p-6 max-w-lg w-full max-h-[85vh] overflow-y-auto">
-            <h2 className="text-base font-bold text-[#0D0D0D] mb-1">Overrides — {overridesFor.slug}</h2>
-            <p className="text-xs text-[#666] mb-4">
-              Cosmetic/text exceptions only — styling and copy. Anything implying a new capability or
-              integration should become a persona-level feature instead, not an override here.
-            </p>
-            {overridesLoading ? (
-              <p className="text-sm text-[#999]">Loading…</p>
-            ) : (
-              <div className="space-y-4">
-                <div>
-                  <label className="field-label">Headline override (blank = use normal page value)</label>
-                  <input value={headlineInput} onChange={e => setHeadlineInput(e.target.value)} className="field-input" />
-                </div>
-                <div>
-                  <label className="field-label">Subheadline override</label>
-                  <input value={subheadlineInput} onChange={e => setSubheadlineInput(e.target.value)} className="field-input" />
-                </div>
-                <div>
-                  <label className="field-label">Bio override</label>
-                  <textarea value={bioInput} onChange={e => setBioInput(e.target.value)} rows={3} className="field-input" />
-                </div>
-                <div>
-                  <label className="field-label">Custom CSS (scoped to this member&apos;s page only)</label>
-                  <textarea value={customCssInput} onChange={e => setCustomCssInput(e.target.value)} rows={5}
-                    placeholder=".hero { background: #fafafa; }" className="field-input font-mono" />
-                </div>
-              </div>
-            )}
-            <div className="flex justify-end gap-2 mt-5">
-              <button onClick={() => setOverridesFor(null)}
-                className="px-4 py-2 rounded-lg text-xs font-semibold text-[#666] hover:text-[#0D0D0D] transition-colors">
-                Cancel
-              </button>
-              <button onClick={saveOverrides} disabled={overridesSaving || overridesLoading}
-                className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#0D0D0D] text-white disabled:opacity-60 hover:bg-[#222] transition-colors">
-                {overridesSaving ? 'Saving…' : 'Save overrides'}
-              </button>
-            </div>
           </div>
         </div>
       )}

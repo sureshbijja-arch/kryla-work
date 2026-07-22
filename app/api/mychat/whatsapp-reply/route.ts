@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { createServerClient } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/server'
 
 const schema = z.object({
   providerId:     z.string().uuid(),
@@ -11,7 +11,7 @@ const schema = z.object({
 
 export async function POST(req: NextRequest) {
   // Auth guard — must be signed-in owner
-  const supabase = createServerClient()
+  const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

@@ -63,10 +63,13 @@ export async function middleware(req: NextRequest) {
       }
     }
 
+    const isAdminPath = url.pathname.startsWith('/admin')
+
     if (
       url.pathname.startsWith('/mychat') ||
       url.pathname.startsWith('/mykryla') ||
       url.pathname.startsWith('/print') ||
+      isAdminPath ||
       /^\/[^/]+\/(mychat|mykryla)(\/|$)/.test(url.pathname)
     ) {
       let response = NextResponse.next({ request: { headers: req.headers } })
@@ -97,7 +100,12 @@ export async function middleware(req: NextRequest) {
 
       const { data: { user } } = await supabase.auth.getUser()
 
-      if (!user) {
+      // /admin has its own client-side OTP screen (app/admin/AdminLayoutClient.tsx)
+      // and no /login route of its own — an unauthenticated visitor should fall
+      // through to that screen, not get redirected to the member /login page.
+      // Every other path here (/mychat, /mykryla, /print) does redirect, since
+      // those are member-auth-gated and /login is the correct destination.
+      if (!user && !isAdminPath) {
         url.pathname = '/login'
         return NextResponse.redirect(url)
       }

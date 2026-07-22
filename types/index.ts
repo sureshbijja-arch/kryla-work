@@ -60,7 +60,6 @@ export interface Page {
   seo_title: string
   seo_description: string
   show_sections: Record<string, boolean>
-  custom_css: string | null
   build_version: number
   created_at: string
   updated_at: string

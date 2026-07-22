@@ -49,7 +49,6 @@ create table if not exists pages (
   seo_title       text,
   seo_description text,
   show_sections   jsonb not null default '{}',
-  custom_css      text,
   build_version   int not null default 1,
   created_at      timestamptz not null default now(),
   updated_at      timestamptz not null default now(),
