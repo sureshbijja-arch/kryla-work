@@ -16,6 +16,23 @@ function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
 
 export type PushSupportStatus = 'unsupported' | 'denied' | 'granted' | 'default'
 
+/**
+ * navigator.serviceWorker.ready can hang indefinitely on some browsers
+ * (notably iOS Safari, if the service worker registers but the activation
+ * handshake with this page never completes) — race it against a timeout so
+ * the subscribe flow fails with a clear message instead of an endless
+ * "Turning on…" with no feedback.
+ */
+async function waitForServiceWorker(timeoutMs = 8000): Promise<ServiceWorkerRegistration> {
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error(
+      'Your phone did not finish setting up notifications in time. ' +
+      'Try closing and reopening the app, then try again.',
+    )), timeoutMs),
+  )
+  return Promise.race([navigator.serviceWorker.ready, timeout])
+}
+
 /** Whether this browser/context can support Web Push at all. */
 export function isPushSupported(): boolean {
   return typeof window !== 'undefined' &&
@@ -67,21 +84,27 @@ export async function subscribeToPush(providerId: string): Promise<void> {
     throw new Error('Push notifications aren’t supported on this browser.')
   }
 
+  console.log('[push] 1/5 checking vapid key…')
   const vapidRes = await fetch('/api/push/vapid-key')
   if (!vapidRes.ok) throw new Error('Could not load push configuration.')
   const { publicKey } = await vapidRes.json() as { publicKey: string }
 
+  console.log('[push] 2/5 requesting notification permission…')
   const permission = await Notification.requestPermission()
   if (permission !== 'granted') {
     throw new Error('Notification permission was not granted.')
   }
 
-  const registration = await navigator.serviceWorker.ready
+  console.log('[push] 3/5 waiting for service worker…')
+  const registration = await waitForServiceWorker()
+
+  console.log('[push] 4/5 subscribing via pushManager…')
   const subscription = await registration.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(publicKey),
   })
 
+  console.log('[push] 5/5 saving subscription to server…')
   const res = await fetch('/api/push/subscribe', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -92,6 +115,7 @@ export async function subscribeToPush(providerId: string): Promise<void> {
     console.error('[push] Failed to save subscription:', res.status, body)
     throw new Error('Could not save your subscription — please try again.')
   }
+  console.log('[push] done — subscription saved.')
 }
 
 /** Unsubscribe this device and remove its saved subscription. */
