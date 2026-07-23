@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import "./globals.css"
 import { PHProvider } from "./providers"
+import RegisterServiceWorker from "./RegisterServiceWorker"
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
+        <RegisterServiceWorker />
         <PHProvider>{children}</PHProvider>
       </body>
     </html>
