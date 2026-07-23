@@ -17,7 +17,13 @@ export default function RegisterServiceWorker() {
     if (process.env.NODE_ENV !== 'production') return
     if (!('serviceWorker' in navigator)) return
 
-    navigator.serviceWorker.register('/sw.js', { scope: '/', type: 'module' })
+    // Serwist/webpack bundles app/sw.ts into a single IIFE, not an ES module
+    // (no top-level import/export in the compiled public/sw.js) — registering
+    // it with { type: 'module' } is wrong and can leave the worker stuck
+    // pre-activation on some WebKit/iOS versions instead of erroring loudly,
+    // which is what caused serviceWorker.ready to hang indefinitely.
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then(reg => console.log('[sw] Registered, scope:', reg.scope))
       .catch(err => console.error('[sw] Registration failed:', err))
   }, [])
 
