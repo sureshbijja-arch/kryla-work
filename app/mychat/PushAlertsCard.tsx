@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import {
-  isPushSupported, isStandalone, getPushPermission,
+  isPushSupported, isStandalone, getPushPermission, hasActiveSubscription,
   subscribeToPush, unsubscribeFromPush, type PushSupportStatus,
 } from '@/lib/push/subscribe'
 
@@ -15,16 +15,25 @@ import {
  * points here.
  */
 export default function PushAlertsCard({ providerId }: { providerId: string }) {
-  const [status, setStatus]   = useState<PushSupportStatus>('default')
+  // "On" must reflect a real, saved push subscription — Notification
+  // permission alone can read 'granted' even when the subscribe call or the
+  // save-to-server request failed after the permission prompt, which
+  // previously showed "Phone alerts are on" with nothing actually saved.
+  const [subscribed, setSubscribed] = useState(false)
+  const [permission, setPermission] = useState<PushSupportStatus>('default')
   const [standalone, setStandalone] = useState(true)
   const [isIOS, setIsIOS]     = useState(false)
   const [busy, setBusy]       = useState(false)
+  const [checking, setChecking] = useState(true)
   const [error, setError]     = useState('')
 
   useEffect(() => {
-    setStatus(getPushPermission())
+    setPermission(getPushPermission())
     setStandalone(isStandalone())
     setIsIOS(/iphone|ipad|ipod/i.test(navigator.userAgent))
+    hasActiveSubscription()
+      .then(setSubscribed)
+      .finally(() => setChecking(false))
   }, [])
 
   async function handleEnable() {
@@ -32,7 +41,13 @@ export default function PushAlertsCard({ providerId }: { providerId: string }) {
     setError('')
     try {
       await subscribeToPush(providerId)
-      setStatus('granted')
+      // Re-derive from the real subscription rather than assuming success —
+      // catches the case where subscribeToPush resolves but the device still
+      // has no active subscription for some reason.
+      const active = await hasActiveSubscription()
+      setSubscribed(active)
+      setPermission(getPushPermission())
+      if (!active) setError('Alerts did not turn on — please try again.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not turn on alerts')
     } finally {
@@ -44,11 +59,13 @@ export default function PushAlertsCard({ providerId }: { providerId: string }) {
     setBusy(true)
     try {
       await unsubscribeFromPush(providerId)
-      setStatus('default')
+      setSubscribed(false)
     } finally {
       setBusy(false)
     }
   }
+
+  if (checking) return null
 
   if (!isPushSupported()) return null
 
@@ -67,7 +84,7 @@ export default function PushAlertsCard({ providerId }: { providerId: string }) {
     )
   }
 
-  if (status === 'denied') {
+  if (permission === 'denied') {
     return (
       <div className="flex items-start gap-3 rounded-2xl bg-[#FEF2F2] border border-[#FCD9D9] px-4 py-3.5 mb-4">
         <span className="text-xl shrink-0">🔕</span>
@@ -81,7 +98,7 @@ export default function PushAlertsCard({ providerId }: { providerId: string }) {
     )
   }
 
-  if (status === 'granted') {
+  if (subscribed) {
     return (
       <div className="flex items-center justify-between gap-3 rounded-2xl bg-[#F0FDF4] border border-[#D4F4DD] px-4 py-3.5 mb-4">
         <div className="flex items-center gap-3 min-w-0">

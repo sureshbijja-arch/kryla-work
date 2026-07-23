@@ -31,6 +31,21 @@ export function getPushPermission(): PushSupportStatus {
 }
 
 /**
+ * Whether this device has a real, active push subscription — not just OS
+ * notification permission. Permission can be 'granted' while no subscription
+ * was ever created or saved (e.g. the save-to-server call failed after the
+ * permission prompt), so "alerts are on" must be judged by this, not by
+ * getPushPermission() alone.
+ */
+export async function hasActiveSubscription(): Promise<boolean> {
+  if (!isPushSupported()) return false
+  const registration = await navigator.serviceWorker.getRegistration()
+  if (!registration) return false
+  const subscription = await registration.pushManager.getSubscription()
+  return subscription !== null
+}
+
+/**
  * Whether the app is running installed (standalone) — the iOS prerequisite
  * for push. On Android/desktop this is informational only (push works in a
  * regular browser tab too).
@@ -72,7 +87,11 @@ export async function subscribeToPush(providerId: string): Promise<void> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ providerId, subscription: subscription.toJSON() }),
   })
-  if (!res.ok) throw new Error('Could not save your subscription — please try again.')
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    console.error('[push] Failed to save subscription:', res.status, body)
+    throw new Error('Could not save your subscription — please try again.')
+  }
 }
 
 /** Unsubscribe this device and remove its saved subscription. */
