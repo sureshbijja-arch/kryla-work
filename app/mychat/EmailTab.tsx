@@ -6,7 +6,7 @@
  * Thread list (by customer_email) → conversation view → reply box + Compose.
  * Mirrors MessagesTab.tsx (WhatsApp inbox) in structure and style.
  *
- * Inbound HTML is sanitized via isomorphic-dompurify before render.
+ * Inbound HTML is sanitized via dompurify before render.
  * Attachments show as download chips using signed Supabase Storage URLs.
  *
  * Backend:
@@ -17,8 +17,17 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import DOMPurify from 'isomorphic-dompurify'
+import createDOMPurify from 'dompurify'
 import EmailSettingsTab from './EmailSettingsTab'
+
+// dompurify's default export is a factory that needs a real `window` — construct
+// it lazily in the browser only. This component is 'use client' but Next.js still
+// executes it once during SSR, where `window` doesn't exist; a browser-only DOMPurify
+// avoids the isomorphic-dompurify package's jsdom fallback, whose dependency chain
+// (jsdom -> html-encoding-sniffer -> an ESM-only package) crashes SSR with
+// ERR_REQUIRE_ESM. Inbound HTML is only ever rendered client-side, so no server
+// sanitization is needed.
+const DOMPurify = typeof window !== 'undefined' ? createDOMPurify(window) : null
 
 interface EmailMessage {
   id: string
@@ -506,11 +515,14 @@ export default function EmailTab({ providerId, slug }: Props) {
                   className="email-body-html text-xs leading-relaxed [&_a]:underline [&_a]:text-[#0D0D0D]"
                   // eslint-disable-next-line react/no-danger
                   dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(msg.body_html, {
+                    // DOMPurify is null during SSR (no `window`) — render nothing
+                    // rather than risk emitting unsanitized HTML; the client
+                    // re-render after hydration fills it in sanitized.
+                    __html: DOMPurify ? DOMPurify.sanitize(msg.body_html, {
                       ALLOWED_TAGS: ['p','br','b','strong','i','em','u','ul','ol','li','a','span','div','blockquote','h1','h2','h3','pre','code'],
                       ALLOWED_ATTR: ['href','target','rel','style'],
                       ALLOW_DATA_ATTR: false,
-                    })
+                    }) : ''
                   }}
                 />
               ) : (
