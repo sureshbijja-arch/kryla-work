@@ -84,16 +84,21 @@ export async function subscribeToPush(providerId: string): Promise<void> {
     throw new Error('Push notifications aren’t supported on this browser.')
   }
 
-  console.log('[push] 1/5 checking vapid key…')
-  const vapidRes = await fetch('/api/push/vapid-key')
-  if (!vapidRes.ok) throw new Error('Could not load push configuration.')
-  const { publicKey } = await vapidRes.json() as { publicKey: string }
-
-  console.log('[push] 2/5 requesting notification permission…')
+  // requestPermission() must be called synchronously within the click
+  // handler's call stack — on iOS/WebKit, awaiting anything beforehand
+  // (even a fast fetch) can cause it to lose the "user gesture" context
+  // and hang indefinitely instead of resolving or rejecting. Everything
+  // else that can await safely happens after this.
+  console.log('[push] 1/5 requesting notification permission…')
   const permission = await Notification.requestPermission()
   if (permission !== 'granted') {
     throw new Error('Notification permission was not granted.')
   }
+
+  console.log('[push] 2/5 checking vapid key…')
+  const vapidRes = await fetch('/api/push/vapid-key')
+  if (!vapidRes.ok) throw new Error('Could not load push configuration.')
+  const { publicKey } = await vapidRes.json() as { publicKey: string }
 
   console.log('[push] 3/5 waiting for service worker…')
   const registration = await waitForServiceWorker()
