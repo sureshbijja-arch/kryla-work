@@ -298,10 +298,10 @@ function HeroPhoto({ data }: { data: ProfileData }) {
     <section className="relative overflow-hidden flex flex-col" style={{ minHeight: 'clamp(32rem, 100svh, 100svh)', maxHeight: '100svh' }}>
       <style>{STYLES}</style>
 
-      {/* Background — 'band' fit shows the whole photo un-cropped (color band
-          fills any leftover space) so an off-ratio image (e.g. a wide banner)
-          never gets magnified/cropped to fill the viewport. */}
-      <SmartImg src={bg} fit="band" className="absolute inset-0" />
+      {/* Background — 'cover' fit fills the whole hero edge-to-edge, cropping
+          any overflow from an off-ratio image (centered focus) instead of
+          letterboxing it with color bands. */}
+      <SmartImg src={bg} fit="cover" focus="50% 50%" className="absolute inset-0" />
 
       {/* Scrim */}
       <div className="absolute inset-0 pointer-events-none"

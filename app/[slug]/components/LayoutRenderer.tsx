@@ -54,10 +54,10 @@ export default function LayoutRenderer({ sections, data }: Props) {
 
     return (
       <div key={`bg-${key}`} className="relative overflow-hidden" style={{ ['--sec-custom-bg' as string]: 'transparent' }}>
-        {/* 'band' fit shows the whole background photo un-cropped (color band
-            fills any leftover space) instead of magnifying an off-ratio image
-            to cover the section. */}
-        <SmartImg src={bgCfg.value} fit="band" className="absolute inset-0 pointer-events-none" />
+        {/* 'cover' fit fills the section edge-to-edge, cropping any overflow
+            from an off-ratio image (centered focus) instead of letterboxing
+            it with color bands. */}
+        <SmartImg src={bgCfg.value} fit="cover" focus="50% 50%" className="absolute inset-0 pointer-events-none" />
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(0,0,0,0.42)' }} />
         <div className="relative z-10">{node}</div>
       </div>
