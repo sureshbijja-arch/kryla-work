@@ -72,7 +72,11 @@ export async function middleware(req: NextRequest) {
       isAdminPath ||
       /^\/[^/]+\/(mychat|mykryla)(\/|$)/.test(url.pathname)
     ) {
-      let response = NextResponse.next({ request: { headers: req.headers } })
+      // Build the response ONCE — never rebuild it inside set/remove, or
+      // chunked refresh cookies (sb-<ref>-auth-token.0/.1) get dropped and
+      // the next request's getUser() sees a partial/broken session, 401s,
+      // and bounces the admin panel back to its OTP screen.
+      const response = NextResponse.next({ request: { headers: req.headers } })
       const cookieDomain = hostname.endsWith(APP_DOMAIN) ? `.${APP_DOMAIN}` : undefined
 
       const supabase = createServerClient(
@@ -85,14 +89,12 @@ export async function middleware(req: NextRequest) {
               return req.cookies.get(name)?.value
             },
             set(name: string, value: string, options: CookieOptions) {
-              req.cookies.set(name, value)
-              response = NextResponse.next({ request: { headers: req.headers } })
-              response.cookies.set(name, value, options)
+              req.cookies.set({ name, value, ...options })
+              response.cookies.set({ name, value, ...options })
             },
             remove(name: string, options: CookieOptions) {
-              req.cookies.set(name, '')
-              response = NextResponse.next({ request: { headers: req.headers } })
-              response.cookies.set(name, '', options)
+              req.cookies.set({ name, value: '', ...options })
+              response.cookies.set({ name, value: '', ...options })
             },
           },
         }
