@@ -5,9 +5,10 @@ import type { SectionEntry } from '@/lib/layouts'
 
 const PLAN_RANK: Record<string, number> = { seed: 0, sprout: 1, grow: 2, thrive: 3, elevate: 4 }
 
-const VALID_TEMPLATES = new Set(['focus', 'portfolio', 'storefront', 'clinic'])
-const VALID_PALETTES  = new Set(['professional', 'fresh', 'warm', 'minimal', 'creative', 'calm'])
-const VALID_FONTS     = new Set(['inter', 'georgia', 'trebuchet'])
+const VALID_TEMPLATES    = new Set(['focus', 'portfolio', 'storefront', 'clinic'])
+const VALID_PALETTES     = new Set(['professional', 'fresh', 'warm', 'minimal', 'creative', 'calm'])
+const VALID_FONTS        = new Set(['inter', 'georgia', 'trebuchet'])
+const VALID_DESIGN_MODES = new Set(['craft', 'editorial', 'product'])
 
 export async function POST(req: NextRequest) {
   const supabase = createRouteClient()
@@ -16,14 +17,18 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json() as {
     slug: string; template: string; palette: string; font: string
+    designMode?: string
     sections?: SectionEntry[] | null
   }
-  const { slug, template, palette, font, sections } = body
+  const { slug, template, palette, font, designMode, sections } = body
   if (!slug || !template || !palette || !font)
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
   if (!VALID_TEMPLATES.has(template) || !VALID_PALETTES.has(palette) || !VALID_FONTS.has(font))
     return NextResponse.json({ error: 'Invalid layout values' }, { status: 400 })
+
+  if (designMode !== undefined && !VALID_DESIGN_MODES.has(designMode))
+    return NextResponse.json({ error: 'Invalid design mode' }, { status: 400 })
 
   const { data: provider } = await supabaseAdmin
     .from('providers')
@@ -47,6 +52,7 @@ export async function POST(req: NextRequest) {
   const existing = (currentPage?.draft_data ?? {}) as Partial<DraftShape>
 
   const pageUpdates: Record<string, unknown> = { template, palette, font }
+  if (designMode) pageUpdates.design_mode = designMode
   if (sections && Array.isArray(sections)) pageUpdates.sections = sections
 
   const newDraft: DraftShape = {

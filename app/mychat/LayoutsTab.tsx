@@ -48,6 +48,7 @@ export default function LayoutsTab({
           template: lo.template,
           palette:  lo.palette,
           font:     lo.font,
+          designMode: lo.designMode,
           sections: lo.sections ?? null,
         }),
       })
