@@ -63,19 +63,22 @@ export async function middleware(req: NextRequest) {
       }
     }
 
-    const isAdminPath = url.pathname.startsWith('/admin')
-
+    // /admin has its own client-side OTP screen (app/admin/AdminLayoutClient.tsx)
+    // and does its own session check with the browser Supabase client — it is
+    // deliberately NOT included below. Running a SECOND getUser()/refresh in
+    // this middleware on every admin navigation raced the browser's own
+    // refresh against the same single-use refresh token: whichever side lost
+    // got "Invalid Refresh Token: Already Used" and had its session wiped,
+    // bouncing the admin panel back to the OTP screen on every tab click.
     if (
       url.pathname.startsWith('/mychat') ||
       url.pathname.startsWith('/mykryla') ||
       url.pathname.startsWith('/print') ||
-      isAdminPath ||
       /^\/[^/]+\/(mychat|mykryla)(\/|$)/.test(url.pathname)
     ) {
       // Build the response ONCE — never rebuild it inside set/remove, or
       // chunked refresh cookies (sb-<ref>-auth-token.0/.1) get dropped and
-      // the next request's getUser() sees a partial/broken session, 401s,
-      // and bounces the admin panel back to its OTP screen.
+      // the next request's getUser() sees a partial/broken session, 401s.
       const response = NextResponse.next({ request: { headers: req.headers } })
       const cookieDomain = hostname.endsWith(APP_DOMAIN) ? `.${APP_DOMAIN}` : undefined
 
@@ -102,12 +105,9 @@ export async function middleware(req: NextRequest) {
 
       const { data: { user } } = await supabase.auth.getUser()
 
-      // /admin has its own client-side OTP screen (app/admin/AdminLayoutClient.tsx)
-      // and no /login route of its own — an unauthenticated visitor should fall
-      // through to that screen, not get redirected to the member /login page.
-      // Every other path here (/mychat, /mykryla, /print) does redirect, since
-      // those are member-auth-gated and /login is the correct destination.
-      if (!user && !isAdminPath) {
+      // Every path in this block (/mychat, /mykryla, /print) is member-auth-
+      // gated and /login is the correct destination when unauthenticated.
+      if (!user) {
         url.pathname = '/login'
         return NextResponse.redirect(url)
       }
