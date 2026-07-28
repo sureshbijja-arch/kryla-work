@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { createRouteClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAIL ?? '').split(',').map(e => e.trim()).filter(Boolean)
 
+// TEMP DIAGNOSTIC — remove after root-causing the admin OTP re-login loop.
 async function assertAdmin(): Promise<{ email: string } | NextResponse> {
+  const allCookieNames = cookies().getAll().map(c => c.name)
   const supabase = createRouteClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user }, error } = await supabase.auth.getUser()
+  console.log('[assertAdmin diag]', {
+    allCookieNames,
+    hasUser: !!user,
+    userEmail: user?.email ?? null,
+    getUserError: error?.message ?? null,
+  })
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (!ADMIN_EMAILS.includes(user.email)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   return { email: user.email }
