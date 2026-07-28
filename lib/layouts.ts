@@ -1,6 +1,7 @@
-export type TemplateKey = 'focus' | 'portfolio' | 'storefront' | 'clinic'
-export type PaletteKey  = 'professional' | 'fresh' | 'warm' | 'minimal' | 'creative' | 'calm'
-export type FontKey     = 'inter' | 'georgia' | 'trebuchet'
+export type TemplateKey  = 'focus' | 'portfolio' | 'storefront' | 'clinic'
+export type PaletteKey   = 'professional' | 'fresh' | 'warm' | 'minimal' | 'creative' | 'calm'
+export type FontKey      = 'inter' | 'georgia' | 'trebuchet'
+export type DesignMode   = 'craft' | 'editorial' | 'product'
 
 export interface SectionEntry {
   sectionKey: string
@@ -15,8 +16,12 @@ export interface LayoutOption {
   template:    TemplateKey
   palette:     PaletteKey
   font:        FontKey
+  designMode:  DesignMode
   accent:      string
   bg:          string
+  pageBg:      string
+  surface:     string
+  borderColor: string
   imageUrl:    string | null
   sections:    SectionEntry[] | null
 }
@@ -52,9 +57,15 @@ export const FONT_LABEL: Record<FontKey, string> = {
   trebuchet: 'Modern',
 }
 
+export const DESIGN_MODE_LABEL: Record<DesignMode, string> = {
+  craft:     'Warm',
+  editorial: 'Editorial',
+  product:   'Product',
+}
+
 export const PERSONAS = [
   'tutor', 'trainer', 'baker', 'photographer',
-  'salon', 'chef', 'doctor', 'musician', 'other', 'all',
+  'salon', 'chef', 'doctor', 'musician', 'tiffin', 'physio', 'other', 'all',
 ] as const
 
 export type PersonaKey = typeof PERSONAS[number]
@@ -62,6 +73,10 @@ export type PersonaKey = typeof PERSONAS[number]
 export function enrichLayout(row: {
   id: string; name: string; description: string
   template: string; palette: string; font: string
+  design_mode?: string | null
+  page_bg?: string | null
+  surface?: string | null
+  border_color?: string | null
   image_url?: string | null
   sections?: SectionEntry[] | null
 }): LayoutOption {
@@ -73,8 +88,12 @@ export function enrichLayout(row: {
     template:    row.template as TemplateKey,
     palette,
     font:        row.font as FontKey,
+    designMode:  (row.design_mode as DesignMode) ?? 'craft',
     accent:      ACCENT[palette] ?? '#F5A623',
     bg:          PAGE_BG[palette] ?? '#FFFFFF',
+    pageBg:      row.page_bg      ?? PAGE_BG[palette] ?? '#FFFFFF',
+    surface:     row.surface      ?? '#FFFFFF',
+    borderColor: row.border_color ?? '#E5E5E5',
     imageUrl:    row.image_url ?? null,
     sections:    row.sections ?? null,
   }
