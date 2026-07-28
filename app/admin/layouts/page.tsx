@@ -2,25 +2,29 @@
 
 import { useState, useEffect } from 'react'
 import {
-  ACCENT, PAGE_BG, TEMPLATE_LABEL, FONT_LABEL, PERSONAS,
-  type TemplateKey, type PaletteKey, type FontKey,
+  ACCENT, PAGE_BG, TEMPLATE_LABEL, FONT_LABEL, PERSONAS, DESIGN_MODE_LABEL,
+  type TemplateKey, type PaletteKey, type FontKey, type DesignMode,
 } from '@/lib/layouts'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
 interface Preset {
-  id:          string
-  persona:     string
-  name:        string
-  description: string
-  template:    string
-  palette:     string
-  font:        string
-  sort_order:  number
-  active:      boolean
-  image_url:   string | null
-  sections:    SectionEntry[] | null
-  created_at:  string
+  id:           string
+  persona:      string
+  name:         string
+  description:  string
+  template:     string
+  palette:      string
+  font:         string
+  sort_order:   number
+  active:       boolean
+  image_url:    string | null
+  sections:     SectionEntry[] | null
+  design_mode:  string
+  page_bg:      string
+  surface:      string
+  border_color: string
+  created_at:   string
 }
 
 interface SectionEntry {
@@ -42,6 +46,10 @@ interface FormState {
   template:    string
   palette:     string
   font:        string
+  designMode:  string
+  pageBg:      string
+  surface:     string
+  borderColor: string
   sort_order:  string
   imageUrl:    string
   useSections: boolean
@@ -51,6 +59,7 @@ interface FormState {
 const BLANK_FORM: FormState = {
   persona: 'tutor', name: '', description: '',
   template: 'focus', palette: 'professional', font: 'inter',
+  designMode: 'craft', pageBg: '#FFFFFF', surface: '#FFFFFF', borderColor: '#E5E5E5',
   sort_order: '0', imageUrl: '',
   useSections: false, sections: [],
 }
@@ -103,15 +112,19 @@ export default function AdminLayoutsPage() {
 
   function formPayload(form: FormState) {
     return {
-      persona:     form.persona,
-      name:        form.name,
-      description: form.description,
-      template:    form.template,
-      palette:     form.palette,
-      font:        form.font,
-      sort_order:  Number(form.sort_order),
-      image_url:   form.imageUrl || null,
-      sections:    form.useSections && form.sections.length > 0 ? form.sections : null,
+      persona:      form.persona,
+      name:         form.name,
+      description:  form.description,
+      template:     form.template,
+      palette:      form.palette,
+      font:         form.font,
+      design_mode:  form.designMode,
+      page_bg:      form.pageBg,
+      surface:      form.surface,
+      border_color: form.borderColor,
+      sort_order:   Number(form.sort_order),
+      image_url:    form.imageUrl || null,
+      sections:     form.useSections && form.sections.length > 0 ? form.sections : null,
     }
   }
 
@@ -307,6 +320,10 @@ export default function AdminLayoutsPage() {
                     setEditForm({
                       persona: p.persona, name: p.name, description: p.description,
                       template: p.template, palette: p.palette, font: p.font,
+                      designMode: p.design_mode ?? 'craft',
+                      pageBg: p.page_bg ?? '#FFFFFF',
+                      surface: p.surface ?? '#FFFFFF',
+                      borderColor: p.border_color ?? '#E5E5E5',
                       sort_order: String(p.sort_order), imageUrl: p.image_url ?? '',
                       useSections: hasSections,
                       sections: hasSections ? p.sections! : [],
@@ -443,6 +460,27 @@ function PresetForm({ form, onChange, onUpload, sectionTypes }: {
           <select value={form.font} onChange={e => field('font')(e.target.value)} className="field-input">
             {Object.entries(FONT_LABEL).map(([k, v]) => <option key={k} value={k}>{v} ({k})</option>)}
           </select>
+        </div>
+        <div>
+          <label className="field-label">Design mode</label>
+          <select value={form.designMode} onChange={e => field('designMode')(e.target.value)} className="field-input">
+            {Object.entries(DESIGN_MODE_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="field-label">Page background</label>
+          <input value={form.pageBg} onChange={e => field('pageBg')(e.target.value)}
+            placeholder="#FFFFFF" className="field-input" />
+        </div>
+        <div>
+          <label className="field-label">Surface</label>
+          <input value={form.surface} onChange={e => field('surface')(e.target.value)}
+            placeholder="#FFFFFF" className="field-input" />
+        </div>
+        <div>
+          <label className="field-label">Border colour</label>
+          <input value={form.borderColor} onChange={e => field('borderColor')(e.target.value)}
+            placeholder="#E5E5E5" className="field-input" />
         </div>
         <div>
           <label className="field-label">Sort order</label>

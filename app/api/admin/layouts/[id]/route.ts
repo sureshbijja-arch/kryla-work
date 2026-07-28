@@ -19,7 +19,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const body = await req.json() as Record<string, unknown>
 
-  const allowed = ['persona', 'name', 'description', 'template', 'palette', 'font', 'sort_order', 'active', 'image_url', 'sections']
+  const allowed = ['persona', 'name', 'description', 'template', 'palette', 'font', 'sort_order', 'active', 'image_url', 'sections', 'design_mode', 'page_bg', 'surface', 'border_color']
   const patch = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)))
 
   // If image_url is changing (replace or clear), the previous file is about
