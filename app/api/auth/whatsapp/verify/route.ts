@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHmac } from 'crypto'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { createClient } from '@/lib/supabase/server'
+import { createRouteClient } from '@/lib/supabase/server'
 
 function hashOtp(code: string): string {
   return createHmac('sha256', process.env.OTP_SECRET!)
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Verify the token using the SSR client (sets auth cookies)
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { error: verifyError } = await supabase.auth.verifyOtp({
     token_hash,
     type: 'magiclink',

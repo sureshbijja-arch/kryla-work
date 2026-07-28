@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createRouteClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 
@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   const code = searchParams.get('code')
 
   if (code) {
-    const supabase = createClient()
+    const supabase = createRouteClient()
     const { data } = await supabase.auth.exchangeCodeForSession(code)
     const newEmail = data.user?.email
 

@@ -4,7 +4,7 @@
  * Returns system-seeded + member-owned draft templates for the Studio picker.
  */
 
-import { createClient }  from '@/lib/supabase/server'
+import { createRouteClient }  from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { getAllVerticals } from '@/config/verticals'
 import { NextResponse }  from 'next/server'
@@ -20,7 +20,7 @@ export async function GET(req: Request) {
   if (!VALID_PERSONAS.has(persona)) return NextResponse.json({ error: 'Invalid persona' }, { status: 400 })
 
   // Auth
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

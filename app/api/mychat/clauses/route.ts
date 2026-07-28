@@ -6,7 +6,7 @@
  * DELETE { providerId, clauseId }  → delete member clause
  */
 
-import { createClient }  from '@/lib/supabase/server'
+import { createRouteClient }  from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { getAllVerticals } from '@/config/verticals'
 import { NextResponse }  from 'next/server'
@@ -16,7 +16,7 @@ const VALID_PERSONAS = new Set(getAllVerticals().map(v => v.id))
 const COLS = 'id, provider_id, persona, category, title, body, tags, is_system, created_at'
 
 async function getAuthedProvider(providerId: string) {
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return null
   const { data: provider } = await supabaseAdmin

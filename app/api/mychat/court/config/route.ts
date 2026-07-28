@@ -9,7 +9,7 @@
  *   { enabled: true, portals }   — portals record for the client to build deep-links
  */
 
-import { createClient }  from '@/lib/supabase/server'
+import { createRouteClient }  from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextResponse }  from 'next/server'
 import type { CourtToolsConfig } from '@/lib/ecourts'
@@ -18,7 +18,7 @@ export const revalidate = 0
 
 export async function GET(req: Request) {
   // ── Auth ────────────────────────────────────────────────────────────────────
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

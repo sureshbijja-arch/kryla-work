@@ -1,10 +1,10 @@
-import { createClient } from '@/lib/supabase/server'
+import { createRouteClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 import { logConsentEvent } from '@/lib/consent'
 
 async function getAuthedProvider(providerId: string) {
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return null
   const { data: provider } = await supabaseAdmin
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   if (data && (whatsappConsent ?? false)) {
-    const { data: { user } } = await createClient().auth.getUser()
+    const { data: { user } } = await createRouteClient().auth.getUser()
     void logConsentEvent(supabaseAdmin, {
       providerId,
       studentId: data.id,
@@ -176,7 +176,7 @@ export async function PATCH(req: Request) {
 
   // Log consent change if whatsappConsent changed
   if ('whatsappConsent' in fields && fields.whatsappConsent !== priorConsent) {
-    const { data: { user } } = await createClient().auth.getUser()
+    const { data: { user } } = await createRouteClient().auth.getUser()
     const consentEvent = fields.whatsappConsent ? 'granted' : 'withdrawn'
     void logConsentEvent(supabaseAdmin, {
       providerId,

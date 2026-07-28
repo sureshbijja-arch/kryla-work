@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createRouteClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { sendEmail } from '@/lib/email'
 import { getPlanGate } from '@/lib/plans'
@@ -173,7 +173,7 @@ RULES
 - For subject questions, research tasks, practice problems, lesson planning, competitor analysis, or industry trends: set suggest_research:true and warmly hand off to Research — never refuse or answer those yourself`
 
 export async function POST(req: Request) {
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

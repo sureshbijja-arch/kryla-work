@@ -9,7 +9,7 @@
  * PATCH body: { providerId: string, cause_list_alerts_enabled: boolean }
  */
 
-import { createClient }  from '@/lib/supabase/server'
+import { createRouteClient }  from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextResponse }  from 'next/server'
 import type { CourtToolsConfig } from '@/lib/ecourts'
@@ -56,7 +56,7 @@ async function resolveProvider(email: string, providerId: string) {
 // ── GET ───────────────────────────────────────────────────────────────────────
 
 export async function GET(req: Request) {
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -77,7 +77,7 @@ export async function GET(req: Request) {
 // ── PATCH ─────────────────────────────────────────────────────────────────────
 
 export async function PATCH(req: Request) {
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

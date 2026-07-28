@@ -27,7 +27,7 @@
  * Rate limit: studio_usage table, STUDIO_DAILY_LIMIT env var (default 20).
  */
 
-import { createClient }                 from '@/lib/supabase/server'
+import { createRouteClient }                 from '@/lib/supabase/server'
 import { supabaseAdmin }                from '@/lib/supabase/admin'
 import { getPlanGate }                  from '@/lib/plans'
 import { getPersonaStudioConfig }       from '@/lib/personas'
@@ -44,7 +44,7 @@ const STREAMING_ACTIONS = new Set(['continue', 'brainstorm'])
 
 export async function POST(req: Request) {
   // ── Auth ──────────────────────────────────────────────────────────────────
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

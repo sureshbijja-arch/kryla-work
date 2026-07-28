@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createRouteClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { SectionEntry } from '@/lib/layouts'
 
@@ -10,7 +10,7 @@ const VALID_PALETTES  = new Set(['professional', 'fresh', 'warm', 'minimal', 'cr
 const VALID_FONTS     = new Set(['inter', 'georgia', 'trebuchet'])
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

@@ -1,11 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
+import { createRouteClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { transcribeAudio, TranscribeError } from '@/lib/transcribe'
 
 const MAX_BYTES = 4 * 1024 * 1024 // 4 MB — well under Vercel's 4.5 MB body limit
 
 export async function POST(req: Request) {
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

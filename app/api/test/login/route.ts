@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { createClient } from '@/lib/supabase/server'
+import { createRouteClient } from '@/lib/supabase/server'
 
 /**
  * E2E TEST-ONLY LOGIN BYPASS — mints a real Supabase session without an email round-trip.
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
   // Verify via the SSR client (from lib/supabase/server.ts) so it sets auth cookies on the
   // response through Next's cookies() adapter — reusing the established pattern rather than
   // reimplementing cookie handling.
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { error: verifyError } = await supabase.auth.verifyOtp({
     token_hash,
     type: 'magiclink',

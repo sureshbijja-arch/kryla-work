@@ -3,7 +3,7 @@
  * Each helper verifies provider ownership before returning data.
  */
 
-import { createClient }  from '@/lib/supabase/server'
+import { createRouteClient }  from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { Letterhead, ProviderMeta, DocumentData, CaseSheetData, ConsultationData, HearingsData } from './template'
 
@@ -12,7 +12,7 @@ import type { Letterhead, ProviderMeta, DocumentData, CaseSheetData, Consultatio
 export async function getAuthedProviderForPrint(providerId: string): Promise<{
   provider: ProviderMeta & { id: string; persona: string; letterhead: Letterhead | null }
 } | null> {
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return null
 

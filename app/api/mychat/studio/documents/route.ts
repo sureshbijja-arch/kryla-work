@@ -10,7 +10,7 @@
  * DELETE ?providerId=&id=  → delete
  */
 
-import { createClient }  from '@/lib/supabase/server'
+import { createRouteClient }  from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { NextResponse }  from 'next/server'
 
@@ -36,7 +36,7 @@ export async function GET(req: Request) {
 
   if (!providerId) return NextResponse.json({ error: 'Missing providerId' }, { status: 400 })
 
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -72,7 +72,7 @@ export async function GET(req: Request) {
 
 // ── POST ──────────────────────────────────────────────────────────────────────
 export async function POST(req: Request) {
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -106,7 +106,7 @@ export async function POST(req: Request) {
 
 // ── PATCH ─────────────────────────────────────────────────────────────────────
 export async function PATCH(req: Request) {
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -159,7 +159,7 @@ export async function DELETE(req: Request) {
 
   if (!providerId || !id) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

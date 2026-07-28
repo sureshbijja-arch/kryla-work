@@ -8,7 +8,7 @@
  * Returns: binary .docx stream
  */
 
-import { createClient }     from '@/lib/supabase/server'
+import { createRouteClient }     from '@/lib/supabase/server'
 import { supabaseAdmin }    from '@/lib/supabase/admin'
 import { tiptapJsonToDocx } from '@/lib/docx/export'
 import { NextResponse }     from 'next/server'
@@ -17,7 +17,7 @@ export const maxDuration = 30
 
 export async function POST(req: Request) {
   // ── Auth ──────────────────────────────────────────────────────────────────
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

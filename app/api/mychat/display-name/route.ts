@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { createClient } from '@/lib/supabase/server'
+import { createRouteClient } from '@/lib/supabase/server'
 
 async function assertOwner(providerId: string, userEmail: string) {
   const { data } = await supabaseAdmin
@@ -14,7 +14,7 @@ async function assertOwner(providerId: string, userEmail: string) {
 
 // POST — update the display name shown in the hero (writes first_name / last_name)
 export async function POST(req: NextRequest) {
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

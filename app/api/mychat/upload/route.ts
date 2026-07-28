@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createRouteClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { deleteStorageFile } from '@/lib/storage'
 import { normalizeImage } from '@/lib/imageNormalize'
@@ -17,7 +17,7 @@ const ALLOWED_TYPES: Record<string, string> = {
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -167,7 +167,7 @@ async function assertOwnership(userEmail: string, slug: string) {
 // gallery: removes `url` from pages.gallery and deletes the file.
 // service: deletes the file only (caller manages pages.services via /api/mychat/services).
 export async function DELETE(req: NextRequest) {
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -221,7 +221,7 @@ export async function DELETE(req: NextRequest) {
 // PATCH — full-array replace, used for gallery reorder. Body: { slug, gallery: string[] }
 // Matches the "whole array overwrite on Save" convention used by services/sections.
 export async function PATCH(req: NextRequest) {
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

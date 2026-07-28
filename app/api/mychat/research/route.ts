@@ -13,7 +13,7 @@
  * Rate-limited: RESEARCH_DAILY_LIMIT calls/day per member (default 10).
  */
 
-import { createClient } from '@/lib/supabase/server'
+import { createRouteClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { getPlanGate } from '@/lib/plans'
 import { buildResearchSystemPrompt, inferCity, inferCountry } from '@/lib/researchPrompt'
@@ -61,7 +61,7 @@ function extractText(content: any[]): string {
 // ── Route ───────────────────────────────────────────────────────────────────
 export async function POST(req: Request) {
   // ── Auth ──────────────────────────────────────────────────────────────────
-  const supabase = createClient()
+  const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
