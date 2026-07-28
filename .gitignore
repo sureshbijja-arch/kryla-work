@@ -24,3 +24,6 @@ tests/e2e/.auth/
 
 # Local git worktrees
 .worktrees/
+
+# Visual-companion brainstorm scratch (superpowers:brainstorming skill)
+.superpowers/
