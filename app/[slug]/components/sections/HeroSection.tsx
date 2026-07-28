@@ -287,7 +287,7 @@ function HeroPhoto({ data }: { data: ProfileData }) {
   }, [])
 
   const { firstName, lastName, location, whatsappNumber, headline, subheadline,
-    ctaPrimary, ctaSecondary, showSections, avatarUrl, gallery, persona } = data
+    ctaPrimary, ctaSecondary, showSections, avatarUrl, gallery, persona, heroFitCropTolerance } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
   const pcfg = getPersonaConfig(persona)
@@ -298,10 +298,12 @@ function HeroPhoto({ data }: { data: ProfileData }) {
     <section className="relative overflow-hidden flex flex-col" style={{ minHeight: 'clamp(32rem, 100svh, 100svh)', maxHeight: '100svh' }}>
       <style>{STYLES}</style>
 
-      {/* Background — 'cover' fit fills the whole hero edge-to-edge, cropping
-          any overflow from an off-ratio image (centered focus) instead of
-          letterboxing it with color bands. */}
-      <SmartImg src={bg} fit="cover" focus="50% 50%" className="absolute inset-0" />
+      {/* Background — 'auto' fit fills the hero edge-to-edge like cover for a
+          normal photo, but automatically switches to a blurred-fill backdrop
+          (whole image, blurred zoomed copy behind it) when the image's ratio
+          is far enough from the hero's that cover would crop it heavily —
+          e.g. an ultra-wide banner photo on a tall phone hero. */}
+      <SmartImg src={bg} fit="auto" focus="50% 50%" cropTolerance={heroFitCropTolerance} className="absolute inset-0" />
 
       {/* Scrim */}
       <div className="absolute inset-0 pointer-events-none"

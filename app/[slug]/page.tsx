@@ -13,6 +13,7 @@ import AdvocateComplianceFooter from './components/AdvocateComplianceFooter'
 import PwaActionBar from './components/PwaActionBar'
 import InstallBanner from '@/components/InstallBanner'
 import { getComplianceCopy } from '@/lib/compliance'
+import { getHeroFitCropTolerance } from '@/lib/heroFit'
 import type { SectionEntry } from './components/LayoutRenderer'
 import {
   buildEntityJsonLd, buildAggregateRating, buildOpeningHours, buildFaqJsonLd,
@@ -126,6 +127,7 @@ export default async function MemberProfilePage({ params }: Props) {
     supabaseAdmin.from('providers').select('business_hours').eq('id', provider.id).single(),
     supabaseAdmin.from('reviews').select('rating, status').eq('provider_id', provider.id),
   ])
+  const heroFitCropTolerance = await getHeroFitCropTolerance()
 
   const providerExtra   = avatarRes.status === 'fulfilled' ? (avatarRes.value.data as Record<string, unknown> | null) : null
   const avatarUrl       = (providerExtra?.avatar_url       as string | null) ?? null
@@ -180,6 +182,7 @@ export default async function MemberProfilePage({ params }: Props) {
     nextdoorUrl,
     businessHours,
     verified: provider.verified === true,
+    heroFitCropTolerance,
   }
 
   const entityType = page.schema_type || 'Person'

@@ -116,6 +116,7 @@ export interface ProfileData {
   ads?: Ad[]
   businessHours?: BusinessHours | null
   verified?: boolean
+  heroFitCropTolerance?: number
 }
 
 export const ACCENT: Record<PaletteKey, string> = {

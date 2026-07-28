@@ -54,10 +54,11 @@ export default function LayoutRenderer({ sections, data }: Props) {
 
     return (
       <div key={`bg-${key}`} className="relative overflow-hidden" style={{ ['--sec-custom-bg' as string]: 'transparent' }}>
-        {/* 'cover' fit fills the section edge-to-edge, cropping any overflow
-            from an off-ratio image (centered focus) instead of letterboxing
-            it with color bands. */}
-        <SmartImg src={bgCfg.value} fit="cover" focus="50% 50%" className="absolute inset-0 pointer-events-none" />
+        {/* 'auto' fit fills the section edge-to-edge like cover for a normal
+            photo, but automatically switches to a blurred-fill backdrop when
+            the image's ratio is far enough from the section's that cover
+            would crop it heavily — same behavior as the hero background. */}
+        <SmartImg src={bgCfg.value} fit="auto" focus="50% 50%" cropTolerance={data.heroFitCropTolerance} className="absolute inset-0 pointer-events-none" />
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(0,0,0,0.42)' }} />
         <div className="relative z-10">{node}</div>
       </div>

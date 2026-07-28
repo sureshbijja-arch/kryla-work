@@ -5,6 +5,7 @@ import type { ProfileData, PaletteKey, FontKey, DesignMode, ShowSections } from 
 import AdsScroller from '../components/AdsScroller'
 import LanguagePage from '../components/LanguagePage'
 import type { SectionEntry } from '../components/LayoutRenderer'
+import { getHeroFitCropTolerance } from '@/lib/heroFit'
 
 // Always renders fresh from DB — never cached. Used as the draft preview.
 export const dynamic = 'force-dynamic'
@@ -54,6 +55,7 @@ export default async function PreviewPage({ params }: Props) {
   const galleryRaw      = galleryRes.status    === 'fulfilled' ? (galleryRes.value.data?.gallery    ?? [])   : []
   const gallery         = Array.isArray(galleryRaw) ? (galleryRaw as string[]) : []
   const liveMenuRaw     = menuFilesRes.status  === 'fulfilled' ? (menuFilesRes.value.data as Record<string, unknown> | null)?.menu_files : undefined
+  const heroFitCropTolerance = await getHeroFitCropTolerance()
 
   const defaultShowSections: ShowSections = {
     hero: true, services: true, highlights: true,
@@ -98,6 +100,7 @@ export default async function PreviewPage({ params }: Props) {
     })(),
     instagramHandle,
     nextdoorUrl,
+    heroFitCropTolerance,
   }
 
   const isTutor       = provider.persona === 'tutor'
