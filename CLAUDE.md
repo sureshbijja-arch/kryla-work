@@ -258,6 +258,40 @@ Two studio implementations — different use cases:
 
 ## Design System
 
+### UI work — required workflow
+
+**For any aesthetic / visual UI work, `frontend-design` is invoked FIRST** — before writing
+any component code. This applies across **all member personas** (all 46) and every surface:
+member pages, the MyKryla dashboard, and the landing page (sections, templates, components,
+CSS). It is the one rule that was missing when the salon redesign shipped the AI-default look
+(cream + amber + serif) — salon is only the cautionary example here, not the scope.
+
+1. **Invoke `frontend-design` before writing UI code.** Treat it as a design studio, not a
+   codegen step: pin the subject (the specific persona + the page's single job), ground
+   palette / type / layout in *that persona's* real materials — a tiffin service, a physio
+   clinic, and an advocate should each feel unmistakably their own — and spend boldness on ONE
+   signature element while keeping everything else quiet. When a change spans many personas,
+   prove the method end-to-end on the 3 focus personas first (Tiffin, Salon, Physio) as a
+   sequencing step, then extend the same discipline to the rest — this is ordering, not a
+   limit on which personas the rule covers.
+
+2. **Respect the existing system — don't reinvent it.** Type scale, spacing, radii, and motion
+   come from the `[data-mode]` CSS custom properties in `app/globals.css` and the token
+   extensions in `tailwind.config.ts`. Per-member brand is the DB-stored theme (accent as
+   inline `--color-accent*` vars on `LayoutRenderer`). New curated theme data is config → it
+   lives in Supabase, never hardcoded in source (the no-hardcoding rule).
+
+3. **Pass the audit before "done" — evidence, not assertion.** Drive the real page and verify;
+   don't just typecheck:
+   - **Lighthouse** (chrome-devtools MCP `lighthouse_audit`): accessibility ≥ 95, no Core Web
+     Vitals regressions.
+   - **WCAG checklist:** text contrast ≥ 4.5:1 (3:1 for large / UI), every interactive element
+     has a visible keyboard-focus state, all animation gated behind `prefers-reduced-motion`,
+     tap targets ≥ 44×44px.
+   - **Visual proof** (playwright MCP): screenshot the live page at mobile width.
+   - Framework specifics (fonts via `next/font`, `next/image`, App Router): confirm against
+     current docs via context7 MCP rather than memory.
+
 ### Design Modes
 Three modes defined in `app/[slug]/types.ts` as `DesignMode = 'craft' | 'editorial' | 'product'`:
 - **craft** — baker, chef, salon, trainer, storefront personas. Warm feel: 4.5rem headline, 5rem section spacing, 1.5rem card radius, pill buttons
