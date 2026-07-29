@@ -26,7 +26,7 @@ interface Props {
 }
 
 export default function LayoutRenderer({ sections, data }: Props) {
-  const accent     = ACCENT[data.palette as PaletteKey]      ?? '#F5A623'
+  const accent     = data.accentColor ?? ACCENT[data.palette as PaletteKey] ?? '#F5A623'
   const bg         = data.pageBg      ?? PAGE_BG[data.palette as PaletteKey] ?? '#FFFFFF'
   const surface    = data.surface     ?? '#FFFFFF'
   const borderCol  = data.borderColor ?? 'var(--kryla-border)'

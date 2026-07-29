@@ -112,7 +112,7 @@ export default async function MemberProfilePage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, page_bg, surface, border_color, show_sections, sections, translations')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, page_bg, surface, border_color, accent_color, show_sections, sections, translations')
     .eq('provider_id', provider.id)
     .single()
 
@@ -177,6 +177,7 @@ export default async function MemberProfilePage({ params }: Props) {
     pageBg:      (page.page_bg      as string | null) ?? null,
     surface:     (page.surface      as string | null) ?? null,
     borderColor: (page.border_color as string | null) ?? null,
+    accentColor: (page.accent_color as string | null) ?? null,
     showSections,
     avatarUrl,
     gallery,
@@ -218,7 +219,7 @@ export default async function MemberProfilePage({ params }: Props) {
   const isTutor       = provider.persona === 'tutor'
   const defaultLang   = (provider.page_language as string) ?? 'en'
   const translations  = (page.translations ?? {}) as Record<string, Record<string, unknown>>
-  const accentColor   = ACCENT[(page.palette as PaletteKey)] ?? '#F5A623'
+  const accentColor   = (page.accent_color as string | null) ?? ACCENT[(page.palette as PaletteKey)] ?? '#F5A623'
 
   // Check global client_intake kill-switch — defaults to enabled when row is absent
   const { data: cfgRow } = await supabaseAdmin

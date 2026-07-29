@@ -30,7 +30,7 @@ export default async function PreviewPage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, page_bg, surface, border_color, show_sections, sections, draft_data, translations')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, page_bg, surface, border_color, accent_color, show_sections, sections, draft_data, translations')
     .eq('provider_id', provider.id)
     .single()
 
@@ -93,6 +93,7 @@ export default async function PreviewPage({ params }: Props) {
     pageBg:      ((dp.page_bg      as string) ?? (page.page_bg      as string)) ?? null,
     surface:     ((dp.surface      as string) ?? (page.surface      as string)) ?? null,
     borderColor: ((dp.border_color as string) ?? (page.border_color as string)) ?? null,
+    accentColor: ((dp.accent_color as string) ?? (page.accent_color as string)) ?? null,
     showSections,
     avatarUrl,
     gallery,

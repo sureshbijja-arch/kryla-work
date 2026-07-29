@@ -112,6 +112,7 @@ export interface ProfileData {
   pageBg?: string | null
   surface?: string | null
   borderColor?: string | null
+  accentColor?: string | null
   showSections: ShowSections
   avatarUrl?: string | null
   gallery?: string[]
