@@ -39,7 +39,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        inter:     ["Inter", "sans-serif"],
+        inter:     ["var(--font-inter)", "Inter", "sans-serif"],
+        fraunces:  ["var(--font-fraunces)", "Fraunces", "serif"],
         georgia:   ["Georgia", "serif"],
         trebuchet: ["Trebuchet MS", "sans-serif"],
       },

@@ -1,7 +1,21 @@
 import type { Metadata, Viewport } from "next"
+import { Fraunces, Inter } from "next/font/google"
 import "./globals.css"
 import { PHProvider } from "./providers"
 import RegisterServiceWorker from "./RegisterServiceWorker"
+
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  variable: '--font-fraunces',
+  display: 'swap',
+  axes: ['opsz'],
+})
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+})
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -26,7 +40,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${fraunces.variable} ${inter.variable}`}>
       <body>
         <RegisterServiceWorker />
         <PHProvider>{children}</PHProvider>
