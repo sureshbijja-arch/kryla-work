@@ -7,23 +7,25 @@
   --amber-brand:   #F5A623;
   --amber-dark:    #C17A3A;
   --kryla-dark:    #0D0D0D;
-  --kryla-bg:      #FAFAFA;
-  --kryla-muted:   #666666;
+  --kryla-bg:      #FAFAF9;   /* was #FAFAFA — cool-ivory canvas */
+  --kryla-muted:   #6b6259;   /* was #666666 — warmer-neutral muted text */
   --kryla-body:    #444444;
-  --kryla-border:  #E5E5E5;
+  --kryla-border:  #ECECEA;   /* was #E5E5E5 — hairline, matches layout_presets border_color default */
   --kryla-success: #22C55E;
 
   /* Design system defaults (craft) — overridden by [data-mode] below */
-  --type-display:    clamp(2.5rem, 8vw, 4.5rem);
-  --type-heading:    clamp(1.5rem, 4vw, 2.25rem);
-  --type-subheading: 1.25rem;
-  --type-body:       1rem;
-  --type-label:      0.6875rem;
-  --fw-display:      900;
-  --space-section:   5rem;
-  --space-card:      1.75rem;
-  --radius-card:     1.5rem;
-  --radius-btn:      9999px;
+  --type-display:     clamp(2.5rem, 8vw, 4.5rem);
+  --type-heading:     clamp(1.5rem, 4vw, 2.25rem);
+  --type-subheading:  1.25rem;
+  --type-body:        1rem;
+  --type-label:       0.6875rem;
+  --font-display:     var(--font-fraunces), Fraunces, serif;
+  --font-heading:     var(--font-fraunces), Fraunces, serif;
+  --fw-display:       500;   /* was 900 — Fraunces reads better at medium weight, not black */
+  --space-section:    5rem;
+  --space-card:       1.75rem;
+  --radius-card:      1.25rem;  /* was 1.5rem — slightly tighter, cool-ivory reads crisper than warm-paper */
+  --radius-btn:       9999px;
 
   /* Dynamic accent tokens — set as inline style on LayoutRenderer wrapper */
   --color-accent:         #F5A623;
@@ -34,44 +36,49 @@
   /* ── My Chat redesign — "Kryla brand + russet" tokens (--mc-* namespace) ──
      Strictly separate from --color-accent-* above (those are mutated per
      public member page via inline styles on LayoutRenderer). These drive
-     only the member dashboard (app/mychat/*) tile-launcher UI. */
+     only the member dashboard (app/mychat/*) tile-launcher UI. NOT part of
+     this design refresh — dashboard is out of scope. */
   --mc-header-from: #1A1A1A;
   --mc-header-to:   #0D0D0D;
   --mc-canvas:      #FAFAFA;
   --mc-accent:      #F5A623;
   --mc-tile-ink:    #ffffff;
 
-  --mc-tile-page-from:     #B4785E; /* rosewood — My Page */
+  --mc-tile-page-from:     #B4785E;
   --mc-tile-page-to:       #C79680;
-  --mc-tile-services-from: #9A5A46; /* russet — My Services */
+  --mc-tile-services-from: #9A5A46;
   --mc-tile-services-to:   #B4735C;
-  --mc-tile-plan-from:     #7C463A; /* oxblood — My Plan */
+  --mc-tile-plan-from:     #7C463A;
   --mc-tile-plan-to:       #96604F;
-  --mc-tile-tools-from:    #C29277; /* clay — My Tools */
+  --mc-tile-tools-from:    #C29277;
   --mc-tile-tools-to:      #D4AA92;
 }
 
-/* ── craft — baker, chef, salon, trainer ────────────────────────────────── */
+/* ── craft — baker, chef, salon, trainer, tiffin ────────────────────────── */
 [data-mode='craft'] {
   --type-display:    clamp(2.5rem, 8vw, 4.5rem);
   --type-heading:    clamp(1.5rem, 4vw, 2.25rem);
   --type-subheading: 1.25rem;
-  --fw-display:      900;
+  --font-display:    var(--font-fraunces), Fraunces, serif;
+  --font-heading:    var(--font-fraunces), Fraunces, serif;
+  --fw-display:      500;
   --space-section:   5rem;
   --space-card:      1.75rem;
-  --radius-card:     1.5rem;
+  --radius-card:     1.25rem;
   --radius-btn:      9999px;
 }
 
-/* ── editorial — photographer, doctor, musician, tutor ──────────────────── */
+/* ── editorial — photographer, doctor, musician, tutor, physio ──────────── */
 [data-mode='editorial'] {
   --type-display:    clamp(3rem, 10vw, 6rem);
   --type-heading:    clamp(1.75rem, 4vw, 2.75rem);
   --type-subheading: 1.125rem;
-  --fw-display:      900;
+  --font-display:    var(--font-fraunces), Fraunces, serif;
+  --font-heading:    var(--font-fraunces), Fraunces, serif;
+  --fw-display:      500;
   --space-section:   6.5rem;
   --space-card:      2rem;
-  --radius-card:     1rem;
+  --radius-card:     0.875rem;
   --radius-btn:      0.75rem;
 }
 
@@ -80,7 +87,9 @@
   --type-display:    clamp(2rem, 6vw, 3.5rem);
   --type-heading:    clamp(1.25rem, 3vw, 1.875rem);
   --type-subheading: 1rem;
-  --fw-display:      800;
+  --font-display:    var(--font-fraunces), Fraunces, serif;
+  --font-heading:    var(--font-fraunces), Fraunces, serif;
+  --fw-display:      500;
   --space-section:   4rem;
   --space-card:      1.25rem;
   --radius-card:     0.75rem;
@@ -221,3 +230,7 @@ body {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ── Design-token font-family utilities (Task B2) ─────────────────────── */
+.font-display-token { font-family: var(--font-display); }
+.font-heading-token  { font-family: var(--font-heading); }
