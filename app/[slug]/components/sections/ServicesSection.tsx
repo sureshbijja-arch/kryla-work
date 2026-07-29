@@ -55,7 +55,7 @@ function Features({ data }: { data: ProfileData }) {
   const [hovered, setHovered] = useState<number | null>(null)
 
   return (
-    <section className="border-t border-[#E5E5E5]"
+    <section className="border-t border-[var(--kryla-border)]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-2xl mx-auto px-6">
         <div className="flex items-center justify-between mb-8">
@@ -149,7 +149,7 @@ function Grid({ data }: { data: ProfileData }) {
   const cfg = getPersonaConfig(persona)
 
   return (
-    <section className="border-t border-[#E5E5E5]"
+    <section className="border-t border-[var(--kryla-border)]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto px-6">
         <SectionLabel text={cfg.servicesLabel} />
@@ -214,7 +214,7 @@ function Menu({ data }: { data: ProfileData }) {
 
   return (
     <>
-      <section id="menu" className="border-t border-[#E5E5E5]"
+      <section id="menu" className="border-t border-[var(--kryla-border)]"
         style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
         <div className="max-w-2xl mx-auto px-6">
           <SectionLabel text={cfg.servicesLabel} />
@@ -312,7 +312,7 @@ function Pricing({ data }: { data: ProfileData }) {
   const [hov, setHov] = useState<number | null>(null)
 
   return (
-    <section id="book" className="border-t border-[#E5E5E5]"
+    <section id="book" className="border-t border-[var(--kryla-border)]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto px-6">
         <SectionLabel text={cfg.servicesLabel} />
@@ -378,13 +378,13 @@ function List({ data }: { data: ProfileData }) {
   const cfg = getPersonaConfig(persona)
 
   return (
-    <section className="border-t border-[#E5E5E5]"
+    <section className="border-t border-[var(--kryla-border)]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-2xl mx-auto px-6">
         <SectionLabel text={cfg.servicesLabel} />
         <div className="space-y-5">
           {services.map((s, i) => (
-            <div key={i} className="flex items-start gap-4 cursor-default pb-5 border-b border-[#F0F0F0] last:border-0 last:pb-0">
+            <div key={i} className="flex items-start gap-4 cursor-default pb-5 border-b border-[var(--kryla-border)] last:border-0 last:pb-0">
               {s.image_url && (
                 <div className="shrink-0 w-14 h-14 overflow-hidden rounded-xl">
                   <SmartImg src={s.image_url} alt={s.name} className="w-full h-full" />

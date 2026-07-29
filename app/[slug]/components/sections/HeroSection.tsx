@@ -344,8 +344,8 @@ function HeroPhoto({ data }: { data: ProfileData }) {
           </p>
           {persona === 'advocate' && data.verified && <VerifiedChip dark />}
         </div>
-        <h1 className="h-up h-up-2 font-black text-white leading-[1.04] tracking-tight mb-5"
-          style={{ fontSize: 'var(--type-display)' }}>
+        <h1 className="h-up h-up-2 font-display-token text-white leading-[1.04] tracking-tight mb-5"
+          style={{ fontSize: 'var(--type-display)', fontWeight: 'var(--fw-display)' }}>
           {headline}
         </h1>
         <p className="h-up h-up-3 text-white/70 leading-relaxed mb-10 max-w-md"
@@ -525,8 +525,8 @@ function HeroDark({ data, framesConfig, accent = '#F5A623' }: { data: ProfileDat
           </p>
           {persona === 'advocate' && data.verified && <VerifiedChip dark />}
         </div>
-        <h1 className="h-up h-up-2 font-black text-white leading-[1.04] tracking-tight mb-5"
-          style={{ fontSize: 'var(--type-display)' }}>
+        <h1 className="h-up h-up-2 font-display-token text-white leading-[1.04] tracking-tight mb-5"
+          style={{ fontSize: 'var(--type-display)', fontWeight: 'var(--fw-display)' }}>
           {headline}
         </h1>
         <p className="h-up h-up-3 text-white/35 leading-relaxed mb-10 max-w-md"
@@ -591,8 +591,8 @@ function HeroGradient({ data }: { data: ProfileData }) {
           </div>
           {persona === 'advocate' && data.verified && <VerifiedChip />}
         </div>
-        <h1 className="h-up h-up-2 font-black text-[#0D0D0D] leading-[1.04] tracking-tight mb-5"
-          style={{ fontSize: 'var(--type-display)' }}>
+        <h1 className="h-up h-up-2 font-display-token text-[#0D0D0D] leading-[1.04] tracking-tight mb-5"
+          style={{ fontSize: 'var(--type-display)', fontWeight: 'var(--fw-display)' }}>
           {headline}
         </h1>
         <p className="h-up h-up-3 text-[#555] leading-relaxed mb-8 max-w-lg"
@@ -647,8 +647,8 @@ function HeroSplit({ data }: { data: ProfileData }) {
             </div>
             {persona === 'advocate' && data.verified && <VerifiedChip />}
           </div>
-          <h1 className="h-up h-up-2 font-black text-[#0D0D0D] leading-[1.04] tracking-tight mb-5"
-            style={{ fontSize: 'var(--type-display)' }}>
+          <h1 className="h-up h-up-2 font-display-token text-[#0D0D0D] leading-[1.04] tracking-tight mb-5"
+            style={{ fontSize: 'var(--type-display)', fontWeight: 'var(--fw-display)' }}>
             {headline}
           </h1>
           <p className="h-up h-up-3 text-[#555] leading-relaxed mb-8 max-w-md"
@@ -726,8 +726,8 @@ function HeroBanner({ data }: { data: ProfileData }) {
       </header>
       <div className="max-w-2xl mx-auto px-6"
         style={{ paddingTop: 'calc(var(--space-section) * .6)', paddingBottom: 'var(--space-section)' }}>
-        <h1 className="h-up font-black text-[#0D0D0D] leading-[1.04] tracking-tight mb-4"
-          style={{ fontSize: 'var(--type-heading)' }}>
+        <h1 className="h-up font-heading-token text-[#0D0D0D] leading-[1.04] tracking-tight mb-4"
+          style={{ fontSize: 'var(--type-heading)', fontWeight: 'var(--fw-display)' }}>
           {headline}
         </h1>
         <p className="h-up h-up-1 text-[#555] leading-relaxed mb-8" style={{ fontSize: 'var(--type-subheading)' }}>
@@ -813,8 +813,8 @@ function HeroCentered({ data, framesConfig }: { data: ProfileData; framesConfig?
           </div>
           {persona === 'advocate' && data.verified && <VerifiedChip />}
         </div>
-        <h1 className="h-up h-up-2 font-black text-[#0D0D0D] leading-[1.04] tracking-tight mb-5 max-w-xl"
-          style={{ fontSize: 'var(--type-display)' }}>
+        <h1 className="h-up h-up-2 font-display-token text-[#0D0D0D] leading-[1.04] tracking-tight mb-5 max-w-xl"
+          style={{ fontSize: 'var(--type-display)', fontWeight: 'var(--fw-display)' }}>
           {headline}
         </h1>
         <p className="h-up h-up-3 text-[#555] leading-relaxed mb-10 max-w-md"
@@ -879,8 +879,8 @@ function HeroMinimal({ data }: { data: ProfileData }) {
           </div>
           {persona === 'advocate' && data.verified && <VerifiedChip />}
         </div>
-        <h1 className="h-up h-up-2 font-black text-[#0D0D0D] leading-[1.04] tracking-tight mb-5"
-          style={{ fontSize: 'var(--type-display)' }}>
+        <h1 className="h-up h-up-2 font-display-token text-[#0D0D0D] leading-[1.04] tracking-tight mb-5"
+          style={{ fontSize: 'var(--type-display)', fontWeight: 'var(--fw-display)' }}>
           {headline}
         </h1>
         <p className="h-up h-up-3 text-[#555] leading-relaxed mb-8"

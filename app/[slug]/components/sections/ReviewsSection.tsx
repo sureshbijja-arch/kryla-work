@@ -104,14 +104,14 @@ export default function ReviewsSection({
       </div>
 
       {showForm && !submitted && (
-        <div className="mb-6 bg-[#F9F9F9] rounded-2xl p-5 border border-[#E5E5E5]">
+        <div className="mb-6 bg-[#F9F9F9] rounded-2xl p-5 border border-[var(--kryla-border)]">
           <ReviewForm form={form} setForm={setForm} onSubmit={submit} submitting={submitting} accentColor={accentColor} />
         </div>
       )}
 
       <div className="space-y-4">
         {reviews.map(r => (
-          <div key={r.id} className="bg-white border border-[#E5E5E5] rounded-2xl p-4">
+          <div key={r.id} className="bg-white border border-[var(--kryla-border)] rounded-2xl p-4">
             <div className="flex items-start justify-between gap-3 mb-2">
               <div>
                 <p className="font-semibold text-sm text-[#0D0D0D]">{r.author_name}</p>
@@ -136,7 +136,7 @@ function ReviewForm({ form, setForm, onSubmit, submitting, accentColor }: {
   submitting: boolean
   accentColor: string
 }) {
-  const inputCls = 'w-full border border-[#E5E5E5] rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]'
+  const inputCls = 'w-full border border-[var(--kryla-border)] rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]'
   return (
     <form onSubmit={onSubmit} className="space-y-3">
       <div>

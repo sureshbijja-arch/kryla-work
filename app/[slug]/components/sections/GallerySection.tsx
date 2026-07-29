@@ -20,7 +20,7 @@ function Featured({ data }: { data: ProfileData }) {
   const [first, ...rest] = gallery
 
   return (
-    <section id="portfolio" className="border-t border-[#E5E5E5]"
+    <section id="portfolio" className="border-t border-[var(--kryla-border)]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto px-6">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">{galleryLabel(data.persona ?? '')}</p>
@@ -50,7 +50,7 @@ function Masonry({ data }: { data: ProfileData }) {
   const gallery = data.gallery ?? []
   if (!gallery.length) return null
   return (
-    <section id="portfolio" className="border-t border-[#E5E5E5]"
+    <section id="portfolio" className="border-t border-[var(--kryla-border)]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto px-6">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">{galleryLabel(data.persona ?? '')}</p>
@@ -73,7 +73,7 @@ function Scroll({ data }: { data: ProfileData }) {
   const gallery = data.gallery ?? []
   if (!gallery.length) return null
   return (
-    <section id="portfolio" className="border-t border-[#E5E5E5]"
+    <section id="portfolio" className="border-t border-[var(--kryla-border)]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto">
         <div className="px-6 mb-6">
@@ -98,7 +98,7 @@ function Grid({ data }: { data: ProfileData }) {
   const gallery = data.gallery ?? []
   if (!gallery.length) return null
   return (
-    <section id="portfolio" className="border-t border-[#E5E5E5]"
+    <section id="portfolio" className="border-t border-[var(--kryla-border)]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto px-6">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">{galleryLabel(data.persona ?? '')}</p>

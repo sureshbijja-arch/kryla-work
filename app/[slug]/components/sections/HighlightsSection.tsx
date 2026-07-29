@@ -67,7 +67,7 @@ function Stats({ data }: { data: ProfileData }) {
   if (!showSections.highlights || !highlights.length) return null
 
   return (
-    <section className="border-t border-[#E5E5E5]"
+    <section className="border-t border-[var(--kryla-border)]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div ref={ref} className="max-w-3xl mx-auto px-6">
@@ -88,7 +88,7 @@ function Cards({ data }: { data: ProfileData }) {
   if (!showSections.highlights || !highlights.length) return null
 
   return (
-    <section className="border-t border-[#E5E5E5]"
+    <section className="border-t border-[var(--kryla-border)]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div ref={ref} className="max-w-3xl mx-auto px-6">
@@ -119,7 +119,7 @@ function Strip({ data }: { data: ProfileData }) {
   const { highlights, showSections } = data
   if (!showSections.highlights || !highlights.length) return null
   return (
-    <section className="border-t border-[#E5E5E5] overflow-hidden"
+    <section className="border-t border-[var(--kryla-border)] overflow-hidden"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto mb-5 px-6">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999]">Why choose me</p>
@@ -150,7 +150,7 @@ function Numbered({ data, accent }: { data: ProfileData; accent: string }) {
   const { ref, visible } = useReveal()
   if (!showSections.highlights || !highlights.length) return null
   return (
-    <section className="border-t border-[#E5E5E5]"
+    <section className="border-t border-[var(--kryla-border)]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
@@ -190,7 +190,7 @@ function Icons({ data }: { data: ProfileData }) {
   const { ref, visible } = useReveal()
   if (!showSections.highlights || !highlights.length) return null
   return (
-    <section className="border-t border-[#E5E5E5]"
+    <section className="border-t border-[var(--kryla-border)]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">

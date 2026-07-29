@@ -56,7 +56,7 @@ export default function BioSection({ data, accent: _accent, variant }: Props) {
   /* ── ACCENT ───────────────────────────────────────────────────────────── */
   if (variant === 'accent') return (
     <section ref={ref as React.RefObject<HTMLElement>}
-      className={`bio-reveal border-t border-[#E5E5E5] ${vis ? 'in' : ''}`}
+      className={`bio-reveal border-t border-[var(--kryla-border)] ${vis ? 'in' : ''}`}
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
@@ -73,7 +73,7 @@ export default function BioSection({ data, accent: _accent, variant }: Props) {
   /* ── CALLOUT ──────────────────────────────────────────────────────────── */
   if (variant === 'callout') return (
     <section ref={ref as React.RefObject<HTMLElement>}
-      className={`bio-reveal border-t border-[#E5E5E5] ${vis ? 'in' : ''}`}
+      className={`bio-reveal border-t border-[var(--kryla-border)] ${vis ? 'in' : ''}`}
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
@@ -97,7 +97,7 @@ export default function BioSection({ data, accent: _accent, variant }: Props) {
   /* ── PARAGRAPH (default) ──────────────────────────────────────────────── */
   return (
     <section ref={ref as React.RefObject<HTMLElement>}
-      className={`bio-reveal border-t border-[#E5E5E5] ${vis ? 'in' : ''}`}
+      className={`bio-reveal border-t border-[var(--kryla-border)] ${vis ? 'in' : ''}`}
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">

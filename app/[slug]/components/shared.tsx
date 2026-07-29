@@ -13,9 +13,9 @@ export function KrylaLogo() {
 
 export function Footer() {
   return (
-    <footer className="border-t border-[#E5E5E5] py-8 xl:pb-8 pb-20">
+    <footer className="border-t border-[var(--kryla-border)] py-8 xl:pb-8 pb-20">
       <div className="max-w-2xl mx-auto px-6 flex items-center justify-center gap-2">
-        <span className="text-xs text-[#999]">Powered by</span>
+        <span className="text-xs text-[#a1927f]">Powered by</span>
         <KrylaLogo />
       </div>
     </footer>
@@ -52,7 +52,7 @@ export function WhatsAppIcon({ size = 20, color = 'white' }: { size?: number; co
 
 export function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-xs font-semibold text-[#999] uppercase tracking-widest mb-6">{children}</h2>
+    <h2 className="text-xs font-semibold text-[#8a7f72] uppercase tracking-widest mb-6">{children}</h2>
   )
 }
 
@@ -76,14 +76,14 @@ export function FaqList({ items }: { items: { question: string; answer: string }
   return (
     <div className="space-y-2">
       {items.map((f, i) => (
-        <details key={i} className="group border border-[#E5E5E5] rounded-xl overflow-hidden">
+        <details key={i} className="group border border-[var(--kryla-border)] rounded-xl overflow-hidden">
           <summary className="flex justify-between items-center px-5 py-4 cursor-pointer text-[#0D0D0D] font-medium text-sm list-none select-none">
             {f.question}
             <svg className="ml-4 shrink-0 transition-transform group-open:rotate-180" width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M2 5l5 5 5-5" stroke="#999" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </summary>
-          <p className="px-5 pb-4 text-sm text-[#666666] leading-relaxed border-t border-[#E5E5E5] pt-3">{f.answer}</p>
+          <p className="px-5 pb-4 text-sm text-[#6b6259] leading-relaxed border-t border-[var(--kryla-border)] pt-3">{f.answer}</p>
         </details>
       ))}
     </div>

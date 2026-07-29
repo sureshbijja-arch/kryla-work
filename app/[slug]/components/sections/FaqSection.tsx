@@ -22,7 +22,7 @@ function Accordion({ data }: { data: ProfileData }) {
   const [open, setOpen] = useState<number | null>(null)
 
   return (
-    <section className="border-t border-[#E5E5E5]"
+    <section className="border-t border-[var(--kryla-border)]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
@@ -35,7 +35,7 @@ function Accordion({ data }: { data: ProfileData }) {
                 className="overflow-hidden transition-all duration-300 cursor-pointer"
                 style={{
                   borderRadius: 'var(--radius-card)',
-                  border: `1.5px solid ${isOpen ? 'var(--color-accent)' : '#E5E5E5'}`,
+                  border: `1.5px solid ${isOpen ? 'var(--color-accent)' : 'var(--kryla-border)'}`,
                   boxShadow: isOpen ? '0 8px 32px var(--color-accent-surface)' : 'none',
                   background: isOpen ? 'var(--color-accent-surface)' : 'white',
                 }}
@@ -58,7 +58,7 @@ function Accordion({ data }: { data: ProfileData }) {
                   </div>
                 </div>
                 {isOpen && (
-                  <p className="px-5 pb-5 pt-1 text-sm text-[#666] leading-relaxed border-t border-[#E5E5E5]"
+                  <p className="px-5 pb-5 pt-1 text-sm text-[#666] leading-relaxed border-t border-[var(--kryla-border)]"
                     style={{ animation: 'faqOpen 0.25s ease both' }}>
                     {f.answer}
                   </p>
@@ -77,7 +77,7 @@ function TwoCol({ data }: { data: ProfileData }) {
   const { faq, showSections } = data
   if (!showSections.faq || !faq.length) return null
   return (
-    <section className="border-t border-[#E5E5E5]"
+    <section className="border-t border-[var(--kryla-border)]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto px-6">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-8">Frequently asked</p>

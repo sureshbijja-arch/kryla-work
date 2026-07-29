@@ -149,14 +149,14 @@ function EnquiryForm({ providerId, accentColor }: { providerId: string; accentCo
     <form onSubmit={submit} className="space-y-3">
       <input required value={name} onChange={e => setName(e.target.value)}
         placeholder="Your name *"
-        className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]" />
+        className="w-full border border-[var(--kryla-border)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]" />
       <input required type="tel" value={phone} onChange={e => setPhone(e.target.value)}
         placeholder="WhatsApp number *"
-        className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]" />
+        className="w-full border border-[var(--kryla-border)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]" />
       <textarea value={message} onChange={e => setMessage(e.target.value)}
         placeholder="Your message (optional)"
         rows={3}
-        className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]" />
+        className="w-full border border-[var(--kryla-border)] rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]" />
       {error && <p className="text-red-500 text-xs">{error}</p>}
       <button type="submit"
         disabled={submitting || !name.trim() || !phone.trim()}
@@ -192,7 +192,7 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
 
   /* ── ENQUIRY (baker / chef — WhatsApp first, simple form) ───────────── */
   if (variant === 'enquiry') return (
-    <section id="book" className="border-t border-[#E5E5E5]"
+    <section id="book" className="border-t border-[var(--kryla-border)]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
@@ -282,7 +282,7 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
 
   /* ── WHATSAPP ─────────────────────────────────────────────────────────── */
   if (variant === 'whatsapp') return (
-    <section id="book" className="border-t border-[#E5E5E5]"
+    <section id="book" className="border-t border-[var(--kryla-border)]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
@@ -316,7 +316,7 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
 
   /* ── MINIMAL ──────────────────────────────────────────────────────────── */
   if (variant === 'minimal') return (
-    <section id="book" className="border-t border-[#E5E5E5]"
+    <section id="book" className="border-t border-[var(--kryla-border)]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
@@ -401,7 +401,7 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
 
   /* ── BOTH / FORM (default) ────────────────────────────────────────────── */
   return (
-    <section id="book" className="border-t border-[#E5E5E5]"
+    <section id="book" className="border-t border-[var(--kryla-border)]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
