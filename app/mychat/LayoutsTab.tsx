@@ -133,9 +133,15 @@ export default function LayoutsTab({
       })
       if (res.ok) {
         setColorsSaved(false)
-        if (appliedPreset) { setAccentColor(appliedPreset.accent); setPageBg(appliedPreset.bg) }
-        setSurfaceColor('#FFFFFF')
-        setBorderColor('#ECECEA')
+        if (appliedPreset) {
+          setAccentColor(appliedPreset.accent)
+          setPageBg(appliedPreset.bg)
+          setSurfaceColor(appliedPreset.surface)
+          setBorderColor(appliedPreset.borderColor)
+        } else {
+          setSurfaceColor('#FFFFFF')
+          setBorderColor('#E5E5E5')
+        }
         onPreview()
       }
     } catch {
