@@ -109,6 +109,9 @@ export interface ProfileData {
   palette: PaletteKey
   font: FontKey
   designMode: DesignMode
+  pageBg?: string | null
+  surface?: string | null
+  borderColor?: string | null
   showSections: ShowSections
   avatarUrl?: string | null
   gallery?: string[]
@@ -128,6 +131,8 @@ export const ACCENT: Record<PaletteKey, string> = {
   calm:         '#3B82F6',
 }
 
+// Fallback only when a page has no preset-sourced page_bg/surface/border_color
+// (pre-theme-refresh pages, or pages that never applied a curated preset).
 export const PAGE_BG: Record<PaletteKey, string> = {
   professional: '#FFFFFF',
   fresh:        '#F0FDF4',

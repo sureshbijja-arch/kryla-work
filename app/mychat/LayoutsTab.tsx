@@ -49,6 +49,7 @@ export default function LayoutsTab({
           palette:  lo.palette,
           font:     lo.font,
           designMode: lo.designMode,
+          pageBg: lo.pageBg, surface: lo.surface, borderColor: lo.borderColor,
           sections: lo.sections ?? null,
         }),
       })

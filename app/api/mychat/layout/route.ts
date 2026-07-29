@@ -18,9 +18,10 @@ export async function POST(req: NextRequest) {
   const body = await req.json() as {
     slug: string; template: string; palette: string; font: string
     designMode?: string
+    pageBg?: string; surface?: string; borderColor?: string
     sections?: SectionEntry[] | null
   }
-  const { slug, template, palette, font, designMode, sections } = body
+  const { slug, template, palette, font, designMode, pageBg, surface, borderColor, sections } = body
   if (!slug || !template || !palette || !font)
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
@@ -29,6 +30,14 @@ export async function POST(req: NextRequest) {
 
   if (designMode !== undefined && !VALID_DESIGN_MODES.has(designMode))
     return NextResponse.json({ error: 'Invalid design mode' }, { status: 400 })
+
+  const HEX_RE = /^#[0-9A-Fa-f]{3,8}$/
+  if (pageBg !== undefined && (typeof pageBg !== 'string' || !HEX_RE.test(pageBg)))
+    return NextResponse.json({ error: 'Invalid pageBg' }, { status: 400 })
+  if (surface !== undefined && (typeof surface !== 'string' || !HEX_RE.test(surface)))
+    return NextResponse.json({ error: 'Invalid surface' }, { status: 400 })
+  if (borderColor !== undefined && (typeof borderColor !== 'string' || !HEX_RE.test(borderColor)))
+    return NextResponse.json({ error: 'Invalid borderColor' }, { status: 400 })
 
   const { data: provider } = await supabaseAdmin
     .from('providers')
@@ -53,6 +62,9 @@ export async function POST(req: NextRequest) {
 
   const pageUpdates: Record<string, unknown> = { template, palette, font }
   if (designMode) pageUpdates.design_mode = designMode
+  if (pageBg)      pageUpdates.page_bg      = pageBg
+  if (surface)      pageUpdates.surface      = surface
+  if (borderColor) pageUpdates.border_color = borderColor
   if (sections && Array.isArray(sections)) pageUpdates.sections = sections
 
   const newDraft: DraftShape = {

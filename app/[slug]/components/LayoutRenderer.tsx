@@ -27,7 +27,9 @@ interface Props {
 
 export default function LayoutRenderer({ sections, data }: Props) {
   const accent     = ACCENT[data.palette as PaletteKey]      ?? '#F5A623'
-  const bg         = PAGE_BG[data.palette as PaletteKey]     ?? '#FFFFFF'
+  const bg         = data.pageBg      ?? PAGE_BG[data.palette as PaletteKey] ?? '#FFFFFF'
+  const surface    = data.surface     ?? '#FFFFFF'
+  const borderCol  = data.borderColor ?? 'var(--kryla-border)'
   const fontClass  = FONT_CLASS[data.font as FontKey]        ?? 'font-inter'
   const designMode = (data.designMode ?? 'craft') as DesignMode
 
@@ -71,6 +73,8 @@ export default function LayoutRenderer({ sections, data }: Props) {
       style={{
         background: bg,
         ['--section-bg' as string]:          bg,
+        ['--color-surface' as string]:       surface,
+        ['--color-border' as string]:        borderCol,
         ['--color-accent' as string]:         accent,
         ['--color-accent-surface' as string]: `${accent}0d`,
         ['--color-accent-border' as string]:  `${accent}26`,
