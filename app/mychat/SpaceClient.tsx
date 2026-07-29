@@ -82,6 +82,10 @@ interface CurrentProfile {
   showSections: Record<string, boolean>
   sections: SectionEntry[] | null
   designMode: string
+  pageBg: string | null
+  surface: string | null
+  borderColor: string | null
+  accentColor: string | null
   /** Archetype id if this persona has a Practitioner Studio configured; null otherwise. */
   studioArchetype: string | null
   /** DB-driven My Tools tile header label (studio_config.mykryla_tools_label); null hides the custom header. */
@@ -673,6 +677,10 @@ export default function SpaceClient({
               currentTemplate={currentProfile.template}
               currentPalette={currentProfile.palette}
               currentFont={currentProfile.font}
+              currentAccentColor={currentProfile.accentColor}
+              currentPageBg={currentProfile.pageBg}
+              currentSurface={currentProfile.surface}
+              currentBorderColor={currentProfile.borderColor}
               onPreview={onRefresh}
               onUpgrade={() => goTo('plan')}
             />

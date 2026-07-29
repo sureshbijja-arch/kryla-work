@@ -47,7 +47,7 @@ export default async function MyChatPage({ params, searchParams }: Props) {
   const [{ data: page }, plans, personaPlans, gate, { data: personaRow }, { count: pendingEnquiries }] = await Promise.all([
     supabaseAdmin
       .from('pages')
-      .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, palette, font, template, show_sections, sections, design_mode')
+      .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, palette, font, template, show_sections, sections, design_mode, page_bg, surface, border_color, accent_color')
       .eq('provider_id', provider.id)
       .single(),
     getPlans(),
@@ -145,6 +145,10 @@ export default async function MyChatPage({ params, searchParams }: Props) {
           showSections: ((page?.show_sections as ShowSections) ?? defaultShowSections) as unknown as Record<string, boolean>,
           sections:     (page?.sections   as SectionEntry[] | null) ?? null,
           designMode:      (page?.design_mode as string) ?? 'craft',
+          pageBg:          (page?.page_bg      as string | null) ?? null,
+          surface:         (page?.surface      as string | null) ?? null,
+          borderColor:     (page?.border_color as string | null) ?? null,
+          accentColor:     (page?.accent_color as string | null) ?? null,
           studioArchetype: (personaRow?.studio_archetype as string | null) ?? null,
           mykrylaToolsLabel,
           mykrylaTools,

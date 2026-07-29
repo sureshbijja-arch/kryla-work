@@ -47,6 +47,10 @@ interface SpaceProps {
     showSections: Record<string, boolean>
     sections: SectionEntry[] | null
     designMode: string
+    pageBg: string | null
+    surface: string | null
+    borderColor: string | null
+    accentColor: string | null
     studioArchetype: string | null
     mykrylaToolsLabel: string | null
     mykrylaTools: MykrylaToolCard[]
