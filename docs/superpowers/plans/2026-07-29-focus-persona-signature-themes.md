@@ -22,7 +22,7 @@ prerequisite: today, applying a preset never actually writes any curated color o
 - No lorem/placeholder content: the Tiffin dabba hero renders only from real `data.services[]`; if fewer
   than 3 exist, render fewer compartments — never invent copy.
 - All new animation gated behind `prefers-reduced-motion: reduce` (removed, not slowed).
-- Every color pair introduced must pass WCAG AA (4.5:1 normal text, 3:1 large text/UI) — verified in Task 8,
+- Every color pair introduced must pass WCAG AA (4.5:1 normal text, 3:1 large text/UI) — verified in Task 11,
   hex values adjusted if they fail.
 - Additive only: pages/presets with no `palette_tokens` must render byte-identical to current output.
 - Physio recovery-arc is explicitly out of scope — ship palette only, existing hero/services variants.
@@ -527,7 +527,7 @@ git commit -m "feat: accept paletteTokens + signatureColor in layout apply/custo
 - Produces: fixes the bug where `handleApplyLayout` never sent any curated color to the server; adds a
   4th "Signature" picker to the customize expander, matching the existing `{ label, value, set }` pattern.
 
-- [ ] **Step 1: Manual verification setup (no automated test — this is a client component; verified via Task 9's playwright pass)**
+- [ ] **Step 1: Manual verification setup (no automated test — this is a client component; verified via Task 11's playwright pass)**
 
 Confirm current behavior first: `handleApplyLayout` (lines 71-93) sends only
 `{ slug, template, palette, font, designMode, sections }` — no color fields. This is the bug this task fixes.
@@ -660,7 +660,7 @@ being skipped fails silently at runtime — the prop is simply `undefined`, not 
 Run the dev server (`npm run dev`), open MyKryla → My Page → Layouts for a salon test account, apply the
 "Atelier" preset, and confirm (via browser devtools computed styles) that `--color-accent` and
 `--color-signature` on the `LayoutRenderer` wrapper div now differ from the old flat black/orange defaults.
-(Full visual + Lighthouse verification happens in Task 9, after Task 6's migration seeds real Atelier data —
+(Full visual + Lighthouse verification happens in Task 11, after Task 9's migration seeds real Atelier data —
 this step just confirms the wiring, not the final look.)
 
 - [ ] **Step 8: Commit**
