@@ -18,10 +18,11 @@ export async function POST(req: NextRequest) {
   const body = await req.json() as {
     slug: string; template: string; palette: string; font: string
     designMode?: string
-    pageBg?: string; surface?: string; borderColor?: string
+    pageBg?: string; surface?: string; borderColor?: string; accentColor?: string
+    resetColors?: boolean
     sections?: SectionEntry[] | null
   }
-  const { slug, template, palette, font, designMode, pageBg, surface, borderColor, sections } = body
+  const { slug, template, palette, font, designMode, pageBg, surface, borderColor, accentColor, resetColors, sections } = body
   if (!slug || !template || !palette || !font)
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
@@ -38,6 +39,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid surface' }, { status: 400 })
   if (borderColor !== undefined && (typeof borderColor !== 'string' || !HEX_RE.test(borderColor)))
     return NextResponse.json({ error: 'Invalid borderColor' }, { status: 400 })
+  if (accentColor !== undefined && (typeof accentColor !== 'string' || !HEX_RE.test(accentColor)))
+    return NextResponse.json({ error: 'Invalid accentColor' }, { status: 400 })
 
   const { data: provider } = await supabaseAdmin
     .from('providers')
@@ -62,10 +65,19 @@ export async function POST(req: NextRequest) {
 
   const pageUpdates: Record<string, unknown> = { template, palette, font }
   if (designMode) pageUpdates.design_mode = designMode
-  if (pageBg)      pageUpdates.page_bg      = pageBg
-  if (surface)      pageUpdates.surface      = surface
-  if (borderColor) pageUpdates.border_color = borderColor
   if (sections && Array.isArray(sections)) pageUpdates.sections = sections
+
+  if (resetColors === true) {
+    pageUpdates.page_bg      = null
+    pageUpdates.surface      = null
+    pageUpdates.border_color = null
+    pageUpdates.accent_color = null
+  } else {
+    if (pageBg)      pageUpdates.page_bg      = pageBg
+    if (surface)      pageUpdates.surface      = surface
+    if (borderColor) pageUpdates.border_color = borderColor
+    if (accentColor) pageUpdates.accent_color = accentColor
+  }
 
   const newDraft: DraftShape = {
     pages:     { ...(existing.pages ?? {}), ...pageUpdates },
