@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { TEMPLATE_LABEL, FONT_LABEL, type LayoutOption } from '@/lib/layouts'
+import { meetsWcagAA } from '@/lib/colorContrast'
 
 interface Props {
   slug: string
@@ -10,6 +11,10 @@ interface Props {
   currentTemplate: string
   currentPalette: string
   currentFont: string
+  currentAccentColor: string | null
+  currentPageBg: string | null
+  currentSurface: string | null
+  currentBorderColor: string | null
   onPreview: () => void
   onUpgrade: () => void
 }
@@ -19,12 +24,39 @@ const PLAN_RANK: Record<string, number> = { seed: 0, sprout: 1, grow: 2, thrive:
 export default function LayoutsTab({
   slug, persona, plan,
   currentTemplate, currentPalette, currentFont,
+  currentAccentColor, currentPageBg, currentSurface, currentBorderColor,
   onPreview, onUpgrade,
 }: Props) {
   const [layouts, setLayouts]           = useState<LayoutOption[]>([])
   const [loaded, setLoaded]             = useState(false)
   const [applyingLayout, setApplyingLayout] = useState<string | null>(null)
   const [appliedLayout, setAppliedLayout]   = useState<string | null>(null)
+
+  const [customizing, setCustomizing]   = useState(false)
+  const [savingColors, setSavingColors] = useState(false)
+  const [colorsSaved, setColorsSaved]   = useState(false)
+
+  // Find the currently-applied preset (if any) so its colors can seed the
+  // pickers when the member has no override of their own yet.
+  const appliedPreset = layouts.find(
+    lo => lo.template === currentTemplate && lo.palette === currentPalette && lo.font === currentFont
+  )
+
+  const [accentColor, setAccentColor] = useState(currentAccentColor ?? appliedPreset?.accent ?? '#F5A623')
+  const [pageBg, setPageBg]           = useState(currentPageBg      ?? appliedPreset?.bg     ?? '#FFFFFF')
+  const [surface, setSurfaceColor]    = useState(currentSurface     ?? '#FFFFFF')
+  const [borderColor, setBorderColor] = useState(currentBorderColor ?? '#ECECEA')
+
+  useEffect(() => {
+    if (customizing) return // don't override a member's in-progress edit
+    if (currentAccentColor) return // member already has an explicit override — never re-seed from preset
+    if (!appliedPreset) return
+    setAccentColor(appliedPreset.accent)
+    setPageBg(appliedPreset.bg)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appliedPreset?.id])
+
+  const accentContrastWarning = !meetsWcagAA(accentColor, surface)
 
   const canLayouts = (PLAN_RANK[plan] ?? 0) >= 1
 
@@ -58,6 +90,58 @@ export default function LayoutsTab({
       // silent
     } finally {
       setApplyingLayout(null)
+    }
+  }
+
+  async function handleSaveColors() {
+    if (savingColors || !canLayouts) return
+    setSavingColors(true)
+    try {
+      const res = await fetch('/api/mychat/layout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug,
+          template: currentTemplate,
+          palette:  currentPalette,
+          font:     currentFont,
+          accentColor, pageBg, surface, borderColor,
+        }),
+      })
+      if (res.ok) { setColorsSaved(true); onPreview() }
+    } catch {
+      // silent
+    } finally {
+      setSavingColors(false)
+    }
+  }
+
+  async function handleResetColors() {
+    if (savingColors || !canLayouts) return
+    setSavingColors(true)
+    try {
+      const res = await fetch('/api/mychat/layout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug,
+          template: currentTemplate,
+          palette:  currentPalette,
+          font:     currentFont,
+          resetColors: true,
+        }),
+      })
+      if (res.ok) {
+        setColorsSaved(false)
+        if (appliedPreset) { setAccentColor(appliedPreset.accent); setPageBg(appliedPreset.bg) }
+        setSurfaceColor('#FFFFFF')
+        setBorderColor('#ECECEA')
+        onPreview()
+      }
+    } catch {
+      // silent
+    } finally {
+      setSavingColors(false)
     }
   }
 
@@ -146,6 +230,72 @@ export default function LayoutsTab({
           )
         })}
       </div>
+
+      {canLayouts && (
+        <div className="mx-4 mb-4">
+          <button
+            onClick={() => setCustomizing(v => !v)}
+            className="text-xs font-semibold text-[#0D0D0D] flex items-center gap-1.5"
+          >
+            {customizing ? '▾' : '▸'} Customize colors
+          </button>
+
+          {customizing && (
+            <div className="mt-3 space-y-3 border border-[#E5E5E5] rounded-xl p-3.5">
+              {([
+                { label: 'Accent',      value: accentColor, set: setAccentColor },
+                { label: 'Background',  value: pageBg,      set: setPageBg },
+                { label: 'Surface',     value: surface,     set: setSurfaceColor },
+                { label: 'Border',      value: borderColor, set: setBorderColor },
+              ] as const).map(({ label, value, set }) => (
+                <div key={label} className="flex items-center gap-3">
+                  <label className="text-xs text-[#666] w-20 shrink-0">{label}</label>
+                  <input
+                    type="color"
+                    value={value}
+                    onChange={e => set(e.target.value)}
+                    className="w-8 h-8 rounded border border-[#E5E5E5] cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={value}
+                    onChange={e => set(e.target.value)}
+                    className="flex-1 text-xs font-mono border border-[#E5E5E5] rounded-lg px-2.5 py-1.5"
+                    placeholder="#RRGGBB"
+                  />
+                </div>
+              ))}
+
+              {accentContrastWarning && (
+                <p className="text-[11px] text-[#B45309] bg-[#FFFBEB] border border-[#F5A623]/30 rounded-lg px-2.5 py-2">
+                  Low contrast between accent and surface — may be hard to read.
+                </p>
+              )}
+
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  onClick={handleSaveColors}
+                  disabled={savingColors}
+                  className="text-xs font-semibold bg-[#0D0D0D] text-white rounded-lg px-3 py-1.5 disabled:opacity-50"
+                >
+                  {savingColors ? 'Saving…' : 'Save colors'}
+                </button>
+                <button
+                  onClick={handleResetColors}
+                  disabled={savingColors}
+                  className="text-xs font-semibold text-[#666] hover:text-[#0D0D0D] disabled:opacity-50"
+                >
+                  Reset to preset colors
+                </button>
+              </div>
+
+              {colorsSaved && (
+                <p className="text-xs font-medium text-[#166534]">✓ Colors saved — your page is updated</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {appliedLayout && canLayouts && (
         <div className="mx-4 mb-4 bg-[#F0FDF4] border border-[#22C55E]/30 rounded-xl px-3 py-2.5">
