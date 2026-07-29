@@ -12,6 +12,15 @@ interface Props {
   variant: string
   showNav?: boolean
   framesConfig?: { enabled: boolean; count: 1 | 2 | 3 }
+  heroHeight?: number // min-height in svh, 40–100; unset = per-variant default
+}
+
+// Clamp + convert a member-set hero height (svh units) to a CSS value.
+// Returns undefined when unset so callers can fall back to their own default.
+function heroMinHeight(heroHeight: number | undefined): string | undefined {
+  if (heroHeight === undefined) return undefined
+  const clamped = Math.min(100, Math.max(40, heroHeight))
+  return `${clamped}svh`
 }
 
 // Animations injected once — all variants share this stylesheet
@@ -278,7 +287,7 @@ function VerifiedChip({ dark = false }: { dark?: boolean }) {
    Full-bleed background image (gallery[0] or avatar), dark scrim, text bottom.
    Sticky blur-nav appears on scroll.
 ──────────────────────────────────────────────────────────────────────────── */
-function HeroPhoto({ data }: { data: ProfileData }) {
+function HeroPhoto({ data, heroHeight }: { data: ProfileData; heroHeight?: number }) {
   const [scrolled, setScrolled] = useState(false)
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 80)
@@ -295,7 +304,7 @@ function HeroPhoto({ data }: { data: ProfileData }) {
   const showAvatar = !!(avatarUrl && gallery?.length)
 
   return (
-    <section className="relative overflow-hidden flex flex-col" style={{ minHeight: 'clamp(32rem, 100svh, 100svh)', maxHeight: '100svh' }}>
+    <section className="relative overflow-hidden flex flex-col" style={{ minHeight: heroMinHeight(heroHeight) ?? 'clamp(32rem, 100svh, 100svh)', maxHeight: '100svh' }}>
       <style>{STYLES}</style>
 
       {/* Background — 'auto' fit fills the hero edge-to-edge like cover for a
@@ -441,7 +450,7 @@ function TutorIllustration({ accent }: { accent: string }) {
 /* ── DARK ────────────────────────────────────────────────────────────────────
    Deep black, single accent orb, large white headline, minimal decoration.
 ──────────────────────────────────────────────────────────────────────────── */
-function HeroDark({ data, framesConfig, accent = '#F5A623' }: { data: ProfileData; framesConfig?: Props['framesConfig']; accent?: string }) {
+function HeroDark({ data, framesConfig, accent = '#F5A623', heroHeight }: { data: ProfileData; framesConfig?: Props['framesConfig']; accent?: string; heroHeight?: number }) {
   const { firstName, lastName, location, whatsappNumber, headline, subheadline,
     ctaPrimary, ctaSecondary, showSections, avatarUrl, gallery, persona } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
@@ -451,7 +460,7 @@ function HeroDark({ data, framesConfig, accent = '#F5A623' }: { data: ProfileDat
   const frames = gallery?.length ? gallery.slice(0, maxFrames) : []
 
   return (
-    <section className="relative overflow-hidden flex flex-col" style={{ background: 'var(--sec-custom-bg, #0D0D0D)', minHeight: '100svh' }}>
+    <section className="relative overflow-hidden flex flex-col" style={{ background: 'var(--sec-custom-bg, #0D0D0D)', minHeight: heroMinHeight(heroHeight) ?? '100svh' }}>
       <style>{STYLES}</style>
 
       {/* Dot grid */}
@@ -547,7 +556,7 @@ function HeroDark({ data, framesConfig, accent = '#F5A623' }: { data: ProfileDat
 /* ── GRADIENT ────────────────────────────────────────────────────────────────
    Soft aurora tint, content-forward, editorial feel.
 ──────────────────────────────────────────────────────────────────────────── */
-function HeroGradient({ data }: { data: ProfileData }) {
+function HeroGradient({ data, heroHeight }: { data: ProfileData; heroHeight?: number }) {
   const { firstName, lastName, location, whatsappNumber, headline, subheadline,
     ctaPrimary, ctaSecondary, showSections, avatarUrl, persona } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
@@ -555,7 +564,7 @@ function HeroGradient({ data }: { data: ProfileData }) {
   const pcfg = getPersonaConfig(persona)
 
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative overflow-hidden" style={{ minHeight: heroMinHeight(heroHeight) }}>
       <style>{STYLES}</style>
       <div className="absolute inset-0 pointer-events-none"
         style={{ background: 'radial-gradient(ellipse 80% 60% at 65% -5%, var(--color-accent-border) 0%, transparent 70%), radial-gradient(ellipse 50% 70% at -5% 85%, var(--color-accent-surface) 0%, transparent 60%)' }} />
@@ -619,7 +628,7 @@ function HeroGradient({ data }: { data: ProfileData }) {
 /* ── SPLIT ────────────────────────────────────────────────────────────────────
    Text left, photo right with offset accent shadow block.
 ──────────────────────────────────────────────────────────────────────────── */
-function HeroSplit({ data }: { data: ProfileData }) {
+function HeroSplit({ data, heroHeight }: { data: ProfileData; heroHeight?: number }) {
   const { firstName, lastName, location, whatsappNumber, headline, subheadline,
     ctaPrimary, ctaSecondary, showSections, avatarUrl, persona } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
@@ -627,7 +636,7 @@ function HeroSplit({ data }: { data: ProfileData }) {
   const pcfg = getPersonaConfig(persona)
 
   return (
-    <section className="relative overflow-hidden" style={{ background: 'var(--sec-custom-bg, white)' }}>
+    <section className="relative overflow-hidden" style={{ background: 'var(--sec-custom-bg, white)', minHeight: heroMinHeight(heroHeight) }}>
       <style>{STYLES}</style>
       <nav className="max-w-5xl mx-auto px-6 pt-6 flex justify-between items-center">
         {location ? <LocationLink location={location} /> : <span />}
@@ -690,7 +699,7 @@ function HeroSplit({ data }: { data: ProfileData }) {
 /* ── BANNER ───────────────────────────────────────────────────────────────────
    Accent-colored header with rounded bottom edge pulling into white content.
 ──────────────────────────────────────────────────────────────────────────── */
-function HeroBanner({ data }: { data: ProfileData }) {
+function HeroBanner({ data, heroHeight }: { data: ProfileData; heroHeight?: number }) {
   const { firstName, lastName, location, whatsappNumber, headline, subheadline,
     ctaPrimary, ctaSecondary, showSections, avatarUrl, persona } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
@@ -698,7 +707,7 @@ function HeroBanner({ data }: { data: ProfileData }) {
   const pcfg = getPersonaConfig(persona)
 
   return (
-    <section>
+    <section style={{ minHeight: heroMinHeight(heroHeight) }}>
       <style>{STYLES}</style>
       <header className="relative overflow-hidden pb-20" style={{ background: 'var(--color-accent)' }}>
         <div className="absolute inset-0 pointer-events-none"
@@ -747,7 +756,7 @@ function HeroBanner({ data }: { data: ProfileData }) {
 /* ── CENTERED ─────────────────────────────────────────────────────────────────
    Everything centered. Avatar with glow ring. Generous space above and below.
 ──────────────────────────────────────────────────────────────────────────── */
-function HeroCentered({ data, framesConfig }: { data: ProfileData; framesConfig?: Props['framesConfig'] }) {
+function HeroCentered({ data, framesConfig, heroHeight }: { data: ProfileData; framesConfig?: Props['framesConfig']; heroHeight?: number }) {
   const { firstName, lastName, location, whatsappNumber, headline, subheadline,
     ctaPrimary, ctaSecondary, showSections, avatarUrl, gallery, persona } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
@@ -757,7 +766,7 @@ function HeroCentered({ data, framesConfig }: { data: ProfileData; framesConfig?
   const frames = gallery?.length ? gallery.slice(0, maxFrames) : []
 
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative overflow-hidden" style={{ minHeight: heroMinHeight(heroHeight) }}>
       <style>{STYLES}</style>
       <div className="absolute top-0 left-0 right-0 h-72 pointer-events-none"
         style={{ background: 'linear-gradient(180deg, var(--color-accent-surface) 0%, transparent 100%)' }} />
@@ -843,7 +852,7 @@ function HeroCentered({ data, framesConfig }: { data: ProfileData; framesConfig?
 /* ── MINIMAL ──────────────────────────────────────────────────────────────────
    Left-aligned, clean, typography leads. Default for most members.
 ──────────────────────────────────────────────────────────────────────────── */
-function HeroMinimal({ data }: { data: ProfileData }) {
+function HeroMinimal({ data, heroHeight }: { data: ProfileData; heroHeight?: number }) {
   const { firstName, lastName, location, whatsappNumber, headline, subheadline,
     ctaPrimary, ctaSecondary, showSections, avatarUrl, persona } = data
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
@@ -851,7 +860,7 @@ function HeroMinimal({ data }: { data: ProfileData }) {
   const pcfg = getPersonaConfig(persona)
 
   return (
-    <section className="relative overflow-hidden" style={{ background: 'var(--sec-custom-bg, white)' }}>
+    <section className="relative overflow-hidden" style={{ background: 'var(--sec-custom-bg, white)', minHeight: heroMinHeight(heroHeight) }}>
       <style>{STYLES}</style>
       <nav className="max-w-2xl mx-auto px-6 pt-6 flex justify-between items-center">
         {location ? <LocationLink location={location} /> : <span />}
@@ -899,12 +908,12 @@ function HeroMinimal({ data }: { data: ProfileData }) {
 }
 
 /* ── Entry point ─────────────────────────────────────────────────────────── */
-export default function HeroSection({ data, accent, variant, framesConfig }: Props) {
-  if (variant === 'photo')    return <HeroPhoto data={data} />
-  if (variant === 'dark')     return <HeroDark data={data} framesConfig={framesConfig} accent={accent} />
-  if (variant === 'gradient') return <HeroGradient data={data} />
-  if (variant === 'split')    return <HeroSplit data={data} />
-  if (variant === 'banner')   return <HeroBanner data={data} />
-  if (variant === 'centered') return <HeroCentered data={data} framesConfig={framesConfig} />
-  return <HeroMinimal data={data} />
+export default function HeroSection({ data, accent, variant, framesConfig, heroHeight }: Props) {
+  if (variant === 'photo')    return <HeroPhoto data={data} heroHeight={heroHeight} />
+  if (variant === 'dark')     return <HeroDark data={data} framesConfig={framesConfig} accent={accent} heroHeight={heroHeight} />
+  if (variant === 'gradient') return <HeroGradient data={data} heroHeight={heroHeight} />
+  if (variant === 'split')    return <HeroSplit data={data} heroHeight={heroHeight} />
+  if (variant === 'banner')   return <HeroBanner data={data} heroHeight={heroHeight} />
+  if (variant === 'centered') return <HeroCentered data={data} framesConfig={framesConfig} heroHeight={heroHeight} />
+  return <HeroMinimal data={data} heroHeight={heroHeight} />
 }

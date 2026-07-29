@@ -1,6 +1,10 @@
 export interface SectionStyle {
   bg?: { type: 'color' | 'photo'; value: string }
   frames?: { enabled: boolean; count: 1 | 2 | 3 }
+  size?: {
+    space?: number       // vertical spacing multiplier on --space-section, 0.5–1.8, default 1
+    heroHeight?: number  // hero only: min-height in svh, 40–100; unset = per-variant default
+  }
 }
 
 export type PaletteKey  = 'professional' | 'fresh' | 'warm' | 'minimal' | 'creative' | 'calm'

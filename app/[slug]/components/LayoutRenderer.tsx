@@ -42,20 +42,35 @@ export default function LayoutRenderer({ sections, data }: Props) {
     return 'dark'
   }
 
-  function wrapWithBg(node: React.ReactNode, style: SectionStyle | undefined, key: number): React.ReactNode {
+  // Wraps a rendered section with its per-section style overrides: background
+  // (color/photo) and vertical spacing (--space-section multiplier).
+  function wrapSection(node: React.ReactNode, style: SectionStyle | undefined, key: number): React.ReactNode {
+    // Vertical spacing override — every section reads var(--space-section) for
+    // its padding (hero variants read it as a multiple, e.g. calc(...* .7)).
+    // Setting it on this wrapper rescales all of that with no per-section-
+    // component changes. Undefined ⇒ no wrapper contribution ⇒ pixel-identical
+    // to before this feature existed.
+    const spaceMult = style?.size?.space
+    const spaceVars: React.CSSProperties = spaceMult
+      ? { ['--space-section' as string]: `calc(var(--space-section) * ${Math.min(1.8, Math.max(0.5, spaceMult))})` }
+      : {}
+
     const bgCfg = style?.bg
-    if (!bgCfg) return node
+    if (!bgCfg) {
+      if (!spaceMult) return node
+      return <div key={`size-${key}`} style={spaceVars}>{node}</div>
+    }
 
     if (bgCfg.type === 'color') {
       return (
-        <div key={`bg-${key}`} style={{ ['--sec-custom-bg' as string]: bgCfg.value, background: bgCfg.value }}>
+        <div key={`bg-${key}`} style={{ ['--sec-custom-bg' as string]: bgCfg.value, background: bgCfg.value, ...spaceVars }}>
           {node}
         </div>
       )
     }
 
     return (
-      <div key={`bg-${key}`} className="relative overflow-hidden" style={{ ['--sec-custom-bg' as string]: 'transparent' }}>
+      <div key={`bg-${key}`} className="relative overflow-hidden" style={{ ['--sec-custom-bg' as string]: 'transparent', ...spaceVars }}>
         {/* 'auto' fit fills the section edge-to-edge like cover for a normal
             photo, but automatically switches to a blurred-fill backdrop when
             the image's ratio is far enough from the section's that cover
@@ -88,7 +103,7 @@ export default function LayoutRenderer({ sections, data }: Props) {
         let node: React.ReactNode = null
         switch (s.sectionKey) {
           case 'hero':
-            node = <HeroSection key={i} data={data} accent={accent} variant={variant} showNav={isFirst} framesConfig={s.style?.frames} />
+            node = <HeroSection key={i} data={data} accent={accent} variant={variant} showNav={isFirst} framesConfig={s.style?.frames} heroHeight={s.style?.size?.heroHeight} />
             break
           case 'services':
             node = <ServicesSection key={i} data={data} accent={accent} variant={variant} />
@@ -114,7 +129,7 @@ export default function LayoutRenderer({ sections, data }: Props) {
           default:
             return null
         }
-        const wrapped = wrapWithBg(node, s.style, i)
+        const wrapped = wrapSection(node, s.style, i)
         if (s.sectionKey === 'hero') return wrapped
         return <AnimateIn key={i} delay={Math.min(i * 60, 240)}>{wrapped}</AnimateIn>
       })}

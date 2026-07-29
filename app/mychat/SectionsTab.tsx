@@ -251,6 +251,30 @@ export default function SectionsTab({ providerId, slug, initialSections, plan, o
     setSaved(false)
   }
 
+  function setSpace(sectionKey: string, value: number | null) {
+    updateStyle(sectionKey, s => {
+      const size = { ...s.size }
+      if (value === null) delete size.space
+      else size.space = value
+      const n = { ...s }
+      if (Object.keys(size).length === 0) delete n.size
+      else n.size = size
+      return n
+    })
+  }
+
+  function setHeroHeight(value: number | null) {
+    updateStyle('hero', s => {
+      const size = { ...s.size }
+      if (value === null) delete size.heroHeight
+      else size.heroHeight = value
+      const n = { ...s }
+      if (Object.keys(size).length === 0) delete n.size
+      else n.size = size
+      return n
+    })
+  }
+
   function setBgColor(sectionKey: string, value: string | null) {
     if (value === null) {
       updateStyle(sectionKey, s => { const n = { ...s }; delete n.bg; return n })
@@ -447,6 +471,73 @@ export default function SectionsTab({ providerId, slug, initialSections, plan, o
                       ))}
                     </div>
                   </div>
+
+                  {/* Size — vertical spacing, every section; hero also gets a
+                      height slider. Free on every plan (not gated like
+                      Background below) since this is basic layout, not
+                      premium styling. */}
+                  <div className="border-t border-[#F0F0F0] px-4 py-3">
+                    <div className="flex items-center justify-between mb-2.5">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-[#999]">Spacing</p>
+                      {s.style?.size?.space !== undefined && (
+                        <button
+                          onClick={() => setSpace(s.sectionKey, null)}
+                          className="text-[10px] font-semibold text-[#999] hover:text-red-400 transition-colors">
+                          Reset
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] text-[#999] w-14 shrink-0">Compact</span>
+                      <input
+                        type="range"
+                        min={0.5}
+                        max={1.8}
+                        step={0.1}
+                        value={s.style?.size?.space ?? 1}
+                        onChange={e => setSpace(s.sectionKey, parseFloat(e.target.value))}
+                        className="flex-1 accent-[#0D0D0D]"
+                      />
+                      <span className="text-[10px] text-[#999] w-10 shrink-0 text-right">Roomy</span>
+                    </div>
+                    <p className="text-[10px] text-[#CCC] mt-1.5 text-right">
+                      {(s.style?.size?.space ?? 1).toFixed(1)}×
+                    </p>
+                  </div>
+
+                  {/* Hero height — hero only. Most visible on Photo/Dark hero
+                      styles, which fill the viewport; other hero styles size
+                      to their content but will still stretch to this height. */}
+                  {s.sectionKey === 'hero' && (
+                    <div className="border-t border-[#F0F0F0] px-4 py-3">
+                      <div className="flex items-center justify-between mb-2.5">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#999]">Hero height</p>
+                        {s.style?.size?.heroHeight !== undefined && (
+                          <button
+                            onClick={() => setHeroHeight(null)}
+                            className="text-[10px] font-semibold text-[#999] hover:text-red-400 transition-colors">
+                            Reset
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] text-[#999] w-14 shrink-0">Short</span>
+                        <input
+                          type="range"
+                          min={40}
+                          max={100}
+                          step={5}
+                          value={s.style?.size?.heroHeight ?? 100}
+                          onChange={e => setHeroHeight(parseFloat(e.target.value))}
+                          className="flex-1 accent-[#0D0D0D]"
+                        />
+                        <span className="text-[10px] text-[#999] w-10 shrink-0 text-right">Full</span>
+                      </div>
+                      <p className="text-[10px] text-[#CCC] mt-1.5 text-right">
+                        {s.style?.size?.heroHeight ?? 100}% of screen
+                      </p>
+                    </div>
+                  )}
 
                   {/* Hero photo — gallery[0], the actual field HeroSection.tsx renders.
                       Separate from the generic Background block below since hero
