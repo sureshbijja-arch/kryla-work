@@ -112,7 +112,7 @@ export default function LayoutRenderer({ sections, data }: Props) {
         }
         const wrapped = wrapWithBg(node, s.style, i)
         if (s.sectionKey === 'hero') return wrapped
-        return <AnimateIn key={i} delay={0}>{wrapped}</AnimateIn>
+        return <AnimateIn key={i} delay={Math.min(i * 60, 240)}>{wrapped}</AnimateIn>
       })}
       <Footer />
     </div>
