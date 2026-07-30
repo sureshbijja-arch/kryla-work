@@ -378,10 +378,10 @@ function HeroPhoto({ data, heroHeight }: { data: ProfileData; heroHeight?: numbe
 ──────────────────────────────────────────────────────────────────────────── */
 const SWEEP_STYLES = `
 @keyframes heroSweep {
-  0%   { left:-45%; opacity:0; }
+  0%   { transform: translateX(0) skewX(-14deg); opacity:0; }
   12%  { opacity:1; }
-  38%  { left:110%; opacity:0; }
-  100% { left:110%; opacity:0; }
+  38%  { transform: translateX(387.5%) skewX(-14deg); opacity:0; }
+  100% { transform: translateX(387.5%) skewX(-14deg); opacity:0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-sweep { animation: none !important; display: none; }
@@ -397,7 +397,6 @@ function HeroSweep({ data, heroHeight }: { data: ProfileData; heroHeight?: numbe
           left: '-40%', width: '40%', zIndex: 5,
           background: 'linear-gradient(105deg, transparent, rgba(247,243,238,.28) 45%, var(--color-signature) 52%, transparent)',
           opacity: 0.35,
-          transform: 'skewX(-14deg)',
           animation: 'heroSweep 5.5s cubic-bezier(.4,0,.1,1) .6s infinite',
         }} />
       <HeroPhoto data={data} heroHeight={heroHeight} />
