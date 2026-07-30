@@ -304,6 +304,44 @@ function Menu({ data }: { data: ProfileData }) {
   )
 }
 
+/* ── PRICE LIST ───────────────────────────────────────────────────────────── */
+function PriceList({ data }: { data: ProfileData }) {
+  const { services, showSections, persona } = data
+  if (!showSections.services || !services.length) return null
+  const cfg = getPersonaConfig(persona)
+
+  return (
+    <section className="border-t border-[var(--kryla-border)]"
+      style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
+      <div className="max-w-2xl mx-auto px-6">
+        <SectionLabel text={cfg.servicesLabel} />
+        <div>
+          {services.map((s, i) => (
+            <div key={i} className="flex items-baseline gap-2 py-3 border-b"
+              style={{ borderColor: 'var(--color-accent-border)' }}>
+              <div>
+                <div className="font-semibold text-sm">{s.name}</div>
+                {s.description && (
+                  <div className="text-xs opacity-60 mt-0.5">
+                    {s.description}{s.duration_or_unit ? ` · ${s.duration_or_unit}` : ''}
+                  </div>
+                )}
+              </div>
+              <div className="menu-item-leader flex-1 border-b border-dotted"
+                style={{ borderColor: 'var(--color-accent-border)', transform: 'translateY(-3px)' }} />
+              {s.price && (
+                <div className="font-display-token text-base" style={{ color: 'var(--color-accent)' }}>
+                  {s.price}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 /* ── PRICING ──────────────────────────────────────────────────────────────── */
 function Pricing({ data }: { data: ProfileData }) {
   const { services, showSections, persona } = data
@@ -422,9 +460,10 @@ function List({ data }: { data: ProfileData }) {
 }
 
 export default function ServicesSection({ data, accent: _accent, variant }: Props) {
-  if (variant === 'features') return <Features data={data} />
-  if (variant === 'grid')     return <Grid data={data} />
-  if (variant === 'menu')     return <Menu data={data} />
-  if (variant === 'pricing')  return <Pricing data={data} />
+  if (variant === 'features')   return <Features data={data} />
+  if (variant === 'grid')       return <Grid data={data} />
+  if (variant === 'menu')       return <Menu data={data} />
+  if (variant === 'pricing')    return <Pricing data={data} />
+  if (variant === 'price-list') return <PriceList data={data} />
   return <List data={data} />
 }
