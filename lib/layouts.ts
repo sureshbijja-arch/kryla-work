@@ -3,6 +3,14 @@ export type PaletteKey   = 'professional' | 'fresh' | 'warm' | 'minimal' | 'crea
 export type FontKey      = 'inter' | 'georgia' | 'trebuchet'
 export type DesignMode   = 'craft' | 'editorial' | 'product'
 
+export interface PaletteTokens {
+  accent:        string
+  accentSurface: string
+  accentBorder:  string
+  accentGlow:    string
+  signature:     string
+}
+
 export interface SectionEntry {
   sectionKey: string
   variant:    string
@@ -22,6 +30,7 @@ export interface LayoutOption {
   pageBg:      string
   surface:     string
   borderColor: string
+  paletteTokens: PaletteTokens | null
   imageUrl:    string | null
   sections:    SectionEntry[] | null
 }
@@ -77,6 +86,7 @@ export function enrichLayout(row: {
   page_bg?: string | null
   surface?: string | null
   border_color?: string | null
+  palette_tokens?: PaletteTokens | null
   image_url?: string | null
   sections?: SectionEntry[] | null
 }): LayoutOption {
@@ -94,6 +104,7 @@ export function enrichLayout(row: {
     pageBg:      row.page_bg      ?? PAGE_BG[palette] ?? '#FFFFFF',
     surface:     row.surface      ?? '#FFFFFF',
     borderColor: row.border_color ?? '#E5E5E5',
+    paletteTokens: row.palette_tokens ?? null,
     imageUrl:    row.image_url ?? null,
     sections:    row.sections ?? null,
   }
