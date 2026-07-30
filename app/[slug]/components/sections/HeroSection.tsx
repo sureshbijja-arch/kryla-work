@@ -372,6 +372,99 @@ function HeroPhoto({ data, heroHeight }: { data: ProfileData; heroHeight?: numbe
   )
 }
 
+/* ── SWEEP ────────────────────────────────────────────────────────────────
+   Salon signature: HeroPhoto's portrait ground + a one-shot brass light-sweep,
+   gated behind prefers-reduced-motion.
+──────────────────────────────────────────────────────────────────────────── */
+const SWEEP_STYLES = `
+@keyframes heroSweep {
+  0%   { left:-45%; opacity:0; }
+  12%  { opacity:1; }
+  38%  { left:110%; opacity:0; }
+  100% { left:110%; opacity:0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-sweep { animation: none !important; display: none; }
+}
+`
+
+function HeroSweep({ data, heroHeight }: { data: ProfileData; heroHeight?: number }) {
+  return (
+    <div className="relative">
+      <style>{SWEEP_STYLES}</style>
+      <div className="hero-sweep absolute top-0 bottom-0 pointer-events-none"
+        style={{
+          left: '-40%', width: '40%', zIndex: 5,
+          background: 'linear-gradient(105deg, transparent, rgba(247,243,238,.28) 45%, var(--color-signature) 52%, transparent)',
+          opacity: 0.35,
+          transform: 'skewX(-14deg)',
+          animation: 'heroSweep 5.5s cubic-bezier(.4,0,.1,1) .6s infinite',
+        }} />
+      <HeroPhoto data={data} heroHeight={heroHeight} />
+    </div>
+  )
+}
+
+/* ── DABBA ────────────────────────────────────────────────────────────────
+   Tiffin signature: today's top services rendered as real dabba compartments.
+   Renders only what exists — never placeholder content.
+──────────────────────────────────────────────────────────────────────────── */
+function HeroDabba({ data, heroHeight }: { data: ProfileData; heroHeight?: number }) {
+  const { firstName, lastName, location, whatsappNumber, headline, subheadline,
+    ctaPrimary, ctaSecondary, showSections, persona } = data
+  const fullName = [firstName, lastName].filter(Boolean).join(' ')
+  const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
+  const pcfg = getPersonaConfig(persona)
+  const items = (data.services ?? []).slice(0, 3)
+
+  return (
+    <section className="relative overflow-hidden" style={{ background: 'var(--sec-custom-bg, white)', minHeight: heroMinHeight(heroHeight) }}>
+      <style>{STYLES}</style>
+      <nav className="max-w-2xl mx-auto px-6 pt-6 flex justify-between items-center">
+        {location ? <LocationLink location={location} /> : <span />}
+        <KLogo />
+      </nav>
+      <div className="max-w-2xl mx-auto px-6" style={{ paddingTop: 'calc(var(--space-section) * .7)', paddingBottom: 'var(--space-section)' }}>
+        <div className="h-up h-up-1 flex items-center gap-2 flex-wrap mb-4">
+          <p className="font-black uppercase tracking-[.22em]" style={{ fontSize: 'var(--type-label)', color: 'var(--color-accent)' }}>{fullName}</p>
+        </div>
+        <h1 className="h-up h-up-2 font-display-token italic text-[#241f1a] leading-[1.08] tracking-tight mb-4"
+          style={{ fontSize: 'var(--type-display)', fontWeight: 'var(--fw-display)' }}>
+          {headline}
+        </h1>
+        <p className="h-up h-up-3 text-[#5f574d] leading-relaxed mb-6 max-w-md" style={{ fontSize: 'var(--type-subheading)' }}>
+          {subheadline}
+        </p>
+
+        {items.length > 0 && (
+          <div className="h-up h-up-4 mb-8">
+            <div className="flex justify-between items-baseline mb-2.5">
+              <span className="text-[11px] font-extrabold uppercase tracking-widest" style={{ color: 'var(--color-accent)' }}>Today&rsquo;s Dabba</span>
+            </div>
+            <div className="rounded-2xl p-3.5" style={{ background: 'linear-gradient(155deg,#DADFDD,#B9C2BF 55%,#9BA6A2)' }}>
+              <div className="grid grid-cols-2 gap-2" style={{ gridTemplateRows: '1fr 1fr', height: 168 }}>
+                <div className="rounded-xl p-2.5 flex flex-col justify-end" style={{ gridRow: items.length > 1 ? '1 / 3' : '1 / 3', background: 'var(--color-signature)' }}>
+                  <span className="text-[11px] font-extrabold uppercase" style={{ color: 'rgba(0,0,0,.55)' }}>{items[0].name}</span>
+                </div>
+                {items.slice(1).map((it) => (
+                  <div key={it.name} className="rounded-xl p-2.5 flex flex-col justify-end" style={{ background: 'var(--color-accent)' }}>
+                    <span className="text-[10.5px] font-extrabold uppercase" style={{ color: 'rgba(0,0,0,.55)' }}>{it.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="h-up h-up-4">
+          <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
+            ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} />
+        </div>
+      </div>
+    </section>
+  )
+}
+
 /* ── TUTOR ILLUSTRATION ──────────────────────────────────────────────────── */
 function TutorIllustration({ accent }: { accent: string }) {
   return (
@@ -915,5 +1008,7 @@ export default function HeroSection({ data, accent, variant, framesConfig, heroH
   if (variant === 'split')    return <HeroSplit data={data} heroHeight={heroHeight} />
   if (variant === 'banner')   return <HeroBanner data={data} heroHeight={heroHeight} />
   if (variant === 'centered') return <HeroCentered data={data} framesConfig={framesConfig} heroHeight={heroHeight} />
+  if (variant === 'sweep')    return <HeroSweep data={data} heroHeight={heroHeight} />
+  if (variant === 'dabba')    return <HeroDabba data={data} heroHeight={heroHeight} />
   return <HeroMinimal data={data} heroHeight={heroHeight} />
 }
