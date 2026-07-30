@@ -51,6 +51,7 @@ interface SpaceProps {
     surface: string | null
     borderColor: string | null
     accentColor: string | null
+    signatureColor: string | null
     studioArchetype: string | null
     mykrylaToolsLabel: string | null
     mykrylaTools: MykrylaToolCard[]

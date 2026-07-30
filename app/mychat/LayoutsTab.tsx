@@ -15,6 +15,7 @@ interface Props {
   currentPageBg: string | null
   currentSurface: string | null
   currentBorderColor: string | null
+  currentSignatureColor: string | null
   onPreview: () => void
   onUpgrade: () => void
 }
@@ -24,7 +25,7 @@ const PLAN_RANK: Record<string, number> = { seed: 0, sprout: 1, grow: 2, thrive:
 export default function LayoutsTab({
   slug, persona, plan,
   currentTemplate, currentPalette, currentFont,
-  currentAccentColor, currentPageBg, currentSurface, currentBorderColor,
+  currentAccentColor, currentPageBg, currentSurface, currentBorderColor, currentSignatureColor,
   onPreview, onUpgrade,
 }: Props) {
   const [layouts, setLayouts]           = useState<LayoutOption[]>([])
@@ -46,6 +47,7 @@ export default function LayoutsTab({
   const [pageBg, setPageBg]           = useState(currentPageBg      ?? appliedPreset?.bg     ?? '#FFFFFF')
   const [surface, setSurfaceColor]    = useState(currentSurface     ?? '#FFFFFF')
   const [borderColor, setBorderColor] = useState(currentBorderColor ?? '#ECECEA')
+  const [signatureColor, setSignatureColor] = useState(currentSignatureColor ?? appliedPreset?.paletteTokens?.signature ?? accentColor)
 
   useEffect(() => {
     if (customizing) return // don't override a member's in-progress edit
@@ -82,6 +84,8 @@ export default function LayoutsTab({
           font:     lo.font,
           designMode: lo.designMode,
           sections: lo.sections ?? null,
+          pageBg: lo.pageBg, surface: lo.surface, borderColor: lo.borderColor,
+          paletteTokens: lo.paletteTokens ?? undefined,
         }),
       })
       if (res.ok) { setAppliedLayout(lo.id); onPreview() }
@@ -104,7 +108,7 @@ export default function LayoutsTab({
           template: currentTemplate,
           palette:  currentPalette,
           font:     currentFont,
-          accentColor, pageBg, surface, borderColor,
+          accentColor, pageBg, surface, borderColor, signatureColor,
         }),
       })
       if (res.ok) { setColorsSaved(true); onPreview() }
@@ -137,9 +141,11 @@ export default function LayoutsTab({
           setPageBg(appliedPreset.bg)
           setSurfaceColor(appliedPreset.surface)
           setBorderColor(appliedPreset.borderColor)
+          setSignatureColor(appliedPreset.paletteTokens?.signature ?? appliedPreset.accent)
         } else {
           setSurfaceColor('#FFFFFF')
           setBorderColor('#E5E5E5')
+          setSignatureColor('#F5A623')
         }
         onPreview()
       }
@@ -248,10 +254,11 @@ export default function LayoutsTab({
           {customizing && (
             <div className="mt-3 space-y-3 border border-[#E5E5E5] rounded-xl p-3.5">
               {([
-                { label: 'Accent',      value: accentColor, set: setAccentColor },
-                { label: 'Background',  value: pageBg,      set: setPageBg },
-                { label: 'Surface',     value: surface,     set: setSurfaceColor },
-                { label: 'Border',      value: borderColor, set: setBorderColor },
+                { label: 'Accent',      value: accentColor,    set: setAccentColor },
+                { label: 'Background',  value: pageBg,         set: setPageBg },
+                { label: 'Surface',     value: surface,        set: setSurfaceColor },
+                { label: 'Border',      value: borderColor,    set: setBorderColor },
+                { label: 'Signature',   value: signatureColor, set: setSignatureColor },
               ] as const).map(({ label, value, set }) => (
                 <div key={label} className="flex items-center gap-3">
                   <label className="text-xs text-[#666] w-20 shrink-0">{label}</label>

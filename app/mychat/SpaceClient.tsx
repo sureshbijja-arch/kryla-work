@@ -86,6 +86,7 @@ interface CurrentProfile {
   surface: string | null
   borderColor: string | null
   accentColor: string | null
+  signatureColor: string | null
   /** Archetype id if this persona has a Practitioner Studio configured; null otherwise. */
   studioArchetype: string | null
   /** DB-driven My Tools tile header label (studio_config.mykryla_tools_label); null hides the custom header. */
@@ -681,6 +682,7 @@ export default function SpaceClient({
               currentPageBg={currentProfile.pageBg}
               currentSurface={currentProfile.surface}
               currentBorderColor={currentProfile.borderColor}
+              currentSignatureColor={currentProfile.signatureColor}
               onPreview={onRefresh}
               onUpgrade={() => goTo('plan')}
             />
