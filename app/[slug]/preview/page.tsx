@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { ProfileData, PaletteKey, FontKey, DesignMode, ShowSections } from '../types'
+import type { PaletteTokens } from '@/lib/layouts'
 import AdsScroller from '../components/AdsScroller'
 import LanguagePage from '../components/LanguagePage'
 import type { SectionEntry } from '../components/LayoutRenderer'
@@ -30,7 +31,7 @@ export default async function PreviewPage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, page_bg, surface, border_color, accent_color, show_sections, sections, draft_data, translations')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, page_bg, surface, border_color, accent_color, palette_tokens, signature_color, show_sections, sections, draft_data, translations')
     .eq('provider_id', provider.id)
     .single()
 
@@ -94,6 +95,8 @@ export default async function PreviewPage({ params }: Props) {
     surface:     ((dp.surface      as string) ?? (page.surface      as string)) ?? null,
     borderColor: ((dp.border_color as string) ?? (page.border_color as string)) ?? null,
     accentColor: ((dp.accent_color as string) ?? (page.accent_color as string)) ?? null,
+    paletteTokens:  ((dp.palette_tokens  as PaletteTokens) ?? (page.palette_tokens  as PaletteTokens)) ?? null,
+    signatureColor: ((dp.signature_color as string)        ?? (page.signature_color as string))        ?? null,
     showSections,
     avatarUrl,
     gallery,

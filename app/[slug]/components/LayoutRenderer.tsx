@@ -26,7 +26,9 @@ interface Props {
 }
 
 export default function LayoutRenderer({ sections, data }: Props) {
-  const accent     = data.accentColor ?? ACCENT[data.palette as PaletteKey] ?? '#F5A623'
+  const tokens     = data.paletteTokens
+  const accent     = data.accentColor ?? tokens?.accent ?? ACCENT[data.palette as PaletteKey] ?? '#F5A623'
+  const signature  = data.signatureColor ?? tokens?.signature ?? accent
   const bg         = data.pageBg      ?? PAGE_BG[data.palette as PaletteKey] ?? '#FFFFFF'
   const surface    = data.surface     ?? '#FFFFFF'
   const borderCol  = data.borderColor ?? 'var(--kryla-border)'
@@ -91,9 +93,10 @@ export default function LayoutRenderer({ sections, data }: Props) {
         ['--color-surface' as string]:       surface,
         ['--color-border' as string]:        borderCol,
         ['--color-accent' as string]:         accent,
-        ['--color-accent-surface' as string]: `${accent}0d`,
-        ['--color-accent-border' as string]:  `${accent}26`,
-        ['--color-accent-glow' as string]:    `${accent}40`,
+        ['--color-accent-surface' as string]: data.accentColor ? `${accent}0d` : (tokens?.accentSurface ?? `${accent}0d`),
+        ['--color-accent-border' as string]:  data.accentColor ? `${accent}26` : (tokens?.accentBorder  ?? `${accent}26`),
+        ['--color-accent-glow' as string]:    data.accentColor ? `${accent}40` : (tokens?.accentGlow    ?? `${accent}40`),
+        ['--color-signature' as string]:      signature,
       }}
       className={`min-h-screen ${fontClass}`}
     >

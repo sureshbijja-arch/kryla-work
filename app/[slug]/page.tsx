@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 import { memberUrl, memberShareCardUrl } from '@/lib/links'
 import type { ProfileData, PaletteKey, FontKey, DesignMode, ShowSections, BusinessHours } from './types'
 import { ACCENT } from './types'
+import type { PaletteTokens } from '@/lib/layouts'
 import AdsScroller from './components/AdsScroller'
 import LanguagePage from './components/LanguagePage'
 import PageTracker from './components/PageTracker'
@@ -112,7 +113,7 @@ export default async function MemberProfilePage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, page_bg, surface, border_color, accent_color, show_sections, sections, translations')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, page_bg, surface, border_color, accent_color, palette_tokens, signature_color, show_sections, sections, translations')
     .eq('provider_id', provider.id)
     .single()
 
@@ -178,6 +179,8 @@ export default async function MemberProfilePage({ params }: Props) {
     surface:     (page.surface      as string | null) ?? null,
     borderColor: (page.border_color as string | null) ?? null,
     accentColor: (page.accent_color as string | null) ?? null,
+    paletteTokens: (page.palette_tokens as PaletteTokens | null) ?? null,
+    signatureColor: (page.signature_color as string | null) ?? null,
     showSections,
     avatarUrl,
     gallery,

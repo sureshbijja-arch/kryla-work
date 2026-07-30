@@ -1,3 +1,5 @@
+import type { PaletteTokens } from '@/lib/layouts'
+
 export interface SectionStyle {
   bg?: { type: 'color' | 'photo'; value: string }
   frames?: { enabled: boolean; count: 1 | 2 | 3 }
@@ -117,6 +119,8 @@ export interface ProfileData {
   surface?: string | null
   borderColor?: string | null
   accentColor?: string | null
+  paletteTokens?: PaletteTokens | null
+  signatureColor?: string | null
   showSections: ShowSections
   avatarUrl?: string | null
   gallery?: string[]
