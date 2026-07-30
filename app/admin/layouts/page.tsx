@@ -24,6 +24,7 @@ interface Preset {
   page_bg:      string
   surface:      string
   border_color: string
+  palette_tokens: { accent: string; accentSurface: string; accentBorder: string; accentGlow: string; signature: string } | null
   created_at:   string
 }
 
@@ -211,6 +212,7 @@ export default function AdminLayoutsPage() {
             onChange={setCreateForm}
             onUpload={url => setCreateForm(f => ({ ...f, imageUrl: url }))}
             sectionTypes={sectionTypes}
+            paletteTokens={null}
           />
           <button onClick={handleCreate} disabled={saving || !createForm.name.trim()}
             className="mt-4 bg-[#0D0D0D] text-white text-sm font-semibold rounded-xl px-5 py-2.5 disabled:opacity-40 hover:opacity-80 transition-opacity">
@@ -250,6 +252,7 @@ export default function AdminLayoutsPage() {
                   onChange={setEditForm}
                   onUpload={url => setEditForm(f => ({ ...f, imageUrl: url }))}
                   sectionTypes={sectionTypes}
+                  paletteTokens={p.palette_tokens}
                 />
                 <div className="flex gap-2 mt-4">
                   <button onClick={() => handleUpdate(p.id)} disabled={saving}
@@ -273,6 +276,15 @@ export default function AdminLayoutsPage() {
                     </>
                   )}
                 </div>
+
+                {p.palette_tokens && (
+                  <div className="shrink-0 flex gap-1" title="palette_tokens accent + signature">
+                    <div className="w-4 h-4 rounded-full border border-[#E5E5E5]"
+                      style={{ background: p.palette_tokens.accent }} />
+                    <div className="w-4 h-4 rounded-full border border-[#E5E5E5]"
+                      style={{ background: p.palette_tokens.signature }} />
+                  </div>
+                )}
 
                 {/* Meta */}
                 <div className="flex-1 min-w-0">
@@ -359,11 +371,12 @@ export default function AdminLayoutsPage() {
 
 // ── PresetForm ─────────────────────────────────────────────────────────────
 
-function PresetForm({ form, onChange, onUpload, sectionTypes }: {
-  form:         FormState
-  onChange:     (f: FormState) => void
-  onUpload:     (url: string) => void
-  sectionTypes: SectionType[]
+function PresetForm({ form, onChange, onUpload, sectionTypes, paletteTokens }: {
+  form:           FormState
+  onChange:       (f: FormState) => void
+  onUpload:       (url: string) => void
+  sectionTypes:   SectionType[]
+  paletteTokens?: { accent: string; accentSurface: string; accentBorder: string; accentGlow: string; signature: string } | null
 }) {
   const [uploading, setUploading]     = useState(false)
   const [uploadError, setUploadError] = useState('')
@@ -486,6 +499,18 @@ function PresetForm({ form, onChange, onUpload, sectionTypes }: {
           <label className="field-label">Sort order</label>
           <input type="number" value={form.sort_order} onChange={e => field('sort_order')(e.target.value)} className="field-input" />
         </div>
+      </div>
+
+      {/* palette_tokens has no editor yet (explicit scope decision) — raw JSON for visibility only */}
+      {paletteTokens && (
+        <div className="mt-2">
+          <label className="text-xs font-semibold text-[#666] block mb-1">palette_tokens (read-only)</label>
+          <pre className="text-[10px] bg-[#F5F5F5] rounded-lg p-2 overflow-x-auto">{JSON.stringify(paletteTokens, null, 2)}</pre>
+        </div>
+      )}
+
+      {/* Preview image section */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <div className="col-span-2">
           <label className="field-label">Preview image (optional)</label>
           <div className="flex items-center gap-3">
