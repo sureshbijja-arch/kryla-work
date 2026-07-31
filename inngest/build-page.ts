@@ -34,7 +34,11 @@ const DESIGN_MODE_MAP: Record<string, string> = {
 
 type Section = { sectionKey: string; variant: string; order: number }
 
-// Smart defaults per persona — hero is always 'auto' so resolveVariant() picks the right layout
+// Smart defaults per persona — hero is 'auto' (resolveVariant() picks the right
+// layout) for every persona except sellganeshidols, which stores a literal
+// variant ('shadu') directly: resolveVariant() only ever transforms 'auto' for
+// sectionKey 'hero', so a new literal variant is reachable only by being
+// stored here — it can never be auto-selected the way 'photo'/'dark'/etc. are.
 const PERSONA_SECTIONS: Record<string, Section[]> = {
   baker: [
     { sectionKey: 'hero',       variant: 'auto',      order: 1 },
@@ -160,10 +164,16 @@ const PERSONA_SECTIONS: Record<string, Section[]> = {
     { sectionKey: 'faq',        variant: 'accordion', order: 6 },
     { sectionKey: 'contact',    variant: 'both',      order: 7 },
   ],
-  // Product seller personas (menu/catalog layout, enquiry contact)
+  // Ganesh idol-seller signature (see HeroSection.tsx's HeroShadu, ServicesSection.tsx's
+  // Sizes): hero 'auto' would otherwise resolve to 'photo' here (default_gallery
+  // was previously 4 seeded images), never 'dark' — so 'auto' was never actually
+  // giving this persona the flat-field look. 'shadu'/'sizes' are literal, not
+  // auto-selectable; gallery section stays so a member's first real uploaded
+  // photo still appears there (default_gallery is now emptied, see the
+  // 20260731090000 migration — GallerySection renders nothing for an empty array).
   sellganeshidols: [
-    { sectionKey: 'hero',       variant: 'auto',      order: 1 },
-    { sectionKey: 'services',   variant: 'menu',      order: 2 },
+    { sectionKey: 'hero',       variant: 'shadu',     order: 1 },
+    { sectionKey: 'services',   variant: 'sizes',     order: 2 },
     { sectionKey: 'gallery',    variant: 'grid',      order: 3 },
     { sectionKey: 'bio',        variant: 'callout',   order: 4 },
     { sectionKey: 'highlights', variant: 'icons',     order: 5 },
@@ -449,6 +459,14 @@ export const buildPageFunction = inngest.createFunction(
         design_mode: DESIGN_MODE_MAP[payload.persona] ?? 'craft',
         sections: PERSONA_SECTIONS[payload.persona] ?? PERSONA_SECTIONS.other,
         gallery: defaults.defaultGallery,
+        // Per-persona curated color/font identity (null for every persona that
+        // doesn't have one — see supabase/migrations/20260731090000_ganesh_theme_font_columns.sql).
+        // Without this, a new signup would render the flat ACCENT-enum color
+        // and default font even when a curated identity exists in `personas`.
+        palette_tokens: defaults.paletteTokens,
+        signature_color: defaults.signatureColor,
+        display_font: defaults.displayFont,
+        body_font: defaults.bodyFont,
         show_sections: {
           hero: true, services: true, highlights: true,
           booking: payload.plan !== 'seed', faq: true, contact: true,

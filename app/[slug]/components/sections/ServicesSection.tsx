@@ -266,20 +266,24 @@ function Menu({ data }: { data: ProfileData }) {
             ))}
 
             {cfg.hasCustomOrder && (
-              <div
-                className="flex items-center justify-between gap-4 px-5 py-4 border border-dashed cursor-pointer hover:shadow-lg transition-all duration-200"
-                style={{ borderRadius: 'var(--radius-card)', borderColor: 'var(--color-accent-border)' }}
-                onClick={() => setCustomOpen(true)}>
-                <div>
-                  <p className="font-black text-[#0D0D0D]">Something special in mind?</p>
-                  <p className="text-sm text-[#999] mt-0.5">Share your vision — we'll make it happen</p>
-                </div>
-                <button
-                  className="shrink-0 text-xs font-black text-white px-3 py-2 transition-opacity hover:opacity-80"
-                  style={{ borderRadius: 'var(--radius-btn)', background: accentColor }}>
+              // Previously a <div onClick> wrapping a decorative, non-functional
+              // nested <button> — completely unreachable by keyboard. Replaced
+              // with one real button; same visual result, actually reachable.
+              <button
+                type="button"
+                onClick={() => setCustomOpen(true)}
+                className="w-full flex items-center justify-between gap-4 px-5 py-4 border border-dashed text-left hover:shadow-lg transition-all duration-200"
+                style={{ borderRadius: 'var(--radius-card)', borderColor: 'var(--color-accent-border)', minHeight: 44 }}>
+                <span>
+                  <span className="block font-black text-[#0D0D0D]">Something special in mind?</span>
+                  <span className="block text-sm text-[#666] mt-0.5">Share your vision — we&apos;ll make it happen</span>
+                </span>
+                <span
+                  className="shrink-0 inline-flex items-center justify-center text-xs font-black text-white px-4"
+                  style={{ borderRadius: 'var(--radius-btn)', background: accentColor, minHeight: 44 }}>
                   Custom Order
-                </button>
-              </div>
+                </span>
+              </button>
             )}
           </div>
         </div>
@@ -339,6 +343,129 @@ function PriceList({ data }: { data: ProfileData }) {
         </div>
       </div>
     </section>
+  )
+}
+
+/* ── SIZES ────────────────────────────────────────────────────────────────
+   Ganesh idol-seller signature: size-led rows. ServiceItem has no numeric
+   size/height field, so this does NOT sort or parse a size out of free text
+   — it renders in the member's own entered order and promotes
+   duration_or_unit (where the AI build step already places the size string
+   for this persona) to a labeled "Height" column. No SectionLabel (the
+   banned eyebrow) — the column structure itself carries the size-led read.
+──────────────────────────────────────────────────────────────────────────── */
+function Sizes({ data }: { data: ProfileData }) {
+  const { services, showSections, persona, providerId } = data
+  if (!showSections.services || !services.length) return null
+
+  const cfg = getPersonaConfig(persona)
+  const [orderItem, setOrderItem]   = useState<OrderItem | null>(null)
+  const [customOpen, setCustomOpen] = useState(false)
+  const accentColor = `var(--color-accent)`
+
+  return (
+    <>
+      {/* id="menu" kept — personaConfig.heroCtaTarget for this persona is
+          '#menu' and the hero CTA scrolls here; changing the id would need a
+          matching personaConfig edit for no user-visible benefit. */}
+      <section id="menu" className="border-t border-[var(--kryla-border)]"
+        style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
+        <div className="max-w-2xl mx-auto px-6">
+          <h2 className="font-heading-token mb-8" style={{ fontSize: 'var(--type-heading)' }}>{cfg.servicesLabel}</h2>
+          {services.some(s => s.duration_or_unit) && (
+            <div className="flex items-baseline justify-between px-1 mb-2 text-[11px] font-bold uppercase tracking-wide" style={{ color: 'var(--kryla-muted)' }}>
+              <span>Idol</span>
+              <span>Height</span>
+            </div>
+          )}
+          <div className="space-y-2">
+            {services.map((s, i) => (
+              <div key={i}
+                className="group flex items-start gap-4 bg-white overflow-hidden"
+                style={{ borderRadius: 'var(--radius-card)', border: '1.5px solid var(--color-accent-border)' }}>
+                {s.image_url && (
+                  <div className="shrink-0 w-20 h-20 overflow-hidden rounded-l-[inherit]">
+                    <SmartImg src={s.image_url} alt={s.name} hover className="w-full h-full" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0 py-4" style={{ paddingLeft: s.image_url ? undefined : '1.25rem' }}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-black text-[#0D0D0D] break-words">{s.name}</p>
+                        {s.badge && <GenericBadge label={s.badge} />}
+                      </div>
+                      <p className="text-sm text-[#666] mt-0.5 leading-relaxed">{s.description}</p>
+                    </div>
+                    {s.duration_or_unit && (
+                      <span className="shrink-0 text-sm font-black px-3 py-1 text-white whitespace-nowrap"
+                        style={{ borderRadius: 'var(--radius-btn)', background: accentColor }}>
+                        {s.duration_or_unit}
+                      </span>
+                    )}
+                  </div>
+                  {cfg.serviceCardAction === 'order' && s.price && (
+                    <div className="flex items-center gap-3 mt-2.5">
+                      <span className="text-sm font-black" style={{ color: accentColor }}>{s.price}</span>
+                      <button
+                        onClick={() => setOrderItem({
+                          name: s.name,
+                          description: s.description ?? undefined,
+                          price: s.price ?? undefined,
+                          image_url: s.image_url ?? undefined,
+                        })}
+                        className="inline-flex items-center justify-center px-4 text-xs font-black text-white transition-opacity hover:opacity-80"
+                        style={{ borderRadius: 'var(--radius-btn)', background: accentColor, minHeight: 44, minWidth: 44 }}>
+                        {cfg.orderLabel} →
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {cfg.serviceCardAction !== 'order' && s.price && (
+                  <span className="shrink-0 text-base font-black pr-5 pt-4" style={{ color: accentColor }}>
+                    {s.price}
+                  </span>
+                )}
+              </div>
+            ))}
+
+            {cfg.hasCustomOrder && (
+              <button
+                type="button"
+                onClick={() => setCustomOpen(true)}
+                className="w-full flex items-center justify-between gap-4 px-5 py-4 border border-dashed text-left hover:shadow-lg transition-all duration-200"
+                style={{ borderRadius: 'var(--radius-card)', borderColor: 'var(--color-accent-border)', minHeight: 44 }}>
+                <span>
+                  <span className="block font-black text-[#0D0D0D]">Something special in mind?</span>
+                  <span className="block text-sm text-[#666] mt-0.5">Share your vision — we&apos;ll make it happen</span>
+                </span>
+                <span
+                  className="shrink-0 inline-flex items-center justify-center text-xs font-black text-white px-4"
+                  style={{ borderRadius: 'var(--radius-btn)', background: accentColor, minHeight: 44 }}>
+                  Custom Order
+                </span>
+              </button>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {orderItem && (
+        <OrderModal
+          item={orderItem}
+          providerId={providerId}
+          accentColor={accentColor}
+          onClose={() => setOrderItem(null)}
+        />
+      )}
+      {customOpen && (
+        <CustomOrderModal
+          providerId={providerId}
+          accentColor={accentColor}
+          onClose={() => setCustomOpen(false)}
+        />
+      )}
+    </>
   )
 }
 
@@ -465,5 +592,6 @@ export default function ServicesSection({ data, accent: _accent, variant }: Prop
   if (variant === 'menu')       return <Menu data={data} />
   if (variant === 'pricing')    return <Pricing data={data} />
   if (variant === 'price-list') return <PriceList data={data} />
+  if (variant === 'sizes')      return <Sizes data={data} />
   return <List data={data} />
 }

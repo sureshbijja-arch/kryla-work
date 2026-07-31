@@ -10,7 +10,6 @@ interface Props {
   data: ProfileData
   accent: string
   variant: string
-  showNav?: boolean
   framesConfig?: { enabled: boolean; count: 1 | 2 | 3 }
   heroHeight?: number // min-height in svh, 40–100; unset = per-variant default
 }
@@ -178,20 +177,36 @@ const FRAME_CONFIGS: FrameConfig[] = [
 function KLogo({ dark = false }: { dark?: boolean }) {
   const line = dark ? 'white' : '#0D0D0D'
   const acc  = 'var(--color-accent)'
+  // Resting opacity is the WCAG-passing floor for the SVG mark + "kryla" text
+  // against any hero background this renders on (verified 4.5:1+ on both
+  // terracotta and near-black for dark, and on white/kryla-bg for light) —
+  // hover still brightens to 1 for the visual "wake up" affordance.
+  // CSS opacity on an ancestor composites with a descendant's color at render
+  // time (a child's own opacity can't cancel it out), so ".work" — which
+  // needs to render in var(--color-accent), a per-persona value we can't
+  // pre-verify against every dimming level — sits OUTSIDE the dimmed
+  // span entirely, as a sibling at the link's own full opacity. This also
+  // sidesteps HeroShadu's specific collision (its flat background IS
+  // var(--color-accent), so accent-on-accent inside a dimmed wrapper would be
+  // both invisible AND under-contrast at the same time); dark mode uses solid
+  // white instead of the raw accent so it always reads against any dark hero
+  // fill, including one that equals the accent color.
+  const restOpacity = dark ? '.75' : '.6'
   return (
-    <a href="https://kryla.work"
-      className="flex items-center gap-1.5 transition-opacity"
-      style={{ opacity: .35 }}
-      onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
-      onMouseLeave={e => (e.currentTarget.style.opacity = '.35')}>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <line x1="7" y1="4"  x2="7"  y2="20" stroke={line} strokeWidth="2.5" strokeLinecap="round"/>
-        <line x1="7" y1="12" x2="17" y2="4"  stroke={line} strokeWidth="2.5" strokeLinecap="round"/>
-        <line x1="7" y1="12" x2="17" y2="20" stroke={acc}  strokeWidth="2.5" strokeLinecap="round"/>
-      </svg>
-      <span className="text-xs font-bold" style={{ color: dark ? 'rgba(255,255,255,.45)' : '#0D0D0D' }}>
-        kryla<span style={{ color: acc }}>.work</span>
+    <a href="https://kryla.work" className="flex items-center gap-1.5">
+      <span
+        className="flex items-center gap-1.5 transition-opacity"
+        style={{ opacity: restOpacity }}
+        onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+        onMouseLeave={e => (e.currentTarget.style.opacity = restOpacity)}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <line x1="7" y1="4"  x2="7"  y2="20" stroke={line} strokeWidth="2.5" strokeLinecap="round"/>
+          <line x1="7" y1="12" x2="17" y2="4"  stroke={line} strokeWidth="2.5" strokeLinecap="round"/>
+          <line x1="7" y1="12" x2="17" y2="20" stroke={acc}  strokeWidth="2.5" strokeLinecap="round"/>
+        </svg>
+        <span className="text-xs font-bold" style={{ color: dark ? 'white' : '#0D0D0D' }}>kryla</span>
       </span>
+      <span className="text-xs font-bold -ml-1" style={{ color: dark ? 'white' : acc }}>.work</span>
     </a>
   )
 }
@@ -246,7 +261,9 @@ function CTAs({ wa, showBooking, showContact, ctaPrimary, ctaSecondary, ctaTarge
           style={{
             borderRadius: 'var(--radius-btn)',
             border: dark ? '1.5px solid rgba(255,255,255,.15)' : '1.5px solid var(--color-accent-border)',
-            color: dark ? 'rgba(255,255,255,.5)' : '#333',
+            // .5 measured ~3:1 on lighter dark-hero backgrounds like terracotta
+            // (only ever verified against near-black); .75 clears 4.5:1 on both.
+            color: dark ? 'rgba(255,255,255,.75)' : '#333',
             backdropFilter: dark ? 'blur(8px)' : undefined,
           }}
           onMouseEnter={e => {
@@ -256,7 +273,7 @@ function CTAs({ wa, showBooking, showContact, ctaPrimary, ctaSecondary, ctaTarge
           }}
           onMouseLeave={e => {
             const el = e.currentTarget as HTMLAnchorElement
-            el.style.color = dark ? 'rgba(255,255,255,.5)' : '#333'
+            el.style.color = dark ? 'rgba(255,255,255,.75)' : '#333'
             el.style.borderColor = dark ? 'rgba(255,255,255,.15)' : 'var(--color-accent-border)'
           }}>
           {ctaSecondary || 'Get in touch'}
@@ -458,6 +475,59 @@ function HeroDabba({ data, heroHeight }: { data: ProfileData; heroHeight?: numbe
         <div className="h-up h-up-4">
           <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
             ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ── SHADU ─────────────────────────────────────────────────────────────────
+   Ganesh idol-seller signature: a flat, solid fired-terracotta field (the
+   clay itself, before any painted finish) rather than a gradient or photo —
+   no usable real photography exists for this persona (existing repo assets
+   are stock-marketing composites). No eyebrow label above the headline.
+   Field color comes from --sec-custom-bg (set from the member's own
+   palette_tokens/accent, not hardcoded) so this stays a real member override,
+   not a fixed color baked into the component.
+──────────────────────────────────────────────────────────────────────────── */
+function HeroShadu({ data, heroHeight }: { data: ProfileData; heroHeight?: number }) {
+  const { location, whatsappNumber, firstName, headline, subheadline,
+    ctaPrimary, ctaSecondary, showSections, persona, businessHours } = data
+  const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
+  const pcfg = getPersonaConfig(persona)
+
+  return (
+    <section className="hero-shadu relative overflow-hidden flex flex-col"
+      style={{ background: 'var(--sec-custom-bg, var(--color-accent))', minHeight: heroMinHeight(heroHeight) ?? '100svh' }}>
+      <style>{STYLES}</style>
+      <nav className="max-w-2xl mx-auto w-full px-6 pt-6 flex justify-between items-center">
+        {location ? <LocationLink location={location} dark /> : <span />}
+        <KLogo dark />
+      </nav>
+      <div className="max-w-2xl mx-auto w-full px-6 flex-1 flex flex-col justify-end"
+        style={{ paddingTop: 'calc(var(--space-section) * .7)', paddingBottom: 'var(--space-section)' }}>
+        {/* No eyebrow label — the headline carries itself. */}
+        <h1 className="h-up h-up-1 font-display-token text-white leading-[1.04] tracking-tight mb-4"
+          style={{ fontSize: 'var(--type-display)', fontWeight: 'var(--fw-display)' }}>
+          {headline}
+        </h1>
+        {/* Solid rgba, not a low-opacity utility class — HeroDark's text-white/35
+            on its own dark field is ~2.6:1 and fails WCAG AA; this stays ≥4.5:1
+            against the terracotta field regardless of exact hex chosen. */}
+        <p className="h-up h-up-2 leading-relaxed mb-6 max-w-md" style={{ fontSize: 'var(--type-subheading)', color: 'rgba(255,255,255,0.88)' }}>
+          {subheadline}
+        </p>
+        <div className="h-up h-up-3">
+          {businessHours?.enabled && <BusinessStatusBadge hours={businessHours} dark />}
+          {pcfg.leadTimeNotice && (
+            <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full text-xs font-semibold"
+              style={{ background: 'rgba(255,255,255,0.14)', color: 'rgba(255,255,255,0.92)', border: '1px solid rgba(255,255,255,0.28)' }}>
+              <span>⏱</span>
+              {pcfg.leadTimeNotice}
+            </div>
+          )}
+          <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
+            ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} dark />
         </div>
       </div>
     </section>
@@ -1009,5 +1079,6 @@ export default function HeroSection({ data, accent, variant, framesConfig, heroH
   if (variant === 'centered') return <HeroCentered data={data} framesConfig={framesConfig} heroHeight={heroHeight} />
   if (variant === 'sweep')    return <HeroSweep data={data} heroHeight={heroHeight} />
   if (variant === 'dabba')    return <HeroDabba data={data} heroHeight={heroHeight} />
+  if (variant === 'shadu')    return <HeroShadu data={data} heroHeight={heroHeight} />
   return <HeroMinimal data={data} heroHeight={heroHeight} />
 }

@@ -97,45 +97,60 @@ export default function LayoutRenderer({ sections, data }: Props) {
         ['--color-accent-border' as string]:  data.accentColor ? `${accent}26` : (tokens?.accentBorder  ?? `${accent}26`),
         ['--color-accent-glow' as string]:    data.accentColor ? `${accent}40` : (tokens?.accentGlow    ?? `${accent}40`),
         ['--color-signature' as string]:      signature,
+        // Per-persona display/body font override (currently sellganeshidols
+        // only — see supabase/migrations/20260731090000_ganesh_theme_font_columns.sql).
+        // A CSS custom property set here always wins over the shared
+        // [data-mode] blocks in globals.css by specificity, so this is
+        // additive and inert for every persona whose display_font/body_font
+        // is null: .font-display-token/.font-heading-token keep resolving to
+        // Fraunces, and fontClass (below) keeps applying unchanged. Not part
+        // of the member-selectable FontKey/FONT_CLASS enum — reachable only
+        // via this DB-driven field, never choosable by other personas.
+        ...(data.displayFont ? {
+          ['--font-display' as string]: data.displayFont,
+          ['--font-heading' as string]: data.displayFont,
+        } : {}),
+        ...(data.bodyFont ? { fontFamily: data.bodyFont } : {}),
       }}
       className={`min-h-screen ${fontClass}`}
     >
-      {sorted.map((s, i) => {
-        const isFirst = i === 0
-        const variant = resolveVariant(s.sectionKey, s.variant)
-        let node: React.ReactNode = null
-        switch (s.sectionKey) {
-          case 'hero':
-            node = <HeroSection key={i} data={data} accent={accent} variant={variant} showNav={isFirst} framesConfig={s.style?.frames} heroHeight={s.style?.size?.heroHeight} />
-            break
-          case 'services':
-            node = <ServicesSection key={i} data={data} accent={accent} variant={variant} />
-            break
-          case 'highlights':
-            node = <HighlightsSection key={i} data={data} accent={accent} variant={variant} />
-            break
-          case 'bio':
-            node = <BioSection key={i} data={data} accent={accent} variant={variant} />
-            break
-          case 'gallery':
-            node = <GallerySection key={i} data={data} variant={variant} />
-            break
-          case 'faq':
-            node = <FaqSection key={i} data={data} accent={accent} variant={variant} />
-            break
-          case 'contact':
-            node = <ContactSection key={i} data={data} accent={accent} variant={variant} />
-            break
-          case 'reviews':
-            node = <ReviewsSection key={i} providerId={data.providerId} accentColor={accent} />
-            break
-          default:
-            return null
-        }
-        const wrapped = wrapSection(node, s.style, i)
-        if (s.sectionKey === 'hero') return wrapped
-        return <AnimateIn key={i} delay={Math.min(i * 60, 240)}>{wrapped}</AnimateIn>
-      })}
+      <main>
+        {sorted.map((s, i) => {
+          const variant = resolveVariant(s.sectionKey, s.variant)
+          let node: React.ReactNode = null
+          switch (s.sectionKey) {
+            case 'hero':
+              node = <HeroSection key={i} data={data} accent={accent} variant={variant} framesConfig={s.style?.frames} heroHeight={s.style?.size?.heroHeight} />
+              break
+            case 'services':
+              node = <ServicesSection key={i} data={data} accent={accent} variant={variant} />
+              break
+            case 'highlights':
+              node = <HighlightsSection key={i} data={data} accent={accent} variant={variant} />
+              break
+            case 'bio':
+              node = <BioSection key={i} data={data} accent={accent} variant={variant} />
+              break
+            case 'gallery':
+              node = <GallerySection key={i} data={data} variant={variant} />
+              break
+            case 'faq':
+              node = <FaqSection key={i} data={data} accent={accent} variant={variant} />
+              break
+            case 'contact':
+              node = <ContactSection key={i} data={data} accent={accent} variant={variant} />
+              break
+            case 'reviews':
+              node = <ReviewsSection key={i} providerId={data.providerId} accentColor={accent} />
+              break
+            default:
+              return null
+          }
+          const wrapped = wrapSection(node, s.style, i)
+          if (s.sectionKey === 'hero') return wrapped
+          return <AnimateIn key={i} delay={Math.min(i * 60, 240)}>{wrapped}</AnimateIn>
+        })}
+      </main>
       <Footer />
     </div>
   )

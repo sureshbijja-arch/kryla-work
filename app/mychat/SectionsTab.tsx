@@ -30,17 +30,24 @@ const SECTION_META: Record<string, SectionMeta> = {
       { key: 'gradient', label: 'Gradient — soft aurora' },
       { key: 'banner',   label: 'Banner — accent header' },
       { key: 'minimal',  label: 'Minimal — clean left-aligned' },
+      // Not persona-scoped — any persona can pick these, matching how the
+      // three below already worked before this pass touched the file.
+      { key: 'sweep',    label: 'Sweep — brass light sweep (salon)' },
+      { key: 'dabba',    label: 'Dabba — tiffin compartments (tiffin)' },
+      { key: 'shadu',    label: 'Shadu — flat clay field (Ganesh idols)' },
     ],
   },
   services: {
     label: 'Services',
     icon: '◈',
     variants: [
-      { key: 'list',     label: 'List — stacked rows' },
-      { key: 'grid',     label: 'Grid — 2-column cards' },
-      { key: 'menu',     label: 'Menu — price-forward' },
-      { key: 'pricing',  label: 'Pricing — bold cards' },
-      { key: 'features', label: 'Features — detailed cards' },
+      { key: 'list',       label: 'List — stacked rows' },
+      { key: 'grid',       label: 'Grid — 2-column cards' },
+      { key: 'menu',       label: 'Menu — price-forward' },
+      { key: 'pricing',    label: 'Pricing — bold cards' },
+      { key: 'features',   label: 'Features — detailed cards' },
+      { key: 'price-list', label: 'Price list — dotted leader rows' },
+      { key: 'sizes',      label: 'Sizes — by height (Ganesh idols)' },
     ],
   },
   highlights: {

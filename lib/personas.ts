@@ -12,6 +12,7 @@
 
 import { cache } from 'react'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import type { PaletteTokens } from '@/lib/layouts'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -119,12 +120,25 @@ export const getEnabledPersonas = cache(async (): Promise<PersonaRow[]> => {
  * Falls back to 'other' values if the id is not found.
  * Safe to call from Inngest / non-React contexts (no React cache dependency).
  */
-export async function fetchPersonaDefaults(
-  id: string
-): Promise<{ template: string; palette: string; font: string; defaultGallery: string[] }> {
+export interface PersonaDefaults {
+  template: string
+  palette: string
+  font: string
+  defaultGallery: string[]
+  /** Per-persona curated color identity (see palette_tokens on layout_presets/pages). Null = use the flat ACCENT enum. */
+  paletteTokens: PaletteTokens | null
+  signatureColor: string | null
+  /** Ganesh-only override example: full CSS font-family stack, not a bare family name. Null = use the shared [data-mode] default. */
+  displayFont: string | null
+  bodyFont: string | null
+}
+
+const PERSONA_DEFAULTS_SELECT = 'template, palette, font, default_gallery, palette_tokens, signature_color, display_font, body_font'
+
+export async function fetchPersonaDefaults(id: string): Promise<PersonaDefaults> {
   const { data } = await supabaseAdmin
     .from('personas')
-    .select('template, palette, font, default_gallery')
+    .select(PERSONA_DEFAULTS_SELECT)
     .eq('id', id)
     .maybeSingle()
 
@@ -134,13 +148,17 @@ export async function fetchPersonaDefaults(
       palette: data.palette,
       font: data.font,
       defaultGallery: Array.isArray(data.default_gallery) ? data.default_gallery : [],
+      paletteTokens: (data.palette_tokens as unknown as PaletteTokens | null) ?? null,
+      signatureColor: data.signature_color ?? null,
+      displayFont: data.display_font ?? null,
+      bodyFont: data.body_font ?? null,
     }
   }
 
   // Fall back to 'other' row
   const { data: fallback } = await supabaseAdmin
     .from('personas')
-    .select('template, palette, font, default_gallery')
+    .select(PERSONA_DEFAULTS_SELECT)
     .eq('id', 'other')
     .maybeSingle()
 
@@ -149,6 +167,10 @@ export async function fetchPersonaDefaults(
     palette:  fallback?.palette  ?? 'professional',
     font:     fallback?.font     ?? 'inter',
     defaultGallery: Array.isArray(fallback?.default_gallery) ? fallback.default_gallery : [],
+    paletteTokens: (fallback?.palette_tokens as unknown as PaletteTokens | null) ?? null,
+    signatureColor: fallback?.signature_color ?? null,
+    displayFont: fallback?.display_font ?? null,
+    bodyFont: fallback?.body_font ?? null,
   }
 }
 

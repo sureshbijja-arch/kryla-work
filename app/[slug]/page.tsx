@@ -113,7 +113,7 @@ export default async function MemberProfilePage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, page_bg, surface, border_color, accent_color, palette_tokens, signature_color, show_sections, sections, translations')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, page_bg, surface, border_color, accent_color, palette_tokens, signature_color, display_font, body_font, show_sections, sections, translations')
     .eq('provider_id', provider.id)
     .single()
 
@@ -181,6 +181,8 @@ export default async function MemberProfilePage({ params }: Props) {
     accentColor: (page.accent_color as string | null) ?? null,
     paletteTokens: (page.palette_tokens as PaletteTokens | null) ?? null,
     signatureColor: (page.signature_color as string | null) ?? null,
+    displayFont: (page.display_font as string | null) ?? null,
+    bodyFont: (page.body_font as string | null) ?? null,
     showSections,
     avatarUrl,
     gallery,

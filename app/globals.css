@@ -121,6 +121,28 @@
   }
 }
 
+/* Visible keyboard-focus ring on member public pages. Scoped to [data-mode]
+   (the LayoutRenderer wrapper) so admin/MyKryla surfaces are untouched.
+   Zero visual effect except during keyboard navigation — an outline doesn't
+   affect layout flow. Was entirely absent before (0 occurrences of
+   :focus-visible anywhere in this codebase); every interactive element on
+   every persona's public page previously had no visible focus state at all. */
+[data-mode] a:focus-visible,
+[data-mode] button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* HeroShadu's flat field IS var(--color-accent) for this persona (both accent
+   and signature resolve to the same terracotta hex), so the rule above is
+   invisible there (1:1 contrast, verified). White reliably contrasts against
+   any single-hue dark field this variant would plausibly use. */
+.hero-shadu a:focus-visible,
+.hero-shadu button:focus-visible {
+  outline-color: #fff;
+}
+
 * { box-sizing: border-box; }
 
 body {

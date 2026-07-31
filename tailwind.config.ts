@@ -39,10 +39,14 @@ const config: Config = {
         },
       },
       fontFamily: {
-        inter:     ["var(--font-inter)", "Inter", "sans-serif"],
-        fraunces:  ["var(--font-fraunces)", "Fraunces", "serif"],
-        georgia:   ["Georgia", "serif"],
-        trebuchet: ["Trebuchet MS", "sans-serif"],
+        inter:      ["var(--font-inter)", "Inter", "sans-serif"],
+        fraunces:   ["var(--font-fraunces)", "Fraunces", "serif"],
+        georgia:    ["Georgia", "serif"],
+        trebuchet:  ["Trebuchet MS", "sans-serif"],
+        // Ganesh-only override — not part of the member-selectable FontKey/
+        // FONT_CLASS enum, reached only via pages.display_font/body_font.
+        bricolage:  ["var(--font-bricolage)", "Bricolage Grotesque", "sans-serif"],
+        publicsans: ["var(--font-public-sans)", "Public Sans", "sans-serif"],
       },
       // Design system — values read from CSS custom properties set by [data-mode]
       fontSize: {

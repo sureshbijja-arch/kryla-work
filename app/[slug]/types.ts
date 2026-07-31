@@ -121,6 +121,9 @@ export interface ProfileData {
   accentColor?: string | null
   paletteTokens?: PaletteTokens | null
   signatureColor?: string | null
+  /** Ganesh-only override example (see LayoutRenderer). Full CSS font-family stacks, not bare family names. Null/absent = shared [data-mode] default. */
+  displayFont?: string | null
+  bodyFont?: string | null
   showSections: ShowSections
   avatarUrl?: string | null
   gallery?: string[]

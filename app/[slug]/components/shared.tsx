@@ -1,21 +1,36 @@
 export function KrylaLogo() {
+  // CSS opacity on an ancestor composites with a descendant's own color at
+  // render time — a child's opacity:1 does NOT cancel a dimmed parent, it
+  // still renders at the parent's reduced opacity. So .work can't live inside
+  // the opacity-60 wrapper at all if it needs to hit 4.5:1 on its own: no
+  // amber-family hex survives that .6 composite while still reading as amber
+  // (verified via WCAG relative-luminance calc — even near-black-brown only
+  // reaches ~4.4:1 post-composite, and by then it isn't amber anymore). Fix:
+  // the SVG mark + "kryla" text sit in the dimmed/brightens-on-hover span;
+  // .work is a sibling at full opacity with its own accessible amber shade
+  // (5.4:1+ verified on every real page bg).
   return (
-    <a href="https://kryla.work" className="flex items-center gap-1.5 opacity-60 hover:opacity-100 transition-opacity">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <line x1="7" y1="4" x2="7" y2="20" stroke="#0D0D0D" strokeWidth="2.5" strokeLinecap="round"/>
-        <line x1="7" y1="12" x2="17" y2="4" stroke="#0D0D0D" strokeWidth="2.5" strokeLinecap="round"/>
-        <line x1="7" y1="12" x2="17" y2="20" stroke="#F5A623" strokeWidth="2.5" strokeLinecap="round"/>
-      </svg>
-      <span className="text-xs font-semibold text-[#0D0D0D]">kryla<span style={{ color: '#F5A623' }}>.work</span></span>
+    <a href="https://kryla.work" className="flex items-center gap-1.5">
+      <span className="flex items-center gap-1.5 opacity-60 hover:opacity-100 transition-opacity">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <line x1="7" y1="4" x2="7" y2="20" stroke="#0D0D0D" strokeWidth="2.5" strokeLinecap="round"/>
+          <line x1="7" y1="12" x2="17" y2="4" stroke="#0D0D0D" strokeWidth="2.5" strokeLinecap="round"/>
+          <line x1="7" y1="12" x2="17" y2="20" stroke="#8F5B08" strokeWidth="2.5" strokeLinecap="round"/>
+        </svg>
+        <span className="text-xs font-semibold text-[#0D0D0D]">kryla</span>
+      </span>
+      <span className="text-xs font-semibold -ml-1" style={{ color: '#8F5B08' }}>.work</span>
     </a>
   )
 }
 
 export function Footer() {
+  // #a1927f measured ~2.85:1 on the page backgrounds in use — #6B6B6B clears
+  // 4.5:1 with margin on all of them while staying a comparably muted gray.
   return (
     <footer className="border-t border-[var(--kryla-border)] py-8 xl:pb-8 pb-20">
       <div className="max-w-2xl mx-auto px-6 flex items-center justify-center gap-2">
-        <span className="text-xs text-[#a1927f]">Powered by</span>
+        <span className="text-xs text-[#6B6B6B]">Powered by</span>
         <KrylaLogo />
       </div>
     </footer>
