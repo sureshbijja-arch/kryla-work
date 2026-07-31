@@ -1,3 +1,23 @@
+// Shared, tokenized eyebrow/kicker label — reads var(--type-label) rather
+// than a hardcoded size (unlike ServicesSection.tsx's file-local
+// SectionLabel, which this does NOT replace — that component's 5 existing
+// call sites, Features/Menu/PriceList/Pricing/List, are untouched).
+// Introduced for sellganeshidols to match its approved mockup exactly
+// (Direction Contract calls this "the structural device that encodes real
+// info" — used as a real field label, not decoration, on the fact strip and
+// service specs, and as a static per-persona kicker on hero/services-head/
+// footer). --kryla-muted is the default color (5.6:1+ verified against every
+// real page background in use); callers on a colored ground (e.g. the
+// terracotta hero) pass an explicit `color` instead.
+export function EyebrowLabel({ text, color }: { text: string; color?: string }) {
+  return (
+    <p className="font-semibold uppercase tracking-[0.14em]"
+      style={{ fontSize: 'var(--type-label)', color: color ?? 'var(--kryla-muted)' }}>
+      {text}
+    </p>
+  )
+}
+
 export function KrylaLogo() {
   // CSS opacity on an ancestor composites with a descendant's own color at
   // render time — a child's opacity:1 does NOT cancel a dimmed parent, it

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next"
-import { Fraunces, Inter, Bricolage_Grotesque, Public_Sans } from "next/font/google"
+import { Fraunces, Inter, Newsreader } from "next/font/google"
 import "./globals.css"
 import { PHProvider } from "./providers"
 import RegisterServiceWorker from "./RegisterServiceWorker"
@@ -17,21 +17,21 @@ const inter = Inter({
   display: 'swap',
 })
 
-// Ganesh-only display/body override (see app/[slug]/components/LayoutRenderer.tsx
-// and supabase/migrations/20260731090000_ganesh_theme_font_columns.sql). Loaded
+// Ganesh-only display override (see app/[slug]/components/LayoutRenderer.tsx
+// and supabase/migrations/20260731100000_ganesh_mockup_fidelity.sql). Loaded
 // site-wide since next/font/google font loaders must be called at module scope,
-// but only sellganeshidols' pages.display_font/body_font ever reference these
-// CSS vars — every other persona's rendering is unaffected.
-const bricolage = Bricolage_Grotesque({
+// but only sellganeshidols' pages.display_font ever references this CSS var —
+// every other persona's rendering is unaffected. Ganesh's body_font reuses the
+// existing --font-inter variable above (Inter is already the default body face
+// site-wide), so no separate body-face load is needed here. Newsreader
+// (not Bricolage Grotesque, the original choice) matches the approved
+// mockup's Direction Contract exactly — see the migration comment for why.
+const newsreader = Newsreader({
   subsets: ['latin'],
-  variable: '--font-bricolage',
+  variable: '--font-newsreader',
   display: 'swap',
-})
-
-const publicSans = Public_Sans({
-  subsets: ['latin'],
-  variable: '--font-public-sans',
-  display: 'swap',
+  style: ['normal', 'italic'],
+  axes: ['opsz'],
 })
 
 export const viewport: Viewport = {
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${inter.variable} ${bricolage.variable} ${publicSans.variable}`}>
+    <html lang="en" className={`${fraunces.variable} ${inter.variable} ${newsreader.variable}`}>
       <body>
         <RegisterServiceWorker />
         <PHProvider>{children}</PHProvider>

@@ -43,6 +43,15 @@ export const PERSONA_CONFIG = {
     hasNotes:          true,
     hasCustomOrder:    true,
     leadTimeNotice:    'Advance orders recommended, especially before Ganesh Chaturthi',
+    // Matches the approved mockup's hero eyebrow exactly — a static
+    // per-persona phrase, not the member's name, so it doesn't reintroduce
+    // the banned name-eyebrow pattern (see HeroSection.test.tsx).
+    heroEyebrow:       'Handcrafted for Ganesh Chaturthi',
+    // Ganesh-only ghost/outline enquire-button style, matching the mockup
+    // exactly (see ServicesSection.tsx's Sizes variant) — belongs in config
+    // per the no-hardcoding convention, not an if(persona==='sellganeshidols')
+    // branch in the component.
+    orderButtonStyle:  'ghost' as const,
   },
   salon: {
     tabLabel:          'Appointments',

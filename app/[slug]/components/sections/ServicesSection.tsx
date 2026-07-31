@@ -5,6 +5,7 @@ import { getPersonaConfig } from '../../personaConfig'
 import OrderModal, { type OrderItem } from '../OrderModal'
 import CustomOrderModal from '../CustomOrderModal'
 import SmartImg from '../SmartImg'
+import { EyebrowLabel } from '../shared'
 
 interface Props {
   data: ProfileData
@@ -347,12 +348,18 @@ function PriceList({ data }: { data: ProfileData }) {
 }
 
 /* ── SIZES ────────────────────────────────────────────────────────────────
-   Ganesh idol-seller signature: size-led rows. ServiceItem has no numeric
+   Ganesh idol-seller signature: size-led rows, matching the approved mockup
+   exactly (per design-audit follow-up). ServiceItem has no numeric
    size/height field, so this does NOT sort or parse a size out of free text
-   — it renders in the member's own entered order and promotes
-   duration_or_unit (where the AI build step already places the size string
-   for this persona) to a labeled "Height" column. No SectionLabel (the
-   banned eyebrow) — the column structure itself carries the size-led read.
+   — it renders in the member's own entered order and reads duration_or_unit
+   (Height), finish, and leadTime as three separate labeled spec fields.
+   Eyebrow kicker above the heading (real per-persona label, not the
+   member's name — see HeroSection.test.tsx's distinction). Real strikethrough
+   "was" price above the bold "now" price (compareAtPrice), not a typed
+   string. Enquire button style is config-driven (cfg.orderButtonStyle) —
+   'ghost' for sellganeshidols, solid-filled fallback for any other persona
+   that reaches this variant, per the no-hardcoding convention (no
+   if(persona==='sellganeshidols') branch here).
 ──────────────────────────────────────────────────────────────────────────── */
 function Sizes({ data }: { data: ProfileData }) {
   const { services, showSections, persona, providerId } = data
@@ -362,6 +369,7 @@ function Sizes({ data }: { data: ProfileData }) {
   const [orderItem, setOrderItem]   = useState<OrderItem | null>(null)
   const [customOpen, setCustomOpen] = useState(false)
   const accentColor = `var(--color-accent)`
+  const ghostButton = 'orderButtonStyle' in cfg && cfg.orderButtonStyle === 'ghost'
 
   return (
     <>
@@ -371,25 +379,15 @@ function Sizes({ data }: { data: ProfileData }) {
       <section id="menu" className="border-t border-[var(--kryla-border)]"
         style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
         <div className="max-w-2xl mx-auto px-6">
+          <div className="mb-3"><EyebrowLabel text="This season" color={accentColor} /></div>
           <h2 className="font-heading-token mb-8" style={{ fontSize: 'var(--type-heading)' }}>{cfg.servicesLabel}</h2>
-          {services.some(s => s.duration_or_unit) && (
-            <div className="flex items-baseline justify-between px-1 mb-2 text-[11px] font-bold uppercase tracking-wide" style={{ color: 'var(--kryla-muted)' }}>
-              <span>Idol</span>
-              <span>Height</span>
-            </div>
-          )}
           <div className="space-y-2">
             {services.map((s, i) => (
               <div key={i}
-                className="group flex items-start gap-4 bg-white overflow-hidden"
+                className="bg-white overflow-hidden"
                 style={{ borderRadius: 'var(--radius-card)', border: '1.5px solid var(--color-accent-border)' }}>
-                {s.image_url && (
-                  <div className="shrink-0 w-20 h-20 overflow-hidden rounded-l-[inherit]">
-                    <SmartImg src={s.image_url} alt={s.name} hover className="w-full h-full" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0 py-4" style={{ paddingLeft: s.image_url ? undefined : '1.25rem' }}>
-                  <div className="flex items-start justify-between gap-3">
+                <div className="p-5">
+                  <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-black text-[#0D0D0D] break-words">{s.name}</p>
@@ -397,16 +395,31 @@ function Sizes({ data }: { data: ProfileData }) {
                       </div>
                       <p className="text-sm text-[#666] mt-0.5 leading-relaxed">{s.description}</p>
                     </div>
-                    {s.duration_or_unit && (
-                      <span className="shrink-0 text-sm font-black px-3 py-1 text-white whitespace-nowrap"
-                        style={{ borderRadius: 'var(--radius-btn)', background: accentColor }}>
-                        {s.duration_or_unit}
-                      </span>
-                    )}
                   </div>
+                  {/* 3-column spec row — Height / Finish / Lead time, matching
+                      the approved mockup exactly. Only renders the specs a
+                      given service actually has; never invents a value. */}
+                  {(s.duration_or_unit || s.finish || s.leadTime) && (
+                    <div className="flex gap-6 flex-wrap mb-3">
+                      {s.duration_or_unit && (
+                        <div><EyebrowLabel text="Height" /><p className="text-sm font-bold mt-0.5">{s.duration_or_unit}</p></div>
+                      )}
+                      {s.finish && (
+                        <div><EyebrowLabel text="Finish" /><p className="text-sm font-bold mt-0.5">{s.finish}</p></div>
+                      )}
+                      {s.leadTime && (
+                        <div><EyebrowLabel text="Lead time" /><p className="text-sm font-bold mt-0.5">{s.leadTime}</p></div>
+                      )}
+                    </div>
+                  )}
                   {cfg.serviceCardAction === 'order' && s.price && (
-                    <div className="flex items-center gap-3 mt-2.5">
-                      <span className="text-sm font-black" style={{ color: accentColor }}>{s.price}</span>
+                    <div className="flex items-center gap-3">
+                      <div>
+                        {s.compareAtPrice && (
+                          <span className="block text-xs text-[#999] line-through">{s.compareAtPrice}</span>
+                        )}
+                        <span className="text-sm font-black" style={{ color: accentColor }}>{s.price}</span>
+                      </div>
                       <button
                         onClick={() => setOrderItem({
                           name: s.name,
@@ -414,18 +427,15 @@ function Sizes({ data }: { data: ProfileData }) {
                           price: s.price ?? undefined,
                           image_url: s.image_url ?? undefined,
                         })}
-                        className="inline-flex items-center justify-center px-4 text-xs font-black text-white transition-opacity hover:opacity-80"
-                        style={{ borderRadius: 'var(--radius-btn)', background: accentColor, minHeight: 44, minWidth: 44 }}>
+                        className="inline-flex items-center justify-center px-4 text-xs font-black transition-opacity hover:opacity-80"
+                        style={ghostButton
+                          ? { borderRadius: 'var(--radius-btn)', background: 'transparent', border: '1px solid var(--color-accent-border)', color: accentColor, minHeight: 44, minWidth: 44 }
+                          : { borderRadius: 'var(--radius-btn)', background: accentColor, color: 'white', minHeight: 44, minWidth: 44 }}>
                         {cfg.orderLabel} →
                       </button>
                     </div>
                   )}
                 </div>
-                {cfg.serviceCardAction !== 'order' && s.price && (
-                  <span className="shrink-0 text-base font-black pr-5 pt-4" style={{ color: accentColor }}>
-                    {s.price}
-                  </span>
-                )}
               </div>
             ))}
 

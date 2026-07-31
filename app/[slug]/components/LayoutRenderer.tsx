@@ -3,6 +3,7 @@ import { Footer } from './shared'
 import AnimateIn from './AnimateIn'
 import SmartImg from './SmartImg'
 import HeroSection from './sections/HeroSection'
+import FactsSection from './sections/FactsSection'
 import ServicesSection from './sections/ServicesSection'
 import HighlightsSection from './sections/HighlightsSection'
 import BioSection from './sections/BioSection'
@@ -10,6 +11,7 @@ import GallerySection from './sections/GallerySection'
 import FaqSection from './sections/FaqSection'
 import ContactSection from './sections/ContactSection'
 import ReviewsSection from './sections/ReviewsSection'
+import FooterNoteSection from './sections/FooterNoteSection'
 import { ACCENT, PAGE_BG, FONT_CLASS } from '../types'
 import type { ProfileData, PaletteKey, FontKey, DesignMode, SectionStyle } from '../types'
 
@@ -111,6 +113,12 @@ export default function LayoutRenderer({ sections, data }: Props) {
           ['--font-heading' as string]: data.displayFont,
         } : {}),
         ...(data.bodyFont ? { fontFamily: data.bodyFont } : {}),
+        // Ganesh-only corner-radius override (matches the approved mockup's
+        // sharp ~2px radius exactly) — same conditional-spread mechanism as
+        // displayFont/bodyFont above: null/absent for every other persona,
+        // so this is provably inert everywhere else.
+        ...(data.radiusCard ? { ['--radius-card' as string]: data.radiusCard } : {}),
+        ...(data.radiusBtn  ? { ['--radius-btn'  as string]: data.radiusBtn  } : {}),
       }}
       className={`min-h-screen ${fontClass}`}
     >
@@ -121,6 +129,9 @@ export default function LayoutRenderer({ sections, data }: Props) {
           switch (s.sectionKey) {
             case 'hero':
               node = <HeroSection key={i} data={data} accent={accent} variant={variant} framesConfig={s.style?.frames} heroHeight={s.style?.size?.heroHeight} />
+              break
+            case 'facts':
+              node = <FactsSection key={i} data={data} variant={variant} />
               break
             case 'services':
               node = <ServicesSection key={i} data={data} accent={accent} variant={variant} />
@@ -150,6 +161,11 @@ export default function LayoutRenderer({ sections, data }: Props) {
           if (s.sectionKey === 'hero') return wrapped
           return <AnimateIn key={i} delay={Math.min(i * 60, 240)}>{wrapped}</AnimateIn>
         })}
+        {/* Fixed content slot, not a reorderable `sections` entry — a member
+            can't move/remove this the way they can hero/services/gallery, so
+            it renders unconditionally here rather than through
+            PERSONA_SECTIONS/SectionsTab. Renders nothing when unset. */}
+        <FooterNoteSection data={data} />
       </main>
       <Footer />
     </div>

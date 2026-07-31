@@ -37,6 +37,13 @@ const SECTION_META: Record<string, SectionMeta> = {
       { key: 'shadu',    label: 'Shadu — flat clay field (Ganesh idols)' },
     ],
   },
+  facts: {
+    label: 'Facts Strip',
+    icon: '▤',
+    variants: [
+      { key: 'strip', label: 'Strip — 4-column labeled facts (Ganesh idols)' },
+    ],
+  },
   services: {
     label: 'Services',
     icon: '◈',

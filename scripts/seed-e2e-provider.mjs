@@ -161,25 +161,48 @@ async function seedGaneshProvider() {
 
   console.log(`Seeded provider: slug=${provider.slug} id=${provider.id}`)
 
-  // sellganeshidols' own palette_tokens/signature_color/display_font/body_font
-  // (see supabase/migrations/20260731090000_ganesh_theme_font_columns.sql) — a
-  // page normally gets these from build-page.ts at signup time, but this
-  // script writes the pages row directly rather than going through Inngest,
-  // so it must set the same fields itself to exercise the real render path.
+  // sellganeshidols' own palette_tokens/signature_color/display_font/body_font/
+  // radius_card/radius_btn (see supabase/migrations/20260731090000_ganesh_theme_font_columns.sql
+  // and 20260731100000_ganesh_mockup_fidelity.sql) — a page normally gets
+  // these from build-page.ts at signup time, but this script writes the
+  // pages row directly rather than going through Inngest, so it must set the
+  // same fields itself to exercise the real render path. Copy below matches
+  // the approved mockup artifact exactly (per design-audit follow-up) — CTA
+  // labels, service specs (Height/Finish/Lead time), compareAtPrice, facts
+  // strip, and footer note all mirror the mockup's own HTML/CSS verbatim.
   const pageRow = {
     provider_id: provider.id,
     headline: 'Clay idols, made by hand, for home',
     subheadline: 'Natural shadu clay, water-soluble colours, sizes 1–7 ft. Advance orders open now for this season.',
     bio: 'Handcrafted Ganesh idols for over a decade, natural shadu clay only.',
-    cta_primary: 'Enquire about a size',
-    cta_secondary: 'See all sizes',
+    cta_primary: 'Enquire / Order',
+    cta_secondary: 'See sizes',
     services: [
-      { name: 'Natural Shadu Ganesh', description: 'Unpainted natural clay finish, dissolves cleanly. Our most-loved size for home visarjan.', price: '₹3,200', duration_or_unit: '2 ft' },
-      { name: 'Gold-Finish Ganesh', description: 'Hand-painted gold detailing over natural clay base, brass-tone ornamentation.', price: '₹8,500 (was ₹9,800)', duration_or_unit: '3.5 ft' },
-      { name: 'Custom Society Idol', description: 'Made to order for housing societies and mandals. Share your reference; we quote within a day.', price: 'On request', duration_or_unit: '5–7 ft' },
+      {
+        name: 'Natural Shadu Ganesh', description: 'Unpainted natural clay finish, dissolves cleanly. Our most-loved size for home visarjan.',
+        price: '₹3,200', duration_or_unit: '2 ft', finish: 'Natural clay', leadTime: '7–10 days',
+      },
+      {
+        name: 'Gold-Finish Ganesh', description: 'Hand-painted gold detailing over natural clay base, brass-tone ornamentation.',
+        price: '₹8,500', compareAtPrice: '₹9,800', duration_or_unit: '3.5 ft', finish: 'Gold detail', leadTime: '10–14 days',
+      },
+      {
+        name: 'Custom Society Idol', description: 'Made to order for housing societies and mandals. Share your reference; we quote within a day.',
+        price: 'On request', duration_or_unit: '5–7 ft', finish: 'Custom', leadTime: '3–4 weeks',
+      },
     ],
     highlights: [],
     faq: [],
+    facts: [
+      { label: 'Material', value: 'Shadu clay' },
+      { label: 'Sizes', value: '1 – 7 ft' },
+      { label: 'Colours', value: 'Natural · gold' },
+      { label: 'Delivery', value: 'Doorstep' },
+    ],
+    footer_note: {
+      kicker: 'Advance orders recommended',
+      body: 'Especially before Ganesh Chaturthi — reply on WhatsApp for fastest response.',
+    },
     template: 'storefront',
     palette: 'warm',
     font: 'inter',
@@ -189,18 +212,21 @@ async function seedGaneshProvider() {
       accentGlow: '#8A432240', signature: '#8A4322',
     },
     signature_color: '#8A4322',
-    display_font: 'var(--font-bricolage), "Bricolage Grotesque", system-ui, sans-serif',
-    body_font: 'var(--font-public-sans), "Public Sans", system-ui, sans-serif',
+    display_font: 'var(--font-newsreader), Newsreader, Georgia, serif',
+    body_font: 'var(--font-inter), Inter, system-ui, sans-serif',
+    radius_card: '2px',
+    radius_btn: '2px',
     gallery: [],
     show_sections: { hero: true, services: true, highlights: true, booking: true, faq: true, contact: true },
     sections: [
       { sectionKey: 'hero', variant: 'shadu', order: 1 },
-      { sectionKey: 'services', variant: 'sizes', order: 2 },
-      { sectionKey: 'gallery', variant: 'grid', order: 3 },
-      { sectionKey: 'bio', variant: 'callout', order: 4 },
-      { sectionKey: 'highlights', variant: 'icons', order: 5 },
-      { sectionKey: 'faq', variant: 'accordion', order: 6 },
-      { sectionKey: 'contact', variant: 'enquiry', order: 7 },
+      { sectionKey: 'facts', variant: 'strip', order: 2 },
+      { sectionKey: 'services', variant: 'sizes', order: 3 },
+      { sectionKey: 'gallery', variant: 'grid', order: 4 },
+      { sectionKey: 'bio', variant: 'callout', order: 5 },
+      { sectionKey: 'highlights', variant: 'icons', order: 6 },
+      { sectionKey: 'faq', variant: 'accordion', order: 7 },
+      { sectionKey: 'contact', variant: 'enquiry', order: 8 },
     ],
   }
 

@@ -33,6 +33,29 @@ export interface ServiceItem {
   price?: string | null
   image_url?: string | null
   badge?: string | null
+  /** Ganesh mockup fidelity — matches the approved mockup's 3-column spec row
+   * (Height/Finish/Lead time) exactly. All optional/additive: the 45 other
+   * personas' existing service rows simply don't have these keys. */
+  finish?: string | null
+  leadTime?: string | null
+  /** "Was" price, rendered as a real strikethrough element above the bold
+   * `price` ("now" price) — not folded into `price` as a typed string. */
+  compareAtPrice?: string | null
+}
+
+/** A single fact-strip cell (Material/Sizes/Colours/Delivery for ganesh) —
+ * mirrors HighlightItem/FaqItem's label/value-pair pattern, reusable by any
+ * future persona without persona-specific column names. */
+export interface FactItem {
+  label: string
+  value: string
+}
+
+/** Fixed footer-note content slot (kicker + sentence), rendered above the
+ * platform Footer — distinct from reorderable/removable `sections` content. */
+export interface FooterNote {
+  kicker: string
+  body: string
 }
 
 export interface HighlightItem {
@@ -124,6 +147,10 @@ export interface ProfileData {
   /** Ganesh-only override example (see LayoutRenderer). Full CSS font-family stacks, not bare family names. Null/absent = shared [data-mode] default. */
   displayFont?: string | null
   bodyFont?: string | null
+  /** Ganesh-only override — literal CSS length values (e.g. '2px'), same
+   * DB-driven-inline-custom-property mechanism as displayFont/bodyFont. */
+  radiusCard?: string | null
+  radiusBtn?: string | null
   showSections: ShowSections
   avatarUrl?: string | null
   gallery?: string[]
@@ -132,6 +159,11 @@ export interface ProfileData {
   businessHours?: BusinessHours | null
   verified?: boolean
   heroFitCropTolerance?: number
+  /** Fact-strip content (Material/Sizes/Colours/Delivery for ganesh) — array-
+   * length-guarded like gallery/highlights, no ShowSections flag needed. */
+  facts?: FactItem[]
+  /** Fixed footer-note content slot — null/absent renders nothing. */
+  footerNote?: FooterNote | null
 }
 
 export const ACCENT: Record<PaletteKey, string> = {

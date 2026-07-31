@@ -173,12 +173,13 @@ const PERSONA_SECTIONS: Record<string, Section[]> = {
   // 20260731090000 migration — GallerySection renders nothing for an empty array).
   sellganeshidols: [
     { sectionKey: 'hero',       variant: 'shadu',     order: 1 },
-    { sectionKey: 'services',   variant: 'sizes',     order: 2 },
-    { sectionKey: 'gallery',    variant: 'grid',      order: 3 },
-    { sectionKey: 'bio',        variant: 'callout',   order: 4 },
-    { sectionKey: 'highlights', variant: 'icons',     order: 5 },
-    { sectionKey: 'faq',        variant: 'accordion', order: 6 },
-    { sectionKey: 'contact',    variant: 'enquiry',   order: 7 },
+    { sectionKey: 'facts',      variant: 'strip',     order: 2 },
+    { sectionKey: 'services',   variant: 'sizes',     order: 3 },
+    { sectionKey: 'gallery',    variant: 'grid',      order: 4 },
+    { sectionKey: 'bio',        variant: 'callout',   order: 5 },
+    { sectionKey: 'highlights', variant: 'icons',     order: 6 },
+    { sectionKey: 'faq',        variant: 'accordion', order: 7 },
+    { sectionKey: 'contact',    variant: 'enquiry',   order: 8 },
   ],
   maker: [
     { sectionKey: 'hero',       variant: 'auto',      order: 1 },
@@ -467,6 +468,8 @@ export const buildPageFunction = inngest.createFunction(
         signature_color: defaults.signatureColor,
         display_font: defaults.displayFont,
         body_font: defaults.bodyFont,
+        radius_card: defaults.radiusCard,
+        radius_btn: defaults.radiusBtn,
         show_sections: {
           hero: true, services: true, highlights: true,
           booking: payload.plan !== 'seed', faq: true, contact: true,

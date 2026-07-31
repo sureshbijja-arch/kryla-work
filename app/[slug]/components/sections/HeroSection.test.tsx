@@ -55,13 +55,23 @@ describe('HeroSection — shadu variant (sellganeshidols)', () => {
     services: [],
   } as unknown as ProfileData
 
-  it('renders the headline with no eyebrow label above it', () => {
-    const { container } = render(<HeroSection data={ganeshData} accent="#8A4322" variant="shadu" />)
+  it('renders the headline, with the static per-persona kicker above it (not a name-eyebrow)', () => {
+    render(<HeroSection data={ganeshData} accent="#8A4322" variant="shadu" />)
     expect(screen.getByText('Clay idols, made by hand, for home')).toBeTruthy()
-    // The banned construction: a tracked-uppercase label naming the member,
-    // rendered as its own element directly above the headline (see HeroDark/
-    // HeroDabba's `fullName` eyebrow). Shadu must not render it at all.
-    expect(screen.queryByText('Ravi Kumar')).toBeNull()
+    // Matches the approved mockup exactly: a static, per-persona phrase above
+    // the headline (getPersonaConfig's heroEyebrow) — real information, not
+    // the member's name used as decoration. The banned construction this
+    // still guards against is a tracked-uppercase label naming the member,
+    // rendered as its own element above the headline (see HeroDark/HeroDabba's
+    // `fullName` eyebrow at HeroSection.tsx:445/695) — that pattern is still
+    // absent from Shadu's headline block; the member's name appears only in
+    // the nav row, alongside the wordmark, matching the mockup's nav layout.
+    expect(screen.getByText('Handcrafted for Ganesh Chaturthi')).toBeTruthy()
+  })
+
+  it('renders the member name in the nav row (mockup: wordmark + business name)', () => {
+    render(<HeroSection data={ganeshData} accent="#8A4322" variant="shadu" />)
+    expect(screen.getByText('Ravi Kumar')).toBeTruthy()
   })
 
   it('renders on a flat field via the .hero-shadu class hook', () => {
@@ -69,15 +79,13 @@ describe('HeroSection — shadu variant (sellganeshidols)', () => {
     expect(container.querySelector('.hero-shadu')).toBeTruthy()
   })
 
-  it('renders the lead-time notice when the persona config has one', () => {
+  it('does not render a lead-time pill in the hero body — season notice lives in the footer only', () => {
     render(<HeroSection data={ganeshData} accent="#8A4322" variant="shadu" />)
-    expect(screen.getByText('Advance orders recommended, especially before Ganesh Chaturthi')).toBeTruthy()
-  })
-
-  it('renders nothing invented when there is no lead-time notice or business hours', () => {
-    render(<HeroSection data={{ ...ganeshData, persona: 'other' }} accent="#8A4322" variant="shadu" />)
+    // Matches the approved mockup exactly: HeroShadu's own body has no
+    // lead-time/season-notice pill (moved to FooterNoteSection per the
+    // design-audit follow-up) — only the CTA row and optional business-hours
+    // badge render below the subheadline.
     expect(screen.queryByText(/Advance orders recommended/)).toBeNull()
-    // The CTA row itself still renders — only the optional notice/badge above it is absent.
     expect(screen.getByText('Book')).toBeTruthy()
   })
 })

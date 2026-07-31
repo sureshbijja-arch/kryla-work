@@ -31,7 +31,7 @@ export default async function PreviewPage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, page_bg, surface, border_color, accent_color, palette_tokens, signature_color, display_font, body_font, show_sections, sections, draft_data, translations')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, page_bg, surface, border_color, accent_color, palette_tokens, signature_color, display_font, body_font, radius_card, radius_btn, facts, footer_note, show_sections, sections, draft_data, translations')
     .eq('provider_id', provider.id)
     .single()
 
@@ -99,6 +99,10 @@ export default async function PreviewPage({ params }: Props) {
     signatureColor: ((dp.signature_color as string)        ?? (page.signature_color as string))        ?? null,
     displayFont: ((dp.display_font as string) ?? (page.display_font as string)) ?? null,
     bodyFont:    ((dp.body_font    as string) ?? (page.body_font    as string)) ?? null,
+    radiusCard:  ((dp.radius_card  as string) ?? (page.radius_card  as string)) ?? null,
+    radiusBtn:   ((dp.radius_btn   as string) ?? (page.radius_btn   as string)) ?? null,
+    facts:       Array.isArray(dp.facts) ? dp.facts as ProfileData['facts'] : (Array.isArray(page.facts) ? page.facts : []),
+    footerNote:  ((dp.footer_note as ProfileData['footerNote']) ?? (page.footer_note as ProfileData['footerNote'])) ?? null,
     showSections,
     avatarUrl,
     gallery,

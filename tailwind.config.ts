@@ -45,8 +45,7 @@ const config: Config = {
         trebuchet:  ["Trebuchet MS", "sans-serif"],
         // Ganesh-only override — not part of the member-selectable FontKey/
         // FONT_CLASS enum, reached only via pages.display_font/body_font.
-        bricolage:  ["var(--font-bricolage)", "Bricolage Grotesque", "sans-serif"],
-        publicsans: ["var(--font-public-sans)", "Public Sans", "sans-serif"],
+        newsreader: ["var(--font-newsreader)", "Newsreader", "Georgia", "serif"],
       },
       // Design system — values read from CSS custom properties set by [data-mode]
       fontSize: {

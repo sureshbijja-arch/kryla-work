@@ -131,9 +131,12 @@ export interface PersonaDefaults {
   /** Ganesh-only override example: full CSS font-family stack, not a bare family name. Null = use the shared [data-mode] default. */
   displayFont: string | null
   bodyFont: string | null
+  /** Ganesh-only override: literal CSS length values (e.g. '2px'). Null = use the shared [data-mode] default. */
+  radiusCard: string | null
+  radiusBtn: string | null
 }
 
-const PERSONA_DEFAULTS_SELECT = 'template, palette, font, default_gallery, palette_tokens, signature_color, display_font, body_font'
+const PERSONA_DEFAULTS_SELECT = 'template, palette, font, default_gallery, palette_tokens, signature_color, display_font, body_font, radius_card, radius_btn'
 
 export async function fetchPersonaDefaults(id: string): Promise<PersonaDefaults> {
   const { data } = await supabaseAdmin
@@ -152,6 +155,8 @@ export async function fetchPersonaDefaults(id: string): Promise<PersonaDefaults>
       signatureColor: data.signature_color ?? null,
       displayFont: data.display_font ?? null,
       bodyFont: data.body_font ?? null,
+      radiusCard: data.radius_card ?? null,
+      radiusBtn: data.radius_btn ?? null,
     }
   }
 
@@ -171,6 +176,8 @@ export async function fetchPersonaDefaults(id: string): Promise<PersonaDefaults>
     signatureColor: fallback?.signature_color ?? null,
     displayFont: fallback?.display_font ?? null,
     bodyFont: fallback?.body_font ?? null,
+    radiusCard: fallback?.radius_card ?? null,
+    radiusBtn: fallback?.radius_btn ?? null,
   }
 }
 

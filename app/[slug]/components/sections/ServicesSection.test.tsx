@@ -44,9 +44,9 @@ describe('ServicesSection — sizes variant (sellganeshidols)', () => {
     providerId: 'p1',
     showSections: { services: true } as any,
     services: [
-      { name: 'Natural Shadu Ganesh', description: 'Unpainted natural clay finish.', price: '₹3,200', duration_or_unit: '2 ft' },
-      { name: 'Gold-Finish Ganesh', description: 'Hand-painted gold detailing.', price: '₹8,500', duration_or_unit: '3.5 ft' },
-      { name: 'Custom Society Idol', description: 'Made to order for mandals.', price: 'On request', duration_or_unit: '5–7 ft' },
+      { name: 'Natural Shadu Ganesh', description: 'Unpainted natural clay finish.', price: '₹3,200', duration_or_unit: '2 ft', finish: 'Natural clay', leadTime: '7–10 days' },
+      { name: 'Gold-Finish Ganesh', description: 'Hand-painted gold detailing.', price: '₹8,500', compareAtPrice: '₹9,800', duration_or_unit: '3.5 ft', finish: 'Gold detail', leadTime: '10–14 days' },
+      { name: 'Custom Society Idol', description: 'Made to order for mandals.', price: 'On request', duration_or_unit: '5–7 ft', finish: 'Custom', leadTime: '3–4 weeks' },
     ],
   } as unknown as ProfileData
 
@@ -61,7 +61,53 @@ describe('ServicesSection — sizes variant (sellganeshidols)', () => {
     expect(screen.getByText('2 ft')).toBeTruthy()
     expect(screen.getByText('3.5 ft')).toBeTruthy()
     expect(screen.getByText('5–7 ft')).toBeTruthy()
+    // Matches the approved mockup exactly: a per-row "Height" spec label
+    // (one EyebrowLabel per service row), not a single shared column header.
+    expect(screen.getAllByText('Height').length).toBe(3)
+  })
+
+  it('renders the Finish and Lead time spec columns, matching the mockup\'s 3-column spec row', () => {
+    render(<ServicesSection data={ganeshData} accent="#8A4322" variant="sizes" />)
+    expect(screen.getAllByText('Finish').length).toBe(3)
+    expect(screen.getByText('Natural clay')).toBeTruthy()
+    expect(screen.getByText('Gold detail')).toBeTruthy()
+    expect(screen.getByText('Custom')).toBeTruthy()
+    expect(screen.getAllByText('Lead time').length).toBe(3)
+    expect(screen.getByText('7–10 days')).toBeTruthy()
+    expect(screen.getByText('10–14 days')).toBeTruthy()
+    expect(screen.getByText('3–4 weeks')).toBeTruthy()
+  })
+
+  it('renders a spec only when the service actually has it — never invents Finish/Lead time', () => {
+    const partial = {
+      ...ganeshData,
+      services: [{ name: 'Bare Idol', description: '', price: '₹1,000', duration_or_unit: '1 ft' }],
+    } as unknown as ProfileData
+    render(<ServicesSection data={partial} accent="#8A4322" variant="sizes" />)
     expect(screen.getByText('Height')).toBeTruthy()
+    expect(screen.queryByText('Finish')).toBeNull()
+    expect(screen.queryByText('Lead time')).toBeNull()
+  })
+
+  it('renders a real strikethrough "was" price above the bold "now" price when compareAtPrice is set', () => {
+    const { container } = render(<ServicesSection data={ganeshData} accent="#8A4322" variant="sizes" />)
+    const was = screen.getByText('₹9,800')
+    expect(was.className).toContain('line-through')
+    expect(screen.getByText('₹8,500')).toBeTruthy()
+    // The first row has no compareAtPrice — no strikethrough element invented for it.
+    expect(screen.queryByText('₹3,200')?.previousElementSibling).toBeFalsy()
+    expect(container.querySelectorAll('.line-through').length).toBe(1)
+  })
+
+  it('renders the "This season" eyebrow above the heading', () => {
+    render(<ServicesSection data={ganeshData} accent="#8A4322" variant="sizes" />)
+    expect(screen.getByText('This season')).toBeTruthy()
+  })
+
+  it('renders the Enquire button in ghost/outline style, matching the approved mockup', () => {
+    render(<ServicesSection data={ganeshData} accent="#8A4322" variant="sizes" />)
+    const btn = screen.getAllByRole('button', { name: /enquire/i })[0]
+    expect(btn.getAttribute('style')).toContain('background: transparent')
   })
 
   it('renders nothing when services are empty or hidden', () => {

@@ -5,6 +5,7 @@ import type { ProfileData, BusinessHours } from '../../types'
 import { getPersonaConfig } from '../../personaConfig'
 import { DAY_ORDER, DAY_LABELS, DAY_FULL, toMins, fmt12, getTodayKey, getStatus, getUpcomingExceptions, fmtExceptionDate, getDateStr } from '../../hours'
 import SmartImg from '../SmartImg'
+import { EyebrowLabel } from '../shared'
 
 interface Props {
   data: ProfileData
@@ -485,14 +486,26 @@ function HeroDabba({ data, heroHeight }: { data: ProfileData; heroHeight?: numbe
    Ganesh idol-seller signature: a flat, solid fired-terracotta field (the
    clay itself, before any painted finish) rather than a gradient or photo —
    no usable real photography exists for this persona (existing repo assets
-   are stock-marketing composites). No eyebrow label above the headline.
-   Field color comes from --sec-custom-bg (set from the member's own
-   palette_tokens/accent, not hardcoded) so this stays a real member override,
-   not a fixed color baked into the component.
+   are stock-marketing composites). Field color comes from --sec-custom-bg
+   (set from the member's own palette_tokens/accent, not hardcoded) so this
+   stays a real member override, not a fixed color baked into the component.
+
+   Matches the approved mockup exactly (per design-audit follow-up): nav
+   shows the member's own name (fullName — the same pattern every other hero
+   variant already uses for a nav-line identity, e.g. HeroDark/HeroDabba at
+   L445/L695) + a static "Menu" label (mockup has no real nav-drawer system
+   on this page — the label is decorative, matching the mockup precisely, not
+   a broken affordance). Eyebrow kicker restored above the headline (the
+   mockup's Direction Contract calls tracked labels "the structural device
+   that encodes real info" — this one is a static per-persona phrase, not the
+   member's name, so it doesn't reintroduce the banned name-eyebrow pattern
+   HeroSection.test.tsx guards against). Season notice moved to the footer
+   only (FooterNoteSection) — the mockup's hero has no lead-time pill.
 ──────────────────────────────────────────────────────────────────────────── */
 function HeroShadu({ data, heroHeight }: { data: ProfileData; heroHeight?: number }) {
-  const { location, whatsappNumber, firstName, headline, subheadline,
+  const { whatsappNumber, firstName, lastName, headline, subheadline,
     ctaPrimary, ctaSecondary, showSections, persona, businessHours } = data
+  const fullName = [firstName, lastName].filter(Boolean).join(' ')
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
   const pcfg = getPersonaConfig(persona)
 
@@ -501,12 +514,22 @@ function HeroShadu({ data, heroHeight }: { data: ProfileData; heroHeight?: numbe
       style={{ background: 'var(--sec-custom-bg, var(--color-accent))', minHeight: heroMinHeight(heroHeight) ?? '100svh' }}>
       <style>{STYLES}</style>
       <nav className="max-w-2xl mx-auto w-full px-6 pt-6 flex justify-between items-center">
-        {location ? <LocationLink location={location} dark /> : <span />}
-        <KLogo dark />
+        <div className="flex items-center gap-2">
+          <KLogo dark />
+          {fullName && <span className="text-sm font-bold text-white">{fullName}</span>}
+        </div>
+        <span className="text-[11px] uppercase tracking-[0.1em] text-white/85">Menu</span>
       </nav>
       <div className="max-w-2xl mx-auto w-full px-6 flex-1 flex flex-col justify-end"
         style={{ paddingTop: 'calc(var(--space-section) * .7)', paddingBottom: 'var(--space-section)' }}>
-        {/* No eyebrow label — the headline carries itself. */}
+        {/* heroEyebrow only exists on sellganeshidols' PERSONA_CONFIG entry — the
+            'in' check narrows TypeScript's inferred union safely without widening
+            every other persona's config shape for a Ganesh-only field. HeroShadu
+            itself is only ever rendered for variant === 'shadu', which only
+            sellganeshidols' PERSONA_SECTIONS entry writes. */}
+        {'heroEyebrow' in pcfg && pcfg.heroEyebrow && (
+          <div className="h-up h-up-1 mb-3"><EyebrowLabel text={pcfg.heroEyebrow} color="rgba(255,255,255,0.75)" /></div>
+        )}
         <h1 className="h-up h-up-1 font-display-token text-white leading-[1.04] tracking-tight mb-4"
           style={{ fontSize: 'var(--type-display)', fontWeight: 'var(--fw-display)' }}>
           {headline}
@@ -519,13 +542,6 @@ function HeroShadu({ data, heroHeight }: { data: ProfileData; heroHeight?: numbe
         </p>
         <div className="h-up h-up-3">
           {businessHours?.enabled && <BusinessStatusBadge hours={businessHours} dark />}
-          {pcfg.leadTimeNotice && (
-            <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full text-xs font-semibold"
-              style={{ background: 'rgba(255,255,255,0.14)', color: 'rgba(255,255,255,0.92)', border: '1px solid rgba(255,255,255,0.28)' }}>
-              <span>⏱</span>
-              {pcfg.leadTimeNotice}
-            </div>
-          )}
           <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
             ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} dark />
         </div>
