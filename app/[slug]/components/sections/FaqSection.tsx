@@ -31,16 +31,23 @@ function Accordion({ data }: { data: ProfileData }) {
           {faq.map((f, i) => {
             const isOpen = open === i
             return (
-              <div key={i}
-                className="overflow-hidden transition-all duration-300 cursor-pointer"
+              // A real <button>, not a <div onClick> — the prior markup was
+              // keyboard-unreachable (no tab stop, no Enter/Space handling),
+              // and the shared [data-mode] button:focus-visible ring in
+              // globals.css could never reach it. min-height 44 keeps it at
+              // the platform's tap-target floor.
+              <div key={i} className="overflow-hidden transition-all duration-300"
                 style={{
                   borderRadius: 'var(--radius-card)',
                   border: `1.5px solid ${isOpen ? 'var(--color-accent)' : 'var(--kryla-border)'}`,
                   boxShadow: isOpen ? '0 8px 32px var(--color-accent-surface)' : 'none',
                   background: isOpen ? 'var(--color-accent-surface)' : 'white',
-                }}
-                onClick={() => setOpen(isOpen ? null : i)}>
-                <div className="flex justify-between items-center px-5 py-4 select-none">
+                }}>
+                <button type="button"
+                  onClick={() => setOpen(isOpen ? null : i)}
+                  aria-expanded={isOpen}
+                  className="w-full flex justify-between items-center px-5 py-4 text-left select-none"
+                  style={{ minHeight: 44 }}>
                   <p className="font-black text-sm transition-colors"
                     style={{ color: isOpen ? 'var(--color-accent)' : '#0D0D0D' }}>
                     {f.question}
@@ -56,7 +63,7 @@ function Accordion({ data }: { data: ProfileData }) {
                         strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </div>
-                </div>
+                </button>
                 {isOpen && (
                   <p className="px-5 pb-5 pt-1 text-sm text-[#666] leading-relaxed border-t border-[var(--kryla-border)]"
                     style={{ animation: 'faqOpen 0.25s ease both' }}>

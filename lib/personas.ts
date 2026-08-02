@@ -134,9 +134,16 @@ export interface PersonaDefaults {
   /** Ganesh-only override: literal CSS length values (e.g. '2px'). Null = use the shared [data-mode] default. */
   radiusCard: string | null
   radiusBtn: string | null
+  /** Ganesh v3-only override: curated page background/surface/border, for
+   * personas whose ground color is specific enough that the flat
+   * PAGE_BG[palette] enum fallback (e.g. PAGE_BG.warm '#FFF7ED') isn't close
+   * enough. Null = use that fallback, same as every other persona. */
+  pageBg: string | null
+  surface: string | null
+  borderColor: string | null
 }
 
-const PERSONA_DEFAULTS_SELECT = 'template, palette, font, default_gallery, palette_tokens, signature_color, display_font, body_font, radius_card, radius_btn'
+const PERSONA_DEFAULTS_SELECT = 'template, palette, font, default_gallery, palette_tokens, signature_color, display_font, body_font, radius_card, radius_btn, page_bg, surface, border_color'
 
 export async function fetchPersonaDefaults(id: string): Promise<PersonaDefaults> {
   const { data } = await supabaseAdmin
@@ -157,6 +164,9 @@ export async function fetchPersonaDefaults(id: string): Promise<PersonaDefaults>
       bodyFont: data.body_font ?? null,
       radiusCard: data.radius_card ?? null,
       radiusBtn: data.radius_btn ?? null,
+      pageBg: data.page_bg ?? null,
+      surface: data.surface ?? null,
+      borderColor: data.border_color ?? null,
     }
   }
 
@@ -178,6 +188,9 @@ export async function fetchPersonaDefaults(id: string): Promise<PersonaDefaults>
     bodyFont: fallback?.body_font ?? null,
     radiusCard: fallback?.radius_card ?? null,
     radiusBtn: fallback?.radius_btn ?? null,
+    pageBg: fallback?.page_bg ?? null,
+    surface: fallback?.surface ?? null,
+    borderColor: fallback?.border_color ?? null,
   }
 }
 

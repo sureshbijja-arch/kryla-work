@@ -58,6 +58,14 @@ export interface FooterNote {
   body: string
 }
 
+/** A single tab in the `story` bio variant (label + prose body) — mirrors
+ * FactItem/HighlightItem's label/value-pair pattern, reusable by any future
+ * persona without persona-specific column names. */
+export interface StoryTab {
+  label: string
+  body: string
+}
+
 export interface HighlightItem {
   icon: string
   title: string
@@ -164,6 +172,12 @@ export interface ProfileData {
   facts?: FactItem[]
   /** Fixed footer-note content slot — null/absent renders nothing. */
   footerNote?: FooterNote | null
+  /** PDP-style "Includes" checklist (hero pdp variant) — array-length-guarded,
+   * renders nothing when empty. Introduced for sellganeshidols v3 rebuild. */
+  includes?: string[]
+  /** Tabbed story content (bio `story` variant) — null/empty falls back to
+   * rendering `bio` as a single untabbed column. */
+  storyTabs?: StoryTab[]
 }
 
 export const ACCENT: Record<PaletteKey, string> = {

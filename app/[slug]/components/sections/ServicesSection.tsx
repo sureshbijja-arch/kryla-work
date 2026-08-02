@@ -6,6 +6,7 @@ import OrderModal, { type OrderItem } from '../OrderModal'
 import CustomOrderModal from '../CustomOrderModal'
 import SmartImg from '../SmartImg'
 import { EyebrowLabel } from '../shared'
+import { useOrderActions, OrderActionModals } from './orderActions'
 
 interface Props {
   data: ProfileData
@@ -347,134 +348,101 @@ function PriceList({ data }: { data: ProfileData }) {
   )
 }
 
-/* ── SIZES ────────────────────────────────────────────────────────────────
-   Ganesh idol-seller signature: size-led rows, matching the approved mockup
-   exactly (per design-audit follow-up). ServiceItem has no numeric
-   size/height field, so this does NOT sort or parse a size out of free text
-   — it renders in the member's own entered order and reads duration_or_unit
-   (Height), finish, and leadTime as three separate labeled spec fields.
-   Eyebrow kicker above the heading (real per-persona label, not the
-   member's name — see HeroSection.test.tsx's distinction). Real strikethrough
-   "was" price above the bold "now" price (compareAtPrice), not a typed
-   string. Enquire button style is config-driven (cfg.orderButtonStyle) —
-   'ghost' for sellganeshidols, solid-filled fallback for any other persona
-   that reaches this variant, per the no-hardcoding convention (no
-   if(persona==='sellganeshidols') branch here).
+/* ── COLLECTION ───────────────────────────────────────────────────────────
+   Ganesh idol-seller v3 rebuild (designscreenshots/sellganeshidolsv3.pdf):
+   a 4-up card grid ("More from the Heritage Collection"), matching the PDF's
+   own catalog section — replaces the Sizes variant's vertical bordered-row
+   stack (that layout's per-row spec fields now live in HeroPdp's size
+   selector + INCLUDES block instead). Each card is a single real <button>,
+   not a div wrapping a nested interactive element — keyboard-reachable and
+   ≥44px, the same nested-interactive-trap fix already applied elsewhere in
+   this file (see the menu-variant test in ServicesSection.test.tsx).
 ──────────────────────────────────────────────────────────────────────────── */
-function Sizes({ data }: { data: ProfileData }) {
+function Collection({ data }: { data: ProfileData }) {
   const { services, showSections, persona, providerId } = data
+  // Called unconditionally, before the early return below — this file's
+  // other variants (Features/Menu/Grid) call useState() after an early
+  // return, which is a pre-existing Rules-of-Hooks violation this change
+  // doesn't extend to new code. Harmless in practice only because each
+  // variant is mounted with a fixed `variant` prop for the lifetime of the
+  // component instance, but not worth replicating here.
+  const { orderItem, setOrderItem, customOpen, setCustomOpen, openOrder, openCustomOrder } = useOrderActions()
   if (!showSections.services || !services.length) return null
 
   const cfg = getPersonaConfig(persona)
-  const [orderItem, setOrderItem]   = useState<OrderItem | null>(null)
-  const [customOpen, setCustomOpen] = useState(false)
   const accentColor = `var(--color-accent)`
-  const ghostButton = 'orderButtonStyle' in cfg && cfg.orderButtonStyle === 'ghost'
+  // --color-ink/--color-ink-muted: DB-driven (PaletteTokens.ink/inkMuted),
+  // not hardcoded hex — see LayoutRenderer and HeroPdp's identical pattern.
+  const ink      = 'var(--color-ink)'
+  const inkMuted = 'var(--color-ink-muted)'
 
   return (
     <>
       {/* id="menu" kept — personaConfig.heroCtaTarget for this persona is
-          '#menu' and the hero CTA scrolls here; changing the id would need a
-          matching personaConfig edit for no user-visible benefit. */}
+          '#menu' and the hero CTA scrolls here. */}
       <section id="menu" className="border-t border-[var(--kryla-border)]"
         style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
-        <div className="max-w-2xl mx-auto px-6">
-          <div className="mb-3"><EyebrowLabel text="This season" color={accentColor} /></div>
-          <h2 className="font-heading-token mb-8" style={{ fontSize: 'var(--type-heading)' }}>{cfg.servicesLabel}</h2>
-          <div className="space-y-2">
+        <div className="max-w-6xl mx-auto px-6">
+          <h2 className="font-display-token mb-8" style={{ fontSize: 'var(--type-heading)', color: ink }}>{cfg.servicesLabel}</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {services.map((s, i) => (
-              <div key={i}
-                className="bg-white overflow-hidden"
-                style={{ borderRadius: 'var(--radius-card)', border: '1.5px solid var(--color-accent-border)' }}>
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-black text-[#0D0D0D] break-words">{s.name}</p>
-                        {s.badge && <GenericBadge label={s.badge} />}
-                      </div>
-                      <p className="text-sm text-[#666] mt-0.5 leading-relaxed">{s.description}</p>
-                    </div>
-                  </div>
-                  {/* 3-column spec row — Height / Finish / Lead time, matching
-                      the approved mockup exactly. Only renders the specs a
-                      given service actually has; never invents a value. */}
-                  {(s.duration_or_unit || s.finish || s.leadTime) && (
-                    <div className="flex gap-6 flex-wrap mb-3">
-                      {s.duration_or_unit && (
-                        <div><EyebrowLabel text="Height" /><p className="text-sm font-bold mt-0.5">{s.duration_or_unit}</p></div>
-                      )}
-                      {s.finish && (
-                        <div><EyebrowLabel text="Finish" /><p className="text-sm font-bold mt-0.5">{s.finish}</p></div>
-                      )}
-                      {s.leadTime && (
-                        <div><EyebrowLabel text="Lead time" /><p className="text-sm font-bold mt-0.5">{s.leadTime}</p></div>
-                      )}
-                    </div>
-                  )}
-                  {cfg.serviceCardAction === 'order' && s.price && (
-                    <div className="flex items-center gap-3">
-                      <div>
-                        {s.compareAtPrice && (
-                          <span className="block text-xs text-[#999] line-through">{s.compareAtPrice}</span>
-                        )}
-                        <span className="text-sm font-black" style={{ color: accentColor }}>{s.price}</span>
-                      </div>
-                      <button
-                        onClick={() => setOrderItem({
-                          name: s.name,
-                          description: s.description ?? undefined,
-                          price: s.price ?? undefined,
-                          image_url: s.image_url ?? undefined,
-                        })}
-                        className="inline-flex items-center justify-center px-4 text-xs font-black transition-opacity hover:opacity-80"
-                        style={ghostButton
-                          ? { borderRadius: 'var(--radius-btn)', background: 'transparent', border: '1px solid var(--color-accent-border)', color: accentColor, minHeight: 44, minWidth: 44 }
-                          : { borderRadius: 'var(--radius-btn)', background: accentColor, color: 'white', minHeight: 44, minWidth: 44 }}>
-                        {cfg.orderLabel} →
-                      </button>
+              <button key={i} type="button"
+                onClick={() => openOrder({ name: s.name, description: s.description ?? undefined, price: s.price ?? undefined, image_url: s.image_url ?? undefined })}
+                className="text-left group"
+                style={{ minHeight: 44 }}>
+                <div className="overflow-hidden mb-3" style={{ borderRadius: 'var(--radius-card)', aspectRatio: '1 / 1' }}>
+                  {s.image_url ? (
+                    <SmartImg src={s.image_url} alt={s.name} hover className="w-full h-full" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--color-accent-surface)' }}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ opacity: 0.4, color: ink }}>
+                        <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+                        <circle cx="8.5" cy="10" r="1.5" stroke="currentColor" strokeWidth="1.5"/>
+                        <path d="M21 15l-5-5-9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
                     </div>
                   )}
                 </div>
-              </div>
-            ))}
-
-            {cfg.hasCustomOrder && (
-              <button
-                type="button"
-                onClick={() => setCustomOpen(true)}
-                className="w-full flex items-center justify-between gap-4 px-5 py-4 border border-dashed text-left hover:shadow-lg transition-all duration-200"
-                style={{ borderRadius: 'var(--radius-card)', borderColor: 'var(--color-accent-border)', minHeight: 44 }}>
-                <span>
-                  <span className="block font-black text-[#0D0D0D]">Something special in mind?</span>
-                  <span className="block text-sm text-[#666] mt-0.5">Share your vision — we&apos;ll make it happen</span>
-                </span>
-                <span
-                  className="shrink-0 inline-flex items-center justify-center text-xs font-black text-white px-4"
-                  style={{ borderRadius: 'var(--radius-btn)', background: accentColor, minHeight: 44 }}>
-                  Custom Order
-                </span>
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <p className="font-display-token text-sm" style={{ color: ink }}>{s.name}</p>
+                  {s.badge && <GenericBadge label={s.badge} />}
+                </div>
+                {s.price && (
+                  <div className="flex items-center gap-2">
+                    {s.compareAtPrice && <span className="text-xs line-through" style={{ color: inkMuted }}>{s.compareAtPrice}</span>}
+                    <span className="text-sm font-black" style={{ color: accentColor }}>{s.price}</span>
+                  </div>
+                )}
               </button>
-            )}
+            ))}
           </div>
+
+          {cfg.hasCustomOrder && (
+            <button
+              id="custom"
+              type="button"
+              onClick={openCustomOrder}
+              className="w-full flex items-center justify-between gap-4 px-5 py-4 border border-dashed text-left hover:shadow-lg transition-all duration-200 mt-6"
+              style={{ borderRadius: 'var(--radius-card)', borderColor: 'var(--color-accent-border)', minHeight: 44 }}>
+              <span>
+                <span className="block font-black text-[#0D0D0D]">Something special in mind?</span>
+                <span className="block text-sm text-[#666] mt-0.5">Share your vision — we&apos;ll make it happen</span>
+              </span>
+              <span
+                className="shrink-0 inline-flex items-center justify-center text-xs font-black text-white px-4"
+                style={{ borderRadius: 'var(--radius-btn)', background: accentColor, minHeight: 44 }}>
+                Custom Order
+              </span>
+            </button>
+          )}
         </div>
       </section>
 
-      {orderItem && (
-        <OrderModal
-          item={orderItem}
-          providerId={providerId}
-          accentColor={accentColor}
-          onClose={() => setOrderItem(null)}
-        />
-      )}
-      {customOpen && (
-        <CustomOrderModal
-          providerId={providerId}
-          accentColor={accentColor}
-          onClose={() => setCustomOpen(false)}
-        />
-      )}
+      <OrderActionModals
+        orderItem={orderItem} customOpen={customOpen}
+        onCloseOrder={() => setOrderItem(null)} onCloseCustomOrder={() => setCustomOpen(false)}
+        providerId={providerId} accentColor={accentColor}
+      />
     </>
   )
 }
@@ -602,6 +570,6 @@ export default function ServicesSection({ data, accent: _accent, variant }: Prop
   if (variant === 'menu')       return <Menu data={data} />
   if (variant === 'pricing')    return <Pricing data={data} />
   if (variant === 'price-list') return <PriceList data={data} />
-  if (variant === 'sizes')      return <Sizes data={data} />
+  if (variant === 'collection') return <Collection data={data} />
   return <List data={data} />
 }

@@ -38,87 +38,53 @@ describe('ServicesSection — price-list variant', () => {
   })
 })
 
-describe('ServicesSection — sizes variant (sellganeshidols)', () => {
+describe('ServicesSection — collection variant (sellganeshidols v3 rebuild)', () => {
   const ganeshData = {
     persona: 'sellganeshidols',
     providerId: 'p1',
     showSections: { services: true } as any,
     services: [
-      { name: 'Natural Shadu Ganesh', description: 'Unpainted natural clay finish.', price: '₹3,200', duration_or_unit: '2 ft', finish: 'Natural clay', leadTime: '7–10 days' },
-      { name: 'Gold-Finish Ganesh', description: 'Hand-painted gold detailing.', price: '₹8,500', compareAtPrice: '₹9,800', duration_or_unit: '3.5 ft', finish: 'Gold detail', leadTime: '10–14 days' },
-      { name: 'Custom Society Idol', description: 'Made to order for mandals.', price: 'On request', duration_or_unit: '5–7 ft', finish: 'Custom', leadTime: '3–4 weeks' },
+      { name: 'Natural Shadu Ganesh', description: 'Unpainted natural clay finish.', price: '₹3,200', duration_or_unit: '2 ft' },
+      { name: 'Gold-Finish Ganesh', description: 'Hand-painted gold detailing.', price: '₹8,500', compareAtPrice: '₹9,800', duration_or_unit: '3.5 ft' },
+      { name: 'Custom Society Idol', description: 'Made to order for mandals.', price: 'On request', duration_or_unit: '5–7 ft' },
     ],
   } as unknown as ProfileData
 
-  it('renders one row per service in the member\'s entered order (no sorting)', () => {
-    render(<ServicesSection data={ganeshData} accent="#8A4322" variant="sizes" />)
+  it('renders one card per service in the member\'s entered order (no sorting)', () => {
+    render(<ServicesSection data={ganeshData} accent="#7A3B12" variant="collection" />)
     const names = ['Natural Shadu Ganesh', 'Gold-Finish Ganesh', 'Custom Society Idol']
     names.forEach(n => expect(screen.getByText(n)).toBeTruthy())
   })
 
-  it('renders duration_or_unit as the Height spec, not a sorted/parsed value', () => {
-    render(<ServicesSection data={ganeshData} accent="#8A4322" variant="sizes" />)
-    expect(screen.getByText('2 ft')).toBeTruthy()
-    expect(screen.getByText('3.5 ft')).toBeTruthy()
-    expect(screen.getByText('5–7 ft')).toBeTruthy()
-    // Matches the approved mockup exactly: a per-row "Height" spec label
-    // (one EyebrowLabel per service row), not a single shared column header.
-    expect(screen.getAllByText('Height').length).toBe(3)
-  })
-
-  it('renders the Finish and Lead time spec columns, matching the mockup\'s 3-column spec row', () => {
-    render(<ServicesSection data={ganeshData} accent="#8A4322" variant="sizes" />)
-    expect(screen.getAllByText('Finish').length).toBe(3)
-    expect(screen.getByText('Natural clay')).toBeTruthy()
-    expect(screen.getByText('Gold detail')).toBeTruthy()
-    expect(screen.getByText('Custom')).toBeTruthy()
-    expect(screen.getAllByText('Lead time').length).toBe(3)
-    expect(screen.getByText('7–10 days')).toBeTruthy()
-    expect(screen.getByText('10–14 days')).toBeTruthy()
-    expect(screen.getByText('3–4 weeks')).toBeTruthy()
-  })
-
-  it('renders a spec only when the service actually has it — never invents Finish/Lead time', () => {
-    const partial = {
-      ...ganeshData,
-      services: [{ name: 'Bare Idol', description: '', price: '₹1,000', duration_or_unit: '1 ft' }],
-    } as unknown as ProfileData
-    render(<ServicesSection data={partial} accent="#8A4322" variant="sizes" />)
-    expect(screen.getByText('Height')).toBeTruthy()
-    expect(screen.queryByText('Finish')).toBeNull()
-    expect(screen.queryByText('Lead time')).toBeNull()
-  })
-
   it('renders a real strikethrough "was" price above the bold "now" price when compareAtPrice is set', () => {
-    const { container } = render(<ServicesSection data={ganeshData} accent="#8A4322" variant="sizes" />)
+    const { container } = render(<ServicesSection data={ganeshData} accent="#7A3B12" variant="collection" />)
     const was = screen.getByText('₹9,800')
     expect(was.className).toContain('line-through')
     expect(screen.getByText('₹8,500')).toBeTruthy()
-    // The first row has no compareAtPrice — no strikethrough element invented for it.
-    expect(screen.queryByText('₹3,200')?.previousElementSibling).toBeFalsy()
+    // The first card has no compareAtPrice — no strikethrough element invented for it.
     expect(container.querySelectorAll('.line-through').length).toBe(1)
   })
 
-  it('renders the "This season" eyebrow above the heading', () => {
-    render(<ServicesSection data={ganeshData} accent="#8A4322" variant="sizes" />)
-    expect(screen.getByText('This season')).toBeTruthy()
+  it('renders the "More from the Heritage Collection" heading from persona config', () => {
+    render(<ServicesSection data={ganeshData} accent="#7A3B12" variant="collection" />)
+    expect(screen.getByText('More from the Heritage Collection')).toBeTruthy()
   })
 
-  it('renders the Enquire button in ghost/outline style, matching the approved mockup', () => {
-    render(<ServicesSection data={ganeshData} accent="#8A4322" variant="sizes" />)
-    const btn = screen.getAllByRole('button', { name: /enquire/i })[0]
-    expect(btn.getAttribute('style')).toContain('background: transparent')
+  it('renders each card as a single real button, not a div wrapping a nested interactive element', () => {
+    render(<ServicesSection data={ganeshData} accent="#7A3B12" variant="collection" />)
+    const btn = screen.getByRole('button', { name: /Natural Shadu Ganesh/ })
+    expect(btn.tagName).toBe('BUTTON')
   })
 
   it('renders nothing when services are empty or hidden', () => {
     const { container } = render(
-      <ServicesSection data={{ ...ganeshData, services: [] }} accent="#8A4322" variant="sizes" />
+      <ServicesSection data={{ ...ganeshData, services: [] }} accent="#7A3B12" variant="collection" />
     )
     expect(container.querySelector('#menu')).toBeNull()
   })
 
   it('exposes the custom-order affordance as a real, keyboard-reachable button', () => {
-    render(<ServicesSection data={ganeshData} accent="#8A4322" variant="sizes" />)
+    render(<ServicesSection data={ganeshData} accent="#7A3B12" variant="collection" />)
     expect(screen.getByRole('button', { name: /custom order/i })).toBeTruthy()
   })
 })

@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { memberUrl, memberShareCardUrl } from '@/lib/links'
-import type { ProfileData, PaletteKey, FontKey, DesignMode, ShowSections, BusinessHours, FactItem, FooterNote } from './types'
+import type { ProfileData, PaletteKey, FontKey, DesignMode, ShowSections, BusinessHours, FactItem, FooterNote, StoryTab } from './types'
 import { ACCENT } from './types'
 import type { PaletteTokens } from '@/lib/layouts'
 import AdsScroller from './components/AdsScroller'
@@ -113,7 +113,7 @@ export default async function MemberProfilePage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, page_bg, surface, border_color, accent_color, palette_tokens, signature_color, display_font, body_font, radius_card, radius_btn, facts, footer_note, show_sections, sections, translations')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, page_bg, surface, border_color, accent_color, palette_tokens, signature_color, display_font, body_font, radius_card, radius_btn, facts, footer_note, includes, story_tabs, show_sections, sections, translations')
     .eq('provider_id', provider.id)
     .single()
 
@@ -187,6 +187,8 @@ export default async function MemberProfilePage({ params }: Props) {
     radiusBtn: (page.radius_btn as string | null) ?? null,
     facts: Array.isArray(page.facts) ? (page.facts as FactItem[]) : [],
     footerNote: (page.footer_note as FooterNote | null) ?? null,
+    includes: Array.isArray(page.includes) ? (page.includes as string[]) : [],
+    storyTabs: Array.isArray(page.story_tabs) ? (page.story_tabs as StoryTab[]) : [],
     showSections,
     avatarUrl,
     gallery,

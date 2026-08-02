@@ -6,6 +6,7 @@ import { getPersonaConfig } from '../../personaConfig'
 import { DAY_ORDER, DAY_LABELS, DAY_FULL, toMins, fmt12, getTodayKey, getStatus, getUpcomingExceptions, fmtExceptionDate, getDateStr } from '../../hours'
 import SmartImg from '../SmartImg'
 import { EyebrowLabel } from '../shared'
+import { useOrderActions, OrderActionModals } from './orderActions'
 
 interface Props {
   data: ProfileData
@@ -482,70 +483,201 @@ function HeroDabba({ data, heroHeight }: { data: ProfileData; heroHeight?: numbe
   )
 }
 
-/* ── SHADU ─────────────────────────────────────────────────────────────────
-   Ganesh idol-seller signature: a flat, solid fired-terracotta field (the
-   clay itself, before any painted finish) rather than a gradient or photo —
-   no usable real photography exists for this persona (existing repo assets
-   are stock-marketing composites). Field color comes from --sec-custom-bg
-   (set from the member's own palette_tokens/accent, not hardcoded) so this
-   stays a real member override, not a fixed color baked into the component.
+/* ── PDP ───────────────────────────────────────────────────────────────────
+   Ganesh idol-seller v3 rebuild (designscreenshots/sellganeshidolsv3.pdf):
+   a two-column product-detail layout on the member's own warm cream ground
+   (--sec-custom-bg / page_bg, not hardcoded) — replaces HeroShadu's flat
+   full-bleed field. Image left (or an honest dashed placeholder — no usable
+   real photography exists yet for this persona; see
+   supabase/migrations/20260731090000_ganesh_theme_font_columns.sql), buying
+   column right: eyebrow, headline, subheadline, price block with a size
+   selector driven by the member's own services array, an INCLUDES
+   checklist, dual CTA, and a shipping-reassurance line (footerNote.body,
+   reused rather than a new field — this is the trust-copy the design
+   critique flagged as missing near the highest-stakes CTA).
 
-   Matches the approved mockup exactly (per design-audit follow-up): nav
-   shows the member's own name (fullName — the same pattern every other hero
-   variant already uses for a nav-line identity, e.g. HeroDark/HeroDabba at
-   L445/L695) + a static "Menu" label (mockup has no real nav-drawer system
-   on this page — the label is decorative, matching the mockup precisely, not
-   a broken affordance). Eyebrow kicker restored above the headline (the
-   mockup's Direction Contract calls tracked labels "the structural device
-   that encodes real info" — this one is a static per-persona phrase, not the
-   member's name, so it doesn't reintroduce the banned name-eyebrow pattern
-   HeroSection.test.tsx guards against). Season notice moved to the footer
-   only (FooterNoteSection) — the mockup's hero has no lead-time pill.
+   Nav resolves every link to a real section id (`#menu`/`#custom`/
+   `#materials`) — the prior "Menu" nav item was a decorative dead span with
+   no target (critique P2); every link here is real.
 ──────────────────────────────────────────────────────────────────────────── */
-function HeroShadu({ data, heroHeight }: { data: ProfileData; heroHeight?: number }) {
+function HeroPdp({ data, heroHeight }: { data: ProfileData; heroHeight?: number }) {
   const { whatsappNumber, firstName, lastName, headline, subheadline,
-    ctaPrimary, ctaSecondary, showSections, persona, businessHours } = data
-  const fullName = [firstName, lastName].filter(Boolean).join(' ')
+    services, showSections, persona, businessHours, providerId, gallery,
+    includes, footerNote, heroFitCropTolerance } = data
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
   const pcfg = getPersonaConfig(persona)
+  const accentColor = 'var(--color-accent)'
+  // --color-ink/--color-ink-muted: DB-driven (PaletteTokens.ink/inkMuted,
+  // set in LayoutRenderer), not hardcoded hex — falls back to the platform's
+  // generic --kryla-dark/--kryla-muted for any persona without a curated
+  // pair. No literal color values live in this component.
+  const ink      = 'var(--color-ink)'
+  const inkMuted = 'var(--color-ink-muted)'
+  const { orderItem, setOrderItem, customOpen, setCustomOpen, openOrder, openCustomOrder } = useOrderActions()
+
+  const sizableServices = services.filter(s => s.price)
+  const [selectedIdx, setSelectedIdx] = useState(0)
+  const selected = sizableServices[selectedIdx] ?? sizableServices[0]
+  const heroImage = gallery?.length ? gallery[0] : null
+
+  // Ganesh-only config fields — 'in' narrows TypeScript's inferred union
+  // safely without widening every other persona's config shape, same
+  // pattern already used for heroEyebrow/orderButtonStyle.
+  const navLabel   = 'navLabel'   in pcfg ? pcfg.navLabel   : [firstName, lastName].filter(Boolean).join(' ')
+  const navLinks   = 'navLinks'   in pcfg ? pcfg.navLinks   : []
+  const sizeLabel  = 'sizeSelectorLabel' in pcfg ? pcfg.sizeSelectorLabel : 'Select option'
+  const includesLb = 'includesLabel'     in pcfg ? pcfg.includesLabel     : 'Includes'
+  const primaryLb  = 'primaryCtaLabel'   in pcfg ? pcfg.primaryCtaLabel   : data.ctaPrimary
+  const festiveLb  = 'festivePriceLabel' in pcfg ? pcfg.festivePriceLabel : undefined
 
   return (
-    <section className="hero-shadu relative overflow-hidden flex flex-col"
-      style={{ background: 'var(--sec-custom-bg, var(--color-accent))', minHeight: heroMinHeight(heroHeight) ?? '100svh' }}>
+    <section className="relative" style={{ background: 'var(--sec-custom-bg, var(--section-bg))', minHeight: heroMinHeight(heroHeight) }}>
       <style>{STYLES}</style>
-      <nav className="max-w-2xl mx-auto w-full px-6 pt-6 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <KLogo dark />
-          {fullName && <span className="text-sm font-bold text-white">{fullName}</span>}
+      <nav className="max-w-6xl mx-auto w-full px-6 py-5 flex justify-between items-center gap-4 border-b" style={{ borderColor: 'var(--color-border)' }}>
+        <a href="#" className="flex items-center gap-3 shrink-0">
+          <span className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-black text-white shrink-0"
+            style={{ background: accentColor }}>
+            {(navLabel || 'G').charAt(0).toUpperCase()}
+          </span>
+          <span className="font-display-token text-lg leading-tight" style={{ color: ink }}>{navLabel}</span>
+        </a>
+        <div className="hidden md:flex items-center gap-6">
+          {navLinks.map(link => (
+            <a key={link.target} href={link.target}
+              className="text-xs font-black uppercase tracking-[0.12em] transition-colors hover:opacity-70" style={{ color: inkMuted }}>
+              {link.label}
+            </a>
+          ))}
         </div>
-        <span className="text-[11px] uppercase tracking-[0.1em] text-white/85">Menu</span>
-      </nav>
-      <div className="max-w-2xl mx-auto w-full px-6 flex-1 flex flex-col justify-end"
-        style={{ paddingTop: 'calc(var(--space-section) * .7)', paddingBottom: 'var(--space-section)' }}>
-        {/* heroEyebrow only exists on sellganeshidols' PERSONA_CONFIG entry — the
-            'in' check narrows TypeScript's inferred union safely without widening
-            every other persona's config shape for a Ganesh-only field. HeroShadu
-            itself is only ever rendered for variant === 'shadu', which only
-            sellganeshidols' PERSONA_SECTIONS entry writes. */}
-        {'heroEyebrow' in pcfg && pcfg.heroEyebrow && (
-          <div className="h-up h-up-1 mb-3"><EyebrowLabel text={pcfg.heroEyebrow} color="rgba(255,255,255,0.75)" /></div>
+        {wa && showSections.contact && (
+          <a href={wa} target="_blank" rel="noopener noreferrer"
+            className="shrink-0 px-5 py-2.5 text-xs font-black uppercase tracking-[0.08em] border transition-colors hover:opacity-70"
+            style={{ borderRadius: 'var(--radius-btn)', borderColor: ink, color: ink }}>
+            Enquire
+          </a>
         )}
-        <h1 className="h-up h-up-1 font-display-token text-white leading-[1.04] tracking-tight mb-4"
-          style={{ fontSize: 'var(--type-display)', fontWeight: 'var(--fw-display)' }}>
-          {headline}
-        </h1>
-        {/* Solid rgba, not a low-opacity utility class — HeroDark's text-white/35
-            on its own dark field is ~2.6:1 and fails WCAG AA; this stays ≥4.5:1
-            against the terracotta field regardless of exact hex chosen. */}
-        <p className="h-up h-up-2 leading-relaxed mb-6 max-w-md" style={{ fontSize: 'var(--type-subheading)', color: 'rgba(255,255,255,0.88)' }}>
-          {subheadline}
-        </p>
-        <div className="h-up h-up-3">
-          {businessHours?.enabled && <BusinessStatusBadge hours={businessHours} dark />}
-          <CTAs wa={wa} showBooking={showSections.booking} showContact={showSections.contact}
-            ctaPrimary={ctaPrimary} ctaSecondary={ctaSecondary} ctaTarget={pcfg.heroCtaTarget} dark />
+      </nav>
+
+      <div className="max-w-6xl mx-auto w-full px-6 grid lg:grid-cols-2 gap-12"
+        style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
+        {/* Image column — real photo when available; an honest, on-palette
+            placeholder otherwise (see migration note above: no usable
+            photography exists yet, so this IS the shipping state, not a
+            transient stub — it gets real design attention, not a bare icon).
+            Placeholder fill/border read the same accent-derived surface/
+            border tokens every other section's photo/empty-state treatment
+            uses — not a separate hardcoded color. */}
+        <div className="h-up h-up-1" style={{ aspectRatio: '4 / 5' }}>
+          {heroImage ? (
+            <SmartImg src={heroImage} alt={headline} fit="auto" cropTolerance={heroFitCropTolerance}
+              className="w-full h-full" style={{ borderRadius: 'var(--radius-card)' }} />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-center px-8 border-2 border-dashed"
+              style={{ borderRadius: 'var(--radius-card)', background: 'var(--color-accent-surface)', borderColor: 'var(--color-accent-border)' }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ opacity: 0.5, color: ink }}>
+                <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+                <circle cx="8.5" cy="10" r="1.5" stroke="currentColor" strokeWidth="1.5"/>
+                <path d="M21 15l-5-5-9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <p className="text-sm font-bold" style={{ color: ink, opacity: 0.7 }}>Add a photo of this idol</p>
+            </div>
+          )}
+        </div>
+
+        {/* Buying column */}
+        <div className="h-up h-up-2 flex flex-col justify-center">
+          {'heroEyebrow' in pcfg && pcfg.heroEyebrow && (
+            <div className="mb-3"><EyebrowLabel text={pcfg.heroEyebrow} color={accentColor} /></div>
+          )}
+          <h1 className="font-display-token leading-[1.05] tracking-tight mb-4"
+            style={{ fontSize: 'var(--type-display)', fontWeight: 'var(--fw-display)', color: ink }}>
+            {headline}
+          </h1>
+          <p className="leading-relaxed mb-6 max-w-md" style={{ fontSize: 'var(--type-subheading)', color: inkMuted }}>
+            {subheadline}
+          </p>
+
+          {selected?.price && (
+            <div className="flex items-center gap-3 flex-wrap mb-6 pb-6 border-b" style={{ borderColor: 'var(--color-border)' }}>
+              {selected.compareAtPrice && (
+                <span className="text-lg line-through" style={{ color: inkMuted }}>{selected.compareAtPrice}</span>
+              )}
+              <span className="font-display-token text-3xl" style={{ color: ink }}>{selected.price}</span>
+              {festiveLb && selected.compareAtPrice && (
+                <span className="text-xs font-black uppercase tracking-wide px-3 py-1"
+                  style={{ borderRadius: 'var(--radius-btn)', background: 'var(--color-accent-surface)', color: accentColor }}>
+                  {festiveLb}
+                </span>
+              )}
+            </div>
+          )}
+
+          {sizableServices.length > 1 && (
+            <div className="mb-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-3" style={{ color: inkMuted }}>{sizeLabel}</p>
+              <div className="flex flex-wrap gap-2">
+                {sizableServices.map((s, i) => (
+                  <button key={i} type="button" onClick={() => setSelectedIdx(i)}
+                    aria-pressed={i === selectedIdx}
+                    className="px-4 py-2.5 text-sm font-bold transition-colors"
+                    style={{
+                      borderRadius: 'var(--radius-btn)',
+                      border: `1.5px solid ${i === selectedIdx ? accentColor : 'var(--color-accent-border)'}`,
+                      background: i === selectedIdx ? accentColor : 'transparent',
+                      color: i === selectedIdx ? 'white' : ink,
+                      minHeight: 44,
+                    }}>
+                    {s.duration_or_unit || s.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!!includes?.length && (
+            <div className="mb-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-3" style={{ color: inkMuted }}>{includesLb}</p>
+              <ul className="space-y-2">
+                {includes.map((item, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-sm" style={{ color: ink }}>
+                    <span className="shrink-0 mt-0.5" style={{ color: accentColor }} aria-hidden>✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-3">
+            {businessHours?.enabled && <BusinessStatusBadge hours={businessHours} />}
+            {selected && (
+              <button type="button"
+                onClick={() => openOrder({ name: selected.name, description: selected.description ?? undefined, price: selected.price ?? undefined, image_url: selected.image_url ?? undefined })}
+                className="w-full py-4 font-black text-sm text-white transition-opacity hover:opacity-90"
+                style={{ borderRadius: 'var(--radius-btn)', background: ink, minHeight: 44 }}>
+                {primaryLb}
+              </button>
+            )}
+            {pcfg.hasCustomOrder && (
+              <button type="button" onClick={openCustomOrder}
+                className="w-full py-4 font-black text-sm transition-colors hover:opacity-70"
+                style={{ borderRadius: 'var(--radius-btn)', border: `1.5px solid ${ink}`, color: ink, minHeight: 44 }}>
+                {'secondaryCtaLabel' in pcfg ? pcfg.secondaryCtaLabel : 'Request Custom Size or Finish'}
+              </button>
+            )}
+          </div>
+
+          {footerNote?.body && (
+            <p className="mt-4 text-xs text-center" style={{ color: inkMuted }}>{footerNote.body}</p>
+          )}
         </div>
       </div>
+
+      <OrderActionModals
+        orderItem={orderItem} customOpen={customOpen}
+        onCloseOrder={() => setOrderItem(null)} onCloseCustomOrder={() => setCustomOpen(false)}
+        providerId={providerId} accentColor={accentColor}
+      />
     </section>
   )
 }
@@ -1095,6 +1227,6 @@ export default function HeroSection({ data, accent, variant, framesConfig, heroH
   if (variant === 'centered') return <HeroCentered data={data} framesConfig={framesConfig} heroHeight={heroHeight} />
   if (variant === 'sweep')    return <HeroSweep data={data} heroHeight={heroHeight} />
   if (variant === 'dabba')    return <HeroDabba data={data} heroHeight={heroHeight} />
-  if (variant === 'shadu')    return <HeroShadu data={data} heroHeight={heroHeight} />
+  if (variant === 'pdp')      return <HeroPdp data={data} heroHeight={heroHeight} />
   return <HeroMinimal data={data} heroHeight={heroHeight} />
 }

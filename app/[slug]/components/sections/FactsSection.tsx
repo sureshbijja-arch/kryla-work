@@ -26,7 +26,7 @@ function Strip({ data }: { data: ProfileData }) {
       {facts.map((f, i) => (
         <div key={i} className="px-5 py-4" style={{ borderColor: 'var(--kryla-border)' }}>
           <EyebrowLabel text={f.label} />
-          <p className="font-display-token mt-1" style={{ fontSize: '17px' }}>{f.value}</p>
+          <p className="font-display-token mt-1" style={{ fontSize: 'var(--type-subheading)' }}>{f.value}</p>
         </div>
       ))}
     </div>

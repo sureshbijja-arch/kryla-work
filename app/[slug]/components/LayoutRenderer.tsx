@@ -99,6 +99,13 @@ export default function LayoutRenderer({ sections, data }: Props) {
         ['--color-accent-border' as string]:  data.accentColor ? `${accent}26` : (tokens?.accentBorder  ?? `${accent}26`),
         ['--color-accent-glow' as string]:    data.accentColor ? `${accent}40` : (tokens?.accentGlow    ?? `${accent}40`),
         ['--color-signature' as string]:      signature,
+        // Curated ink/muted-ink pair — see PaletteTokens.ink/inkMuted in
+        // lib/layouts.ts. Undefined for every persona except sellganeshidols
+        // falls through to the generic --kryla-dark/--kryla-muted (set on
+        // :root in globals.css), so this is additive: no persona's rendered
+        // color changes unless its palette_tokens sets these fields.
+        ['--color-ink' as string]:       tokens?.ink       ?? 'var(--kryla-dark)',
+        ['--color-ink-muted' as string]: tokens?.inkMuted  ?? 'var(--kryla-muted)',
         // Per-persona display/body font override (currently sellganeshidols
         // only — see supabase/migrations/20260731090000_ganesh_theme_font_columns.sql).
         // A CSS custom property set here always wins over the shared

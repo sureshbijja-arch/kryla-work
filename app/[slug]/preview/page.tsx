@@ -31,7 +31,7 @@ export default async function PreviewPage({ params }: Props) {
 
   const { data: page } = await supabaseAdmin
     .from('pages')
-    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, page_bg, surface, border_color, accent_color, palette_tokens, signature_color, display_font, body_font, radius_card, radius_btn, facts, footer_note, show_sections, sections, draft_data, translations')
+    .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, schema_type, template, palette, font, design_mode, page_bg, surface, border_color, accent_color, palette_tokens, signature_color, display_font, body_font, radius_card, radius_btn, facts, footer_note, includes, story_tabs, show_sections, sections, draft_data, translations')
     .eq('provider_id', provider.id)
     .single()
 
@@ -103,6 +103,8 @@ export default async function PreviewPage({ params }: Props) {
     radiusBtn:   ((dp.radius_btn   as string) ?? (page.radius_btn   as string)) ?? null,
     facts:       Array.isArray(dp.facts) ? dp.facts as ProfileData['facts'] : (Array.isArray(page.facts) ? page.facts : []),
     footerNote:  ((dp.footer_note as ProfileData['footerNote']) ?? (page.footer_note as ProfileData['footerNote'])) ?? null,
+    includes:    Array.isArray(dp.includes) ? dp.includes as string[] : (Array.isArray(page.includes) ? page.includes : []),
+    storyTabs:   Array.isArray(dp.story_tabs) ? dp.story_tabs as ProfileData['storyTabs'] : (Array.isArray(page.story_tabs) ? page.story_tabs : []),
     showSections,
     avatarUrl,
     gallery,

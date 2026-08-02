@@ -8,11 +8,12 @@
  * Also seeds a second, standalone test-ganesh provider (slug e2e-test-ganesh, persona
  * sellganeshidols) WITH a real `pages` row (the salon provider above has none — it exists
  * only for the authenticated MyKryla dashboard flow, not for visiting a public page).
- * e2e-test-ganesh is what /e2e-test-ganesh/preview needs to render the new HeroShadu +
- * Sizes variants end-to-end, matching the approved copy: Natural Shadu Ganesh (2ft,
- * ₹3,200), Gold-Finish Ganesh (3.5ft, ₹8,500 was ₹9,800), Custom Society Idol (5-7ft, on
- * request). Seeded as a SEPARATE provider rather than repointing e2e-test-salon, since the
- * authenticated Playwright project depends on that provider's persona staying 'salon'.
+ * e2e-test-ganesh is what /e2e-test-ganesh/preview needs to render the v3-rebuild HeroPdp +
+ * Collection + Story variants end-to-end (designscreenshots/sellganeshidolsv3.pdf), matching
+ * the approved copy: Natural Shadu Ganesh (2ft, ₹3,200), Gold-Finish Ganesh (3.5ft, ₹8,500
+ * was ₹9,800), Custom Society Idol (5-7ft, on request). Seeded as a SEPARATE provider rather
+ * than repointing e2e-test-salon, since the authenticated Playwright project depends on that
+ * provider's persona staying 'salon'.
  *
  * This is NOT executed by any sandboxed/CI environment automatically — a human must run it
  * once against the real dev/test Supabase project before authenticated e2e tests can pass.
@@ -162,14 +163,15 @@ async function seedGaneshProvider() {
   console.log(`Seeded provider: slug=${provider.slug} id=${provider.id}`)
 
   // sellganeshidols' own palette_tokens/signature_color/display_font/body_font/
-  // radius_card/radius_btn (see supabase/migrations/20260731090000_ganesh_theme_font_columns.sql
-  // and 20260731100000_ganesh_mockup_fidelity.sql) — a page normally gets
-  // these from build-page.ts at signup time, but this script writes the
-  // pages row directly rather than going through Inngest, so it must set the
-  // same fields itself to exercise the real render path. Copy below matches
-  // the approved mockup artifact exactly (per design-audit follow-up) — CTA
-  // labels, service specs (Height/Finish/Lead time), compareAtPrice, facts
-  // strip, and footer note all mirror the mockup's own HTML/CSS verbatim.
+  // radius_card/radius_btn/page_bg/surface/border_color (see
+  // supabase/migrations/20260731090000_ganesh_theme_font_columns.sql and
+  // 20260801090000_ganesh_v3_theme.sql) — a page normally gets these from
+  // build-page.ts at signup time, but this script writes the pages row
+  // directly rather than going through Inngest, so it must set the same
+  // fields itself to exercise the real render path. Copy below matches the
+  // approved v3 reference (designscreenshots/sellganeshidolsv3.pdf) — CTA
+  // labels, service specs, compareAtPrice, facts strip, footer note,
+  // includes checklist, and story tabs all mirror that reference.
   const pageRow = {
     provider_id: provider.id,
     headline: 'Clay idols, made by hand, for home',
@@ -203,15 +205,29 @@ async function seedGaneshProvider() {
       kicker: 'Advance orders recommended',
       body: 'Especially before Ganesh Chaturthi — reply on WhatsApp for fastest response.',
     },
+    includes: [
+      'Hand-finished natural stone base',
+      'Certificate of authenticity & artisan signature',
+      'Padded crate shipping, insured',
+    ],
+    story_tabs: [
+      { label: 'Story & Craft', body: 'Every idol begins as an uncut block of natural shadu clay — nothing is cast or moulded. Each piece is hand-shaped and finished by hand, following techniques passed down through generations of artisans.' },
+      { label: 'Materials & Care', body: 'Natural shadu clay, water-soluble colours only. Dissolves cleanly for eco-friendly visarjan. Keep away from direct sun and moisture before use to preserve the finish.' },
+      { label: 'Shipping & Returns', body: 'Advance orders recommended, especially before Ganesh Chaturthi. Doorstep delivery. Reply on WhatsApp for the fastest response on order status or changes.' },
+    ],
     template: 'storefront',
     palette: 'warm',
     font: 'inter',
     design_mode: 'craft',
     palette_tokens: {
-      accent: '#8A4322', accentSurface: '#8A43220d', accentBorder: '#8A432226',
-      accentGlow: '#8A432240', signature: '#8A4322',
+      accent: '#7A3B12', accentSurface: '#F0E4CE', accentBorder: '#E8DFCF',
+      accentGlow: '#7A3B1240', signature: '#7A3B12',
+      ink: '#2A2320', inkMuted: '#6B5D4E',
     },
-    signature_color: '#8A4322',
+    signature_color: '#7A3B12',
+    page_bg: '#FAF6EF',
+    surface: '#FFFFFF',
+    border_color: '#E8DFCF',
     display_font: 'var(--font-newsreader), Newsreader, Georgia, serif',
     body_font: 'var(--font-inter), Inter, system-ui, sans-serif',
     radius_card: '2px',
@@ -219,14 +235,12 @@ async function seedGaneshProvider() {
     gallery: [],
     show_sections: { hero: true, services: true, highlights: true, booking: true, faq: true, contact: true },
     sections: [
-      { sectionKey: 'hero', variant: 'shadu', order: 1 },
+      { sectionKey: 'hero', variant: 'pdp', order: 1 },
       { sectionKey: 'facts', variant: 'strip', order: 2 },
-      { sectionKey: 'services', variant: 'sizes', order: 3 },
-      { sectionKey: 'gallery', variant: 'grid', order: 4 },
-      { sectionKey: 'bio', variant: 'callout', order: 5 },
-      { sectionKey: 'highlights', variant: 'icons', order: 6 },
-      { sectionKey: 'faq', variant: 'accordion', order: 7 },
-      { sectionKey: 'contact', variant: 'enquiry', order: 8 },
+      { sectionKey: 'services', variant: 'collection', order: 3 },
+      { sectionKey: 'bio', variant: 'story', order: 4 },
+      { sectionKey: 'faq', variant: 'accordion', order: 5 },
+      { sectionKey: 'contact', variant: 'enquiry', order: 6 },
     ],
   }
 

@@ -164,22 +164,23 @@ const PERSONA_SECTIONS: Record<string, Section[]> = {
     { sectionKey: 'faq',        variant: 'accordion', order: 6 },
     { sectionKey: 'contact',    variant: 'both',      order: 7 },
   ],
-  // Ganesh idol-seller signature (see HeroSection.tsx's HeroShadu, ServicesSection.tsx's
-  // Sizes): hero 'auto' would otherwise resolve to 'photo' here (default_gallery
-  // was previously 4 seeded images), never 'dark' — so 'auto' was never actually
-  // giving this persona the flat-field look. 'shadu'/'sizes' are literal, not
-  // auto-selectable; gallery section stays so a member's first real uploaded
-  // photo still appears there (default_gallery is now emptied, see the
-  // 20260731090000 migration — GallerySection renders nothing for an empty array).
+  // Ganesh idol-seller signature — v3 rebuild (see HeroSection.tsx's HeroPdp,
+  // ServicesSection.tsx's Collection, BioSection.tsx's Story). Replaces the
+  // flat-field shadu/sizes design with the approved two-column
+  // product-detail layout (designscreenshots/sellganeshidolsv3.pdf).
+  // 'pdp'/'collection'/'story' are literal, not auto-selectable — resolveVariant()
+  // only ever transforms 'auto' for sectionKey 'hero'. The hero now consumes
+  // photography directly (image-led layout), so `gallery` drops out of the
+  // default list; `highlights` also drops (it rendered nothing for every
+  // seeded member — highlights: []). Both stay in the section registry for
+  // any member who adds content via MyKryla.
   sellganeshidols: [
-    { sectionKey: 'hero',       variant: 'shadu',     order: 1 },
-    { sectionKey: 'facts',      variant: 'strip',     order: 2 },
-    { sectionKey: 'services',   variant: 'sizes',     order: 3 },
-    { sectionKey: 'gallery',    variant: 'grid',      order: 4 },
-    { sectionKey: 'bio',        variant: 'callout',   order: 5 },
-    { sectionKey: 'highlights', variant: 'icons',     order: 6 },
-    { sectionKey: 'faq',        variant: 'accordion', order: 7 },
-    { sectionKey: 'contact',    variant: 'enquiry',   order: 8 },
+    { sectionKey: 'hero',       variant: 'pdp',        order: 1 },
+    { sectionKey: 'facts',      variant: 'strip',      order: 2 },
+    { sectionKey: 'services',   variant: 'collection', order: 3 },
+    { sectionKey: 'bio',        variant: 'story',      order: 4 },
+    { sectionKey: 'faq',        variant: 'accordion',  order: 5 },
+    { sectionKey: 'contact',    variant: 'enquiry',    order: 6 },
   ],
   maker: [
     { sectionKey: 'hero',       variant: 'auto',      order: 1 },
@@ -363,6 +364,45 @@ const PERSONA_SECTIONS: Record<string, Section[]> = {
   ],
 }
 
+// Persona-keyed default content for the fixed jsonb slots that aren't part
+// of the AI-generated prompt shape (facts/footer_note/includes/story_tabs) —
+// same pattern as PERSONA_SECTIONS: a literal map, not a DB roundtrip, since
+// this is fixed per-persona launch copy rather than a per-member visual
+// default. Was a real gap before this: write-pages-row never wrote
+// facts/footer_note at all, so a brand-new sellganeshidols signup got an
+// empty fact strip and no footer note despite PERSONA_SECTIONS listing a
+// 'facts' section — only the migration backfill (20260731100000) covered
+// existing rows. Fixed here for all four fields at once, for new signups.
+const PERSONA_DEFAULT_CONTENT: Record<string, {
+  facts?: { label: string; value: string }[]
+  footerNote?: { kicker: string; body: string }
+  includes?: string[]
+  storyTabs?: { label: string; body: string }[]
+}> = {
+  sellganeshidols: {
+    facts: [
+      { label: 'Material', value: 'Shadu clay' },
+      { label: 'Sizes', value: '1 – 7 ft' },
+      { label: 'Colours', value: 'Natural · gold' },
+      { label: 'Delivery', value: 'Doorstep' },
+    ],
+    footerNote: {
+      kicker: 'Advance orders recommended',
+      body: 'Especially before Ganesh Chaturthi — reply on WhatsApp for fastest response.',
+    },
+    includes: [
+      'Hand-finished natural stone base',
+      'Certificate of authenticity & artisan signature',
+      'Padded crate shipping, insured',
+    ],
+    storyTabs: [
+      { label: 'Story & Craft', body: 'Every idol begins as an uncut block of natural shadu clay — nothing is cast or moulded. Each piece is hand-shaped and finished by hand, following techniques passed down through generations of artisans.' },
+      { label: 'Materials & Care', body: 'Natural shadu clay, water-soluble colours only. Dissolves cleanly for eco-friendly visarjan. Keep away from direct sun and moisture before use to preserve the finish.' },
+      { label: 'Shipping & Returns', body: 'Advance orders recommended, especially before Ganesh Chaturthi. Doorstep delivery. Reply on WhatsApp for the fastest response on order status or changes.' },
+    ],
+  },
+}
+
 function buildPrompt(p: BuildPageJobPayload): string {
   const name = `${p.firstName} ${p.lastName}`.trim()
   return `You are building a professional online presence for ${name}, a ${p.persona} based in ${p.location || 'their city'}.
@@ -440,6 +480,7 @@ export const buildPageFunction = inngest.createFunction(
       const template    = defaults.template ?? TEMPLATE_MAP[payload.persona] ?? 'focus'
       const palette     = defaults.palette  ?? PALETTE_MAP[payload.persona] ?? 'professional'
       const font        = defaults.font     ?? 'inter'
+      const defaultContent = PERSONA_DEFAULT_CONTENT[payload.persona]
 
       const { error } = await supabase.from('pages').upsert({
         provider_id: providerId,
@@ -470,6 +511,17 @@ export const buildPageFunction = inngest.createFunction(
         body_font: defaults.bodyFont,
         radius_card: defaults.radiusCard,
         radius_btn: defaults.radiusBtn,
+        page_bg: defaults.pageBg,
+        surface: defaults.surface,
+        border_color: defaults.borderColor,
+        // Persona-fixed launch content (facts/footer_note/includes/story_tabs)
+        // — see PERSONA_DEFAULT_CONTENT above. undefined -> Supabase omits the
+        // key -> column keeps its own default ('[]'/NULL), so this is a no-op
+        // for every persona without an entry.
+        facts: defaultContent?.facts,
+        footer_note: defaultContent?.footerNote,
+        includes: defaultContent?.includes,
+        story_tabs: defaultContent?.storyTabs,
         show_sections: {
           hero: true, services: true, highlights: true,
           booking: payload.plan !== 'seed', faq: true, contact: true,

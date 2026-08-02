@@ -27,19 +27,27 @@ export function KrylaLogo() {
   // (verified via WCAG relative-luminance calc — even near-black-brown only
   // reaches ~4.4:1 post-composite, and by then it isn't amber anymore). Fix:
   // the SVG mark + "kryla" text sit in the dimmed/brightens-on-hover span;
-  // .work is a sibling at full opacity with its own accessible amber shade
-  // (5.4:1+ verified on every real page bg).
+  // .work is a sibling at full opacity.
+  //
+  // Third stroke + .work were hardcoded #8F5B08 (amber) regardless of the
+  // page's actual accent, so the footer wordmark stayed amber-brown on every
+  // persona's accent, including russet/terracotta grounds where it read as a
+  // mismatched color — unlike KLogo in the hero, which already drove its
+  // third stroke from var(--color-accent). Matching that here: both now read
+  // the page's own accent. --kryla-body-on-accent-fallback isn't needed since
+  // every page sets --color-accent (LayoutRenderer always provides a value,
+  // see ACCENT enum fallback), so this is never unset.
   return (
     <a href="https://kryla.work" className="flex items-center gap-1.5">
       <span className="flex items-center gap-1.5 opacity-60 hover:opacity-100 transition-opacity">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <line x1="7" y1="4" x2="7" y2="20" stroke="#0D0D0D" strokeWidth="2.5" strokeLinecap="round"/>
           <line x1="7" y1="12" x2="17" y2="4" stroke="#0D0D0D" strokeWidth="2.5" strokeLinecap="round"/>
-          <line x1="7" y1="12" x2="17" y2="20" stroke="#8F5B08" strokeWidth="2.5" strokeLinecap="round"/>
+          <line x1="7" y1="12" x2="17" y2="20" stroke="var(--color-accent)" strokeWidth="2.5" strokeLinecap="round"/>
         </svg>
         <span className="text-xs font-semibold text-[#0D0D0D]">kryla</span>
       </span>
-      <span className="text-xs font-semibold -ml-1" style={{ color: '#8F5B08' }}>.work</span>
+      <span className="text-xs font-semibold -ml-1" style={{ color: 'var(--color-accent)' }}>.work</span>
     </a>
   )
 }

@@ -34,7 +34,9 @@ const SECTION_META: Record<string, SectionMeta> = {
       // three below already worked before this pass touched the file.
       { key: 'sweep',    label: 'Sweep — brass light sweep (salon)' },
       { key: 'dabba',    label: 'Dabba — tiffin compartments (tiffin)' },
-      { key: 'shadu',    label: 'Shadu — flat clay field (Ganesh idols)' },
+      // 'shadu' retired in the v3 rebuild (designscreenshots/sellganeshidolsv3.pdf)
+      // — replaced by 'pdp', a two-column product-detail layout.
+      { key: 'pdp',      label: 'PDP — product detail, two-column (Ganesh idols)' },
     ],
   },
   facts: {
@@ -54,7 +56,8 @@ const SECTION_META: Record<string, SectionMeta> = {
       { key: 'pricing',    label: 'Pricing — bold cards' },
       { key: 'features',   label: 'Features — detailed cards' },
       { key: 'price-list', label: 'Price list — dotted leader rows' },
-      { key: 'sizes',      label: 'Sizes — by height (Ganesh idols)' },
+      // 'sizes' retired in the v3 rebuild — replaced by 'collection'.
+      { key: 'collection', label: 'Collection — 4-up card grid (Ganesh idols)' },
     ],
   },
   highlights: {
@@ -76,6 +79,7 @@ const SECTION_META: Record<string, SectionMeta> = {
       { key: 'accent',    label: 'Accent — left colour bar' },
       { key: 'callout',   label: 'Callout — tinted quote box' },
       { key: 'dark',      label: 'Dark — black background' },
+      { key: 'story',     label: 'Story — tabbed sections (Ganesh idols)' },
     ],
   },
   gallery: {

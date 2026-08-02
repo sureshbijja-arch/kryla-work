@@ -9,6 +9,14 @@ export interface PaletteTokens {
   accentBorder:  string
   accentGlow:    string
   signature:     string
+  /** Curated ink/muted-ink pair for personas whose page background is
+   * specific enough that the platform's generic --kryla-dark/--kryla-muted
+   * (#0D0D0D / #6b6259, calibrated against white/near-white) don't hit
+   * verified contrast against it — e.g. sellganeshidols' warm cream ground.
+   * Optional: undefined means "use the generic --kryla-dark/--kryla-muted",
+   * same fallback pattern as every other PaletteTokens field. */
+  ink?:      string
+  inkMuted?: string
 }
 
 export interface SectionEntry {

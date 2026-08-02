@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import type { ProfileData } from '../../types'
+import { getPersonaConfig } from '../../personaConfig'
 
 interface Props {
   data: ProfileData
@@ -116,13 +117,13 @@ function Cards({ data }: { data: ProfileData }) {
 
 /* ── STRIP ────────────────────────────────────────────────────────────────── */
 function Strip({ data }: { data: ProfileData }) {
-  const { highlights, showSections } = data
+  const { highlights, showSections, persona } = data
   if (!showSections.highlights || !highlights.length) return null
   return (
     <section className="border-t border-[var(--kryla-border)] overflow-hidden"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <div className="max-w-3xl mx-auto mb-5 px-6">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999]">Why choose me</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999]">{getPersonaConfig(persona).highlightsLabel}</p>
       </div>
       <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory px-6 scrollbar-hide">
         {highlights.map((h, i) => (
@@ -146,7 +147,7 @@ function Strip({ data }: { data: ProfileData }) {
 
 /* ── NUMBERED ─────────────────────────────────────────────────────────────── */
 function Numbered({ data, accent }: { data: ProfileData; accent: string }) {
-  const { highlights, showSections } = data
+  const { highlights, showSections, persona } = data
   const { ref, visible } = useReveal()
   if (!showSections.highlights || !highlights.length) return null
   return (
@@ -154,7 +155,7 @@ function Numbered({ data, accent }: { data: ProfileData; accent: string }) {
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-8">How it works</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-8">{getPersonaConfig(persona).highlightsLabel}</p>
         <div ref={ref} className="space-y-5">
           {highlights.map((h, i) => (
             <div key={i}
@@ -186,7 +187,7 @@ function Numbered({ data, accent }: { data: ProfileData; accent: string }) {
 
 /* ── ICONS (default) ──────────────────────────────────────────────────────── */
 function Icons({ data }: { data: ProfileData }) {
-  const { highlights, showSections } = data
+  const { highlights, showSections, persona } = data
   const { ref, visible } = useReveal()
   if (!showSections.highlights || !highlights.length) return null
   return (
@@ -194,6 +195,10 @@ function Icons({ data }: { data: ProfileData }) {
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
+        {/* This variant previously had no section label at all — every other
+            variant (Strip/Numbered) shows one, so this was an inconsistency,
+            not a deliberate minimal design. */}
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-8">{getPersonaConfig(persona).highlightsLabel}</p>
         <div ref={ref} className="grid grid-cols-3 gap-6">
           {highlights.map((h, i) => (
             <div key={i}

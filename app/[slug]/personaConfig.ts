@@ -32,7 +32,7 @@ export const PERSONA_CONFIG = {
   sellganeshidols: {
     tabLabel:          'Enquiries',
     heroCtaTarget:     '#menu',
-    servicesLabel:     'Our Idols',
+    servicesLabel:     'More from the Heritage Collection',
     bioLabel:          'About Us',
     highlightsLabel:   'Why Choose Us',
     contactLabel:      'Enquire / Order',
@@ -48,10 +48,25 @@ export const PERSONA_CONFIG = {
     // the banned name-eyebrow pattern (see HeroSection.test.tsx).
     heroEyebrow:       'Handcrafted for Ganesh Chaturthi',
     // Ganesh-only ghost/outline enquire-button style, matching the mockup
-    // exactly (see ServicesSection.tsx's Sizes variant) — belongs in config
-    // per the no-hardcoding convention, not an if(persona==='sellganeshidols')
-    // branch in the component.
+    // exactly (see ServicesSection.tsx's Collection variant) — belongs in
+    // config per the no-hardcoding convention, not an
+    // if(persona==='sellganeshidols') branch in the component.
     orderButtonStyle:  'ghost' as const,
+    // v3 rebuild (designscreenshots/sellganeshidolsv3.pdf) — the hero is now
+    // a two-column product-detail layout, not a flat full-bleed field. These
+    // fields are Ganesh-only, same 'x' in cfg narrowing pattern as
+    // heroEyebrow/orderButtonStyle above.
+    navLabel:          'Sell Ganesh Idols',
+    navLinks: [
+      { label: 'Collections',    target: '#menu' },
+      { label: 'Custom Orders',  target: '#custom' },
+      { label: 'Materials',      target: '#materials' },
+    ],
+    sizeSelectorLabel: 'Select size',
+    includesLabel:     'Includes',
+    primaryCtaLabel:   'Reserve This Piece',
+    secondaryCtaLabel: 'Request Custom Size or Finish',
+    festivePriceLabel: 'Festive Price',
   },
   salon: {
     tabLabel:          'Appointments',

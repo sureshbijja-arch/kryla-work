@@ -134,15 +134,6 @@
   border-radius: 2px;
 }
 
-/* HeroShadu's flat field IS var(--color-accent) for this persona (both accent
-   and signature resolve to the same terracotta hex), so the rule above is
-   invisible there (1:1 contrast, verified). White reliably contrasts against
-   any single-hue dark field this variant would plausibly use. */
-.hero-shadu a:focus-visible,
-.hero-shadu button:focus-visible {
-  outline-color: #fff;
-}
-
 * { box-sizing: border-box; }
 
 body {

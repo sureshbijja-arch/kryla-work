@@ -145,23 +145,32 @@ function EnquiryForm({ providerId, accentColor }: { providerId: string; accentCo
     </div>
   )
 
+  // Inputs/button previously hardcoded rounded-xl/rounded-2xl regardless of
+  // the page's --radius-card/--radius-btn tokens — harmless while every
+  // persona used the platform's default rounded scale, but visibly wrong on
+  // sellganeshidols (radius_card/radius_btn: '2px'), where a pill-rounded
+  // form sat directly under sharp-cornered cards. Now reads the same tokens
+  // every other section already does.
   return (
     <form onSubmit={submit} className="space-y-3">
       <input required value={name} onChange={e => setName(e.target.value)}
         placeholder="Your name *"
-        className="w-full border border-[var(--kryla-border)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]" />
+        style={{ borderRadius: 'var(--radius-card)' }}
+        className="w-full border border-[var(--kryla-border)] px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]" />
       <input required type="tel" value={phone} onChange={e => setPhone(e.target.value)}
         placeholder="WhatsApp number *"
-        className="w-full border border-[var(--kryla-border)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]" />
+        style={{ borderRadius: 'var(--radius-card)' }}
+        className="w-full border border-[var(--kryla-border)] px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]" />
       <textarea value={message} onChange={e => setMessage(e.target.value)}
         placeholder="Your message (optional)"
         rows={3}
-        className="w-full border border-[var(--kryla-border)] rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]" />
+        style={{ borderRadius: 'var(--radius-card)' }}
+        className="w-full border border-[var(--kryla-border)] px-4 py-3 text-sm resize-none focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]" />
       {error && <p className="text-red-500 text-xs">{error}</p>}
       <button type="submit"
         disabled={submitting || !name.trim() || !phone.trim()}
-        className="w-full py-3.5 rounded-2xl text-sm font-black text-white transition-opacity disabled:opacity-50"
-        style={{ background: accentColor }}>
+        style={{ background: accentColor, borderRadius: 'var(--radius-btn)' }}
+        className="w-full py-3.5 text-sm font-black text-white transition-opacity enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:bg-[var(--kryla-border)] disabled:text-[var(--kryla-muted)]">
         {submitting ? 'Sending…' : 'Send Message →'}
       </button>
     </form>
