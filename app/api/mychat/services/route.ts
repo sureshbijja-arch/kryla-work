@@ -4,6 +4,26 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 
 type DraftShape = { pages: Record<string, unknown>; providers: Record<string, unknown> }
 
+// Validates the optional idol→variants shape (sellganeshidols catalogue
+// rebuild — see app/mychat/IdolsTab.tsx). Every other persona's rows simply
+// don't have a `variants` key and skip this check entirely; when present,
+// each entry must be well-formed so a malformed client payload can't corrupt
+// the stored catalogue jsonb (filter, don't just cast — same discipline as
+// isMykrylaToolCard in app/[slug]/mykryla/page.tsx, applied at the write
+// boundary instead of the read boundary since this route owns the write).
+function isValidVariants(variants: unknown): boolean {
+  if (variants === undefined || variants === null) return true
+  if (!Array.isArray(variants)) return false
+  return variants.every(v =>
+    typeof v === 'object' && v !== null &&
+    typeof (v as Record<string, unknown>).size === 'string' &&
+    typeof (v as Record<string, unknown>).price === 'string' &&
+    ((v as Record<string, unknown>).compareAtPrice === undefined || (v as Record<string, unknown>).compareAtPrice === null || typeof (v as Record<string, unknown>).compareAtPrice === 'string') &&
+    ((v as Record<string, unknown>).includes === undefined || (v as Record<string, unknown>).includes === null ||
+      (Array.isArray((v as Record<string, unknown>).includes) && ((v as Record<string, unknown>).includes as unknown[]).every(i => typeof i === 'string')))
+  )
+}
+
 export async function POST(req: NextRequest) {
   const supabase = createRouteClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -13,6 +33,10 @@ export async function POST(req: NextRequest) {
 
   if (!providerId || !Array.isArray(services)) {
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+  }
+
+  if (!services.every((s: Record<string, unknown>) => isValidVariants(s?.variants))) {
+    return NextResponse.json({ error: 'Invalid variants payload' }, { status: 400 })
   }
 
   const { data: provider } = await supabaseAdmin

@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import HeroSection from './HeroSection'
+import { IdolSelectionProvider } from '../IdolSelectionContext'
 import type { ProfileData } from '../../types'
 
 afterEach(cleanup)
@@ -83,17 +84,54 @@ describe('HeroSection — pdp variant (sellganeshidols v3 rebuild)', () => {
     // The prior shadu variant's nav had a static, non-interactive "Menu" span
     // with no target — the critique flagged this as a dead affordance
     // (designscreenshots critique, P2). Every nav item here is a real <a href>.
+    // Target is '#idols' — the FactsSection idol-showcase grid (v3.1
+    // rebuild), not the retired Collection grid's '#menu'.
     const menuLink = screen.getByRole('link', { name: 'Collections' })
-    expect(menuLink.getAttribute('href')).toBe('#menu')
+    expect(menuLink.getAttribute('href')).toBe('#idols')
   })
 
-  it('renders a size selector with the member\'s own services, and switches the price block on selection', () => {
-    render(<HeroSection data={ganeshData} accent="#7A3B12" variant="pdp" />)
+  it('shows the selected idol\'s own single price when it has one size (v3.1 idol showcase)', () => {
+    // Two distinct idols, one size each — this is what the old flat
+    // services array actually modeled (a "size chip" that switched idols,
+    // not sizes of one idol). The PDP shows the SELECTED idol's price here
+    // (idol #1, Natural Shadu Ganesh, defaults selected) — a range across
+    // unrelated idols would be meaningless. Picking a size WITHIN one idol
+    // is covered by the multi-variant test below, the corrected version of
+    // this behavior.
+    render(
+      <IdolSelectionProvider>
+        <HeroSection data={ganeshData} accent="#7A3B12" variant="pdp" />
+      </IdolSelectionProvider>
+    )
     expect(screen.getByText('₹3,200')).toBeTruthy()
-    const goldOption = screen.getByRole('button', { name: '3.5 ft' })
-    fireEvent.click(goldOption)
-    expect(screen.getByText('₹8,500')).toBeTruthy()
-    expect(screen.getByText('₹9,800').className).toContain('line-through')
+  })
+
+  it('renders a size selector within one idol, and switches price + includes on selection', () => {
+    const oneIdol = {
+      ...ganeshData,
+      services: [{
+        name: 'Natural Shadu Ganesh', description: 'Unpainted natural clay finish.',
+        image_url: null, duration_or_unit: null, price: null,
+        variants: [
+          { size: '1 ft', price: '₹3,000', includes: ['Small clay base'] },
+          { size: '3 ft', price: '₹9,999', compareAtPrice: '₹11,000', includes: ['Stone base', 'Insured crate shipping'] },
+        ],
+      }],
+    } as unknown as ProfileData
+
+    render(
+      <IdolSelectionProvider>
+        <HeroSection data={oneIdol} accent="#7A3B12" variant="pdp" />
+      </IdolSelectionProvider>
+    )
+    expect(screen.getByText('₹3,000 – ₹9,999')).toBeTruthy()
+    const threeFt = screen.getByRole('button', { name: '3 ft' })
+    fireEvent.click(threeFt)
+    expect(screen.getByText('₹9,999')).toBeTruthy()
+    expect(screen.getByText('₹11,000').className).toContain('line-through')
+    // Includes swaps to this size's own list, not the page-level fallback.
+    expect(screen.getByText('Stone base')).toBeTruthy()
+    expect(screen.queryByText('Small clay base')).toBeNull()
   })
 
   it('renders the INCLUDES checklist from real content, never invented items', () => {

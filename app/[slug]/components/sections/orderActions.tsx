@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import OrderModal, { type OrderItem } from '../OrderModal'
 import CustomOrderModal from '../CustomOrderModal'
+import type { OrderConfig } from '../../types'
 
 /**
  * Shared Order/Custom-Order modal wiring — previously duplicated inline in
@@ -27,16 +28,26 @@ interface ModalsProps {
   onCloseCustomOrder: () => void
   providerId: string
   accentColor: string
+  /** DB-driven order-form vocabulary for this persona (occasions,
+   * fulfillment, custom-order fields) — see getOrderConfig() in
+   * lib/personas.ts. Optional so existing call sites that haven't been
+   * updated yet fall back to OrderModal/CustomOrderModal's own generic
+   * default rather than failing to render. */
+  orderConfig?: OrderConfig
+  /** Persona id — lets OrderModal honour PERSONA_CONFIG's hasQuantity/
+   * hasNotes flags (previously ignored entirely). Optional for the same
+   * backward-compat reason as orderConfig. */
+  persona?: string
 }
 
-export function OrderActionModals({ orderItem, customOpen, onCloseOrder, onCloseCustomOrder, providerId, accentColor }: ModalsProps) {
+export function OrderActionModals({ orderItem, customOpen, onCloseOrder, onCloseCustomOrder, providerId, accentColor, orderConfig, persona }: ModalsProps) {
   return (
     <>
       {orderItem && (
-        <OrderModal item={orderItem} providerId={providerId} accentColor={accentColor} onClose={onCloseOrder} />
+        <OrderModal item={orderItem} providerId={providerId} accentColor={accentColor} config={orderConfig} persona={persona} onClose={onCloseOrder} />
       )}
       {customOpen && (
-        <CustomOrderModal providerId={providerId} accentColor={accentColor} onClose={onCloseCustomOrder} />
+        <CustomOrderModal providerId={providerId} accentColor={accentColor} config={orderConfig} onClose={onCloseCustomOrder} />
       )}
     </>
   )

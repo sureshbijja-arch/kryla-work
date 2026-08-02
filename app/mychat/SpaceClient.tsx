@@ -12,6 +12,7 @@ import type { StudioSeed } from './PractitionerStudio'
 import InstallBanner from '@/components/InstallBanner'
 import SectionsTab from './SectionsTab'
 import ServicesTab from './ServicesTab'
+import IdolsTab from './IdolsTab'
 import LayoutsTab from './LayoutsTab'
 import MediaTab from './MediaTab'
 import LanguageTab from './LanguageTab'
@@ -728,7 +729,21 @@ export default function SpaceClient({
     if (tile === 'services') {
       switch (detail) {
         case 'services':
-          return (
+          // sellganeshidols catalogue items are idols (name + photo + a list
+          // of purchasable sizes with their own price/includes), not flat
+          // services — IdolsTab edits the same pages.services array via the
+          // same /api/mychat/services route, just with the nested
+          // idol→variants shape the public PDP/idol-showcase strip expect.
+          return currentProfile.persona === 'sellganeshidols' ? (
+            <IdolsTab
+              providerId={providerId}
+              slug={slug}
+              initialServices={currentProfile.services}
+              plan={plan}
+              planOrder={planOrder}
+              onPreview={onRefresh}
+            />
+          ) : (
             <ServicesTab
               providerId={providerId}
               slug={slug}

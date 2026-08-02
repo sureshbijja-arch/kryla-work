@@ -13,6 +13,10 @@
 import { cache } from 'react'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { PaletteTokens } from '@/lib/layouts'
+import { parseOrderConfig, DEFAULT_ORDER_CONFIG } from '@/lib/orderConfig'
+import type { OrderConfig } from '@/lib/orderConfig'
+export type { OrderConfig, FulfillmentOption, CustomOrderConfig } from '@/lib/orderConfig'
+export { parseOrderConfig } from '@/lib/orderConfig'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -221,6 +225,27 @@ export async function getStudioArchetype(
     ...(archetypeRes.data as StudioArchetype),
     modes: (modesRes.data ?? []) as StudioMode[],
   }
+}
+
+// ── Order-form config (occasions, fulfillment, custom-order vocabulary) ────────
+//
+// Types + parseOrderConfig() live in lib/orderConfig.ts (pure, no Supabase/
+// react import, so it's directly unit-testable and safe to import from
+// 'use client' components). This is just the DB fetch wrapper.
+
+/**
+ * Fetch + validate one persona's order-form vocabulary. Safe to call from
+ * both the live page and the preview route — always returns a usable
+ * config, defaulting to today's bakery copy for any unseeded persona.
+ */
+export async function getOrderConfig(personaId: string): Promise<OrderConfig> {
+  const { data } = await supabaseAdmin
+    .from('personas')
+    .select('order_config')
+    .eq('id', personaId)
+    .maybeSingle()
+
+  return parseOrderConfig(data?.order_config) ?? DEFAULT_ORDER_CONFIG
 }
 
 /**

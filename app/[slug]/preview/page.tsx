@@ -7,6 +7,7 @@ import AdsScroller from '../components/AdsScroller'
 import LanguagePage from '../components/LanguagePage'
 import type { SectionEntry } from '../components/LayoutRenderer'
 import { getHeroFitCropTolerance } from '@/lib/heroFit'
+import { getOrderConfig } from '@/lib/personas'
 
 // Always renders fresh from DB — never cached. Used as the draft preview.
 export const dynamic = 'force-dynamic'
@@ -57,6 +58,7 @@ export default async function PreviewPage({ params }: Props) {
   const gallery         = Array.isArray(galleryRaw) ? (galleryRaw as string[]) : []
   const liveMenuRaw     = menuFilesRes.status  === 'fulfilled' ? (menuFilesRes.value.data as Record<string, unknown> | null)?.menu_files : undefined
   const heroFitCropTolerance = await getHeroFitCropTolerance()
+  const orderConfig = await getOrderConfig(provider.persona ?? 'other')
 
   const defaultShowSections: ShowSections = {
     hero: true, services: true, highlights: true,
@@ -105,6 +107,7 @@ export default async function PreviewPage({ params }: Props) {
     footerNote:  ((dp.footer_note as ProfileData['footerNote']) ?? (page.footer_note as ProfileData['footerNote'])) ?? null,
     includes:    Array.isArray(dp.includes) ? dp.includes as string[] : (Array.isArray(page.includes) ? page.includes : []),
     storyTabs:   Array.isArray(dp.story_tabs) ? dp.story_tabs as ProfileData['storyTabs'] : (Array.isArray(page.story_tabs) ? page.story_tabs : []),
+    orderConfig,
     showSections,
     avatarUrl,
     gallery,

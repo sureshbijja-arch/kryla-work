@@ -15,6 +15,7 @@ import PwaActionBar from './components/PwaActionBar'
 import InstallBanner from '@/components/InstallBanner'
 import { getComplianceCopy } from '@/lib/compliance'
 import { getHeroFitCropTolerance } from '@/lib/heroFit'
+import { getOrderConfig } from '@/lib/personas'
 import type { SectionEntry } from './components/LayoutRenderer'
 import {
   buildEntityJsonLd, buildAggregateRating, buildOpeningHours, buildFaqJsonLd,
@@ -129,6 +130,7 @@ export default async function MemberProfilePage({ params }: Props) {
     supabaseAdmin.from('reviews').select('rating, status').eq('provider_id', provider.id),
   ])
   const heroFitCropTolerance = await getHeroFitCropTolerance()
+  const orderConfig = await getOrderConfig(provider.persona ?? 'other')
 
   const providerExtra   = avatarRes.status === 'fulfilled' ? (avatarRes.value.data as Record<string, unknown> | null) : null
   const avatarUrl       = (providerExtra?.avatar_url       as string | null) ?? null
@@ -189,6 +191,7 @@ export default async function MemberProfilePage({ params }: Props) {
     footerNote: (page.footer_note as FooterNote | null) ?? null,
     includes: Array.isArray(page.includes) ? (page.includes as string[]) : [],
     storyTabs: Array.isArray(page.story_tabs) ? (page.story_tabs as StoryTab[]) : [],
+    orderConfig,
     showSections,
     avatarUrl,
     gallery,

@@ -179,18 +179,28 @@ async function seedGaneshProvider() {
     bio: 'Handcrafted Ganesh idols for over a decade, natural shadu clay only.',
     cta_primary: 'Enquire / Order',
     cta_secondary: 'See sizes',
+    // v3.1 idol-showcase rebuild — each idol now carries its own `variants`
+    // array (size + price + optional per-size includes) instead of a flat
+    // name+price+size row. These three ARE three distinct idols (not one
+    // idol at three sizes), so each becomes one idol with a single variant,
+    // preserving its original size/price exactly — not merged together.
+    // finish/leadTime stay on the idol itself (additive/optional, per
+    // ServiceItem's existing convention).
     services: [
       {
         name: 'Natural Shadu Ganesh', description: 'Unpainted natural clay finish, dissolves cleanly. Our most-loved size for home visarjan.',
-        price: '₹3,200', duration_or_unit: '2 ft', finish: 'Natural clay', leadTime: '7–10 days',
+        duration_or_unit: null, finish: 'Natural clay', leadTime: '7–10 days',
+        variants: [{ size: '2 ft', price: '₹3,200' }],
       },
       {
         name: 'Gold-Finish Ganesh', description: 'Hand-painted gold detailing over natural clay base, brass-tone ornamentation.',
-        price: '₹8,500', compareAtPrice: '₹9,800', duration_or_unit: '3.5 ft', finish: 'Gold detail', leadTime: '10–14 days',
+        duration_or_unit: null, finish: 'Gold detail', leadTime: '10–14 days',
+        variants: [{ size: '3.5 ft', price: '₹8,500', compareAtPrice: '₹9,800' }],
       },
       {
         name: 'Custom Society Idol', description: 'Made to order for housing societies and mandals. Share your reference; we quote within a day.',
-        price: 'On request', duration_or_unit: '5–7 ft', finish: 'Custom', leadTime: '3–4 weeks',
+        duration_or_unit: null, finish: 'Custom', leadTime: '3–4 weeks',
+        variants: [{ size: '5–7 ft', price: 'On request' }],
       },
     ],
     highlights: [],
@@ -234,13 +244,15 @@ async function seedGaneshProvider() {
     radius_btn: '2px',
     gallery: [],
     show_sections: { hero: true, services: true, highlights: true, booking: true, faq: true, contact: true },
+    // 'services/collection' dropped — FactsSection's 'idols' variant now
+    // owns the catalogue (see inngest/build-page.ts PERSONA_SECTIONS for
+    // the matching comment).
     sections: [
       { sectionKey: 'hero', variant: 'pdp', order: 1 },
-      { sectionKey: 'facts', variant: 'strip', order: 2 },
-      { sectionKey: 'services', variant: 'collection', order: 3 },
-      { sectionKey: 'bio', variant: 'story', order: 4 },
-      { sectionKey: 'faq', variant: 'accordion', order: 5 },
-      { sectionKey: 'contact', variant: 'enquiry', order: 6 },
+      { sectionKey: 'facts', variant: 'idols', order: 2 },
+      { sectionKey: 'bio', variant: 'story', order: 3 },
+      { sectionKey: 'faq', variant: 'accordion', order: 4 },
+      { sectionKey: 'contact', variant: 'enquiry', order: 5 },
     ],
   }
 

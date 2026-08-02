@@ -141,7 +141,7 @@ function EnquiryForm({ providerId, accentColor }: { providerId: string; accentCo
   if (done) return (
     <div className="text-center py-6">
       <p className="font-black text-[#0D0D0D]">Message sent!</p>
-      <p className="text-sm text-[#999] mt-1">We'll get back to you on WhatsApp shortly.</p>
+      <p className="text-sm text-[#999] mt-1">We&apos;ll get back to you on WhatsApp shortly.</p>
     </div>
   )
 

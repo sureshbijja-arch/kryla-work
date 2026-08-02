@@ -18,8 +18,12 @@ const STYLES = `
 /* ── ACCORDION ────────────────────────────────────────────────────────────── */
 function Accordion({ data }: { data: ProfileData }) {
   const { faq, showSections } = data
-  if (!showSections.faq || !faq.length) return null
+  // Hook called before the early return below — variant is fixed for the
+  // lifetime of a mounted instance (each call site passes a constant
+  // `variant` prop), so this reorder is behavior-neutral, it just satisfies
+  // react-hooks/rules-of-hooks instead of relying on that invariant holding.
   const [open, setOpen] = useState<number | null>(null)
+  if (!showSections.faq || !faq.length) return null
 
   return (
     <section className="border-t border-[var(--kryla-border)]"

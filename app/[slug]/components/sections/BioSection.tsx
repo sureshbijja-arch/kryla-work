@@ -166,7 +166,7 @@ export default function BioSection({ data, accent: _accent, variant }: Props) {
           }}>
           <div className="absolute top-6 left-8 select-none pointer-events-none"
             style={{ color: 'var(--color-accent)', opacity: 0.2, fontSize: '6rem', lineHeight: 1, fontFamily: 'Georgia, serif' }}>
-            "
+            &quot;
           </div>
           <p className="relative z-10 text-xl sm:text-2xl text-[#222] leading-relaxed font-light pl-2">{bio}</p>
         </div>

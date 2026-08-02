@@ -31,7 +31,11 @@ export const PERSONA_CONFIG = {
   },
   sellganeshidols: {
     tabLabel:          'Enquiries',
-    heroCtaTarget:     '#menu',
+    // Unread by HeroPdp itself (this persona's only hero variant — it uses
+    // primaryCtaLabel/openOrder instead), but kept correct rather than
+    // removed: PERSONA_CONFIG's shape is shared across all 46 personas and
+    // other callers (ServiceCTA, non-pdp hero variants) do read it.
+    heroCtaTarget:     '#idols',
     servicesLabel:     'More from the Heritage Collection',
     bioLabel:          'About Us',
     highlightsLabel:   'Why Choose Us',
@@ -57,8 +61,11 @@ export const PERSONA_CONFIG = {
     // fields are Ganesh-only, same 'x' in cfg narrowing pattern as
     // heroEyebrow/orderButtonStyle above.
     navLabel:          'Sell Ganesh Idols',
+    // '#idols' — the FactsSection idol-showcase grid (v3.1 rebuild); was
+    // '#menu', the now-unused Collection grid, which no longer renders for
+    // this persona (see inngest/build-page.ts PERSONA_SECTIONS).
     navLinks: [
-      { label: 'Collections',    target: '#menu' },
+      { label: 'Collections',    target: '#idols' },
       { label: 'Custom Orders',  target: '#custom' },
       { label: 'Materials',      target: '#materials' },
     ],

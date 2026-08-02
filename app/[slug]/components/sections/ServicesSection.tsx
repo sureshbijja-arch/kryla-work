@@ -52,9 +52,12 @@ function ServiceCTA({ action, label, target }: { action: string; label: string; 
 /* ── FEATURES ─────────────────────────────────────────────────────────────── */
 function Features({ data }: { data: ProfileData }) {
   const { services, showSections, persona } = data
+  // Hook before the early return — variant is fixed per mounted instance,
+  // so this reorder is behavior-neutral; see the identical note on
+  // FaqSection's Accordion.
+  const [hovered, setHovered] = useState<number | null>(null)
   if (!showSections.services || !services.length) return null
   const cfg = getPersonaConfig(persona)
-  const [hovered, setHovered] = useState<number | null>(null)
 
   return (
     <section className="border-t border-[var(--kryla-border)]"
@@ -207,11 +210,13 @@ function Grid({ data }: { data: ProfileData }) {
 /* ── MENU ─────────────────────────────────────────────────────────────────── */
 function Menu({ data }: { data: ProfileData }) {
   const { services, showSections, persona, providerId } = data
+  // Hooks before the early return — see the identical note on FaqSection's
+  // Accordion.
+  const [orderItem, setOrderItem]   = useState<OrderItem | null>(null)
+  const [customOpen, setCustomOpen] = useState(false)
   if (!showSections.services || !services.length) return null
 
   const cfg = getPersonaConfig(persona)
-  const [orderItem, setOrderItem]   = useState<OrderItem | null>(null)
-  const [customOpen, setCustomOpen] = useState(false)
   const accentColor = `var(--color-accent)`
 
   return (
@@ -296,6 +301,8 @@ function Menu({ data }: { data: ProfileData }) {
           item={orderItem}
           providerId={providerId}
           accentColor={accentColor}
+          config={data.orderConfig}
+          persona={persona}
           onClose={() => setOrderItem(null)}
         />
       )}
@@ -303,6 +310,7 @@ function Menu({ data }: { data: ProfileData }) {
         <CustomOrderModal
           providerId={providerId}
           accentColor={accentColor}
+          config={data.orderConfig}
           onClose={() => setCustomOpen(false)}
         />
       )}
@@ -425,8 +433,8 @@ function Collection({ data }: { data: ProfileData }) {
               className="w-full flex items-center justify-between gap-4 px-5 py-4 border border-dashed text-left hover:shadow-lg transition-all duration-200 mt-6"
               style={{ borderRadius: 'var(--radius-card)', borderColor: 'var(--color-accent-border)', minHeight: 44 }}>
               <span>
-                <span className="block font-black text-[#0D0D0D]">Something special in mind?</span>
-                <span className="block text-sm text-[#666] mt-0.5">Share your vision — we&apos;ll make it happen</span>
+                <span className="block font-black" style={{ color: ink }}>Something special in mind?</span>
+                <span className="block text-sm mt-0.5" style={{ color: inkMuted }}>Share your vision — we&apos;ll make it happen</span>
               </span>
               <span
                 className="shrink-0 inline-flex items-center justify-center text-xs font-black text-white px-4"
@@ -442,6 +450,7 @@ function Collection({ data }: { data: ProfileData }) {
         orderItem={orderItem} customOpen={customOpen}
         onCloseOrder={() => setOrderItem(null)} onCloseCustomOrder={() => setCustomOpen(false)}
         providerId={providerId} accentColor={accentColor}
+        orderConfig={data.orderConfig} persona={persona}
       />
     </>
   )
@@ -450,9 +459,11 @@ function Collection({ data }: { data: ProfileData }) {
 /* ── PRICING ──────────────────────────────────────────────────────────────── */
 function Pricing({ data }: { data: ProfileData }) {
   const { services, showSections, persona } = data
+  // Hook before the early return — see the identical note on FaqSection's
+  // Accordion.
+  const [hov, setHov] = useState<number | null>(null)
   if (!showSections.services || !services.length) return null
   const cfg = getPersonaConfig(persona)
-  const [hov, setHov] = useState<number | null>(null)
 
   return (
     <section id="book" className="border-t border-[var(--kryla-border)]"

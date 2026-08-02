@@ -1,6 +1,7 @@
 import React from 'react'
 import { Footer } from './shared'
 import AnimateIn from './AnimateIn'
+import { IdolSelectionProvider } from './IdolSelectionContext'
 import SmartImg from './SmartImg'
 import HeroSection from './sections/HeroSection'
 import FactsSection from './sections/FactsSection'
@@ -129,6 +130,7 @@ export default function LayoutRenderer({ sections, data }: Props) {
       }}
       className={`min-h-screen ${fontClass}`}
     >
+      <IdolSelectionProvider>
       <main>
         {sorted.map((s, i) => {
           const variant = resolveVariant(s.sectionKey, s.variant)
@@ -174,6 +176,7 @@ export default function LayoutRenderer({ sections, data }: Props) {
             PERSONA_SECTIONS/SectionsTab. Renders nothing when unset. */}
         <FooterNoteSection data={data} />
       </main>
+      </IdolSelectionProvider>
       <Footer />
     </div>
   )

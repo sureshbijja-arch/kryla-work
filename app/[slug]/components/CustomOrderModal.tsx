@@ -1,15 +1,17 @@
 'use client'
 import { useState, useRef } from 'react'
+import { DEFAULT_ORDER_CONFIG } from '@/lib/orderConfig'
+import type { OrderConfig } from '../types'
 
 interface Props {
   providerId: string
   accentColor?: string
+  /** DB-driven custom-order vocabulary for this persona — see
+   * getOrderConfig() in lib/personas.ts. Undefined = the generic
+   * bakery-shaped default below (matches prior behaviour). */
+  config?: OrderConfig
   onClose: () => void
 }
-
-const WHAT_OPTIONS  = ['Cake', 'Cupcakes', 'Cookies', 'Bread', 'Hamper', 'Other']
-const OCCASIONS     = ['Birthday', 'Anniversary', 'Wedding', 'Festive', 'Corporate', 'Graduation', 'Other']
-const SERVING_SIZES = ['Feeds 4–6', 'Feeds 8–10', 'Feeds 12–15', 'Feeds 20+', 'Not sure']
 
 const minDate = () => {
   const d = new Date()
@@ -17,13 +19,16 @@ const minDate = () => {
   return d.toISOString().split('T')[0]
 }
 
-export default function CustomOrderModal({ providerId, accentColor = 'var(--color-accent)', onClose }: Props) {
+export default function CustomOrderModal({ providerId, accentColor = 'var(--color-accent)', config, onClose }: Props) {
+  const cfg = config ?? DEFAULT_ORDER_CONFIG
+  const co = cfg.customOrder
+
   const [what,        setWhat]        = useState('')
   const [occasion,    setOccasion]    = useState('')
   const [servings,    setServings]    = useState('')
   const [flavour,     setFlavour]     = useState('')
   const [design,      setDesign]      = useState('')
-  const [fulfillment, setFulfillment] = useState<'pickup' | 'delivery'>('pickup')
+  const [fulfillment, setFulfillment] = useState(cfg.fulfillment[0]?.key ?? 'pickup')
   const [area,        setArea]        = useState('')
   const [date,        setDate]        = useState('')
   const [name,        setName]        = useState('')
@@ -34,6 +39,8 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
   const [done,        setDone]        = useState(false)
   const [error,       setError]       = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
+
+  const selectedFulfillment = cfg.fulfillment.find(f => f.key === fulfillment) ?? cfg.fulfillment[0]
 
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -52,10 +59,12 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
     const service = what ? `Custom ${what}` : 'Custom Order'
     const parts = [
       occasion  && `Occasion: ${occasion}`,
-      servings  && `Serves: ${servings}`,
-      flavour   && `Flavour: ${flavour}`,
+      servings  && `${co.sizeLabel}: ${servings}`,
+      flavour   && `Details: ${flavour}`,
       design    && `Design: ${design}`,
-      fulfillment === 'delivery' ? `Delivery to: ${area || 'TBD'}` : 'Pickup',
+      selectedFulfillment?.areaPlaceholder
+        ? `${selectedFulfillment.label}: ${area || 'TBD'}`
+        : selectedFulfillment?.label,
     ].filter(Boolean)
 
     try {
@@ -96,7 +105,7 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
               </svg>
             </div>
             <p className="font-black text-[#0D0D0D] text-lg mb-2">Custom Order Received!</p>
-            <p className="text-sm text-[#666] mb-6">We'll get back to you via WhatsApp to discuss the details.</p>
+            <p className="text-sm text-[#666] mb-6">We&apos;ll get back to you via WhatsApp to discuss the details.</p>
             <button onClick={onClose}
               className="w-full py-4 rounded-2xl text-sm font-black text-white"
               style={{ background: accentColor }}>
@@ -107,16 +116,16 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
           <form onSubmit={submit} className="px-6 pb-10 space-y-5">
             <div className="pt-3 pb-1">
               <p className="font-black text-[#0D0D0D] text-lg">Custom Order</p>
-              <p className="text-sm text-[#999] mt-0.5">Tell us what you have in mind — we'll make it happen.</p>
+              <p className="text-sm text-[#999] mt-0.5">Tell us what you have in mind — we&apos;ll make it happen.</p>
             </div>
 
             {/* What are you looking for */}
             <div>
               <label className="block text-[10px] font-black uppercase tracking-[0.15em] text-[#999] mb-2">
-                What are you looking for?
+                {co.whatLabel}
               </label>
               <div className="flex flex-wrap gap-2">
-                {WHAT_OPTIONS.map(o => (
+                {co.whatOptions.map(o => (
                   <button key={o} type="button"
                     onClick={() => setWhat(w => w === o ? '' : o)}
                     className="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all"
@@ -135,7 +144,7 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
             <div>
               <label className="block text-[10px] font-black uppercase tracking-[0.15em] text-[#999] mb-2">Occasion</label>
               <div className="flex flex-wrap gap-2">
-                {OCCASIONS.map(o => (
+                {cfg.occasions.map(o => (
                   <button key={o} type="button"
                     onClick={() => setOccasion(oc => oc === o ? '' : o)}
                     className="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all"
@@ -150,11 +159,11 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
               </div>
             </div>
 
-            {/* Servings */}
+            {/* Servings / Size */}
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-[0.15em] text-[#999] mb-2">Servings / Size</label>
+              <label className="block text-[10px] font-black uppercase tracking-[0.15em] text-[#999] mb-2">{co.sizeLabel}</label>
               <div className="flex flex-wrap gap-2">
-                {SERVING_SIZES.map(s => (
+                {co.sizeOptions.map(s => (
                   <button key={s} type="button"
                     onClick={() => setServings(sv => sv === s ? '' : s)}
                     className="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all"
@@ -169,15 +178,17 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
               </div>
             </div>
 
-            {/* Flavour */}
+            {/* Finish / flavour — label + placeholder are DB-driven so a
+                bakery persona still says "Flavour preferences" while
+                sellganeshidols says "Finish / detailing preferences". */}
             <div>
               <label className="block text-[10px] font-black uppercase tracking-[0.15em] text-[#999] mb-2">
-                Flavour preferences <span className="font-normal normal-case tracking-normal">(optional)</span>
+                Details <span className="font-normal normal-case tracking-normal">(optional)</span>
               </label>
               <input
                 value={flavour}
                 onChange={e => setFlavour(e.target.value)}
-                placeholder="e.g. Chocolate truffle, eggless vanilla, butterscotch"
+                placeholder={co.detailPlaceholders.finish}
                 className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
               />
             </div>
@@ -190,7 +201,7 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
               <textarea
                 value={design}
                 onChange={e => setDesign(e.target.value)}
-                placeholder="e.g. 3-tier floral design, soft pink and gold, write 'Happy 30th Priya'"
+                placeholder={co.detailPlaceholders.design}
                 rows={3}
                 className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
               />
@@ -230,32 +241,34 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
               )}
             </div>
 
-            {/* Fulfillment */}
-            <div>
-              <label className="block text-[10px] font-black uppercase tracking-[0.15em] text-[#999] mb-2">Fulfillment</label>
-              <div className="flex gap-2 mb-2">
-                {(['pickup', 'delivery'] as const).map(f => (
-                  <button key={f} type="button"
-                    onClick={() => setFulfillment(f)}
-                    className="flex-1 py-2.5 rounded-xl text-sm font-black border capitalize transition-all"
-                    style={{
-                      background:  fulfillment === f ? accentColor : 'transparent',
-                      borderColor: fulfillment === f ? accentColor : '#E5E5E5',
-                      color:       fulfillment === f ? 'white'     : '#666',
-                    }}>
-                    {f}
-                  </button>
-                ))}
+            {/* Fulfillment — hidden entirely when there's only one option. */}
+            {cfg.fulfillment.length > 1 && (
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-[0.15em] text-[#999] mb-2">Fulfillment</label>
+                <div className="flex gap-2 mb-2">
+                  {cfg.fulfillment.map(f => (
+                    <button key={f.key} type="button"
+                      onClick={() => setFulfillment(f.key)}
+                      className="flex-1 py-2.5 rounded-xl text-sm font-black border transition-all"
+                      style={{
+                        background:  fulfillment === f.key ? accentColor : 'transparent',
+                        borderColor: fulfillment === f.key ? accentColor : '#E5E5E5',
+                        color:       fulfillment === f.key ? 'white'     : '#666',
+                      }}>
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+                {selectedFulfillment?.areaPlaceholder && (
+                  <input
+                    value={area}
+                    onChange={e => setArea(e.target.value)}
+                    placeholder={selectedFulfillment.areaPlaceholder}
+                    className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
+                  />
+                )}
               </div>
-              {fulfillment === 'delivery' && (
-                <input
-                  value={area}
-                  onChange={e => setArea(e.target.value)}
-                  placeholder="Delivery area / address"
-                  className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
-                />
-              )}
-            </div>
+            )}
 
             {/* Date */}
             <div>
@@ -297,7 +310,7 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
               style={{ background: accentColor }}>
               {submitting ? 'Sending request…' : 'Send Custom Order Request →'}
             </button>
-            <p className="text-center text-xs text-[#999] pb-2">We'll discuss the details via WhatsApp</p>
+            <p className="text-center text-xs text-[#999] pb-2">We&apos;ll discuss the details via WhatsApp</p>
           </form>
         )}
       </div>

@@ -1,12 +1,14 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { mapsUrl, waUrl } from '../../types'
 import type { ProfileData, BusinessHours } from '../../types'
 import { getPersonaConfig } from '../../personaConfig'
 import { DAY_ORDER, DAY_LABELS, DAY_FULL, toMins, fmt12, getTodayKey, getStatus, getUpcomingExceptions, fmtExceptionDate, getDateStr } from '../../hours'
+import { getVariants, priceRange } from '../../variants'
 import SmartImg from '../SmartImg'
 import { EyebrowLabel } from '../shared'
 import { useOrderActions, OrderActionModals } from './orderActions'
+import { useIdolSelection } from '../IdolSelectionContext'
 
 interface Props {
   data: ProfileData
@@ -496,13 +498,20 @@ function HeroDabba({ data, heroHeight }: { data: ProfileData; heroHeight?: numbe
    reused rather than a new field — this is the trust-copy the design
    critique flagged as missing near the highest-stakes CTA).
 
-   Nav resolves every link to a real section id (`#menu`/`#custom`/
+   v3.1 idol-showcase rebuild: this is now the "idol detail" view for
+   whichever idol is selected — either locally (its own size chips) or
+   pushed in from FactsSection's idol cards via IdolSelectionContext. Price
+   shows a real min–max range until a size is chosen, includes swap per
+   size, and clicking an idol card scrolls back up to this section already
+   showing that idol (see registerPdpTarget/scrollToPdp).
+
+   Nav resolves every link to a real section id (`#idols`/`#custom`/
    `#materials`) — the prior "Menu" nav item was a decorative dead span with
    no target (critique P2); every link here is real.
 ──────────────────────────────────────────────────────────────────────────── */
 function HeroPdp({ data, heroHeight }: { data: ProfileData; heroHeight?: number }) {
   const { whatsappNumber, firstName, lastName, headline, subheadline,
-    services, showSections, persona, businessHours, providerId, gallery,
+    services, showSections, persona, businessHours, providerId,
     includes, footerNote, heroFitCropTolerance } = data
   const wa = whatsappNumber ? waUrl(whatsappNumber, firstName) : null
   const pcfg = getPersonaConfig(persona)
@@ -515,10 +524,32 @@ function HeroPdp({ data, heroHeight }: { data: ProfileData; heroHeight?: number 
   const inkMuted = 'var(--color-ink-muted)'
   const { orderItem, setOrderItem, customOpen, setCustomOpen, openOrder, openCustomOrder } = useOrderActions()
 
-  const sizableServices = services.filter(s => s.price)
-  const [selectedIdx, setSelectedIdx] = useState(0)
-  const selected = sizableServices[selectedIdx] ?? sizableServices[0]
-  const heroImage = gallery?.length ? gallery[0] : null
+  const idolSection = useIdolSelection()
+  const pdpRef = useRef<HTMLElement | null>(null)
+  useEffect(() => {
+    idolSection?.registerPdpTarget(pdpRef.current)
+    return () => idolSection?.registerPdpTarget(null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Idols with nothing purchasable (no price, no variants) don't appear in
+  // the selector at all — same filter the old flat sizableServices used.
+  const idols = services.filter(s => getVariants(s).length > 0)
+  const selectedIdolIdx = Math.min(idolSection?.selectedIdolIdx ?? 0, Math.max(idols.length - 1, 0))
+  const selectedIdol = idols[selectedIdolIdx] ?? idols[0]
+  const variants = selectedIdol ? getVariants(selectedIdol) : []
+
+  // Variant (size) selection is local to the PDP — switching idols always
+  // resets it to the first size, so a stale index from a differently-sized
+  // idol never carries over.
+  const [selectedVariantIdx, setSelectedVariantIdx] = useState<number | null>(null)
+  useEffect(() => { setSelectedVariantIdx(null) }, [selectedIdolIdx])
+  const selectedVariant = selectedVariantIdx !== null ? variants[selectedVariantIdx] : null
+
+  const range = variants.length > 0 ? priceRange(variants) : null
+  const heroImage = selectedIdol?.image_url ?? null
+  const displayIncludes = selectedVariant?.includes?.length ? selectedVariant.includes : includes
+  const displayCompareAt = selectedVariant?.compareAtPrice ?? selectedIdol?.compareAtPrice ?? null
 
   // Ganesh-only config fields — 'in' narrows TypeScript's inferred union
   // safely without widening every other persona's config shape, same
@@ -531,7 +562,7 @@ function HeroPdp({ data, heroHeight }: { data: ProfileData; heroHeight?: number 
   const festiveLb  = 'festivePriceLabel' in pcfg ? pcfg.festivePriceLabel : undefined
 
   return (
-    <section className="relative" style={{ background: 'var(--sec-custom-bg, var(--section-bg))', minHeight: heroMinHeight(heroHeight) }}>
+    <section ref={pdpRef} className="relative" style={{ background: 'var(--sec-custom-bg, var(--section-bg))', minHeight: heroMinHeight(heroHeight) }}>
       <style>{STYLES}</style>
       <nav className="max-w-6xl mx-auto w-full px-6 py-5 flex justify-between items-center gap-4 border-b" style={{ borderColor: 'var(--color-border)' }}>
         <a href="#" className="flex items-center gap-3 shrink-0">
@@ -569,7 +600,7 @@ function HeroPdp({ data, heroHeight }: { data: ProfileData; heroHeight?: number 
             uses — not a separate hardcoded color. */}
         <div className="h-up h-up-1" style={{ aspectRatio: '4 / 5' }}>
           {heroImage ? (
-            <SmartImg src={heroImage} alt={headline} fit="auto" cropTolerance={heroFitCropTolerance}
+            <SmartImg src={heroImage} alt={selectedIdol?.name ?? headline} fit="auto" cropTolerance={heroFitCropTolerance}
               className="w-full h-full" style={{ borderRadius: 'var(--radius-card)' }} />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-center px-8 border-2 border-dashed"
@@ -597,13 +628,22 @@ function HeroPdp({ data, heroHeight }: { data: ProfileData; heroHeight?: number 
             {subheadline}
           </p>
 
-          {selected?.price && (
+          {/* Selected-idol identity — only shown once there's more than one
+              idol to disambiguate; a single-idol page reads fine with just
+              the page headline above, as before this rebuild. */}
+          {selectedIdol && idols.length > 1 && (
+            <p className="font-display-token mb-2" style={{ fontSize: 'var(--type-subheading)', color: ink }}>{selectedIdol.name}</p>
+          )}
+
+          {range && (
             <div className="flex items-center gap-3 flex-wrap mb-6 pb-6 border-b" style={{ borderColor: 'var(--color-border)' }}>
-              {selected.compareAtPrice && (
-                <span className="text-lg line-through" style={{ color: inkMuted }}>{selected.compareAtPrice}</span>
+              {displayCompareAt && selectedVariant && (
+                <span className="text-lg line-through" style={{ color: inkMuted }}>{displayCompareAt}</span>
               )}
-              <span className="font-display-token text-3xl" style={{ color: ink }}>{selected.price}</span>
-              {festiveLb && selected.compareAtPrice && (
+              <span className="font-display-token text-3xl" style={{ color: ink }}>
+                {selectedVariant ? selectedVariant.price : range.display}
+              </span>
+              {festiveLb && displayCompareAt && selectedVariant && (
                 <span className="text-xs font-black uppercase tracking-wide px-3 py-1"
                   style={{ borderRadius: 'var(--radius-btn)', background: 'var(--color-accent-surface)', color: accentColor }}>
                   {festiveLb}
@@ -612,33 +652,33 @@ function HeroPdp({ data, heroHeight }: { data: ProfileData; heroHeight?: number 
             </div>
           )}
 
-          {sizableServices.length > 1 && (
+          {variants.length > 1 && (
             <div className="mb-6">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-3" style={{ color: inkMuted }}>{sizeLabel}</p>
               <div className="flex flex-wrap gap-2">
-                {sizableServices.map((s, i) => (
-                  <button key={i} type="button" onClick={() => setSelectedIdx(i)}
-                    aria-pressed={i === selectedIdx}
+                {variants.map((v, i) => (
+                  <button key={i} type="button" onClick={() => setSelectedVariantIdx(i)}
+                    aria-pressed={i === selectedVariantIdx}
                     className="px-4 py-2.5 text-sm font-bold transition-colors"
                     style={{
                       borderRadius: 'var(--radius-btn)',
-                      border: `1.5px solid ${i === selectedIdx ? accentColor : 'var(--color-accent-border)'}`,
-                      background: i === selectedIdx ? accentColor : 'transparent',
-                      color: i === selectedIdx ? 'white' : ink,
+                      border: `1.5px solid ${i === selectedVariantIdx ? accentColor : 'var(--color-accent-border)'}`,
+                      background: i === selectedVariantIdx ? accentColor : 'transparent',
+                      color: i === selectedVariantIdx ? 'white' : ink,
                       minHeight: 44,
                     }}>
-                    {s.duration_or_unit || s.name}
+                    {v.size || selectedIdol?.name}
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          {!!includes?.length && (
+          {!!displayIncludes?.length && (
             <div className="mb-6">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-3" style={{ color: inkMuted }}>{includesLb}</p>
               <ul className="space-y-2">
-                {includes.map((item, i) => (
+                {displayIncludes.map((item, i) => (
                   <li key={i} className="flex items-start gap-2.5 text-sm" style={{ color: ink }}>
                     <span className="shrink-0 mt-0.5" style={{ color: accentColor }} aria-hidden>✓</span>
                     {item}
@@ -650,9 +690,14 @@ function HeroPdp({ data, heroHeight }: { data: ProfileData; heroHeight?: number 
 
           <div className="flex flex-col gap-3">
             {businessHours?.enabled && <BusinessStatusBadge hours={businessHours} />}
-            {selected && (
+            {selectedIdol && (
               <button type="button"
-                onClick={() => openOrder({ name: selected.name, description: selected.description ?? undefined, price: selected.price ?? undefined, image_url: selected.image_url ?? undefined })}
+                onClick={() => openOrder({
+                  name: selectedVariant ? `${selectedIdol.name} (${selectedVariant.size})` : selectedIdol.name,
+                  description: selectedIdol.description ?? undefined,
+                  price: (selectedVariant?.price ?? range?.display) ?? undefined,
+                  image_url: selectedIdol.image_url ?? undefined,
+                })}
                 className="w-full py-4 font-black text-sm text-white transition-opacity hover:opacity-90"
                 style={{ borderRadius: 'var(--radius-btn)', background: ink, minHeight: 44 }}>
                 {primaryLb}
@@ -667,6 +712,18 @@ function HeroPdp({ data, heroHeight }: { data: ProfileData; heroHeight?: number 
             )}
           </div>
 
+          {/* View Collection — the "Collections" nav link above is
+              hidden on mobile (md:flex), so this is the reachable-on-
+              every-viewport way to browse the rest of the catalogue below,
+              distinct from Reserve/Custom Order (browsing vs. committing). */}
+          {idols.length > 1 && (
+            <a href="#idols"
+              className="mt-4 text-center text-xs font-black uppercase tracking-[0.1em] hover:opacity-70 transition-opacity"
+              style={{ color: accentColor, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              View Full Collection ↓
+            </a>
+          )}
+
           {footerNote?.body && (
             <p className="mt-4 text-xs text-center" style={{ color: inkMuted }}>{footerNote.body}</p>
           )}
@@ -677,6 +734,7 @@ function HeroPdp({ data, heroHeight }: { data: ProfileData; heroHeight?: number 
         orderItem={orderItem} customOpen={customOpen}
         onCloseOrder={() => setOrderItem(null)} onCloseCustomOrder={() => setCustomOpen(false)}
         providerId={providerId} accentColor={accentColor}
+        orderConfig={data.orderConfig} persona={persona}
       />
     </section>
   )

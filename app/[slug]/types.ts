@@ -1,4 +1,11 @@
 import type { PaletteTokens } from '@/lib/layouts'
+// OrderConfig is defined once, in lib/orderConfig.ts (a pure module — no
+// Supabase/react import), and re-exported here so ProfileData and every
+// client component share one definition instead of two that could drift
+// apart. lib/personas.ts's getOrderConfig() is the server-only DB fetch
+// wrapper around the same types.
+import type { OrderConfig, FulfillmentOption, CustomOrderConfig } from '@/lib/orderConfig'
+export type { OrderConfig, FulfillmentOption, CustomOrderConfig }
 
 export interface SectionStyle {
   bg?: { type: 'color' | 'photo'; value: string }
@@ -41,6 +48,25 @@ export interface ServiceItem {
   /** "Was" price, rendered as a real strikethrough element above the bold
    * `price` ("now" price) — not folded into `price` as a typed string. */
   compareAtPrice?: string | null
+  /** Idol → size-variant hierarchy (sellganeshidols catalogue rebuild). When
+   * present, this item is one idol and each entry here is one purchasable
+   * size, each with its own price and (optionally) its own includes list —
+   * this is what makes the PDP price a real range and the includes checklist
+   * change with the selected size. Absent/empty = legacy flat row; use
+   * getVariants() from lib/variants.ts rather than reading this field
+   * directly, so every render path shares one fallback-synthesis rule. */
+  variants?: ServiceVariant[] | null
+}
+
+/** One purchasable size of an idol (or, generically, of any service item that
+ * adopts the variants model). `includes` overrides the page-level
+ * `pages.includes` checklist when present, so it can change per size —
+ * `compareAtPrice` mirrors ServiceItem's own strikethrough-price field. */
+export interface ServiceVariant {
+  size: string
+  price: string
+  compareAtPrice?: string | null
+  includes?: string[] | null
 }
 
 /** A single fact-strip cell (Material/Sizes/Colours/Delivery for ganesh) —
@@ -178,6 +204,13 @@ export interface ProfileData {
   /** Tabbed story content (bio `story` variant) — null/empty falls back to
    * rendering `bio` as a single untabbed column. */
   storyTabs?: StoryTab[]
+  /** Order/custom-order form vocabulary (occasions, fulfillment options,
+   * placeholders) — DB-driven per persona so OrderModal/CustomOrderModal
+   * never hardcode one persona's vocabulary for all 46. Always populated —
+   * page.tsx/preview/page.tsx call getOrderConfig(), which itself falls
+   * back to the pre-rebuild bakery-shaped defaults for any unseeded
+   * persona, so this is never null in practice. */
+  orderConfig?: OrderConfig
 }
 
 export const ACCENT: Record<PaletteKey, string> = {

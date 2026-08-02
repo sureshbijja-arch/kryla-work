@@ -165,22 +165,28 @@ const PERSONA_SECTIONS: Record<string, Section[]> = {
     { sectionKey: 'contact',    variant: 'both',      order: 7 },
   ],
   // Ganesh idol-seller signature — v3 rebuild (see HeroSection.tsx's HeroPdp,
-  // ServicesSection.tsx's Collection, BioSection.tsx's Story). Replaces the
-  // flat-field shadu/sizes design with the approved two-column
-  // product-detail layout (designscreenshots/sellganeshidolsv3.pdf).
-  // 'pdp'/'collection'/'story' are literal, not auto-selectable — resolveVariant()
-  // only ever transforms 'auto' for sectionKey 'hero'. The hero now consumes
-  // photography directly (image-led layout), so `gallery` drops out of the
-  // default list; `highlights` also drops (it rendered nothing for every
-  // seeded member — highlights: []). Both stay in the section registry for
-  // any member who adds content via MyKryla.
+  // BioSection.tsx's Story), v3.1 idol-showcase rebuild (see
+  // FactsSection.tsx's Idols variant). Replaces the flat-field shadu/sizes
+  // design with the approved two-column product-detail layout
+  // (designscreenshots/sellganeshidolsv3.pdf), then replaces the text-only
+  // facts strip with a real idol catalogue.
+  // 'pdp'/'idols'/'story' are literal, not auto-selectable — resolveVariant()
+  // only ever transforms 'auto' for sectionKey 'hero'. `services/collection`
+  // dropped from the default list: FactsSection's `idols` variant now owns
+  // the catalogue (image + name + size range + price range + click-to-select),
+  // so it and Collection would otherwise render the identical `services`
+  // array twice on one page. Collection itself stays registered in
+  // section_types for any persona that still wants a plain grid. The hero
+  // consumes photography directly (image-led layout), so `gallery` drops
+  // out of the default list too; `highlights` also drops (it rendered
+  // nothing for every seeded member — highlights: []). All three stay in
+  // the section registry for any member who adds them via MyKryla.
   sellganeshidols: [
     { sectionKey: 'hero',       variant: 'pdp',        order: 1 },
-    { sectionKey: 'facts',      variant: 'strip',      order: 2 },
-    { sectionKey: 'services',   variant: 'collection', order: 3 },
-    { sectionKey: 'bio',        variant: 'story',      order: 4 },
-    { sectionKey: 'faq',        variant: 'accordion',  order: 5 },
-    { sectionKey: 'contact',    variant: 'enquiry',    order: 6 },
+    { sectionKey: 'facts',      variant: 'idols',      order: 2 },
+    { sectionKey: 'bio',        variant: 'story',      order: 3 },
+    { sectionKey: 'faq',        variant: 'accordion',  order: 4 },
+    { sectionKey: 'contact',    variant: 'enquiry',    order: 5 },
   ],
   maker: [
     { sectionKey: 'hero',       variant: 'auto',      order: 1 },
