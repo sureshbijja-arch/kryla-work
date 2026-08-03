@@ -2,6 +2,7 @@
 import { useState, useRef } from 'react'
 import { DEFAULT_ORDER_CONFIG } from '@/lib/orderConfig'
 import type { OrderConfig } from '../types'
+import OrderSheet from './OrderSheet'
 
 interface Props {
   providerId: string
@@ -90,13 +91,11 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
   }
 
   return (
-    <>
-      <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl max-h-[92svh] overflow-y-auto">
-        <div className="sticky top-0 bg-white flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 rounded-full bg-[#E5E5E5]" />
-        </div>
-
+    <OrderSheet
+      title={done ? 'Custom Order Received!' : 'Custom Order'}
+      subtitle={done ? undefined : "Tell us what you have in mind — we'll make it happen."}
+      onClose={onClose}
+    >
         {done ? (
           <div className="px-6 pt-6 pb-12 text-center">
             <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4">
@@ -104,21 +103,15 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
                 <path d="M6 14l5 5 11-11" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <p className="font-black text-[#0D0D0D] text-lg mb-2">Custom Order Received!</p>
             <p className="text-sm text-[#666] mb-6">We&apos;ll get back to you via WhatsApp to discuss the details.</p>
             <button onClick={onClose}
-              className="w-full py-4 rounded-2xl text-sm font-black text-white"
-              style={{ background: accentColor }}>
+              className="w-full py-4 text-sm font-black text-white"
+              style={{ background: accentColor, borderRadius: 'var(--radius-btn)' }}>
               Done
             </button>
           </div>
         ) : (
-          <form onSubmit={submit} className="px-6 pb-10 space-y-5">
-            <div className="pt-3 pb-1">
-              <p className="font-black text-[#0D0D0D] text-lg">Custom Order</p>
-              <p className="text-sm text-[#999] mt-0.5">Tell us what you have in mind — we&apos;ll make it happen.</p>
-            </div>
-
+          <form onSubmit={submit} className="px-6 pt-5 pb-10 space-y-5">
             {/* What are you looking for */}
             <div>
               <label className="block text-[10px] font-black uppercase tracking-[0.15em] text-[#999] mb-2">
@@ -189,7 +182,8 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
                 value={flavour}
                 onChange={e => setFlavour(e.target.value)}
                 placeholder={co.detailPlaceholders.finish}
-                className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
+                style={{ borderRadius: 'var(--radius-card)' }}
+                className="w-full border border-[#E5E5E5] px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
               />
             </div>
 
@@ -203,7 +197,8 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
                 onChange={e => setDesign(e.target.value)}
                 placeholder={co.detailPlaceholders.design}
                 rows={3}
-                className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
+                style={{ borderRadius: 'var(--radius-card)' }}
+                className="w-full border border-[#E5E5E5] px-4 py-3 text-sm resize-none focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
               />
             </div>
 
@@ -222,7 +217,8 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
               {imagePreview ? (
                 <div className="relative w-24 h-24">
                   <img src={imagePreview} alt="Inspiration"
-                    className="w-24 h-24 rounded-xl object-cover" />
+                    style={{ borderRadius: 'var(--radius-card)' }}
+                    className="w-24 h-24 object-cover" />
                   <button type="button"
                     onClick={() => { setImageFile(null); setImagePreview(null) }}
                     className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#0D0D0D] text-white flex items-center justify-center text-xs font-bold">
@@ -232,7 +228,8 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
               ) : (
                 <button type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-3 border border-dashed border-[#E5E5E5] rounded-xl text-sm text-[#999] hover:border-[#0D0D0D] hover:text-[#0D0D0D] transition-colors w-full">
+                  style={{ borderRadius: 'var(--radius-card)' }}
+                  className="flex items-center gap-2 px-4 py-3 border border-dashed border-[#E5E5E5] text-sm text-[#999] hover:border-[#0D0D0D] hover:text-[#0D0D0D] transition-colors w-full">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                   </svg>
@@ -249,8 +246,9 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
                   {cfg.fulfillment.map(f => (
                     <button key={f.key} type="button"
                       onClick={() => setFulfillment(f.key)}
-                      className="flex-1 py-2.5 rounded-xl text-sm font-black border transition-all"
+                      className="flex-1 py-2.5 text-sm font-black border transition-all"
                       style={{
+                        borderRadius: 'var(--radius-btn)',
                         background:  fulfillment === f.key ? accentColor : 'transparent',
                         borderColor: fulfillment === f.key ? accentColor : '#E5E5E5',
                         color:       fulfillment === f.key ? 'white'     : '#666',
@@ -264,7 +262,8 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
                     value={area}
                     onChange={e => setArea(e.target.value)}
                     placeholder={selectedFulfillment.areaPlaceholder}
-                    className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
+                    style={{ borderRadius: 'var(--radius-card)' }}
+                    className="w-full border border-[#E5E5E5] px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
                   />
                 )}
               </div>
@@ -280,7 +279,8 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
                 value={date}
                 min={minDate()}
                 onChange={e => setDate(e.target.value)}
-                className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors"
+                style={{ borderRadius: 'var(--radius-card)' }}
+                className="w-full border border-[#E5E5E5] px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors"
               />
               <p className="text-xs text-[#999] mt-1.5">Custom orders need at least 3 days notice</p>
             </div>
@@ -292,13 +292,15 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Your name *"
-                className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
+                style={{ borderRadius: 'var(--radius-card)' }}
+                className="w-full border border-[#E5E5E5] px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
               />
               <input required type="tel"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 placeholder="WhatsApp number *"
-                className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
+                style={{ borderRadius: 'var(--radius-card)' }}
+                className="w-full border border-[#E5E5E5] px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
               />
             </div>
 
@@ -306,14 +308,13 @@ export default function CustomOrderModal({ providerId, accentColor = 'var(--colo
 
             <button type="submit"
               disabled={submitting || !name.trim() || !phone.trim()}
-              className="w-full py-4 rounded-2xl text-sm font-black text-white transition-opacity disabled:opacity-50"
-              style={{ background: accentColor }}>
+              className="w-full py-4 text-sm font-black text-white transition-opacity disabled:opacity-50"
+              style={{ background: accentColor, borderRadius: 'var(--radius-btn)' }}>
               {submitting ? 'Sending request…' : 'Send Custom Order Request →'}
             </button>
             <p className="text-center text-xs text-[#999] pb-2">We&apos;ll discuss the details via WhatsApp</p>
           </form>
         )}
-      </div>
-    </>
+    </OrderSheet>
   )
 }

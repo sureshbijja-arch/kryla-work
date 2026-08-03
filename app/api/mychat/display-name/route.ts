@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { createRouteClient } from '@/lib/supabase/server'
 
 async function assertOwner(providerId: string, userEmail: string) {
   const { data } = await supabaseAdmin
     .from('providers')
-    .select('id')
+    .select('id, slug, custom_domain')
     .eq('id', providerId)
     .eq('email', userEmail)
     .maybeSingle()
-  return !!data
+  return data
 }
 
 // POST — update the display name shown in the hero (writes first_name / last_name)
@@ -25,8 +26,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
   }
 
-  const ok = await assertOwner(providerId, user.email)
-  if (!ok) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const provider = await assertOwner(providerId, user.email)
+  if (!provider) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const trimmed = displayName.trim()
   if (trimmed.length < 1 || trimmed.length > 80) {
@@ -47,6 +48,11 @@ export async function POST(req: NextRequest) {
     console.error('[display-name] update error:', error)
     return NextResponse.json({ error: 'Failed to save' }, { status: 500 })
   }
+
+  // Revalidate the public member page so the new name appears immediately
+  // (page is ISR-cached at 1h; on-demand revalidation bypasses the wait)
+  revalidatePath(`/${provider.slug}`)
+  if (provider.custom_domain) revalidatePath(`/${provider.custom_domain}`)
 
   return NextResponse.json({ ok: true, firstName, lastName })
 }

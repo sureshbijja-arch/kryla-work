@@ -24,6 +24,7 @@ import EmailTab from './EmailTab'
 import BookingsTab from './BookingsTab'
 import BookingsDayView from './BookingsDayView'
 import PersonaTab, { type DraftSeed } from './PersonaTab'
+import type { RosterCopy } from '@/lib/rosterConfig'
 import AvailabilityTab from './AvailabilityTab'
 import HoursTab from './HoursTab'
 import PlanSection from './PlanSection'
@@ -94,6 +95,8 @@ interface CurrentProfile {
   mykrylaToolsLabel: string | null
   /** DB-driven My Tools tile card list (studio_config.mykryla_tools); empty array hides the tile entirely. */
   mykrylaTools: MykrylaToolCard[]
+  /** DB-driven Clients-tab vocabulary (personas.roster_config); falls back to tutor/"student" copy when unseeded. */
+  rosterConfig: RosterCopy
 }
 
 interface Props {
@@ -238,7 +241,7 @@ interface TileDetailCardConfig {
   isPreview?: boolean
 }
 
-function getTileDetailCards(tile: MCTile, persona: string, mykrylaTools: MykrylaToolCard[]): TileDetailCardConfig[] {
+function getTileDetailCards(tile: MCTile, persona: string, mykrylaTools: MykrylaToolCard[], rosterCopy: RosterCopy): TileDetailCardConfig[] {
   switch (tile) {
     case 'page':
       return [
@@ -263,7 +266,7 @@ function getTileDetailCards(tile: MCTile, persona: string, mykrylaTools: Mykryla
           ? [{ key: 'dayview', icon: '\u{1F4C6}', title: 'Today', description: "Today's appointment timeline" }]
           : []),
         { key: 'consultations', icon: '\u{1F4C5}', title: 'Consultations', description: 'Booking requests' },
-        { key: 'clients', icon: '\u{1F465}', title: 'Clients', description: 'Your client and matter roster' },
+        { key: 'clients', icon: rosterCopy.emoji, title: rosterCopy.tabLabel, description: `Your ${rosterCopy.plural} list` },
         { key: 'schedule', icon: '\u{1F553}', title: 'Schedule', description: 'Hours and availability' },
       ]
     case 'plan':
@@ -786,6 +789,7 @@ export default function SpaceClient({
               <PersonaTab
                 providerId={providerId}
                 persona={currentProfile.persona}
+                rosterCopy={currentProfile.rosterConfig}
                 label1Label={
                   currentProfile.persona === 'tutor'    ? 'Grade' :
                   currentProfile.persona === 'trainer'  ? 'Level' :
@@ -1059,7 +1063,7 @@ export default function SpaceClient({
       {view.screen === 'tile' && (() => {
         const tile = view.tile
         const detail = view.detail
-        const cards = getTileDetailCards(tile, currentProfile.persona, currentProfile.mykrylaTools)
+        const cards = getTileDetailCards(tile, currentProfile.persona, currentProfile.mykrylaTools, currentProfile.rosterConfig)
         const activeCard = detail ? cards.find(c => c.key === detail) : undefined
         const tileTitle = tile === 'tools' && currentProfile.mykrylaToolsLabel
           ? currentProfile.mykrylaToolsLabel

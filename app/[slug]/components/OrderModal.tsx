@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { getPersonaConfig } from '../personaConfig'
 import { DEFAULT_ORDER_CONFIG } from '@/lib/orderConfig'
 import type { OrderConfig } from '../types'
+import OrderSheet from './OrderSheet'
 
 export interface OrderItem {
   name: string
@@ -92,13 +93,11 @@ export default function OrderModal({ item, providerId, accentColor = 'var(--colo
   }
 
   return (
-    <>
-      <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl max-h-[92svh] overflow-y-auto">
-        <div className="sticky top-0 bg-white flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 rounded-full bg-[#E5E5E5]" />
-        </div>
-
+    <OrderSheet
+      title={done ? 'Order Received!' : item.name}
+      subtitle={done ? undefined : item.price ?? undefined}
+      onClose={onClose}
+    >
         {done ? (
           <div className="px-6 pt-6 pb-12 text-center">
             <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4">
@@ -106,30 +105,29 @@ export default function OrderModal({ item, providerId, accentColor = 'var(--colo
                 <path d="M6 14l5 5 11-11" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <p className="font-black text-[#0D0D0D] text-lg mb-2">Order Received!</p>
             <p className="text-sm text-[#666] mb-6">We&apos;ll confirm your order via WhatsApp shortly.</p>
             <button onClick={onClose}
-              className="w-full py-4 rounded-2xl text-sm font-black text-white"
-              style={{ background: accentColor }}>
+              className="w-full py-4 text-sm font-black text-white"
+              style={{ background: accentColor, borderRadius: 'var(--radius-btn)' }}>
               Done
             </button>
           </div>
         ) : (
-          <form onSubmit={submit} className="px-6 pb-10 space-y-5">
-            {/* Item */}
-            <div className="flex gap-3 pt-2">
-              {item.image_url && (
-                <img src={item.image_url} alt={item.name}
-                  className="w-16 h-16 rounded-xl object-cover shrink-0" />
-              )}
-              <div className="min-w-0">
-                <p className="font-black text-[#0D0D0D] leading-tight">{item.name}</p>
-                {item.price && <p className="text-sm font-black mt-0.5" style={{ color: accentColor }}>{item.price}</p>}
+          <form onSubmit={submit} className="px-6 pt-5 pb-10 space-y-5">
+            {/* Item — name/price already shown in the sheet's pinned header;
+                this row adds the photo and description. */}
+            {(item.image_url || item.description) && (
+              <div className="flex gap-3 pt-2">
+                {item.image_url && (
+                  <img src={item.image_url} alt={item.name}
+                    style={{ borderRadius: 'var(--radius-card)' }}
+                    className="w-16 h-16 object-cover shrink-0" />
+                )}
                 {item.description && (
-                  <p className="text-xs text-[#999] mt-0.5 line-clamp-2">{item.description}</p>
+                  <p className="text-xs text-[#999] line-clamp-3 self-center">{item.description}</p>
                 )}
               </div>
-            </div>
+            )}
 
             {/* Quantity */}
             {showQuantity && (
@@ -184,7 +182,8 @@ export default function OrderModal({ item, providerId, accentColor = 'var(--colo
                   onChange={e => setNotes(e.target.value)}
                   placeholder={cfg.notesPlaceholder}
                   rows={3}
-                  className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
+                  style={{ borderRadius: 'var(--radius-card)' }}
+                  className="w-full border border-[#E5E5E5] px-4 py-3 text-sm resize-none focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
                 />
               </div>
             )}
@@ -200,8 +199,9 @@ export default function OrderModal({ item, providerId, accentColor = 'var(--colo
                   {cfg.fulfillment.map(f => (
                     <button key={f.key} type="button"
                       onClick={() => setFulfillment(f.key)}
-                      className="flex-1 py-2.5 rounded-xl text-sm font-black border transition-all"
+                      className="flex-1 py-2.5 text-sm font-black border transition-all"
                       style={{
+                        borderRadius: 'var(--radius-btn)',
                         background:  fulfillment === f.key ? accentColor : 'transparent',
                         borderColor: fulfillment === f.key ? accentColor : '#E5E5E5',
                         color:       fulfillment === f.key ? 'white'     : '#666',
@@ -215,7 +215,8 @@ export default function OrderModal({ item, providerId, accentColor = 'var(--colo
                     value={area}
                     onChange={e => setArea(e.target.value)}
                     placeholder={selectedFulfillment.areaPlaceholder}
-                    className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
+                    style={{ borderRadius: 'var(--radius-card)' }}
+                    className="w-full border border-[#E5E5E5] px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
                   />
                 )}
               </div>
@@ -231,7 +232,8 @@ export default function OrderModal({ item, providerId, accentColor = 'var(--colo
                 value={date}
                 min={minDate()}
                 onChange={e => setDate(e.target.value)}
-                className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors"
+                style={{ borderRadius: 'var(--radius-card)' }}
+                className="w-full border border-[#E5E5E5] px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors"
               />
             </div>
 
@@ -242,13 +244,15 @@ export default function OrderModal({ item, providerId, accentColor = 'var(--colo
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Your name *"
-                className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
+                style={{ borderRadius: 'var(--radius-card)' }}
+                className="w-full border border-[#E5E5E5] px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
               />
               <input required type="tel"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 placeholder="WhatsApp number *"
-                className="w-full border border-[#E5E5E5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
+                style={{ borderRadius: 'var(--radius-card)' }}
+                className="w-full border border-[#E5E5E5] px-4 py-3 text-sm focus:outline-none focus:border-[#0D0D0D] transition-colors placeholder:text-[#bbb]"
               />
             </div>
 
@@ -256,14 +260,13 @@ export default function OrderModal({ item, providerId, accentColor = 'var(--colo
 
             <button type="submit"
               disabled={submitting || !name.trim() || !phone.trim()}
-              className="w-full py-4 rounded-2xl text-sm font-black text-white transition-opacity disabled:opacity-50"
-              style={{ background: accentColor }}>
+              className="w-full py-4 text-sm font-black text-white transition-opacity disabled:opacity-50"
+              style={{ background: accentColor, borderRadius: 'var(--radius-btn)' }}>
               {submitting ? 'Placing order…' : 'Place Order →'}
             </button>
             <p className="text-center text-xs text-[#999] pb-2">We&apos;ll confirm your order via WhatsApp</p>
           </form>
         )}
-      </div>
-    </>
+    </OrderSheet>
   )
 }

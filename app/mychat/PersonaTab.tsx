@@ -12,7 +12,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { getRosterConfig, type RosterCopy } from '@/app/[slug]/personaConfig'
+import { DEFAULT_ROSTER_CONFIG, type RosterCopy } from '@/lib/rosterConfig'
 
 interface Student {
   id:                string
@@ -128,6 +128,7 @@ const EMPTY_LOG: LogLessonForm = {
 export default function PersonaTab({
   providerId,
   persona = 'tutor',
+  rosterCopy,
   label1Label = 'Grade',
   label2Label = 'Subject',
   onDraftFromMatter,
@@ -136,6 +137,8 @@ export default function PersonaTab({
 }: {
   providerId:           string
   persona?:             string
+  /** DB-driven vocabulary (personas.roster_config) — falls back to tutor/"student" copy when omitted or unseeded. */
+  rosterCopy?:          RosterCopy
   label1Label?:         string
   label2Label?:         string
   onDraftFromMatter?:   (seed: DraftSeed) => void
@@ -144,7 +147,7 @@ export default function PersonaTab({
   /** Opens PractitionerStudio for any studio-enabled persona */
   onOpenStudio?:        (seed: import('./PractitionerStudio').StudioSeed) => void
 }) {
-  const copy: RosterCopy   = getRosterConfig(persona)
+  const copy: RosterCopy   = rosterCopy ?? DEFAULT_ROSTER_CONFIG
   const isAdvocate         = persona === 'advocate'
   /** @deprecated kept for backward compat — use onOpenStudio instead */
   const isPhysio           = persona === 'physio'

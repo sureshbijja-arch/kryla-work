@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { getPlans, getPlanGate, getPersonaPlans } from '@/lib/plans'
+import { getRosterConfig } from '@/lib/personas'
 import { captureServerEvent } from '@/lib/observability'
 import MyChatLayout from '../components/MyChatLayout'
 import type { SectionEntry } from '@/app/mychat/SectionsTab'
@@ -44,7 +45,7 @@ export default async function MyChatPage({ params, searchParams }: Props) {
 
   captureServerEvent('dashboard_viewed', { slug: provider.slug, providerId: provider.id })
 
-  const [{ data: page }, plans, personaPlans, gate, { data: personaRow }, { count: pendingEnquiries }] = await Promise.all([
+  const [{ data: page }, plans, personaPlans, gate, { data: personaRow }, { count: pendingEnquiries }, rosterConfig] = await Promise.all([
     supabaseAdmin
       .from('pages')
       .select('headline, subheadline, bio, cta_primary, cta_secondary, services, highlights, faq, palette, font, template, show_sections, sections, design_mode, page_bg, surface, border_color, accent_color, palette_tokens, signature_color')
@@ -66,6 +67,7 @@ export default async function MyChatPage({ params, searchParams }: Props) {
       .select('id', { count: 'exact', head: true })
       .eq('provider_id', provider.id)
       .eq('status', 'pending'),
+    getRosterConfig(provider.persona),
   ])
 
   const VALID_TOOL_ACTIONS = new Set(['court', 'draft', 'studio', 'persona-tab'])
@@ -153,6 +155,7 @@ export default async function MyChatPage({ params, searchParams }: Props) {
           studioArchetype: (personaRow?.studio_archetype as string | null) ?? null,
           mykrylaToolsLabel,
           mykrylaTools,
+          rosterConfig,
         },
       }}
     />

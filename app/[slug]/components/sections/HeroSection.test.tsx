@@ -72,10 +72,19 @@ describe('HeroSection — pdp variant (sellganeshidols v3 rebuild)', () => {
     expect(screen.getByText('Handcrafted for Ganesh Chaturthi')).toBeTruthy()
   })
 
-  it('renders the member-facing nav wordmark, not the member\'s own name', () => {
+  it('renders the member\'s own name in the nav wordmark when set', () => {
     render(<HeroSection data={ganeshData} accent="#7A3B12" variant="pdp" />)
-    // v3 reference nav shows the business wordmark (personaConfig.navLabel),
-    // not "Ravi Kumar" — a deliberate change from the prior shadu variant.
+    // The member's first_name/last_name wins over personaConfig.navLabel —
+    // editing the display name in MyKryla must be visible here. (Earlier
+    // this was inverted: the static "Sell Ganesh Idols" wordmark always
+    // won, so a saved display-name edit had no visible effect.)
+    expect(screen.getByText('Ravi Kumar')).toBeTruthy()
+  })
+
+  it('falls back to the persona wordmark when no name is set yet', () => {
+    render(<HeroSection data={{ ...ganeshData, firstName: '', lastName: '' }} accent="#7A3B12" variant="pdp" />)
+    // personaConfig.navLabel is the fallback for a brand-new member who
+    // hasn't set a display name yet — not a permanent override.
     expect(screen.getByText('Sell Ganesh Idols')).toBeTruthy()
   })
 

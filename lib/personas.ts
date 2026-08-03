@@ -17,6 +17,10 @@ import { parseOrderConfig, DEFAULT_ORDER_CONFIG } from '@/lib/orderConfig'
 import type { OrderConfig } from '@/lib/orderConfig'
 export type { OrderConfig, FulfillmentOption, CustomOrderConfig } from '@/lib/orderConfig'
 export { parseOrderConfig } from '@/lib/orderConfig'
+import { parseRosterConfig, DEFAULT_ROSTER_CONFIG } from '@/lib/rosterConfig'
+import type { RosterCopy } from '@/lib/rosterConfig'
+export type { RosterCopy } from '@/lib/rosterConfig'
+export { parseRosterConfig } from '@/lib/rosterConfig'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -246,6 +250,27 @@ export async function getOrderConfig(personaId: string): Promise<OrderConfig> {
     .maybeSingle()
 
   return parseOrderConfig(data?.order_config) ?? DEFAULT_ORDER_CONFIG
+}
+
+// ── Roster-tab vocabulary (student/client/customer/patient copy) ──────────
+//
+// Types + parseRosterConfig() live in lib/rosterConfig.ts (pure, no
+// Supabase/react import, so it's directly unit-testable and safe to import
+// from 'use client' components). This is just the DB fetch wrapper.
+
+/**
+ * Fetch + validate one persona's roster-tab vocabulary. Safe to call from
+ * the MyKryla dashboard route; always returns a usable config, defaulting
+ * to tutor/"student" copy for any unseeded persona.
+ */
+export async function getRosterConfig(personaId: string): Promise<RosterCopy> {
+  const { data } = await supabaseAdmin
+    .from('personas')
+    .select('roster_config')
+    .eq('id', personaId)
+    .maybeSingle()
+
+  return parseRosterConfig(data?.roster_config) ?? DEFAULT_ROSTER_CONFIG
 }
 
 /**

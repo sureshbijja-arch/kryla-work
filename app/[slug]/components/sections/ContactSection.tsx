@@ -199,44 +199,54 @@ export default function ContactSection({ data, accent: _accent, variant }: Props
     .filter(e => e.closed && e.date >= todayStr)
     .map(e => e.date)
 
-  /* ── ENQUIRY (baker / chef — WhatsApp first, simple form) ───────────── */
+  /* ── ENQUIRY (baker / chef / sellganeshidols — WhatsApp first, simple form) ──
+     WhatsApp CTA reads --color-accent/--color-ink instead of the brand-green
+     fill+glow every other variant still uses — on personas with a curated
+     accent far from WhatsApp green (e.g. sellganeshidols' russet), a solid
+     green button with a 48px green glow read as off-palette and AI-generic.
+     The glyph stays recognizably WhatsApp; the surrounding chrome doesn't
+     compete with the page's own palette. See designscreenshots critique. */
   if (variant === 'enquiry') return (
     <section id="book" className="border-t border-[var(--kryla-border)]"
       style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
       <style>{STYLES}</style>
       <div className="max-w-2xl mx-auto px-6">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999] mb-6">{contactLabel}</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-6" style={{ color: 'var(--color-ink-muted)' }}>{contactLabel}</p>
         {data.businessHours?.enabled && <HoursCard hours={data.businessHours} />}
-        <div className="space-y-4">
+        <div className="contact-in border" style={{ borderRadius: 'var(--radius-card)', borderColor: 'var(--color-accent-border)' }}>
           {wa && showContact && (
-            <a href={wa} target="_blank" rel="noopener noreferrer"
-              className="contact-in flex items-center gap-3 px-6 py-5 font-black text-white w-full justify-center hover:opacity-90 hover:scale-[1.01] transition-all"
-              style={{ borderRadius: 'var(--radius-btn)', background: '#25D366', boxShadow: '0 16px 48px rgba(37,211,102,0.4)' }}>
-              <WhatsAppIcon />
-              WhatsApp {firstName}
-            </a>
+            <div className="p-5" style={{ background: 'var(--color-accent)' }}>
+              <a href={wa} target="_blank" rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2.5 w-full py-3.5 border transition-opacity hover:opacity-80"
+                style={{ borderRadius: 'var(--radius-btn)', borderColor: 'rgba(255,255,255,0.55)' }}>
+                <WhatsAppIcon size={15} color="white" />
+                <span className="font-black text-white text-sm tracking-[0.01em]">Message on WhatsApp</span>
+              </a>
+            </div>
           )}
-          <div className="relative flex items-center gap-3 my-2">
-            <div className="flex-1 h-px bg-[#E5E5E5]" />
-            <span className="text-xs text-[#bbb] font-semibold">or send a message</span>
-            <div className="flex-1 h-px bg-[#E5E5E5]" />
+          <div className="p-5 space-y-3" style={{ background: 'var(--color-surface)' }}>
+            <p className="text-[10px] font-black uppercase tracking-[0.14em]" style={{ color: 'var(--color-ink-muted)' }}>Or tell us what you need</p>
+            <EnquiryForm providerId={providerId} accentColor="var(--color-ink)" />
           </div>
-          <EnquiryForm providerId={providerId} accentColor="var(--color-accent)" />
-          {ig && (
-            <a href={ig} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-2 justify-center text-sm text-[#888] hover:text-[#0D0D0D] transition-colors mt-4">
-              <InstagramIcon size={15} color="currentColor" />
-              @{instagramHandle}
-            </a>
-          )}
-          {nd && (
-            <a href={nd} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-2 justify-center text-sm text-[#888] hover:text-[#0D0D0D] transition-colors mt-3">
-              <NextdoorIcon size={15} color="currentColor" />
-              Nextdoor
-            </a>
-          )}
         </div>
+        {(ig || nd) && (
+          <div className="flex items-center justify-center gap-5 mt-4">
+            {ig && (
+              <a href={ig} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm transition-colors hover:opacity-70" style={{ color: 'var(--color-ink-muted)' }}>
+                <InstagramIcon size={15} color="currentColor" />
+                @{instagramHandle}
+              </a>
+            )}
+            {nd && (
+              <a href={nd} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm transition-colors hover:opacity-70" style={{ color: 'var(--color-ink-muted)' }}>
+                <NextdoorIcon size={15} color="currentColor" />
+                Nextdoor
+              </a>
+            )}
+          </div>
+        )}
       </div>
     </section>
   )

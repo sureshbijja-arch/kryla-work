@@ -6,7 +6,7 @@ import { getPersonaConfig } from '../../personaConfig'
 import { DAY_ORDER, DAY_LABELS, DAY_FULL, toMins, fmt12, getTodayKey, getStatus, getUpcomingExceptions, fmtExceptionDate, getDateStr } from '../../hours'
 import { getVariants, priceRange } from '../../variants'
 import SmartImg from '../SmartImg'
-import { EyebrowLabel } from '../shared'
+import { EyebrowLabel, WhatsAppIcon } from '../shared'
 import { useOrderActions, OrderActionModals } from './orderActions'
 import { useIdolSelection } from '../IdolSelectionContext'
 
@@ -554,7 +554,13 @@ function HeroPdp({ data, heroHeight }: { data: ProfileData; heroHeight?: number 
   // Ganesh-only config fields — 'in' narrows TypeScript's inferred union
   // safely without widening every other persona's config shape, same
   // pattern already used for heroEyebrow/orderButtonStyle.
-  const navLabel   = 'navLabel'   in pcfg ? pcfg.navLabel   : [firstName, lastName].filter(Boolean).join(' ')
+  //
+  // navLabel: the member's own name (first_name/last_name) wins whenever
+  // it's set — pcfg.navLabel is only a fallback for a member who hasn't
+  // set one yet. Previously this was inverted (config always won), which
+  // meant editing the display name in MyKryla had no visible effect here.
+  const dbName     = [firstName, lastName].filter(Boolean).join(' ').trim()
+  const navLabel   = dbName || ('navLabel' in pcfg ? pcfg.navLabel : '')
   const navLinks   = 'navLinks'   in pcfg ? pcfg.navLinks   : []
   const sizeLabel  = 'sizeSelectorLabel' in pcfg ? pcfg.sizeSelectorLabel : 'Select option'
   const includesLb = 'includesLabel'     in pcfg ? pcfg.includesLabel     : 'Includes'
@@ -582,8 +588,9 @@ function HeroPdp({ data, heroHeight }: { data: ProfileData; heroHeight?: number 
         </div>
         {wa && showSections.contact && (
           <a href={wa} target="_blank" rel="noopener noreferrer"
-            className="shrink-0 px-5 py-2.5 text-xs font-black uppercase tracking-[0.08em] border transition-colors hover:opacity-70"
+            className="shrink-0 flex items-center gap-2 px-5 py-2.5 text-xs font-black uppercase tracking-[0.08em] border transition-colors hover:opacity-70"
             style={{ borderRadius: 'var(--radius-btn)', borderColor: ink, color: ink }}>
+            <WhatsAppIcon size={14} color="currentColor" />
             Enquire
           </a>
         )}
