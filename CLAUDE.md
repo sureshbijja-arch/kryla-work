@@ -67,118 +67,7 @@ Personas are **fully DB-driven** — not hardcoded. The `personas` table is the 
 
 ## API Routes
 
-### Core / Onboarding
-
-| Route | Method | Purpose |
-|---|---|---|
-| `/api/onboarding/check-slug` | GET | Validates + checks slug availability |
-| `/api/onboarding/submit` | POST | Creates provider row, fires Inngest build event; also captures a CopyWebsite request (non-fatal) if `sourceUrl` present + gate allows |
-| `/api/onboarding/status` | GET | Polls page_live for providerId + slug |
-| `/api/onboarding/copywebsite-gate` | GET | Public — `?ref=<code>` → `{ allowed }`, whether to show the "bring your website over" field |
-| `/api/inngest` | GET/POST/PUT | Inngest serve endpoint |
-| `/api/notify/build-failed` | POST | Logs build failures |
-| `/api/revalidate` | POST | ISR revalidation trigger from Inngest (requires REVALIDATE_SECRET) |
-
-### MyKryla — Page & Design
-
-| Route | Method | Purpose |
-|---|---|---|
-| `/api/mychat/chat` | POST | AI chat editor — updates pages via draft_data |
-| `/api/mychat/sections` | POST | Updates pages.sections (auth-gated by email ownership) |
-| `/api/mychat/services` | POST | Updates pages.services array |
-| `/api/mychat/seo` | GET/POST | Reads/writes seo_title + seo_description via draft_data (Get Found tab) |
-| `/api/mychat/upload` | POST | Uploads image to profile-media bucket; types: avatar, gallery, service (Grow+) |
-| `/api/mychat/profile` | GET/POST | Member profile read/write |
-| `/api/mychat/publish` | POST | Publish/unpublish public page |
-| `/api/mychat/layout` | GET/POST | Layout read/write |
-| `/api/mychat/layouts` | GET | Layout presets list |
-| `/api/mychat/check-owner` | GET | Verifies email owns slug |
-| `/api/mychat/custom-domain` | GET/POST | Vanity name management (Thrive+) |
-| `/api/mychat/display-name` | POST | Display name update |
-| `/api/mychat/verification` | GET/POST | Profile verification status |
-| `/api/mychat/suggestion` | POST | AI page suggestion |
-| `/api/mychat/hours` | GET/POST | Business hours |
-| `/api/mychat/availability` | GET/POST | Availability slots |
-
-### MyKryla — Communication
-
-| Route | Method | Purpose |
-|---|---|---|
-| `/api/mychat/bookings` | GET/POST | Bookings management |
-| `/api/mychat/whatsapp-connect` | POST | WhatsApp number connection |
-| `/api/mychat/whatsapp-reply` | POST | Send WhatsApp reply |
-| `/api/mychat/email-settings` | GET/POST | Email settings |
-| `/api/mychat/email-reply` | POST | Send email reply |
-| `/api/booking` | POST | Public booking form submission |
-| `/api/push/vapid-key` | GET | Public — exposes the VAPID public key for client-side `pushManager.subscribe()` |
-| `/api/push/subscribe` | POST/DELETE | Save / remove a member's Web Push subscription (auth-gated by email ownership) |
-
-### MyKryla — AI Tools
-
-| Route | Method | Purpose |
-|---|---|---|
-| `/api/mychat/research` | POST | AI research feature |
-| `/api/mychat/tts` | POST | Text-to-speech |
-| `/api/mychat/transcribe` | POST | Audio transcription |
-| `/api/mychat/translate` | POST | Text translation |
-| `/api/mychat/scan-menu` | POST | Menu scanning (storefront personas) |
-| `/api/mychat/legal-news` | GET | Legal news feed (advocate) |
-| `/api/mychat/court/config` | GET | Court tools config + portal URLs (advocate, india) |
-| `/api/mychat/court/locator` | GET | Court complex search — in-app seeded data (advocate, india) |
-| `/api/mychat/court/watched` | GET/POST | List / save watched cases (advocate, india) |
-| `/api/mychat/court/watched/[id]` | PATCH/DELETE | Update hearing date / archive watched case (advocate, india) |
-| `/api/mychat/court/tribunals` | GET | Tribunal directory search (`q`, `category` filter) (advocate, india) |
-| `/api/mychat/court/settings` | GET/PATCH | Read / flip `cause_list_alerts_enabled` per advocate (advocate, india) |
-
-### MyKryla — Studio (Business Documents)
-
-| Route | Method | Purpose |
-|---|---|---|
-| `/api/mychat/studio` | POST | Generate document (streaming) |
-| `/api/mychat/studio/documents` | GET/POST | Saved documents CRUD |
-| `/api/mychat/studio/templates` | GET | Document templates |
-| `/api/mychat/studio/library` | GET/POST | Studio content library |
-| `/api/mychat/studio/config` | GET | Studio config for persona |
-
-### MyKryla — Drafting Studio (Advocate)
-
-| Route | Method | Purpose |
-|---|---|---|
-| `/api/mychat/draft` | POST | AI drafting generation |
-| `/api/mychat/draft/proofread` | POST | Proofread draft |
-| `/api/mychat/draft/import` | POST | Import document |
-| `/api/mychat/draft/citations` | POST | Extract/format citations |
-| `/api/mychat/draft/export` | POST | Export draft |
-| `/api/mychat/drafts` | GET/POST | Saved drafts CRUD |
-| `/api/mychat/draft-templates` | GET | Drafting templates |
-| `/api/mychat/clauses` | GET/POST | Clause library management |
-| `/api/mychat/letterhead` | GET/POST | Letterhead settings |
-| `/api/mychat/clients/[id]/export` | POST | Export client data |
-| `/api/mychat/clients/[id]/erase` | DELETE | GDPR erase client data |
-
-### MyKryla — Clinical Studio (Doctor / Physio / Allied Health)
-
-| Route | Method | Purpose |
-|---|---|---|
-| `/api/mychat/clinical-notes` | GET/POST | Clinical notes |
-| `/api/mychat/clinical-templates` | GET | Clinical doc templates |
-| `/api/mychat/treatment-plans` | GET/POST | Treatment plans |
-| `/api/mychat/hep` | GET/POST | Home exercise programs |
-| `/api/mychat/outcome-measures` | GET/POST | Outcome measures |
-| `/api/mychat/exercises` | GET | Exercise library |
-| `/api/mychat/working` | GET/POST | Working documents |
-| `/api/mychat/working/export` | POST | Export working doc |
-| `/api/mychat/working/import` | POST | Import working doc |
-
-### MyKryla — Members & Plan
-
-| Route | Method | Purpose |
-|---|---|---|
-| `/api/mychat/students` | GET/POST | Student/roster management |
-| `/api/mychat/student-sessions` | GET/POST | Session logging (tutor) |
-| `/api/mychat/reviews` | GET/POST | Reviews management |
-| `/api/mychat/stats` | GET | Member page stats |
-| `/api/mychat/referral-code` | GET | Referral code |
+Route handlers live under `app/api/**/route.ts`, one file per route — read the file for method/purpose rather than a table here (route names are self-describing: `court/*`, `draft/*`, `studio/*`, `clinical-*` etc. group by feature under `app/api/mychat/`). Non-obvious behavior worth knowing up front:
 
 ### /api/onboarding/submit — key behaviour
 
@@ -363,129 +252,22 @@ Section builder (`app/mychat/SectionsTab.tsx`, mounted at My Page → `sections`
 
 ## Database Tables
 
-### Core
+Use `list_tables` (Supabase MCP) for current columns/types — the gotchas below aren't visible there:
 
-**providers**
-| Column | Notes |
-|---|---|
-| id uuid PK | |
-| slug text unique | |
-| first_name, last_name, persona, location, tagline | |
-| whatsapp_number | formatted as `{countryCode}{digits}` |
-| email | optional, NOT unique |
-| plan | seed/sprout/grow/thrive/elevate |
-| plan_status | active / pending_payment |
-| region | usa / india |
-| page_live boolean | set true by Inngest after build |
-| suspended boolean | admin kill-switch, default false. Site resolves only when `page_live=true AND suspended=false` — enforced in `middleware.ts` (`findLiveSlug`) and `app/[slug]/page.tsx` (`findProvider`). Managed at `/admin/members`. |
-| verified boolean | |
-| custom_persona_name | set when persona='other' |
-| avatar_url | Supabase Storage, profile-media bucket |
-| custom_domain | vanity name for Thrive+ |
-
-**pages**
-| Column | Notes |
-|---|---|
-| provider_id uuid FK | |
-| headline, subheadline, bio, cta_primary, cta_secondary | |
-| services jsonb | [{name, description, duration_or_unit, price, badge?, image_url?}] |
-| highlights jsonb | [{icon, title, body}] |
-| faq jsonb | [{question, answer}] |
-| seo_title, seo_description, schema_type | |
-| template | focus/portfolio/storefront/clinic |
-| palette | professional/fresh/warm/minimal/creative/calm |
-| font | default: inter |
-| gallery jsonb | array of image URLs |
-| sections jsonb | [{sectionKey, variant, order}] — drives LayoutRenderer; null = legacy |
-| design_mode | craft \| editorial \| product |
-| draft_data jsonb | pending AI edits (pages + providers sub-keys) |
-
-**onboarding_answers** — provider_id, persona, name, tagline, location, slug, whatsapp, email, plan, region, claude_prompt, claude_response
-
-**bookings** — id, provider_id, customer_name, customer_phone, service, preferred_date, message, status (pending/accepted/rejected/cancelled), notification_sent, confirmation_sent. Legacy columns (`client_*`, `service_requested`, `requested_slot`) — unused, do not write to them.
-
-**ads** — id, provider_id, title (100), description (500), image_url, link_url, status (pending/approved/rejected)
-
-**build_failures** — id, provider_id, slug, failed_at
-
-**website_copy_requests** — CopyWebsite feature (gated "bring your existing site over"). id, provider_id FK, slug, source_url, status (pending/approved/rejected/done), output_type (native/clone — set at approval), admin_note, created_at, reviewed_at. Captured non-fatally by `/api/onboarding/submit` when the member pastes a URL and their referral code passes the gate (`lib/copywebsite.ts` → `isCopyWebsiteAllowed()`). **No automatic scraping/cloning** — every request is approved by hand in `/admin/copywebsite`, and the page itself is then built manually in MyKryla; "approved" is bookkeeping only, not a trigger.
-
-### Persona Catalog
-
-**personas** — DB registry of all personas. Key columns: id, label, emoji, template, palette, font, enabled (bool), sort_order, studio_archetype (FK → studio_archetypes.id), studio_guidance (text), studio_config (jsonb — vocab overrides: patient_noun, studio_label, content_noun, etc.), default_gallery (jsonb array of `/images/*` paths — seeded gallery for new members of that persona, default `[]`). `getEnabledPersonas()` reads this table. `fetchPersonaDefaults()` in `lib/personas.ts` returns template/palette/font/defaultGallery together for Inngest's build-page step.
-
-### Plans & Gating
-
-**plans** — id (matches providers.plan), name, emoji, tagline, usa_price, india_price, is_quote, popular, sort_order, active
-
-**plan_features** — plan_id, label, description, feature_key (nullable — null = display only), sort_order. Gating: `getPlanGate()` builds `Map<featureKey → minSortOrder>`; `gate.allows(key, plan)` returns true when member's plan sort_order ≥ min. **Admin UI:** `/admin/plans`. No hardcoded tier comparisons in source.
-
-### Studio Tables
-
-**studio_archetypes** — id, label, base_guidance, disclaimer, has_library (bool), library_label (NOT NULL — use '' not NULL), feature_key. Current: 11 archetypes.
-
-**studio_modes** — archetype_id FK, key, label, sort_order, form_schema jsonb (drives dynamic form UI), prompt_instructions, output_format (html|json|redline), streaming bool. Current: 62 modes. Adding a mode = one row, no code change.
-
-**studio_documents** — saved generated documents per member.
-
-**studio_templates** — reusable template library. Current: 21 templates.
-
-**studio_library** — studio content library items. Current: 72 items.
-
-**studio_usage** — AI generation usage tracking per member.
-
-### Drafting Studio (Advocate)
-
-**drafts** — saved advocate drafts  
-**draft_templates** — 10 templates  
-**clause_library** — 10 legal clauses  
-**drafting_usage** — usage tracking
-
-### Clinical Tables (Doctor / Physio / Allied Health)
-
-**clinical_doc_templates** (5) | **clinical_notes** | **treatment_plans**  
-**exercise_library** (38 exercises) | **hep_programs** | **outcome_measures**  
-**working_usage** — working documents usage tracking
-
-### Communication
-
-**whatsapp_connections** — connected WhatsApp numbers per provider  
-**whatsapp_messages** — message log  
-**provider_email** — email accounts per provider  
-**emails** — email log  
-**notifications** — in-app notifications  
-**push_subscriptions** — Web Push subscriptions for the MyKryla PWA (`provider_id`, `endpoint` unique, `p256dh`, `auth`, `user_agent`). One provider can have several (multiple devices). Service-role-only (RLS enabled, no policies). Written by `POST/DELETE /api/push/subscribe`; read by `lib/push/send.ts`; stale (404/410) subscriptions are pruned automatically on send.
-
-### Members / Activity
-
-**students** — tutor persona student records  
-**student_sessions** — session logs  
-**reviews** — member reviews  
-**page_events** — page view events (40 rows)  
-**page_reactions** — emoji reactions on public pages (4 rows)  
-**availability** — availability slots  
-**suggestions** — member-submitted suggestions  
-
-### Layout & Section Registry
-
-**layout_presets** (77) — layout preset data  
-**section_types** (7) — registry of valid section keys and their variants  
-**persona_templates** — persona-specific page templates  
-
-### Payments (infrastructure only — UI not built)
-
-**payment_events** — append-only audit ledger (Stripe/Razorpay webhooks)  
-**webhook_events** — idempotency table for gateway webhooks. On 23505 → already processed.
-
-### Config & Research
-
-**research_usage** (5) — AI research usage tracking  
-**system_config** — key-value system config. Includes `copywebsite_gate` (`{mode: 'none'|'all'|'list', codes: string[]}`) — controls who sees the CopyWebsite onboarding field; managed at `/admin/copywebsite`, ships dark (`mode:'none'`).  
-**consent_events** — GDPR consent tracking  
-**legal_news** (238) — legal news feed for advocate persona  
-**rate_limit_hits** — backing store for `lib/rateLimit.ts` (see What's Built). `(bucket, identifier, created_at)`, indexed on `(bucket, identifier, created_at)`. No automatic cleanup job yet — acceptable at current volume, revisit if it grows large.  
-
-**RLS note:** `providers` and `pages` have RLS **enabled** with an owner-access policy (`email = auth.jwt() ->> 'email'`, mirrors the `provider_email`/`emails` pattern — see `20260721000011_pages_providers_rls_policies.sql`) so MediaTab.tsx's client-side browser-client reads work; all API routes use the service role and bypass RLS regardless. `onboarding_answers` has RLS enabled with no policies (only ever read/written via service role — no client-side reads exist). Studio and clinical tables also have RLS enabled with no policies (service-role-only). Do not assume "RLS disabled" for any table without checking `pg_policies` — most tables in this project have RLS on by default with zero policies, which silently blocks any client-side (browser `createClient()`) read/write against them.
+- **providers.suspended** — admin kill-switch (default false). Site resolves only when `page_live=true AND suspended=false` — enforced in `middleware.ts` (`findLiveSlug`) and `app/[slug]/page.tsx` (`findProvider`). Managed at `/admin/members`.
+- **providers.email / whatsapp_number** — NOT unique constraints. Multiple providers can share email or phone. Only `slug` is unique.
+- **pages.sections** — jsonb `[{sectionKey, variant, order}]`, drives LayoutRenderer; `null` = legacy (pre-section-engine) page.
+- **pages.draft_data** — pending AI edits, keyed by `pages` + `providers` sub-keys.
+- **bookings** — legacy columns `client_*`, `service_requested`, `requested_slot` are unused; do not write to them.
+- **website_copy_requests** — CopyWebsite feature. **No automatic scraping/cloning** — every request is approved by hand in `/admin/copywebsite`, and the page itself is then built manually in MyKryla; "approved" is bookkeeping only, not a trigger.
+- **personas** — DB registry of all personas, drives `getEnabledPersonas()`. `studio_config` jsonb carries vocab overrides (patient_noun, studio_label, etc.) and `mykryla_tools` config (see MyKryla section above). `fetchPersonaDefaults()` in `lib/personas.ts` returns template/palette/font/defaultGallery for Inngest's build-page step.
+- **plan_features.feature_key** — nullable (null = display only). Gating: `getPlanGate()` builds `Map<featureKey → minSortOrder>`; `gate.allows(key, plan)` returns true when member's plan sort_order ≥ min. No hardcoded tier comparisons in source.
+- **studio_archetypes.library_label** — NOT NULL constraint in production; always use `''` not `NULL`.
+- **studio_modes** — adding a mode is one row insert, no code change (form_schema jsonb drives the dynamic form UI).
+- **push_subscriptions** — service-role-only (RLS enabled, no policies). One provider can have several rows (multiple devices). Stale (404/410) subscriptions are pruned automatically on send by `lib/push/send.ts`.
+- **system_config** — key-value config table. `copywebsite_gate` (`{mode: 'none'|'all'|'list', codes: string[]}`) controls who sees the CopyWebsite onboarding field, ships dark (`mode:'none'`).
+- **rate_limit_hits** — backing store for `lib/rateLimit.ts`. No automatic cleanup job yet — acceptable at current volume, revisit if it grows large.
+- **RLS note:** `providers` and `pages` have RLS **enabled** with an owner-access policy (`email = auth.jwt() ->> 'email'`) so MediaTab.tsx's client-side browser-client reads work; all API routes use the service role and bypass RLS regardless. Most other tables (onboarding_answers, studio/clinical tables) have RLS enabled with **zero policies** — service-role-only. Do not assume "RLS disabled" for any table without checking `pg_policies`; the default in this project is RLS-on-zero-policies, which silently blocks any client-side read/write.
 
 ---
 
